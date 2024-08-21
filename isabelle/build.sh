@@ -1,1 +1,1 @@
-isabelle build -v -b CVM
+isabelle build -v -b -D .

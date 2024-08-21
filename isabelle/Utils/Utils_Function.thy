@@ -1,4 +1,4 @@
-theory CVM_Function
+theory Utils_Function
 
 imports
   Main

@@ -1,1 +1,1 @@
-isabelle vscode -R CVM -R CVM_Utils
+isabelle vscode -R CVM

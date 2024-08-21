@@ -1,4 +1,4 @@
-theory CVM_Real
+theory Utils_Real
 
 imports
   HOL.Transcendental

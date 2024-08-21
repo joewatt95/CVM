@@ -1,11 +1,9 @@
 session CVM = Frequency_Moments +
   options [timeout = 99999999]
-  sessions
-    CVM_Utils
+  directories
+    "Algo"
+    "Utils"
   theories [document = false]
     CVM
-
-session CVM_Utils in CVM_Utils = HOL +
-  theories [document = false]
-    CVM_Function
-    CVM_Real
+    "Algo/Algo"
+    "Utils/Utils"
