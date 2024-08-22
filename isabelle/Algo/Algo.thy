@@ -11,6 +11,7 @@ imports
 begin
 
 context params begin
+
 context includes pattern_aliases begin
 
 definition initial_state where
@@ -57,5 +58,9 @@ fun result :: "trace option \<Rightarrow> nat option" where
 definition estimate_size :: "nat list \<Rightarrow> nat option pmf" where
   "estimate_size xs =
     (initial_trace |> foldM_pmf step xs |> map_pmf result)"
+
+end
+
+end
 
 end
