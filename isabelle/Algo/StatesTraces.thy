@@ -30,7 +30,7 @@ end
 
 instantiation "list" :: (type) well_formed_wrt
 begin
-  definition well_formed_wrt_list where
+  abbreviation well_formed_wrt_list where
     "well_formed_wrt_list \<equiv> list_all \<circ> well_formed_wrt"
 
   instance ..
