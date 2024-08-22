@@ -11,4 +11,7 @@ definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Ri
 definition pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "|>" 0) where
   "(|>) = flip id"
 
+definition app :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "<|" 0) where
+  "(<|) = id"
+
 end
