@@ -57,5 +57,3 @@ fun estimate_size :: "nat list \<Rightarrow> nat option pmf" where
       |> map_pmf result)"
 
 end
-
-end
