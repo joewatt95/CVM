@@ -7,8 +7,6 @@ imports
 
 begin
 
-(* Somehow the locale slows down building of the heap image *)
-
 locale params =
   fixes
     m :: nat and
