@@ -1,5 +1,5 @@
 session CVM = Frequency_Moments +
-  options [timeout = 99999999]
+  options [timeout = 600]
   directories
     "Algo"
     "Utils"

@@ -5,10 +5,10 @@ imports
 
 begin
 
-abbreviation flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-  "flip f x y \<equiv> f y x"
+definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
+  "flip f x y = f y x"
 
-abbreviation pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "|>" 0) where
-  "(|>) \<equiv> flip id"
+definition pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "|>" 0) where
+  "(|>) = flip id"
 
 end

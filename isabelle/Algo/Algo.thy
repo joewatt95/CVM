@@ -2,8 +2,8 @@ theory Algo
 
 imports
   HOL.Option
-  (* "HOL-Library.Pattern_Aliases"
-  "HOL-Probability.Probability_Mass_Function" *)
+  "HOL-Library.Pattern_Aliases"
+  "HOL-Probability.Product_PMF"
   (* Frequency_Moments.Frequency_Moments *)
   CVM.Utils
   Params
