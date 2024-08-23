@@ -45,11 +45,11 @@ fun step :: "nat \<Rightarrow> state \<Rightarrow> state option pmf" where
       then None
       else Some \<lparr>state_p = p / 2, state_chi = chi\<rparr> }}"
 
-abbreviation steps_to ("\<turnstile> _ \<rightarrow> [ _ ] \<rightarrow> _" [999, 999, 999]) where
+(* abbreviation steps_to ("\<turnstile> _ \<rightarrow> [ _ ] \<rightarrow> _" [999, 999, 999]) where
   "steps_to state x state' \<equiv> step x state = return_pmf (Some state')"
 
 abbreviation doesnt_step_to ("⊬ _ \<rightarrow> [ _ ] \<rightarrow> " [999, 999]) where
-  "doesnt_step_to state x \<equiv> step x state = return_pmf None"
+  "doesnt_step_to state x \<equiv> step x state = return_pmf None" *)
 
 fun result :: "state \<Rightarrow> nat" where
   "result \<lparr>state_p = p, state_chi = chi\<rparr> =
