@@ -28,7 +28,8 @@ lemma threshold_pos : "threshold > 0"
 lemma threshold_gt_one : "threshold \<ge> 1"
   using threshold_pos by linarith
 
-definition well_formed :: "_::{well_formed_wrt} \<Rightarrow> bool" where 
+definition well_formed :: "_::{well_formed_wrt} \<Rightarrow> bool"
+  ("\<turnstile> _ ok" [999]) where 
   [simp] : "well_formed \<equiv> well_formed_wrt threshold"
 
 (* lemma well_formed_def [simp] :

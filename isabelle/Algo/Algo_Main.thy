@@ -17,26 +17,18 @@ context includes pattern_aliases begin
 definition initial_state :: state where
   [simp] : "initial_state \<equiv> \<lparr>state_p = 1, state_chi = {}\<rparr>"
 
-definition initial_trace :: trace where
-  [simp] : "initial_trace \<equiv> [initial_state]"
+(* definition initial_trace :: trace where
+  [simp] : "initial_trace \<equiv> [initial_state]" *)
 
-lemma initial_state_well_formed :
-  "well_formed initial_state"
-  sorry
-
-lemma initial_trace_well_formed :
-  "well_formed initial_trace"
-  sorry
-
-fun step :: "nat \<Rightarrow> trace option \<Rightarrow> trace option pmf" where
-  "step x (Some ((\<lparr>state_p = p, state_chi = chi\<rparr> =: state) # _ =: states)) = do {
+fun step :: "nat \<Rightarrow> state \<Rightarrow> state option pmf" where
+  "step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
     remove_x_from_chi \<leftarrow> bernoulli_pmf p;
     let chi = (chi
       |> flip (-) {x}
       |> if remove_x_from_chi then id else insert x);
 
     if card chi < threshold
-    then return_pmf <| Some <| state\<lparr>state_chi := chi\<rparr> # states
+    then return_pmf <| Some <| state\<lparr>state_chi := chi\<rparr>
     else do {
 
     keep_in_chi :: nat \<Rightarrow> bool \<leftarrow>
@@ -47,21 +39,24 @@ fun step :: "nat \<Rightarrow> trace option \<Rightarrow> trace option pmf" wher
     return_pmf <|
       if card chi = threshold
       then None
-      else
-        let state = \<lparr>state_p = p / 2, state_chi = chi\<rparr>
-        in Some (state # states) }}" |
+      else Some \<lparr>state_p = p / 2, state_chi = chi\<rparr> }}"
 
-  "step _ _ = return_pmf None"
+abbreviation steps_to ("\<turnstile> _ \<rightarrow> [ _ ] \<rightarrow> _" [999, 999, 999]) where
+  "steps_to state x state' \<equiv> step x state = return_pmf (Some state')"
 
-fun result :: "trace option \<Rightarrow> nat option" where
-  "result (Some (\<lparr>state_p = p, state_chi = chi\<rparr> # _)) =
-    Some (nat \<lfloor>(card chi :: real) / p\<rfloor>)" |
+abbreviation doesnt_step_to ("⊬ _ \<rightarrow> [ _ ] \<rightarrow> " [999, 999]) where
+  "doesnt_step_to state x \<equiv> step x state = return_pmf None"
 
-  "result _ = None"
+fun result :: "state \<Rightarrow> nat" where
+  "result \<lparr>state_p = p, state_chi = chi\<rparr> =
+    nat \<lfloor>(card chi :: real) / p\<rfloor>"
 
 definition estimate_size :: "nat list \<Rightarrow> nat option pmf" where
   "estimate_size xs \<equiv>
-    (initial_trace |> Some |> foldM_pmf step xs |> map_pmf result)"
+    (initial_state
+      |> Some
+      |> foldM_option_pmf step xs
+      |> map_pmf (map_option result))"
 
 end
 
