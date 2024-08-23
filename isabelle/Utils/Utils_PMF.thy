@@ -1,7 +1,6 @@
 theory Utils_PMF
 
 imports
-  Main
   "HOL-Probability.Probability_Mass_Function"
 
 begin

@@ -6,12 +6,12 @@ imports
 begin
 
 definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-  "flip f x y = f y x"
+  [simp] : "flip f x y \<equiv> f y x"
 
 definition pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "|>" 0) where
-  "(|>) = flip id"
+  [simp] : "(|>) \<equiv> flip id"
 
 definition app :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "<|" 0) where
-  "(<|) = id"
+  [simp] : "(<|) \<equiv> id"
 
 end

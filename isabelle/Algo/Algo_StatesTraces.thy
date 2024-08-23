@@ -1,9 +1,7 @@
-theory StatesTraces
+theory Algo_StatesTraces
 
 imports
   HOL.Real
-  (* "HOL-Analysis.Analysis"
-  "HOL-Probability.Probability_Measure" *)
 
 begin
 
@@ -30,10 +28,11 @@ end
 
 instantiation "list" :: (type) well_formed_wrt
 begin
-  abbreviation well_formed_wrt_list where
-    "well_formed_wrt_list \<equiv> list_all \<circ> well_formed_wrt"
+  definition well_formed_wrt_list where
+    [simp] : "well_formed_wrt_list \<equiv> list_all \<circ> well_formed_wrt"
 
   instance ..
 end
+
 
 end

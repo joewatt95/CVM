@@ -1,9 +1,18 @@
 session CVM = Frequency_Moments +
-  options [timeout = 600]
+  options [timeout = 300]
+
   directories
     "Algo"
     "Utils"
+
   theories [document = false]
     CVM
-    "Algo/Algo"
-    "Utils/Utils"
+
+    "Algo/Algo_Main"
+    "Algo/Algo_Params"
+    "Algo/Algo_Properties"
+    "Algo/Algo_StatesTraces"
+
+    "Utils/Utils_Function"
+    "Utils/Utils_Real"
+    "Utils/Utils_PMF"

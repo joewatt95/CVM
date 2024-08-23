@@ -1,12 +1,12 @@
-theory Algo
+theory Algo_Main
 
 imports
-  HOL.Option
   "HOL-Library.Pattern_Aliases"
   "HOL-Probability.Product_PMF"
   (* Frequency_Moments.Frequency_Moments *)
-  CVM.Utils
-  Params
+  CVM.Utils_Function
+  CVM.Utils_PMF
+  CVM.Algo_Params
 
 begin
 
@@ -14,15 +14,19 @@ context params begin
 
 context includes pattern_aliases begin
 
-definition initial_state where
-  "initial_state \<equiv> \<lparr>state_p = 1, state_chi = {}\<rparr>"
+definition initial_state :: state where
+  [simp] : "initial_state \<equiv> \<lparr>state_p = 1, state_chi = {}\<rparr>"
 
-definition initial_trace where
-  "initial_trace = Some [initial_state]"
+definition initial_trace :: trace where
+  [simp] : "initial_trace \<equiv> [initial_state]"
 
-(* lemma (in params) initial_state_well_formed :
+lemma initial_state_well_formed :
   "well_formed initial_state"
-  sorry *)
+  sorry
+
+lemma initial_trace_well_formed :
+  "well_formed initial_trace"
+  sorry
 
 fun step :: "nat \<Rightarrow> trace option \<Rightarrow> trace option pmf" where
   "step x (Some ((\<lparr>state_p = p, state_chi = chi\<rparr> =: state) # _ =: states)) = do {
@@ -56,8 +60,8 @@ fun result :: "trace option \<Rightarrow> nat option" where
   "result _ = None"
 
 definition estimate_size :: "nat list \<Rightarrow> nat option pmf" where
-  "estimate_size xs =
-    (initial_trace |> foldM_pmf step xs |> map_pmf result)"
+  "estimate_size xs \<equiv>
+    (initial_trace |> Some |> foldM_pmf step xs |> map_pmf result)"
 
 end
 
