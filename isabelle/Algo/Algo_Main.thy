@@ -20,6 +20,10 @@ definition initial_state :: state where
 (* definition initial_trace :: trace where
   [simp] : "initial_trace \<equiv> [initial_state]" *)
 
+(*
+Probabilistic automaton that reads a nat from the input list and then
+probabilistically transitions to either a state or dead state (ie None).
+*)
 fun step :: "nat \<Rightarrow> state \<Rightarrow> state option pmf" where
   "step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
     remove_x_from_chi \<leftarrow> bernoulli_pmf p;
