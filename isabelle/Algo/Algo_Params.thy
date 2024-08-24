@@ -22,19 +22,17 @@ begin
 definition threshold :: nat where
   [simp] : "threshold \<equiv> nat \<lceil>(12 / \<epsilon> ^ 2) * log2 (8 * m / \<delta>)\<rceil>"
 
-lemma threshold_pos : "threshold > 0"
-  using m_pos \<epsilon>_in_0_1 \<delta>_in_0_1 by auto
-
-lemma threshold_gt_one : "threshold \<ge> 1"
-  using threshold_pos by linarith
+lemma threshold_pos :
+  "threshold > 0" and
+  "threshold \<ge> 1"
+proof -
+  show "threshold > 0" using m_pos \<epsilon>_in_0_1 \<delta>_in_0_1 by auto
+  then show "threshold \<ge> 1" by linarith
+qed
 
 definition well_formed :: "_::{well_formed_wrt} \<Rightarrow> bool"
   ("\<turnstile> _ ok" [999]) where 
   [simp] : "well_formed \<equiv> well_formed_wrt threshold"
-
-(* lemma well_formed_def [simp] :
-  "well_formed = well_formed_wrt threshold"
-  by force *)
 
 end
 
