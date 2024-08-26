@@ -24,15 +24,30 @@ lemma prob_always :
 
 (* https://www.cse.unsw.edu.au/~kleing/papers/Cock_KS_08.pdf *)
 lemma prob_seq :
+  fixes f :: "'a \<Rightarrow>'b pmf"
+  fixes g :: "'b \<Rightarrow>'c pmf"
   assumes
     "\<And>x. P x \<Longrightarrow> AE y in f x. Q y" and
     "\<And>y. Q y \<Longrightarrow> AE z in g y. R z"
   shows
-    "\<And>x. P x \<Longrightarrow> AE z in f x \<bind> g. R z"
+    "\<And>x. P x \<Longrightarrow> AE z in bind_pmf (f x) g. R z"
 proof -
   fix x assume "P x"
   then have "AE y in f x. Q y" by (simp add: assms(1)) 
-  then show "AE z in f x \<bind> g. R z" sorry
+  then show "AE z in bind_pmf (f x) g. R z" sorry
+
+  (* then
+    show "AE z in bind_pmf (f x) g. R z"
+    when "\<And>z. z \<in> bind_pmf (f x) g \<Longrightarrow> R z"
+    using AE_pmfI that by blast
+
+  then show "\<And>z. z \<in> bind_pmf (f x) g \<Longrightarrow> R z"
+  proof -
+    fix z assume "z \<in> bind_pmf (f x) g" 
+    then have "measure (bind_pmf (f x) g) {z} \<noteq> 0"
+      by (simp add: set_pmf.rep_eq)   
+    then show "R z" sorry
+  qed *)
 qed
 
 lemma prob_loop :
