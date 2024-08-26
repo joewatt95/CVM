@@ -8,7 +8,7 @@ session CVM = Frequency_Moments +
   theories [document = false]
     CVM
 
-    "Algo/Algo_Main"
+    "Algo/Algo_Basic"
     "Algo/Algo_Params"
     "Algo/Algo_Properties"
     "Algo/Algo_StatesTraces"

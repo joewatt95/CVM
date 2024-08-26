@@ -5,19 +5,19 @@ imports
 
 begin
 
-record state =
+record 'a state =
   state_p :: real
-  state_chi :: "nat set"
+  state_chi :: "'a set"
 
-type_synonym trace = "state list"
+type_synonym 'a trace = "'a state list"
 
-class well_formed =
+(* class well_formed =
   fixes well_formed :: "'a \<Rightarrow> bool"
 
 class well_formed_wrt =
-  fixes well_formed_wrt :: "nat \<Rightarrow> 'a \<Rightarrow> bool"
+  fixes well_formed_wrt :: "nat \<Rightarrow> 'a \<Rightarrow> bool" *)
 
-instantiation state_ext :: (type) well_formed_wrt
+(* instantiation ('a state_ext) :: (type) well_formed_wrt
 begin
   fun well_formed_wrt_state where
     "well_formed_wrt_state threshold \<lparr>state_p = p, state_chi = \<chi>\<rparr> =
@@ -32,7 +32,7 @@ begin
     [simp] : "well_formed_wrt_list \<equiv> list_all \<circ> well_formed_wrt"
 
   instance ..
-end
+end *)
 
 
 end
