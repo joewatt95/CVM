@@ -20,8 +20,9 @@ lemma initial_trace_well_formed :
 lemma prob_always :
   assumes "P x"
   shows "AE x' in return_pmf x. P x'"
-  by (simp add: AE_measure_pmf_iff assms) 
+  by (simp add: AE_measure_pmf_iff assms)
 
+(* https://www.cse.unsw.edu.au/~kleing/papers/Cock_KS_08.pdf *)
 lemma prob_seq :
   assumes
     "\<And>x. P x \<Longrightarrow> AE y in f x. Q y" and
