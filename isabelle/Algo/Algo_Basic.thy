@@ -14,14 +14,14 @@ context params begin
 
 context includes pattern_aliases begin
 
-definition initial_state :: "'a state" where
-  [simp] : "initial_state \<equiv> \<lparr>state_p = 1, state_chi = {}\<rparr>"
+definition initial_state :: "'a state option" where
+  [simp] : "initial_state \<equiv> Some \<lparr>state_p = 1, state_chi = {}\<rparr>"
 
 definition initial_trace :: "'a trace" where
   [simp] : "initial_trace \<equiv> [initial_state]"
 
-fun step :: "'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace option pmf" where "
-  step x ((\<lparr>state_p = p, state_chi = chi\<rparr> =: state) # states) = do {
+fun step :: "'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf" where "
+  step x ((Some (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) # _) =: states) = do {
     remove_x_from_chi \<leftarrow> bernoulli_pmf p;
     let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
 
@@ -34,15 +34,15 @@ fun step :: "'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace option pmf" where 
 
       return_pmf <|
         if card chi \<ge> threshold
-        then None
-        else Some (\<lparr>state_p = p / 2, state_chi = chi\<rparr> # states) }
-    else return_pmf (Some <| state\<lparr>state_chi := chi\<rparr> # states) }" | "
-    
-  step _ _ = return_pmf None"
+        then None # states
+        else Some \<lparr>state_p = p / 2, state_chi = chi\<rparr> # states }
+    else return_pmf (Some (state\<lparr>state_chi := chi\<rparr>) # states) }" | "
+
+  step _ states = return_pmf states"
 
 definition run_steps :: "
-  'a list \<Rightarrow> 'a state list \<Rightarrow> 'a state list option pmf" where
-  [simp] : "run_steps \<equiv> foldM_option_pmf step"
+  'a list \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf" where
+  [simp] : "run_steps \<equiv> foldM_pmf step"
 
 fun result :: "'a state \<Rightarrow> nat" where "
   result \<lparr>state_p = p, state_chi = chi\<rparr> =
@@ -52,7 +52,7 @@ fun estimate_size :: "'a list \<Rightarrow> nat option pmf" where "
   estimate_size xs = (
     initial_trace
       |> run_steps xs
-      |> map_option_pmf (result \<circ> hd))"
+      |> map_pmf (map_option result \<circ> hd))"
 
 end
 

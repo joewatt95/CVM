@@ -16,6 +16,9 @@ lemma estimate_size_empty [simp] :
   "estimate_size [] = return_pmf (Some 0)"
   by simp
 
+lemma test :
+  fixes states
+
 end
 
 end

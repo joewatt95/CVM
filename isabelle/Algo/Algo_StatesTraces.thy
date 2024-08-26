@@ -9,7 +9,7 @@ record 'a state =
   state_p :: real
   state_chi :: "'a set"
 
-type_synonym 'a trace = "'a state list"
+type_synonym 'a trace = "'a state option list"
 
 (* class well_formed =
   fixes well_formed :: "'a \<Rightarrow> bool"
