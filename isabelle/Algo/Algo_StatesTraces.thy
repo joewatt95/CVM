@@ -19,11 +19,14 @@ type_synonym 'a trace = "'a state list"
 class is_failure =
   fixes is_failure :: "'a \<Rightarrow> bool" *)
 
-inductive well_formed :: "'a trace \<Rightarrow> bool" ("\<turnstile> _ ok" [60]) where 
-  nil : "\<turnstile> [] ok" |
-  singleton : "\<turnstile> [state] ok" |
-  some_some : "\<turnstile> states ok \<Longrightarrow> \<turnstile> Some state' # Some state # states ok" |
-  none_some : "\<turnstile> states ok \<Longrightarrow> \<turnstile> None # Some state # states ok"
+inductive well_formed_trace :: "'a trace \<Rightarrow> bool" ("\<turnstile> _ wf" [60]) where
+  nil : "\<turnstile> [] wf" |
+  singleton : "\<turnstile> [state] wf" |
+  some_some : "\<turnstile> states wf \<Longrightarrow> \<turnstile> Some state' # Some state # states wf" |
+  none_some : "\<turnstile> states wf \<Longrightarrow> \<turnstile> None # Some state # states wf"
+
+inductive failed_trace :: "'a trace \<Rightarrow> bool" ("\<turnstile> _ failed" [60]) where "
+  \<turnstile> None # xs wf \<Longrightarrow> \<turnstile> None # xs failed"
 
 (* class well_formed_wrt =
   fixes well_formed_wrt :: "nat \<Rightarrow> 'a \<Rightarrow> bool" *)

@@ -11,10 +11,10 @@ lemma estimate_size_empty [simp] :
   "estimate_size [] = return_pmf (Some 0)"
   by simp
 
-thm well_formed.induct
+(* thm well_formed_trace.induct *)
 
 lemma initial_trace_well_formed :
-  "\<turnstile> initial_trace ok"
+  "\<turnstile> initial_trace wf"
   by (simp add: singleton)
 
 lemma prob_always :
@@ -69,7 +69,7 @@ next
   ultimately show ?case sorry
 qed
 
-lemma step_with_trace_size :
+(* lemma step_with_trace_size :
   "AE states' in step_with_trace x states.
     states' = states \<or> (\<exists> state'. states' = state' # states)"
 proof (induction states arbitrary: x)
@@ -79,17 +79,14 @@ proof (induction states arbitrary: x)
 next
   case (Cons a states)
   then show ?case sorry
-qed
+qed *)
 
-(*
-\<turnstile> [states ok] states' \<leftarrow> step_with_trace x states [states' ok]
-*)
 lemma step_preserves_well_formedness : "
-  \<turnstile> states ok \<Longrightarrow> AE states' in step_with_trace x states. \<turnstile> states' ok"
-proof (induction rule: well_formed.induct)
+  \<turnstile> states wf \<Longrightarrow> AE states' in step_with_trace x states. \<turnstile> states' wf"
+proof (induction rule: well_formed_trace.induct)
   case nil
   then show ?case
-    by (metis prob_always step_with_trace.simps(2) well_formed.nil)
+    by (metis prob_always step_with_trace.simps(2) well_formed_trace.nil)
 next
   case (singleton state)
   then show ?case
@@ -97,7 +94,7 @@ next
     case None
     then have "step_with_trace x [None] = return_pmf [None]"
       using local.singleton by simp
-    then show ?thesis by (metis None prob_always well_formed.singleton)
+    then show ?thesis by (metis None prob_always well_formed_trace.singleton)
   next
     case (Some state')
     then show ?thesis sorry
@@ -110,9 +107,15 @@ next
   then show ?case sorry
 qed
 
-lemma test' : "
- \<P>(states' in run_steps_with_trace x states. \<turnstile> states' ok) = 1"
+lemma test : "
+  AE states' in run_steps_with_trace xs states.
+    \<turnstile> states' wf \<and> length states' \<le> length xs"
  sorry
+
+(* lemma test' : "
+  AE states' in run_steps_with_trace xs states.
+    \<turnstile> states' failed \<longrightarrow> True"
+ sorry *)
 
 end
 
