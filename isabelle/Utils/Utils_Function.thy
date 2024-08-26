@@ -2,6 +2,7 @@ theory Utils_Function
 
 imports
   Main
+  "HOL-Library.Monad_Syntax"
 
 begin
 
@@ -13,5 +14,8 @@ definition pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (inf
 
 definition app :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "<|" 0) where
   [simp] : "(<|) \<equiv> id"
+
+(* abbreviation kleisli_bind_left (infixr ">=>" 1) where
+  "(f >=> g) \<equiv> (\<lambda> x. f x \<bind> g)" *)
 
 end
