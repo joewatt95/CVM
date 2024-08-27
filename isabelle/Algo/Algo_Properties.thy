@@ -102,7 +102,7 @@ lemma aux :
     x :: "'a option pmf" and
     f :: "'a \<Rightarrow> 'a option pmf"
   assumes "\<And> a. Some a \<in> set_pmf x \<Longrightarrow> pmf (f a) None \<le> \<alpha>"
-  shows "pmf (bind_pmf x (case_option (return_pmf None) f)) None \<le> pmf x None + \<alpha>"
+  shows "pmf (x \<bind> case_option (return_pmf None) f) None \<le> pmf x None + \<alpha>"
 proof -
   show ?thesis sorry
 qed
