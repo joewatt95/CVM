@@ -97,6 +97,32 @@ term measure_pmf.prob
 term pmf
 term set_pmf
 
+lemma aux' :
+  fixes
+    x :: "'a" and
+    f :: "'a pmf"
+  shows "\<P>(x' in f. x = x') = pmf f x"
+  by (simp add: measure_pmf_single)
+
+lemma aux'' :
+  fixes
+    f :: "'a pmf" and
+    P :: "'a \<Rightarrow> bool"
+  shows "
+    (\<forall> a. P a \<longrightarrow> pmf f a = p) =
+    (\<P>(a in f. P a) = p)"
+  sorry
+
+(* lemma aux'' :
+  fixes
+    x :: "'a option pmf" and
+    f :: "'a \<Rightarrow> 'a option pmf"
+  assumes "\<And> a. \<P>(a' in f a. a' = None) \<le> \<alpha>" 
+  shows "\<P>(x' in x \<bind> case_option (return_pmf None) f. x = None) \<le> pmf x None + \<alpha>"
+proof -
+  show ?thesis sorry
+qed *)
+
 lemma aux :
   fixes
     x :: "'a option pmf" and
