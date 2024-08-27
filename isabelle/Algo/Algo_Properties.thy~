@@ -87,7 +87,7 @@ qed
     val :: "'b"
   assumes
     "P val" and "\<And>x val. P val \<Longrightarrow> AE val' in f x val. P val'" and
-    "P val \<Longrightarrow> \<P>(val' in f x val. val' = None) \<le> \<alpha>"
+    "\<P>(val' in f x val. val' = None) \<le> \<alpha>"
   shows "\<P>(val' in foldM_option_pmf f xs val. val' = None) \<le> \<alpha> ^ length xs"
 proof -
   show ?thesis sorry
@@ -95,35 +95,18 @@ qed *)
 
 term measure_pmf.prob
 term pmf
-term set_pmf
-
-lemma aux :
-  fixes
-    x :: "'a option pmf" and
-    f :: "'a \<Rightarrow> 'a option pmf"
-  assumes "\<And> a. Some a \<in> set_pmf x \<Longrightarrow> pmf (f a) None \<le> \<alpha>"
-  shows "pmf (bind_pmf x (case_option (return_pmf None) f)) None \<le> pmf x None + \<alpha>"
-proof -
-  show ?thesis sorry
-qed
 
 lemma prob_loop_fail_lt' :
   fixes
     f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b option pmf" and
-    P :: "'b \<Rightarrow> bool"
+    P :: "'b \<Rightarrow> bool" and
+    val :: "'b"
   assumes
-    "\<And>x val val'. \<lbrakk>P val; Some val' \<in> set_pmf (f x val)\<rbrakk> \<Longrightarrow> P val'" and
-    "\<And> x val. P val \<Longrightarrow> pmf (f x val) None \<le> \<alpha>"
-  shows "\<And> val. P val \<Longrightarrow> pmf (foldM_option_pmf f xs val) None \<le> \<alpha> * length xs"
-proof (induction xs)
-  case Nil
-  then show ?case by auto
-next
-  case (Cons x xs)
-  then have "pmf (foldM_option_pmf f (x # xs) val) None \<le> pmf (f x val) None + \<alpha> * length xs"
-     using assms(1) by (auto simp add: intro!: aux)
-  then show ?case
-    by (simp add: Cons.prems assms(2) distrib_left order_trans)
+    "P val" and "\<And>x val. P val \<Longrightarrow> AE val' in f x val. P val'" and
+    "pmf (f x val) None \<le> \<alpha>"
+  shows "pmf (foldM_option_pmf f xs val) None \<le> \<alpha> ^ length xs"
+proof -
+  show ?thesis sorry
 qed
 
 (* lemma step_with_trace_size :
