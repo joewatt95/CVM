@@ -28,7 +28,7 @@ fun step :: "'a \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf" where "
     if card chi \<ge> threshold
     then do {
       keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-        Pi_pmf chi False <| \<lambda> _. bernoulli_pmf ((1 :: real) / 2);
+        Pi_pmf chi undefined <| \<lambda> _. bernoulli_pmf ((1 :: real) / 2);
 
       let chi = (chi |> Set.filter keep_in_chi);
 
@@ -38,9 +38,9 @@ fun step :: "'a \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf" where "
         else Some \<lparr>state_p = p / 2, state_chi = chi\<rparr> }
     else return_pmf (Some <| state\<lparr>state_chi := chi\<rparr>) }"
 
-(* definition run_steps :: "
+definition run_steps :: "
   'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf" where
-  [simp] : "run_steps \<equiv> foldM_option_pmf step" *)
+  [simp] : "run_steps \<equiv> foldM_option_pmf step"
 
 fun step_with_trace :: "'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf" where "
   step_with_trace x (Some state # _ =: states) = do {
@@ -52,9 +52,9 @@ fun run_steps_with_trace :: "
   'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a trace pmf" where "
   run_steps_with_trace xs state =
     foldM_pmf step_with_trace xs [Some state]"
-
+(* 
 fun run_steps :: "'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf" where
-  "run_steps x = map_pmf hd \<circ> run_steps_with_trace x"
+  "run_steps x = map_pmf hd \<circ> run_steps_with_trace x" *)
 
 fun result :: "'a ok_state \<Rightarrow> nat" where "
   result \<lparr>state_p = p, state_chi = chi\<rparr> =

@@ -1,4 +1,4 @@
-theory Algo_Properties
+theory Algo_Properties_old
 
 imports
   CVM.Algo_Basic
@@ -97,21 +97,36 @@ term measure_pmf.prob
 term pmf
 term set_pmf
 
-lemma aux' :
+lemma aux0 :
   fixes
     x :: "'a" and
     f :: "'a pmf"
   shows "\<P>(x' in f. x = x') = pmf f x"
   by (simp add: measure_pmf_single)
 
-lemma aux'' :
+(* lemma aux1 :
   fixes
     f :: "'a pmf" and
     P :: "'a \<Rightarrow> bool"
   shows "
-    (\<forall> a. P a \<longrightarrow> pmf f a = p) =
-    (\<P>(a in f. P a) = p)"
-  sorry
+    (\<P>(a in f. P a) = p) =
+    (\<forall> a. P a \<longrightarrow> pmf f a = p)"
+  sorry *)
+
+lemma aux2 :
+  fixes
+    f :: "'a pmf" and
+    P :: "'a \<Rightarrow> bool"
+  shows "
+    (AE x in f. P x) = (\<forall> x \<in> set_pmf f. P x)"
+  by (simp add: AE_measure_pmf_iff)
+
+lemma aux3 :
+  fixes
+    f :: "'a pmf" and
+    P :: "'a \<Rightarrow> bool"
+  shows "(AE x in f. P x) = (\<P>(x in f. P x) = 1)"
+  using measure_pmf.prob_Collect_eq_1 by fastforce
 
 (* lemma aux'' :
   fixes

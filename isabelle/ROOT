@@ -3,6 +3,7 @@ session CVM = Frequency_Moments +
 
   directories
     "Algo"
+    "Props"
     "Utils"
 
   theories [document = false]
@@ -10,8 +11,10 @@ session CVM = Frequency_Moments +
 
     "Algo/Algo_Basic"
     "Algo/Algo_Params"
-    "Algo/Algo_Properties"
+    "Algo/Algo_Properties_old"
     "Algo/Algo_StatesTraces"
+
+    "Props/Props_Basic"
 
     "Utils/Utils_Function"
     "Utils/Utils_Real"
