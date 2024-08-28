@@ -13,7 +13,8 @@ abbreviation eps_del_approxs ("_ \<approx> \<langle> _ , _ \<rangle> _") where "
     \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> \<le> \<delta> * x)
     \<ge> 1 - \<epsilon>"
 
-definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" where "
+definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" where
+  [simp] : "
   estimate_size k chi \<equiv> (
     let
       estimate_size_with :: ('a \<Rightarrow> bool) \<Rightarrow> nat = \<lambda> pred.
