@@ -9,9 +9,7 @@ imports
 begin
 
 abbreviation eps_del_approxs ("_ \<approx> \<langle> _ , _ \<rangle> _") where "
-  (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x) \<equiv>
-    \<P>(\<omega> in measure_pmf f. \<omega> \<in> {(1 - \<epsilon>) * x .. (1 + \<epsilon>) * x})
-    \<ge> 1 - \<delta>"
+  (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x) \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> \<ge> \<epsilon> * x) \<le> \<delta>"
 
 definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" where
   [simp] : "
