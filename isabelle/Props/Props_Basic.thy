@@ -17,8 +17,8 @@ definition estimate_size :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rig
   [simp] : "
   estimate_size universe chi k \<equiv> (
     let
-      estimate_size_with :: ('a \<Rightarrow> bool) \<Rightarrow> nat = \<lambda> pred.
-        let chi = Set.filter pred chi
+      estimate_size_with :: ('a \<Rightarrow> bool) \<Rightarrow> nat = \<lambda> keep_in_chi.
+        let chi = Set.filter keep_in_chi chi
         in card chi * 2 ^ k;
 
       keep_in_chi :: ('a \<Rightarrow> bool) pmf =
