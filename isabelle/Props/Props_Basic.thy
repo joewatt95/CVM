@@ -9,7 +9,7 @@ imports
 begin
 
 abbreviation eps_del_approxs ("_ \<approx> \<langle> _ , _ \<rangle> _") where "
-  (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x) \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> \<ge> \<epsilon> * x) \<le> \<delta>"
+  f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> \<ge> \<epsilon> * x) \<le> \<delta>"
 
 definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" where
   [simp] : "
@@ -26,15 +26,14 @@ definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" wh
 
 lemma estimate_size_approx_correct :
   fixes
-    \<epsilon> \<delta> threshold :: real and
+    \<epsilon> :: real and
     k :: nat and
     chi :: "'a set"
-  defines "chi_size :: real \<equiv> card chi"
-  assumes "
-    finite chi" and "
-    k \<in> {log2 (chi_size / threshold) .. log2 chi_size}"
-  shows "
-    (estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> chi_size"
+  defines "
+    chi_size :: real \<equiv> card chi" and "
+    \<delta> \<equiv> 2 * exp ((- (\<epsilon> ^ 2 * card chi)) / (2 ^ k * (2 + \<epsilon>)))"
+  assumes "finite chi"
+  shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> chi_size"
 proof -
   show ?thesis sorry
 qed
