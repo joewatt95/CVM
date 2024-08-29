@@ -10,7 +10,7 @@ begin
 
 abbreviation eps_del_approxs ("_ \<approx> \<langle> _ , _ \<rangle> _") where "
   (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x) \<equiv>
-    \<P>(\<omega> in measure_pmf f. \<omega> / x \<in> {1 - \<epsilon> .. 1 + \<epsilon>})
+    \<P>(\<omega> in measure_pmf f. \<omega> \<in> {(1 - \<epsilon>) * x .. (1 + \<epsilon>) * x})
     \<ge> 1 - \<delta>"
 
 definition estimate_size :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> real pmf" where
@@ -38,6 +38,8 @@ lemma estimate_size_approx_correct :
     k \<in> {log2 (chi_size / threshold) .. log2 chi_size}"
   shows "
     (estimate_size universe chi k) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> chi_size"
-  sorry
+proof -
+  show ?thesis sorry
+qed
 
 end
