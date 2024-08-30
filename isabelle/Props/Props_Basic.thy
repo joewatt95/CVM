@@ -132,6 +132,7 @@ proof -
        Sledgehammer called could apply the above inequality.
        This was tricky because simp was too eager, so that I had to undo a
        simplification via `subst *`.
+    Therafter, a lucky Sledgehammer run with increased timeouts succeeded.
     *)
     also have "... \<le> 2 * exp (-2 * (\<epsilon> * ?binom_mean) ^ 2 / card chi)"
     proof -
