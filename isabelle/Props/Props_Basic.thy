@@ -87,8 +87,8 @@ proof -
     Intuitively, the idea here is to:
     1. Use the monotonocity of `?chi_size_est` viewed as a measure, say \<mu>, to
        upper bound `\<mu>({... | ... > ...}) \<le> \<mu>({... | ... \<ge> ...})`
-    2. Use the fact that `?chi_size_est` and `?binom` induce the same prob measure
-       modulo a factor of `2 ^ k`
+    2. Simplify using the fact that `?chi_size_est` and `?binom` induce the
+       same prob measure modulo a factor of `2 ^ k`
 
     Sledgehammer and auto couldn't prove this one.
     I (Joe) figured that auto could rewrite / simplify away most of the proof,
