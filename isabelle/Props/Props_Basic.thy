@@ -118,7 +118,7 @@ proof -
     also have "
       ... = \<P>(\<omega> in ?binom. \<bar>(\<omega> :: real) - ?binom_mean\<bar> \<ge> \<epsilon> * ?binom_mean)"
     proof -
-      have * : "\<And> x y :: real. \<bar>x\<bar> \<ge> y \<longleftrightarrow> \<bar>?binom_prob * x\<bar> \<ge> ?binom_prob * y"
+      have * : "\<And> x y. \<bar>x\<bar> \<ge> y \<longleftrightarrow> \<bar>?binom_prob * x\<bar> \<ge> ?binom_prob * y"
         by (smt (verit, del_insts) divide_pos_pos mult_le_cancel_left_pos mult_minus_right zero_less_power)
       then show ?thesis by (subst *, simp add: diff_divide_distrib)
     qed
