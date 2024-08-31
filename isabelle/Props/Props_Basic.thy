@@ -77,8 +77,23 @@ proof -
     let ?two_k_times = "(*) <| 2 ^ k"
     let ?two_k_times_binom = "map_pmf ?two_k_times ?binom"
 
+    (*
+    Sledgehammer failed to prove this, despite my (Joe) attempts to augment
+    it with additional lemmas and steps.
+    This wasn't too hard to prove manually as the key observation is one can:
+    1. First use `binomial_pmf_altdef'` to rewrite a `binomial_pmf` into a
+      `Pi_pmf` of bernoullis.
+       This puts `?binom` into a similar form as `?chi_size_est`, on which we
+       can perform more simplifications.
+    2. Then use Functor laws via `map_pmf_comp` to squish multiple chained
+       `map_pmf` down into a single one.
+    3. Finish the proof via a congruence property of `map_pmf` via
+       `map_pmf_cong` and routine simplifications.
+    *)
     have "?chi_size_est = ?two_k_times_binom"
-      using assms by (subst binomial_pmf_altdef'[of chi], auto intro!: map_pmf_cong simp add: map_pmf_comp Set.filter_def)
+      by (subst binomial_pmf_altdef',
+          auto intro!: map_pmf_cong
+               simp add: map_pmf_comp assms(3) Set.filter_def)
 
     (*
     Intuitively, the idea here is to:
