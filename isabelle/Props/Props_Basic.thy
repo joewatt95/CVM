@@ -12,7 +12,7 @@ begin
 sledgehammer_params [
   (* verbose = true, *)
   minimize = true,
-  preplay_timeout = 10,
+  preplay_timeout = 15,
   timeout = 60,
   max_facts = smart,
   provers = "
@@ -74,15 +74,11 @@ proof -
     let ?binom_prob = "(1 :: real) / 2 ^ k"
     let ?binom = "binomial_pmf (card chi) ?binom_prob"
     let ?binom_mean = "card chi * ?binom_prob"
-    let ?two_k_times_binom = "?binom |> map_pmf (\<lambda> x. 2 ^ k * x)"
+    let ?two_k_times = "(*) <| 2 ^ k"
+    let ?two_k_times_binom = "map_pmf ?two_k_times ?binom"
 
     have "?chi_size_est = ?two_k_times_binom"
-    proof -
-      have "\<And> x. pmf ?chi_size_est x = pmf ?two_k_times_binom x"
-        apply auto
-        sorry
-      then show ?thesis using pmf_eqI by blast
-    qed
+      using assms by (subst binomial_pmf_altdef'[of chi], auto intro!: map_pmf_cong simp add: map_pmf_comp Set.filter_def)
 
     (*
     Intuitively, the idea here is to:
@@ -130,10 +126,10 @@ proof -
        `binomial_distribution.prob_abs_ge`, and explicitly pass it in. 
     2. Simplify the expressions to obtain a form for which the provers
        Sledgehammer called could apply the above inequality.
-       This was tricky because simp was too eager, so that I had to prove `*`
-       which undoes a simplification, and then call sledgehammer.
+       This was tricky because simp was too eager, so that I had to first prove 
+       an equality which undoes a simplification, and then run sledgehammer.
     3. Increase timeouts and limit max_facts:
-         sledgehammer[max_facts = 100, timeout = 120, preplay_timeout = 60]
+       sledgehammer [max_facts = 100, timeout = 120, preplay_timeout = 60]
     *)
     also have "... \<le> 2 * exp (-2 * (\<epsilon> * ?binom_mean) ^ 2 / card chi)"
     proof -
@@ -145,6 +141,7 @@ proof -
 
     also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
       by (simp add: power2_eq_square power_even_eq)
+
     also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
       using \<open>0 < card chi\<close> assms(1) divide_le_cancel by fastforce
 
