@@ -74,8 +74,6 @@ proof -
     let ?binom_prob = "(1 :: real) / 2 ^ k"
     let ?binom = "binomial_pmf (card chi) ?binom_prob"
     let ?binom_mean = "card chi * ?binom_prob"
-    let ?two_k_times = "(*) <| 2 ^ k"
-    let ?two_k_times_binom = "map_pmf ?two_k_times ?binom"
 
     (*
     The key observation here is that one can:
@@ -93,7 +91,7 @@ proof -
     Enabling verbose and turning down max_facts was also unhelpful as the
     relevance filter couldn't identify any of these.
     *)
-    have "?chi_size_est = ?two_k_times_binom"
+    have "?chi_size_est = map_pmf ((*) <| 2 ^ k) ?binom"
       by (subst binomial_pmf_altdef',
           auto intro!: map_pmf_cong
                simp add: map_pmf_comp assms(3) Set.filter_def)
