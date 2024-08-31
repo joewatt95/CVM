@@ -91,10 +91,9 @@ proof -
        `map_pmf_cong` and routine simplifications, using the functor laws
        via `map_pmf_comp` to squish multiple `map_pmf` into one.
 
-    Sledgehammer failed to prove this, despite my (Joe) attempts to augment
-    it with all the various lemmas (which I had to manually identify).
-    Enabling verbose and turning down max_facts was also unhelpful as the
-    relevance filter couldn't identify any of these.
+    Sledgehammer was unhelpful here, because the relevance filter (inspected via
+    enabling verbose output) didn't identify any of the key lemmas, like
+    `binomial_pmf_altdef'` in particular.
     *)
     have "?chi_size_est = map_pmf ((*) <| 2 ^ k) ?binom"
       by (subst binomial_pmf_altdef',
