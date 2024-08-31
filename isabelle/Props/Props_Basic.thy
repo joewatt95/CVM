@@ -108,7 +108,6 @@ proof -
     The idea here is that both probabilities are equal, because the arithmetic
     formula in the second probability is obtained by dividing that of the first
     by `2 ^ k`.
-       are (extensionally) equal.
     All tactics (including Sledgehammer) struggled with this and my (Joe)
     suspicion is that they weren't aware that:
     1. I wanted to divide by `2 ^ k` on both sides, and
