@@ -12,12 +12,12 @@ begin
 sledgehammer_params [
   (* verbose = true, *)
   minimize = true,
-  preplay_timeout = 30,
-  timeout = 70,
+  preplay_timeout = 10,
+  timeout = 60,
   max_facts = smart,
   provers = "
-    cvc5 cvc4 z3 verit
-    e vampire zipperposition
+    cvc4 z3 verit
+    e vampire spass
   "
 ]
 
@@ -54,17 +54,17 @@ lemma estimate_size_approx_correct :
     (map_pmf real <| estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
-  Sledgehammer struggled hard with this.
-  After some failed runs and fiddling with some params, like increasing the
-  preplay_timeout, I (Joe) got a lucky run where it succeeded.
-
   Intuitively, the idea here is that we may assume wlog that chi is nonempty,
-  because if chi were empty, then by the "estimate_size_empty" lemma, the
-  function is simply the 0 distribution, and so we always get the exact,
+  because if chi were empty, then `estimate_size_empty` is the key result that
+  says the function is simply the 0 distribution, and so we always get the exact,
   correct solution when we sample from it.
+  To get this to work, I (Joe) had to:
+  1. Increase timeouts: sledgehammer[timeout = 60, preplay_timeout = 10]
+  2. Explicitly pass in the key `estimate_size_empty` lemma, and `that`. 
   *)
   show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
-    by (smt (z3) app_def assms(2) assms(3) card.empty card_gt_0_iff estimate_size_empty exp_gt_zero id_apply indicator_simps(2) map_return_pmf measure_return_pmf mem_Collect_eq mult_eq_0_iff of_nat_0 that) 
+    using estimate_size_empty that
+    by (smt (verit) app_def assms(2) assms(3) card_0_eq exp_gt_zero gr_zeroI id_apply indicator_simps(2) map_return_pmf measure_return_pmf mem_Collect_eq mult_eq_0_iff of_nat_0) 
 
   then show "card chi > 0 \<Longrightarrow> ?thesis"
   proof -
@@ -79,6 +79,7 @@ proof -
     have "?chi_size_est = ?two_k_times_binom"
     proof -
       have "\<And> x. pmf ?chi_size_est x = pmf ?two_k_times_binom x"
+        apply auto
         sorry
       then show ?thesis using pmf_eqI by blast
     qed
@@ -119,7 +120,7 @@ proof -
       ... = \<P>(\<omega> in ?binom. \<bar>(\<omega> :: real) - ?binom_mean\<bar> \<ge> \<epsilon> * ?binom_mean)"
     proof -
       have * : "\<And> x y. \<bar>x\<bar> \<ge> y \<longleftrightarrow> \<bar>?binom_prob * x\<bar> \<ge> ?binom_prob * y"
-        by (smt (verit, del_insts) divide_pos_pos mult_le_cancel_left_pos mult_minus_right zero_less_power)
+        by (simp add: divide_le_cancel)
       then show ?thesis by (subst *, simp add: diff_divide_distrib)
     qed
 
@@ -128,22 +129,21 @@ proof -
     I (Joe) needed to manually:
     1. Identify the appropriate Hoeffding inequality, namely
        `binomial_distribution.prob_abs_ge`, and explicitly pass it in. 
-    2. Simplify the expressions to obtain a format for which the provers
+    2. Simplify the expressions to obtain a form for which the provers
        Sledgehammer called could apply the above inequality.
-       This was tricky because simp was too eager, so that I had to undo a
-       simplification via `subst *`.
-    Therafter, a lucky Sledgehammer run with increased timeouts succeeded.
+       This was tricky because simp was too eager, so that I had to prove `*`
+       which undoes a simplification, and then call sledgehammer.
+    3. Increase timeouts and limit max_facts:
+         sledgehammer[max_facts = 100, timeout = 120, preplay_timeout = 60]
     *)
     also have "... \<le> 2 * exp (-2 * (\<epsilon> * ?binom_mean) ^ 2 / card chi)"
     proof -
-      have * : "card chi / 2 ^ k = card chi * ?binom_prob" by simp
+      have "card chi / 2 ^ k = card chi * ?binom_prob" by simp
       then show ?thesis
         using binomial_distribution.prob_abs_ge
-        by (simp, subst *, metis \<open>0 < card chi\<close> assms(1) atLeastAtMost_iff binomial_distribution.intro divide_le_eq_1_pos divide_pos_pos less_eq_real_def mult_pos_pos of_nat_0_less_iff power_eq_0_iff two_realpow_ge_one zero_le_divide_1_iff zero_le_numeral zero_le_power zero_neq_numeral)
+        by (simp, metis \<open>0 < card chi\<close> assms(1) atLeastAtMost_iff binomial_distribution.intro divide_le_eq_1_pos divide_pos_pos less_eq_real_def mult_pos_pos of_nat_0_less_iff two_realpow_ge_one zero_le_divide_1_iff zero_less_numeral zero_less_power)
     qed
 
-    also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * ?binom_mean ^ 2 / card chi)"
-      by (metis ab_semigroup_mult_class.mult_ac(1) power_mult_distrib)
     also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
       by (simp add: power2_eq_square power_even_eq)
     also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
