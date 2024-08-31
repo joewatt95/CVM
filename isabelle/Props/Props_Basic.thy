@@ -24,8 +24,7 @@ sledgehammer_params [
 abbreviation eps_del_approxs ("_ \<approx> \<langle> _ , _ \<rangle> _") where "
   f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> > \<epsilon> * x) \<le> \<delta>"
 
-definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> nat pmf" where
-  [simp] : "
+definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" where "
   estimate_size k chi \<equiv> (
     let
       estimate_size_with :: ('a \<Rightarrow> bool) \<Rightarrow> nat = \<lambda> keep_in_chi.
@@ -39,7 +38,34 @@ definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> nat pmf" whe
 
 lemma estimate_size_empty [simp] :
   "estimate_size k {} = return_pmf 0"
-  by auto
+  unfolding estimate_size_def by auto
+
+(*
+This shows that`?chi_size_est` is the same distribution as `?binom`, modulo a
+factor of `2 ^ k`.
+
+The key observations and steps are:
+1. We first use `binomial_pmf_altdef'` to rewrite a `binomial_pmf` into a
+  `Pi_pmf` of bernoullis.
+    This puts `?binom` into a similar form as `?chi_size_est`, on which we
+    can perform more simplifications.
+2. Finish the proof via a congruence property of `map_pmf` via
+    `map_pmf_cong` and routine simplifications, using the functor laws
+    via `map_pmf_comp` to squish multiple `map_pmf` into one.
+
+Sledgehammer was unhelpful here, because the relevance filter (inspected via
+enabling verbose output) didn't identify any of the key lemmas, like
+`binomial_pmf_altdef'` in particular.
+*)
+lemma estimate_size_eq_binomial [simp] :
+  fixes k chi
+  defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
+  assumes "finite chi"
+  shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
+  using assms unfolding estimate_size_def
+  by (simp, subst binomial_pmf_altdef',
+      auto intro!: map_pmf_cong
+           simp add: map_pmf_comp assms Set.filter_def)
 
 lemma estimate_size_approx_correct :
   fixes
@@ -50,14 +76,13 @@ lemma estimate_size_approx_correct :
     \<epsilon> > 0" and "
     \<delta> \<ge> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))" and "
     finite chi"
-  shows "
-    (map_pmf real <| estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
+  shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
   First, we may assume wlog that chi is nonempty, because if chi were empty,
-  then `estimate_size_empty` is the key result that
-  says the function is simply the 0 distribution, and so we always get the exact,
-  correct solution when we sample from it.
+  then `estimate_size_empty` is the key result that says the function is simply
+  the 0 distribution, and so we always get the exact, correct solution when we
+  sample from it.
 
   To get this to work, I (Joe) had to:
   1. Increase timeouts: sledgehammer[timeout = 60, preplay_timeout = 10]
@@ -77,30 +102,6 @@ proof -
     let ?binom_mean = "card chi * ?binom_prob"
 
     (*
-    Next, we show that `?chi_size_est` is the same distribution as `?binom`,
-    modulo a factor of `2 ^ k`.
-    We do this because we want to bound the probability of the former by the
-    latter, and then apply Hoeffding's inequality for the binomial distribution.
-
-    The key observations and steps are:
-    1. We first use `binomial_pmf_altdef'` to rewrite a `binomial_pmf` into a
-      `Pi_pmf` of bernoullis.
-       This puts `?binom` into a similar form as `?chi_size_est`, on which we
-       can perform more simplifications.
-    2. Finish the proof via a congruence property of `map_pmf` via
-       `map_pmf_cong` and routine simplifications, using the functor laws
-       via `map_pmf_comp` to squish multiple `map_pmf` into one.
-
-    Sledgehammer was unhelpful here, because the relevance filter (inspected via
-    enabling verbose output) didn't identify any of the key lemmas, like
-    `binomial_pmf_altdef'` in particular.
-    *)
-    have "?chi_size_est = map_pmf ((*) <| 2 ^ k) ?binom"
-      by (subst binomial_pmf_altdef',
-          auto intro!: map_pmf_cong
-               simp add: map_pmf_comp assms(3) Set.filter_def)
-
-    (*
     We bound the probability of `?chi_size_est` with that of `?binom`.
     Intuitively, the idea here is to:
     1. Use the monotonocity of `?chi_size_est` (viewed as a measure) with
@@ -116,10 +117,10 @@ proof -
     proofs manually specifying `measure_pmf.finite_measure_mono` as an intro
     pattern to auto, presumably because they faced the same issues with auto.
     *)
-    then have "
+    have "
       \<P>(\<omega> in ?chi_size_est. \<bar>(\<omega> :: real) - card chi\<bar> > \<epsilon> * card chi)
       \<le> \<P>(\<omega> in ?binom. \<bar>2 ^ k * (\<omega> :: real) - card chi\<bar> \<ge> \<epsilon> * card chi)"
-      by (auto intro!: measure_pmf.finite_measure_mono)
+      using assms by (auto intro!: measure_pmf.finite_measure_mono)
 
     (*
     We then transform the expression into a form that's more suitable for
