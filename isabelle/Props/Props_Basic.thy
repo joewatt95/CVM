@@ -38,7 +38,7 @@ definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" wh
 
 lemma estimate_size_empty [simp] :
   "estimate_size k {} = return_pmf 0"
-  unfolding estimate_size_def by auto
+  by (auto simp add: estimate_size_def)
 
 (*
 This shows that`?chi_size_est` is the same distribution as `?binom`, modulo a
@@ -62,8 +62,9 @@ lemma estimate_size_eq_binomial [simp] :
   defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
   assumes "finite chi"
   shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
-  using assms unfolding estimate_size_def
-  by (simp, subst binomial_pmf_altdef',
+  using assms
+  by (simp add: estimate_size_def,
+      subst binomial_pmf_altdef',
       auto intro!: map_pmf_cong
            simp add: map_pmf_comp assms Set.filter_def)
 
