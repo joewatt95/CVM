@@ -78,9 +78,7 @@ proof -
     let ?two_k_times_binom = "map_pmf ?two_k_times ?binom"
 
     (*
-    Sledgehammer failed to prove this, despite my (Joe) attempts to augment
-    it with additional lemmas and steps.
-    This wasn't too hard to prove manually as the key observation is one can:
+    The key observation here is that one can:
     1. First use `binomial_pmf_altdef'` to rewrite a `binomial_pmf` into a
       `Pi_pmf` of bernoullis.
        This puts `?binom` into a similar form as `?chi_size_est`, on which we
@@ -89,6 +87,11 @@ proof -
        `map_pmf` down into a single one.
     3. Finish the proof via a congruence property of `map_pmf` via
        `map_pmf_cong` and routine simplifications.
+
+    Sledgehammer failed to prove this, despite my (Joe) attempts to augment
+    it with all the various lemmas (which I had to manually identify).
+    Enabling verbose and turning down max_facts was also unhelpful as the
+    relevance filter couldn't identify any of these.
     *)
     have "?chi_size_est = ?two_k_times_binom"
       by (subst binomial_pmf_altdef',
@@ -97,8 +100,8 @@ proof -
 
     (*
     Intuitively, the idea here is to:
-    1. Use the monotonocity of `?chi_size_est` viewed as a measure, say \<mu>, to
-       upper bound `\<mu>({... | ... > ...}) \<le> \<mu>({... | ... \<ge> ...})`
+    1. Use the monotonocity of `?chi_size_est` (viewed as a measure) with
+       the fact that `x > y \<longrightarrow> x \<ge> y`.
     2. Simplify using the fact that `?chi_size_est` and `?binom` induce the
        same prob measure modulo a factor of `2 ^ k`
 
