@@ -89,12 +89,12 @@ proof -
   1. Increase timeouts: sledgehammer[timeout = 60, preplay_timeout = 10]
   2. Explicitly pass in the key `estimate_size_empty` lemma, and `that`. 
   *)
-  show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
+  show ?thesis when "card chi > 0 \<longrightarrow> ?thesis" (is ?thesis)
     using estimate_size_empty that
     by (smt (verit) app_def assms(2) assms(3) card_0_eq exp_gt_zero gr_zeroI id_apply indicator_simps(2) map_return_pmf measure_return_pmf mem_Collect_eq mult_eq_0_iff of_nat_0) 
 
-  then show "card chi > 0 \<Longrightarrow> ?thesis"
-  proof -
+  then show ?thesis
+  proof rule
     assume "card chi > 0"
 
     let ?chi_size_est = "estimate_size k chi"
