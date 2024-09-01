@@ -67,7 +67,7 @@ lemma estimate_size_eq_binomial :
   apply (subst binomial_pmf_altdef')
   by (auto
       intro!: map_pmf_cong
-      simp add: map_pmf_comp assms Set.filter_def)
+      simp add: map_pmf_comp Set.filter_def)
 
 lemma estimate_size_approx_correct :
   fixes
