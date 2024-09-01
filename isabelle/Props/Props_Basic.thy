@@ -63,7 +63,7 @@ lemma estimate_size_eq_binomial [simp] :
   assumes "finite chi"
   shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
   using assms
-  by (simp add: estimate_size_def,
+  by (simp only: estimate_size_def,
       subst binomial_pmf_altdef',
       auto intro!: map_pmf_cong
            simp add: map_pmf_comp assms Set.filter_def)
