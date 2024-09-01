@@ -142,7 +142,7 @@ proof -
     also have "
       ... = \<P>(\<omega> in ?binom. \<bar>(\<omega> :: real) - ?binom_mean\<bar> \<ge> \<epsilon> * ?binom_mean)"
     proof -
-      have * : "\<And> x y. \<bar>x\<bar> \<ge> y \<longleftrightarrow> \<bar>?binom_prob * x\<bar> \<ge> ?binom_prob * y"
+      have * : "\<And> x y. (\<bar>x\<bar> \<ge> y) = (\<bar>?binom_prob * x\<bar> \<ge> ?binom_prob * y)"
         by (simp add: divide_le_cancel)
       show ?thesis by (subst *, simp add: diff_divide_distrib)
     qed
