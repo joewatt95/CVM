@@ -36,7 +36,7 @@ definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" wh
 
     in map_pmf estimate_size_with keep_in_chi)"
 
-lemma estimate_size_empty [simp] :
+lemma estimate_size_empty :
   "estimate_size k {} = return_pmf 0"
   by (auto simp add: estimate_size_def)
 
@@ -57,16 +57,17 @@ Sledgehammer was unhelpful here, because the relevance filter (inspected via
 enabling verbose output) didn't identify any of the key lemmas, like
 `binomial_pmf_altdef'` in particular.
 *)
-lemma estimate_size_eq_binomial [simp] :
+lemma estimate_size_eq_binomial :
   fixes k chi
   defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
   assumes "finite chi"
   shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
   using assms
-  by (simp only: estimate_size_def,
-      subst binomial_pmf_altdef',
-      auto intro!: map_pmf_cong
-           simp add: map_pmf_comp assms Set.filter_def)
+  apply (simp only: estimate_size_def)
+  apply (subst binomial_pmf_altdef')
+  by (auto
+      intro!: map_pmf_cong
+      simp add: map_pmf_comp assms Set.filter_def)
 
 lemma estimate_size_approx_correct :
   fixes
@@ -121,7 +122,10 @@ proof -
     have "
       \<P>(\<omega> in ?chi_size_est. \<bar>(\<omega> :: real) - card chi\<bar> > \<epsilon> * card chi)
       \<le> \<P>(\<omega> in ?binom. \<bar>2 ^ k * (\<omega> :: real) - card chi\<bar> \<ge> \<epsilon> * card chi)"
-      using assms by (auto intro!: measure_pmf.finite_measure_mono)
+      using assms
+      by (auto
+          intro!: measure_pmf.finite_measure_mono
+          simp add: estimate_size_eq_binomial)
 
     (*
     We then transform the expression into a form that's more suitable for
