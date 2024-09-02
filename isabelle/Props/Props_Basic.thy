@@ -71,13 +71,13 @@ lemma estimate_size_eq_binomial :
 
 lemma estimate_size_approx_correct :
   fixes
+    chi :: "'a set" and
     \<epsilon> \<delta> :: real and
-    k :: nat and
-    chi :: "'a set"
+    k :: nat
   assumes "
+    finite chi" and "
     \<epsilon> > 0" and "
-    \<delta> \<ge> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))" and "
-    finite chi"
+    \<delta> = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
@@ -91,8 +91,8 @@ proof -
   2. Explicitly pass in the key `estimate_size_empty` lemma, and `that`. 
   *)
   show ?thesis when "card chi > 0 \<longrightarrow> ?thesis" (is ?thesis)
-    using estimate_size_empty that
-    by (smt (verit) app_def assms(2) assms(3) card_0_eq exp_gt_zero gr_zeroI id_apply indicator_simps(2) map_return_pmf measure_return_pmf mem_Collect_eq mult_eq_0_iff of_nat_0) 
+    using estimate_size_empty assms that
+    by (smt (verit) app_def card_0_eq exp_gt_zero gr_zeroI id_apply indicator_simps(2) map_return_pmf measure_return_pmf mem_Collect_eq mult_eq_0_iff of_nat_0) 
 
   then show ?thesis
   proof rule
@@ -169,16 +169,16 @@ proof -
     proof -
       have "card chi / 2 ^ k = card chi * ?binom_prob" by simp
       then show ?thesis
-        using binomial_distribution.prob_abs_ge
-        by (simp, metis \<open>0 < card chi\<close> assms(1) atLeastAtMost_iff binomial_distribution.intro divide_le_eq_1_pos divide_pos_pos less_eq_real_def mult_pos_pos of_nat_0_less_iff two_realpow_ge_one zero_le_divide_1_iff zero_less_numeral zero_less_power)
+        using binomial_distribution.prob_abs_ge assms
+        by (simp, metis \<open>0 < card chi\<close> atLeastAtMost_iff binomial_distribution.intro divide_le_eq_1_pos divide_pos_pos less_eq_real_def mult_pos_pos of_nat_0_less_iff two_realpow_ge_one zero_le_divide_1_iff zero_less_numeral zero_less_power)
     qed
 
     (* Finally, we do some simplifications and relaxation of the bound. *)
     also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
       by (simp add: power2_eq_square power_even_eq)
 
-    also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
-      using \<open>0 < card chi\<close> assms(1) divide_le_cancel by fastforce
+    (* also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
+      using \<open>0 < card chi\<close> assms(1) divide_le_cancel by fastforce *)
 
     finally show ?thesis using assms by simp
   qed
