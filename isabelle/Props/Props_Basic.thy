@@ -24,6 +24,29 @@ sledgehammer_params [
 abbreviation eps_del_approxs ("_ \<approx> \<langle> _ , _ \<rangle> _") where "
   f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> > \<epsilon> * x) \<le> \<delta>"
 
+lemma approx_correct_of_correct :
+  fixes
+    f :: "real pmf" and
+    x \<epsilon> \<delta> :: real
+  assumes "
+    \<epsilon> \<ge> 0" and "
+    \<delta> \<ge> 0" and "
+    x \<ge> 0" and "
+    f = return_pmf x"
+  shows "f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x"
+  using assms by (simp add: mult_less_0_iff)
+
+lemma eps_del_approxs' :
+  fixes \<epsilon> \<epsilon>' \<delta> \<delta>' x :: real
+  assumes "
+    f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x" and "
+    \<epsilon> > 0" and "
+    \<delta> > 0" and "
+    \<epsilon>' \<ge> \<epsilon>" and "
+    \<delta>' \<ge> \<delta>"
+  shows "f \<approx>\<langle>\<epsilon>', \<delta>'\<rangle> x"
+  using assms by (smt (verit, best) UNIV_I measure_pmf.finite_measure_mono mem_Collect_eq mult_pos_neg mult_right_mono sets_measure_pmf subsetI) 
+
 definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" where "
   estimate_size k chi \<equiv> (
     let
@@ -52,13 +75,11 @@ The key observations and steps are:
 2. Finish the proof via a congruence property of `map_pmf` via
     `map_pmf_cong` and routine simplifications, using the functor laws
     via `map_pmf_comp` to squish multiple `map_pmf` into one.
-
-Sledgehammer was unhelpful here, because the relevance filter (inspected via
-enabling verbose output) didn't identify any of the key lemmas, like
-`binomial_pmf_altdef'` in particular.
 *)
 lemma estimate_size_eq_binomial :
-  fixes k chi
+  fixes
+    chi :: "'a set" and
+    k :: nat
   defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
   assumes "finite chi"
   shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
@@ -74,10 +95,10 @@ lemma estimate_size_approx_correct :
     chi :: "'a set" and
     \<epsilon> \<delta> :: real and
     k :: nat
+  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
   assumes "
     finite chi" and "
-    \<epsilon> > 0" and "
-    \<delta> = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+    \<epsilon> > 0"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
@@ -92,7 +113,7 @@ proof -
   *)
   show ?thesis when "card chi > 0 \<longrightarrow> ?thesis" (is ?thesis)
     using estimate_size_empty assms that
-    by (smt (verit) app_def card_0_eq exp_gt_zero gr_zeroI id_apply indicator_simps(2) map_return_pmf measure_return_pmf mem_Collect_eq mult_eq_0_iff of_nat_0) 
+    by (smt (verit, best) card_0_eq exp_gt_zero gr_zeroI indicator_simps(2) measure_return_pmf mem_Collect_eq mult_not_zero of_nat_0)
 
   then show ?thesis
   proof rule
@@ -181,6 +202,83 @@ proof -
       using \<open>0 < card chi\<close> assms(1) divide_le_cancel by fastforce *)
 
     finally show ?thesis using assms by simp
+  qed
+qed
+
+thm eps_del_approxs'
+
+lemma estimate_size_approx_correct' :
+  fixes
+    chi :: "'a set" and
+    \<epsilon> \<delta> :: real and
+    k :: nat
+  assumes "
+    finite chi" and "
+    \<epsilon> > 0" and "
+    \<delta> > 0" and "
+    \<delta> < 2" and "
+    k > 1"
+  shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
+proof -
+  show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
+    by (metis (no_types, lifting) abs_0 assms(1) assms(3) card_gt_0_iff diff_0_right dual_order.order_iff_strict estimate_size_empty indicator_simps(2) linorder_neq_iff measure_return_pmf mem_Collect_eq mult_not_zero of_nat_0 that zero_less_iff_neq_zero)
+
+  then show "card chi > 0 \<Longrightarrow> ?thesis"
+  proof -
+    assume "card chi > 0"
+
+    let ?x = "sqrt <| 2 ^ 2 * (k - 1) * (ln 2 - ln \<delta>) / card chi"
+    let ?\<epsilon> = "min \<epsilon> ?x"
+    let ?\<delta> = "2 * exp (-2 * ?\<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+
+    have "?\<epsilon> > 0"
+    proof -
+      have "k - 1 > 0" using assms zero_less_diff by blast
+      moreover have "ln 2 - ln \<delta> > 0" using assms by auto
+      ultimately show ?thesis by (simp add: \<open>0 < card chi\<close> assms(2)) 
+    qed
+
+    moreover have "(estimate_size k chi) \<approx>\<langle>?\<epsilon>, ?\<delta>\<rangle> (card chi)"
+      using estimate_size_approx_correct assms calculation
+      by blast
+
+    moreover have "?\<epsilon> \<le> \<epsilon>" by simp
+
+    moreover have "?\<delta> \<le> \<delta>"
+    proof -
+      have 0 : "\<And> a b :: real. b > 0 \<Longrightarrow> 2 * exp a \<le> b \<equiv> a \<le> ln (b / 2)"
+        by (simp add: ln_ge_iff mult.commute) 
+
+      have 1 : "\<And> a :: real. a > 0 \<Longrightarrow> ln (a / 2) = ln a - ln 2"
+        by (simp add: ln_div)
+
+      have 2 : "\<And> a b c :: real. - a \<le> b - c \<equiv> a \<ge> c - b" by linarith
+
+      have 3 : "\<And> a b c \<epsilon>2 :: real.
+        a > 0 \<Longrightarrow> 2 * \<epsilon>2 * a / b \<ge> c \<equiv> \<epsilon>2 / b \<ge> c / (2 * a)"
+        by (simp add: mult.commute pos_divide_le_eq vector_space_over_itself.scale_left_commute)
+
+      have 4 : "\<And> a b c \<epsilon>2 :: real.
+        b > 0 \<Longrightarrow> \<epsilon>2 / b \<ge> c / (2 * a) \<equiv> \<epsilon>2 \<ge> c * b / (2 * a)"
+        by (simp add: pos_le_divide_eq)
+
+      show ?thesis
+        using assms
+        apply (auto simp add: 0 1)
+        apply (auto simp add: 2)
+        apply (auto simp add: 3 \<open>0 < card chi\<close>)
+        apply (auto simp add: 4)
+        sorry
+    qed
+
+   (*
+   The linarith_split_limit option was needed for sledgehammer to find a proof
+   of this.
+   *) 
+    ultimately show ?thesis
+      using eps_del_approxs' assms
+      (* [[linarith_split_limit = 11]] *)
+      by (meson exp_gt_zero mult_pos_pos zero_less_numeral)
   qed
 qed
 
