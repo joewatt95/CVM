@@ -251,8 +251,7 @@ proof -
         have 0 : "\<And> a b :: real. 2 * exp a \<le> 2 * exp b \<equiv> a \<le> b" by simp
 
         let ?x = "2 ^ (2 * k) / (2 * \<epsilon>\<^sup>2)"
-        have 1 : "\<And> a b :: real.
-          a \<le> b \<equiv> ?x * a \<le> ?x * b"
+        have 1 : "\<And> a b :: real. a \<le> b \<equiv> ?x * a \<le> ?x * b"
           by (smt (verit, best) assms(3) divide_pos_pos mult_le_cancel_left_pos zero_less_power) 
 
         show ?thesis apply (subst 0) apply (subst 1) using assms by auto
