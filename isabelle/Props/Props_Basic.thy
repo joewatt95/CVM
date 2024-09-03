@@ -101,7 +101,7 @@ lemma estimate_size_eq_binomial :
       intro!: map_pmf_cong
       simp add: map_pmf_comp Set.filter_def)
 
-lemma estimate_size_approx_correct_of_eps :
+lemma estimate_size_approx_correct :
   fixes
     chi :: "'a set" and
     \<epsilon> :: real and
@@ -216,7 +216,7 @@ proof -
   qed
 qed
 
-lemma estimate_size_approx_correct :
+lemma estimate_size_approx_correct' :
   fixes
     chi :: "'a set" and
     \<epsilon> \<delta> :: real and
@@ -239,9 +239,12 @@ proof -
     let ?\<delta> = "2 * exp (-2 * \<epsilon>\<^sup>2  * card chi / 2 ^ (2 * k))"
 
     have "(estimate_size k chi) \<approx>\<langle>\<epsilon>, ?\<delta>\<rangle> (card chi)"
-      using assms estimate_size_approx_correct_of_eps by blast
+      using assms estimate_size_approx_correct by blast
 
-    moreover have "?\<delta> \<le> \<delta>"
+    then show ?thesis when "?\<delta> \<le> \<delta>" (is ?thesis)
+      using relax_eps_del_approx that by linarith
+
+    show ?thesis
     proof -
       have "?\<delta> \<le> 2 * exp (-2 * \<epsilon>\<^sup>2  * threshold / 2 ^ (2 * k))"
       proof -
@@ -276,8 +279,6 @@ proof -
 
       finally show ?thesis using assms by simp
     qed
-
-    ultimately show ?thesis using relax_eps_del_approx by linarith
   qed
 qed
 
