@@ -255,10 +255,7 @@ proof -
           a \<le> b \<equiv> ?x * a \<le> ?x * b"
           by (smt (verit, best) assms(3) divide_pos_pos mult_le_cancel_left_pos zero_less_power) 
 
-        show ?thesis
-          apply (subst 0)
-          apply (subst 1)
-          using assms by auto
+        show ?thesis apply (subst 0) apply (subst 1) using assms by auto
       qed
 
       also have "... = 2 * exp (log2 <| \<delta> / 2)"
