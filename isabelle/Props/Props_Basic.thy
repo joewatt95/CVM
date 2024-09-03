@@ -254,21 +254,18 @@ proof -
         apply simp
         by (metis assms(4) exp_not_eq_zero exp_powr_real exp_total half_gt_zero log_powr mult_1)
 
-      also have "... \<le> 2 * (\<delta> / 2) powr 2"
+      also have "... \<le> 2 * (\<delta> / 2) powr 1"
       proof -
-        have * : "\<And> a b c :: real.
-          \<lbrakk>0 < a; a \<le> b\<rbrakk> \<Longrightarrow> 2 * c powr a \<le> 2 * c powr b"
-          apply simp
-          sorry
+        have "(2 :: real) \<le> exp 1" by (metis exp_ge_add_one_self one_add_one)
 
         then show ?thesis
-          apply (rule *)
-          sorry
+          apply (auto intro!: powr_mono')
+          using assms \<open>\<delta> \<le> 1\<close> by auto
       qed
 
-      then show ?thesis sorry
+      finally show ?thesis using assms by simp
     qed
-    
+
     ultimately show ?thesis using relax_eps_del_approx by linarith
   qed
 qed
