@@ -236,16 +236,27 @@ proof -
   proof -
     assume "\<delta> \<le> 1"
 
-    let ?\<delta> = "2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+    let ?\<delta> = "2 * exp (-2 * \<epsilon>\<^sup>2  * card chi / 2 ^ (2 * k))"
 
     have "(estimate_size k chi) \<approx>\<langle>\<epsilon>, ?\<delta>\<rangle> (card chi)"
       using assms estimate_size_approx_correct_of_eps by blast
 
     moreover have "?\<delta> \<le> \<delta>"
     proof -
-      have "?\<delta> \<le> 2 * exp (-2 * \<epsilon> ^ 2 * threshold / 2 ^ (2 * k))"
-        apply (auto simp add: threshold_def)
-        sorry
+      have "?\<delta> \<le> 2 * exp (-2 * \<epsilon>\<^sup>2  * threshold / 2 ^ (2 * k))"
+      proof -
+        have 0 : "\<And> a b :: real. 2 * exp a \<le> 2 * exp b \<equiv> a \<le> b" by simp
+
+        let ?x = "2 ^ (2 * k) / (2 * \<epsilon>\<^sup>2)"
+        have 1 : "\<And> a b :: real.
+          a \<le> b \<equiv> ?x * a \<le> ?x * b"
+          by (smt (verit, best) assms(3) divide_pos_pos mult_le_cancel_left_pos zero_less_power) 
+
+        show ?thesis
+          apply (subst 0)
+          apply (subst 1)
+          using assms by auto
+      qed
 
       also have "... = 2 * exp (log2 <| \<delta> / 2)"
         using assms by (simp add: threshold_def log_divide)
