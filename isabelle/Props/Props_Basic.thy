@@ -16,8 +16,8 @@ sledgehammer_params [
   timeout = 60,
   max_facts = smart,
   provers = "
-    cvc4 z3 verit
-    e vampire spass
+    cvc5 cvc4 z3 verit
+    zipperposition e vampire spass
   "
 ]
 
@@ -60,7 +60,8 @@ definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" wh
     in map_pmf estimate_size_with keep_in_chi)"
 
 lemma estimate_size_empty :
-  "estimate_size k {} = return_pmf 0"
+  fixes k :: nat  
+  shows "estimate_size k {} = return_pmf 0"
   by (auto simp add: estimate_size_def)
 
 (*
