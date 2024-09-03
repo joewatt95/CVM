@@ -1,6 +1,7 @@
 theory Props_Basic
 
 imports
+  HOL.Power
   "HOL-Probability.Product_PMF"
   "HOL-Probability.Hoeffding"
   CVM.Utils_Function
@@ -81,8 +82,8 @@ lemma estimate_size_eq_binomial :
   fixes
     chi :: "'a set" and
     k :: nat
-  defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
   assumes "finite chi"
+  defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
   shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
   using assms
   apply (simp only: estimate_size_def)
@@ -94,12 +95,12 @@ lemma estimate_size_eq_binomial :
 lemma estimate_size_approx_correct :
   fixes
     chi :: "'a set" and
-    \<epsilon> \<delta> :: real and
+    \<epsilon> :: real and
     k :: nat
-  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
   assumes "
     finite chi" and "
     \<epsilon> > 0"
+  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
@@ -225,21 +226,41 @@ proof -
   proof -
     assume "card chi > 0"
 
-    let ?\<epsilon> = "min \<epsilon> <| sqrt <| ln 2 - ln \<delta>"
+    obtain b :: real where "
+      b \<ge> exp 1" and "
+      sqrt (log b (2 / \<delta>) * 2 ^ (2 * k) / 2) \<le> \<epsilon>" (is "?\<epsilon> \<le> _")
+      sorry
+
     let ?\<delta> = "2 * exp (-2 * ?\<epsilon> ^ 2 / 2 ^ (2 * k))"
 
-    have "?\<epsilon> > 0" and "?\<delta> > 0" using assms by auto
+    have "?\<delta> > 0" by simp
+    moreover have "?\<epsilon> > 0"
+      using assms by (smt (verit, ccfv_threshold) \<open>exp 1 \<le> b\<close> divide_le_eq_1_pos divide_pos_pos mult_pos_pos one_less_exp_iff real_sqrt_gt_zero zero_less_log_cancel_iff zero_less_power)
 
     moreover have "(estimate_size k chi) \<approx>\<langle>?\<epsilon>, ?\<delta>\<rangle> (card chi)"
       apply (rule estimate_size_approx_correct)
-      using assms by auto
-
-    moreover have "?\<epsilon> \<le> \<epsilon>" by auto
+      apply (simp add: assms(1))
+      using calculation(2) by blast
 
     moreover have "?\<delta> \<le> \<delta>"
-      sorry
+    proof -
+      have "?\<delta> = 2 * exp (- log b <| 2 / \<delta>)" using calculation(2) by auto 
+      also have "... = 2 * exp (log b <| \<delta> / 2)" using assms by (simp add: log_divide)
+      also have "... \<le> 2 * b powr (log b <| \<delta> / 2)"
+        using assms \<open>exp 1 \<le> b\<close>
+        apply simp
+        sorry
+      also have "... = \<delta>"
+        using assms \<open>exp 1 \<le> b\<close>
+        apply (simp, subst powr_log_cancel)
+        apply auto
+        apply (smt (verit) exp_gt_zero)
+        done
+
+      finally show ?thesis by blast
+    qed
     
-    ultimately show ?thesis using eps_del_approxs' by blast 
+    ultimately show ?thesis using eps_del_approxs' \<open>?\<epsilon> \<le> \<epsilon>\<close> by blast 
   qed
 qed
 
