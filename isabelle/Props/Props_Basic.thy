@@ -37,7 +37,16 @@ lemma approx_correct_of_correct :
   shows "f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x"
   using assms by (simp add: mult_less_0_iff)
 
-lemma eps_del_approxs' :
+lemma eps_del_approx_iff [simp] :
+ fixes
+    f :: "real pmf"
+  shows "
+    (\<forall> x \<epsilon> \<delta>. \<delta> > 0 \<longrightarrow> (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))
+    \<longleftrightarrow> (\<forall> x \<epsilon> \<delta>. \<delta> \<in> {0 <.. 1} \<longrightarrow> (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))"
+    apply simp
+    by (meson landau_o.R_trans landau_omega.R_linear measure_pmf.subprob_measure_le_1)
+
+lemma relax_eps_del_approx :
   fixes \<epsilon> \<epsilon>' \<delta> \<delta>' x :: real
   assumes "
     f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x" and "
@@ -92,7 +101,7 @@ lemma estimate_size_eq_binomial :
       intro!: map_pmf_cong
       simp add: map_pmf_comp Set.filter_def)
 
-lemma estimate_size_approx_correct :
+lemma estimate_size_approx_correct_of_eps :
   fixes
     chi :: "'a set" and
     \<epsilon> :: real and
@@ -100,7 +109,7 @@ lemma estimate_size_approx_correct :
   assumes "
     finite chi" and "
     \<epsilon> > 0"
-  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
+  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
@@ -200,67 +209,67 @@ proof -
     also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
       by (simp add: power2_eq_square power_even_eq)
 
-    also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
-      using assms \<open>0 < card chi\<close> divide_le_cancel by fastforce 
+    (* also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
+      using assms \<open>0 < card chi\<close> divide_le_cancel by fastforce  *)
 
-    finally show ?thesis using assms by simp
+    finally show ?thesis using assms by force
   qed
 qed
 
-lemma estimate_size_approx_correct' :
+lemma estimate_size_approx_correct :
   fixes
     chi :: "'a set" and
     \<epsilon> \<delta> :: real and
     k :: nat
+  defines "threshold \<equiv> 2 ^ (2 * k) * log2 (2 / \<delta>) / (2 * \<epsilon> ^ 2) "
   assumes "
     finite chi" and "
     \<epsilon> > 0" and "
     \<delta> > 0" and "
-    \<delta> < 2"
+    threshold \<le> card chi"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
-  show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
-    by (metis (no_types, lifting) abs_0 assms(1) assms(3) card_gt_0_iff diff_0_right dual_order.order_iff_strict estimate_size_empty indicator_simps(2) linorder_neq_iff measure_return_pmf mem_Collect_eq mult_not_zero of_nat_0 that zero_less_iff_neq_zero)
+  show ?thesis when "\<delta> \<le> 1 \<Longrightarrow> ?thesis"
+    using landau_o.R_linear landau_o.R_trans that by blast
 
-  then show "card chi > 0 \<Longrightarrow> ?thesis"
+  then show "\<delta> \<le> 1 \<Longrightarrow> ?thesis"
   proof -
-    assume "card chi > 0"
+    assume "\<delta> \<le> 1"
 
-    obtain b :: real where "
-      b \<ge> exp 1" and "
-      sqrt (log b (2 / \<delta>) * 2 ^ (2 * k) / 2) \<le> \<epsilon>" (is "?\<epsilon> \<le> _")
-      sorry
+    let ?\<delta> = "2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
 
-    let ?\<delta> = "2 * exp (-2 * ?\<epsilon> ^ 2 / 2 ^ (2 * k))"
-
-    have "?\<delta> > 0" by simp
-    moreover have "?\<epsilon> > 0"
-      using assms by (smt (verit, ccfv_threshold) \<open>exp 1 \<le> b\<close> divide_le_eq_1_pos divide_pos_pos mult_pos_pos one_less_exp_iff real_sqrt_gt_zero zero_less_log_cancel_iff zero_less_power)
-
-    moreover have "(estimate_size k chi) \<approx>\<langle>?\<epsilon>, ?\<delta>\<rangle> (card chi)"
-      apply (rule estimate_size_approx_correct)
-      apply (simp add: assms(1))
-      using calculation(2) by blast
+    have "(estimate_size k chi) \<approx>\<langle>\<epsilon>, ?\<delta>\<rangle> (card chi)"
+      using assms estimate_size_approx_correct_of_eps by blast
 
     moreover have "?\<delta> \<le> \<delta>"
     proof -
-      have "?\<delta> = 2 * exp (- log b <| 2 / \<delta>)" using calculation(2) by auto 
-      also have "... = 2 * exp (log b <| \<delta> / 2)" using assms by (simp add: log_divide)
-      also have "... \<le> 2 * b powr (log b <| \<delta> / 2)"
-        using assms \<open>exp 1 \<le> b\<close>
-        apply simp
+      have "?\<delta> \<le> 2 * exp (-2 * \<epsilon> ^ 2 * threshold / 2 ^ (2 * k))"
+        apply (auto simp add: threshold_def)
         sorry
-      also have "... = \<delta>"
-        using assms \<open>exp 1 \<le> b\<close>
-        apply (simp, subst powr_log_cancel)
-        apply auto
-        apply (smt (verit) exp_gt_zero)
-        done
 
-      finally show ?thesis by blast
+      also have "... = 2 * exp (log2 <| \<delta> / 2)"
+        using assms by (simp add: threshold_def log_divide)
+
+      also have "... = 2 * (\<delta> / 2) powr log2 (exp 1)"
+        apply simp
+        by (metis assms(4) exp_not_eq_zero exp_powr_real exp_total half_gt_zero log_powr mult_1)
+
+      also have "... \<le> 2 * (\<delta> / 2) powr 2"
+      proof -
+        have * : "\<And> a b c :: real.
+          \<lbrakk>0 < a; a \<le> b\<rbrakk> \<Longrightarrow> 2 * c powr a \<le> 2 * c powr b"
+          apply simp
+          sorry
+
+        then show ?thesis
+          apply (rule *)
+          sorry
+      qed
+
+      then show ?thesis sorry
     qed
     
-    ultimately show ?thesis using eps_del_approxs' \<open>?\<epsilon> \<le> \<epsilon>\<close> by blast 
+    ultimately show ?thesis using relax_eps_del_approx by linarith
   qed
 qed
 
