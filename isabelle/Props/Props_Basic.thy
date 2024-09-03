@@ -16,8 +16,8 @@ sledgehammer_params [
   timeout = 60,
   max_facts = smart,
   provers = "
-    cvc5 cvc4 z3 verit
-    zipperposition e vampire spass
+    cvc4 z3 verit
+    e vampire spass
   "
 ]
 
@@ -96,7 +96,7 @@ lemma estimate_size_approx_correct :
     chi :: "'a set" and
     \<epsilon> \<delta> :: real and
     k :: nat
-  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
   assumes "
     finite chi" and "
     \<epsilon> > 0"
@@ -112,12 +112,12 @@ proof -
   1. Increase timeouts: sledgehammer[timeout = 60, preplay_timeout = 10]
   2. Explicitly pass in the key `estimate_size_empty` lemma, and `that`. 
   *)
-  show ?thesis when "card chi > 0 \<longrightarrow> ?thesis" (is ?thesis)
+  show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
     using estimate_size_empty assms that
     by (smt (verit, best) card_0_eq exp_gt_zero gr_zeroI indicator_simps(2) measure_return_pmf mem_Collect_eq mult_not_zero of_nat_0)
 
-  then show ?thesis
-  proof rule
+  then show "card chi > 0 \<Longrightarrow> ?thesis"
+  proof -
     assume "card chi > 0"
 
     let ?chi_size_est = "estimate_size k chi"
@@ -199,14 +199,12 @@ proof -
     also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
       by (simp add: power2_eq_square power_even_eq)
 
-    (* also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
-      using \<open>0 < card chi\<close> assms(1) divide_le_cancel by fastforce *)
+    also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
+      using assms \<open>0 < card chi\<close> divide_le_cancel by fastforce 
 
     finally show ?thesis using assms by simp
   qed
 qed
-
-thm eps_del_approxs'
 
 lemma estimate_size_approx_correct' :
   fixes
@@ -217,8 +215,7 @@ lemma estimate_size_approx_correct' :
     finite chi" and "
     \<epsilon> > 0" and "
     \<delta> > 0" and "
-    \<delta> < 2" and "
-    k > 1"
+    \<delta> < 2"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
@@ -228,58 +225,21 @@ proof -
   proof -
     assume "card chi > 0"
 
-    let ?x = "sqrt <| 2 ^ 2 * (k - 1) * (ln 2 - ln \<delta>) / card chi"
-    let ?\<epsilon> = "min \<epsilon> ?x"
-    let ?\<delta> = "2 * exp (-2 * ?\<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+    let ?\<epsilon> = "min \<epsilon> <| sqrt <| ln 2 - ln \<delta>"
+    let ?\<delta> = "2 * exp (-2 * ?\<epsilon> ^ 2 / 2 ^ (2 * k))"
 
-    have "?\<epsilon> > 0"
-    proof -
-      have "k - 1 > 0" using assms zero_less_diff by blast
-      moreover have "ln 2 - ln \<delta> > 0" using assms by auto
-      ultimately show ?thesis by (simp add: \<open>0 < card chi\<close> assms(2)) 
-    qed
+    have "?\<epsilon> > 0" and "?\<delta> > 0" using assms by auto
 
     moreover have "(estimate_size k chi) \<approx>\<langle>?\<epsilon>, ?\<delta>\<rangle> (card chi)"
-      using estimate_size_approx_correct assms calculation
-      by blast
+      apply (rule estimate_size_approx_correct)
+      using assms by auto
 
-    moreover have "?\<epsilon> \<le> \<epsilon>" by simp
+    moreover have "?\<epsilon> \<le> \<epsilon>" by auto
 
     moreover have "?\<delta> \<le> \<delta>"
-    proof -
-      have 0 : "\<And> a b :: real. b > 0 \<Longrightarrow> 2 * exp a \<le> b \<equiv> a \<le> ln (b / 2)"
-        by (simp add: ln_ge_iff mult.commute) 
-
-      have 1 : "\<And> a :: real. a > 0 \<Longrightarrow> ln (a / 2) = ln a - ln 2"
-        by (simp add: ln_div)
-
-      have 2 : "\<And> a b c :: real. - a \<le> b - c \<equiv> a \<ge> c - b" by linarith
-
-      have 3 : "\<And> a b c \<epsilon>2 :: real.
-        a > 0 \<Longrightarrow> 2 * \<epsilon>2 * a / b \<ge> c \<equiv> \<epsilon>2 / b \<ge> c / (2 * a)"
-        by (simp add: mult.commute pos_divide_le_eq vector_space_over_itself.scale_left_commute)
-
-      have 4 : "\<And> a b c \<epsilon>2 :: real.
-        b > 0 \<Longrightarrow> \<epsilon>2 / b \<ge> c / (2 * a) \<equiv> \<epsilon>2 \<ge> c * b / (2 * a)"
-        by (simp add: pos_le_divide_eq)
-
-      show ?thesis
-        using assms
-        apply (auto simp add: 0 1)
-        apply (auto simp add: 2)
-        apply (auto simp add: 3 \<open>0 < card chi\<close>)
-        apply (auto simp add: 4)
-        sorry
-    qed
-
-   (*
-   The linarith_split_limit option was needed for sledgehammer to find a proof
-   of this.
-   *) 
-    ultimately show ?thesis
-      using eps_del_approxs' assms
-      (* [[linarith_split_limit = 11]] *)
-      by (meson exp_gt_zero mult_pos_pos zero_less_numeral)
+      sorry
+    
+    ultimately show ?thesis using eps_del_approxs' by blast 
   qed
 qed
 
