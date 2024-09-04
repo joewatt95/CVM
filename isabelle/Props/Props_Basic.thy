@@ -41,10 +41,9 @@ lemma eps_del_approx_iff [simp] :
  fixes
     f :: "real pmf"
   shows "
-    (\<forall> x \<epsilon> \<delta>. \<delta> > 0 \<longrightarrow> (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))
-    \<longleftrightarrow> (\<forall> x \<epsilon> \<delta>. \<delta> \<in> {0 <.. 1} \<longrightarrow> (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))"
-    apply simp
-    by (meson landau_o.R_trans landau_omega.R_linear measure_pmf.subprob_measure_le_1)
+    (\<forall> x \<epsilon> \<delta>. (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))
+    \<longleftrightarrow> (\<forall> x \<epsilon> \<delta>. \<delta> \<le> 1 \<longrightarrow> (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))"
+  by (meson dual_order.refl linorder_not_le order_less_trans)
 
 lemma relax_eps_del_approx :
   fixes \<epsilon> \<epsilon>' \<delta> \<delta>' x :: real
@@ -69,10 +68,21 @@ definition estimate_size :: "nat \<Rightarrow> 'a set \<Rightarrow> real pmf" wh
 
     in map_pmf estimate_size_with keep_in_chi)"
 
+locale params =
+  fixes
+    \<epsilon> \<delta> :: real and
+    k :: nat and
+    chi :: "'a set"
+  assumes
+    chi_finite : "finite chi"
+
+begin
+
 lemma estimate_size_empty :
-  fixes k :: nat  
-  shows "estimate_size k {} = return_pmf 0"
+  "estimate_size k {} = return_pmf 0"
   by (auto simp add: estimate_size_def)
+
+thm estimate_size_empty
 
 (*
 This shows that`?chi_size_est` is the same distribution as `?binom`, modulo a
@@ -88,27 +98,16 @@ The key observations and steps are:
     via `map_pmf_comp` to squish multiple `map_pmf` into one.
 *)
 lemma estimate_size_eq_binomial :
-  fixes
-    chi :: "'a set" and
-    k :: nat
-  assumes "finite chi"
   defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
   shows "estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom"
-  using assms
-  apply (simp only: estimate_size_def)
+  apply (simp only: estimate_size_def binom_def)
   apply (subst binomial_pmf_altdef')
   by (auto
       intro!: map_pmf_cong
-      simp add: map_pmf_comp Set.filter_def)
+      simp add: map_pmf_comp Set.filter_def chi_finite)
 
 lemma estimate_size_approx_correct :
-  fixes
-    chi :: "'a set" and
-    \<epsilon> :: real and
-    k :: nat
-  assumes "
-    finite chi" and "
-    \<epsilon> > 0"
+  assumes "\<epsilon> > 0"
   defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
@@ -123,7 +122,7 @@ proof -
   2. Explicitly pass in the key `estimate_size_empty` lemma, and `that`. 
   *)
   show ?thesis when "card chi > 0 \<Longrightarrow> ?thesis"
-    using estimate_size_empty assms that
+    using estimate_size_empty chi_finite assms that
     by (smt (verit, best) card_0_eq exp_gt_zero gr_zeroI indicator_simps(2) measure_return_pmf mem_Collect_eq mult_not_zero of_nat_0)
 
   then show "card chi > 0 \<Longrightarrow> ?thesis"
@@ -216,14 +215,21 @@ proof -
   qed
 qed
 
-lemma estimate_size_approx_correct' :
-  fixes
-    chi :: "'a set" and
-    \<epsilon> \<delta> :: real and
-    k :: nat
-  defines "threshold \<equiv> 2 ^ (2 * k) * log2 (2 / \<delta>) / (2 * \<epsilon> ^ 2) "
+definition threshold :: real where
+  "threshold \<equiv> 2 ^ (2 * k) * log2 (2 / \<delta>) / (2 * \<epsilon> ^ 2)"
+
+(* lemma threshold_le_card_of_k_le :
   assumes "
-    finite chi" and "
+    \<epsilon> \<in> {0 <.. 1}" and "
+    \<delta> \<in> {0 <.. 1}" and "
+    k \<le> log2 (sqrt <| 2 * card chi)"
+  shows "threshold \<le> card chi"
+proof -
+  show ?thesis sorry
+qed *)
+
+lemma estimate_size_approx_correct_of_threshold_le :
+  assumes "
     \<epsilon> > 0" and "
     \<delta> > 0" and "
     threshold \<le> card chi"
@@ -248,13 +254,12 @@ proof -
     proof -
       have "?\<delta> \<le> 2 * exp (-2 * \<epsilon>\<^sup>2  * threshold / 2 ^ (2 * k))"
       proof -
-        have 0 : "\<And> a b :: real. 2 * exp a \<le> 2 * exp b \<equiv> a \<le> b" by simp
-
         let ?x = "2 ^ (2 * k) / (2 * \<epsilon>\<^sup>2)"
-        have 1 : "\<And> a b :: real. a \<le> b \<equiv> ?x * a \<le> ?x * b"
-          by (smt (verit, best) assms(3) divide_pos_pos mult_le_cancel_left_pos zero_less_power) 
+        have * : "\<And> a b :: real. 2 * exp a \<le> 2 * exp b \<equiv> ?x * a \<le> ?x * b"
+          using assms chi_finite
+          by (smt (verit, ccfv_SIG) divide_pos_pos exp_less_mono mult_le_cancel_left_pos zero_less_power)
 
-        show ?thesis apply (subst 0) apply (subst 1) using assms by auto
+        show ?thesis using assms by (subst *, auto)
       qed
 
       also have "... = 2 * exp (log2 <| \<delta> / 2)"
@@ -262,14 +267,14 @@ proof -
 
       also have "... = 2 * (\<delta> / 2) powr log2 (exp 1)"
         apply simp
-        by (metis assms(4) exp_not_eq_zero exp_powr_real exp_total half_gt_zero log_powr mult_1)
+        using assms by (metis exp_not_eq_zero exp_powr_real exp_total half_gt_zero log_powr mult_1)
 
       also have "... \<le> 2 * (\<delta> / 2) powr 1"
       proof -
         have "(2 :: real) \<le> exp 1" by (metis exp_ge_add_one_self one_add_one)
 
         then show ?thesis
-          apply (auto intro!: powr_mono')
+          apply simp apply (rule powr_mono')
           using assms \<open>\<delta> \<le> 1\<close> by auto
       qed
 
@@ -277,5 +282,7 @@ proof -
     qed
   qed
 qed
+
+end
 
 end
