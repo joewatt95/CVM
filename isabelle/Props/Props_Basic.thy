@@ -108,7 +108,7 @@ lemma estimate_size_eq_binomial :
 
 lemma estimate_size_approx_correct :
   assumes "\<epsilon> > 0"
-  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+  defines "\<delta> \<equiv> 2 * exp (-2 * \<epsilon>\<^sup>2 * card chi / 2 ^ (2 * k))"
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   (*
@@ -196,7 +196,7 @@ proof -
     3. Increase timeouts and limit max_facts:
        sledgehammer [max_facts = 100, timeout = 120, preplay_timeout = 60]
     *)
-    also have "... \<le> 2 * exp (-2 * (\<epsilon> * ?binom_mean) ^ 2 / card chi)"
+    also have "... \<le> 2 * exp (-2 * (\<epsilon> * ?binom_mean)\<^sup>2 / card chi)"
     proof -
       have "card chi / 2 ^ k = card chi * ?binom_prob" by simp
       then show ?thesis
@@ -205,7 +205,7 @@ proof -
     qed
 
     (* Finally, we do some simplifications and relaxation of the bound. *)
-    also have "... = 2 * exp (-2 * \<epsilon> ^ 2 * card chi / 2 ^ (2 * k))"
+    also have "... = 2 * exp (-2 * \<epsilon>\<^sup>2 * card chi / 2 ^ (2 * k))"
       by (simp add: power2_eq_square power_even_eq)
 
     (* also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
@@ -216,69 +216,55 @@ proof -
 qed
 
 definition threshold :: real where
-  "threshold \<equiv> 2 ^ (2 * k) * log2 (2 / \<delta>) / (2 * \<epsilon> ^ 2)"
+  "threshold \<equiv> log2 (2 / \<delta>) / (2 * \<epsilon>\<^sup>2)"
 
-(* lemma threshold_le_card_of_k_le :
-  assumes "
-    \<epsilon> \<in> {0 <.. 1}" and "
-    \<delta> \<in> {0 <.. 1}" and "
-    k \<le> log2 (sqrt <| 2 * card chi)"
-  shows "threshold \<le> card chi"
-proof -
-  show ?thesis sorry
-qed *)
-
-lemma estimate_size_approx_correct_of_threshold_le :
+lemma estimate_size_approx_correct' :
   assumes "
     \<epsilon> > 0" and "
     \<delta> > 0" and "
-    threshold \<le> card chi"
+    k \<le> log2 (sqrt <| card chi / threshold)" (is "_ \<le> ?x")
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
-  show ?thesis when "\<delta> \<le> 1 \<Longrightarrow> ?thesis"
-    using landau_o.R_linear landau_o.R_trans that by blast
+  show ?thesis when "\<lbrakk>\<delta> \<le> 1; card chi > 0\<rbrakk> \<Longrightarrow> ?thesis"
+    using assms chi_finite estimate_size_empty
+    by (metis (mono_tags, lifting) abs_eq_0 card_gt_0_iff diff_zero indicator_simps(2) landau_o.R_linear less_eq_real_def measure_pmf.subprob_measure_le_1 measure_return_pmf mem_Collect_eq mult_eq_0_iff nat_less_le of_nat_0_eq_iff order_less_irrefl order_trans that zero_le)
 
-  then show "\<delta> \<le> 1 \<Longrightarrow> ?thesis"
+  then show "\<lbrakk>\<delta> \<le> 1; card chi > 0\<rbrakk> \<Longrightarrow> ?thesis"
   proof -
-    assume "\<delta> \<le> 1"
+    assume "\<delta> \<le> 1" and "card chi > 0"
 
-    let ?\<delta> = "2 * exp (-2 * \<epsilon>\<^sup>2  * card chi / 2 ^ (2 * k))"
+    let ?\<delta> = "\<lambda> pow. 2 * exp (-2 * \<epsilon>\<^sup>2  * card chi / (2 powr (2 * pow)))"
 
-    have "(estimate_size k chi) \<approx>\<langle>\<epsilon>, ?\<delta>\<rangle> (card chi)"
-      using assms estimate_size_approx_correct by blast
+    have "(estimate_size k chi) \<approx>\<langle>\<epsilon>, ?\<delta> k\<rangle> (card chi)"
+      using assms estimate_size_approx_correct
+      apply simp
+      by (metis of_nat_numeral power_even_eq powr_power powr_realpow zero_less_numeral zero_neq_numeral)
 
-    then show ?thesis when "?\<delta> \<le> \<delta>" (is ?thesis)
+    then show ?thesis when "?\<delta> k \<le> \<delta>" (is ?thesis)
       using relax_eps_del_approx that by linarith
 
     show ?thesis
     proof -
-      have "?\<delta> \<le> 2 * exp (-2 * \<epsilon>\<^sup>2  * threshold / 2 ^ (2 * k))"
+      have "?\<delta> k \<le> ?\<delta> ?x"
       proof -
-        let ?x = "2 ^ (2 * k) / (2 * \<epsilon>\<^sup>2)"
-        have * : "\<And> a b :: real. 2 * exp a \<le> 2 * exp b \<equiv> ?x * a \<le> ?x * b"
-          using assms chi_finite
-          by (smt (verit, ccfv_SIG) divide_pos_pos exp_less_mono mult_le_cancel_left_pos zero_less_power)
-
-        show ?thesis using assms by (subst *, auto)
+        show ?thesis
+          using assms
+          sorry
       qed
 
-      also have "... = 2 * exp (log2 <| \<delta> / 2)"
-        using assms by (simp add: threshold_def log_divide)
-
-      also have "... = 2 * (\<delta> / 2) powr log2 (exp 1)"
-        apply simp
-        using assms by (metis exp_not_eq_zero exp_powr_real exp_total half_gt_zero log_powr mult_1)
-
-      also have "... \<le> 2 * (\<delta> / 2) powr 1"
+      also have "... = 2 * exp (- 2 * \<epsilon>\<^sup>2 * threshold)"
       proof -
-        have "(2 :: real) \<le> exp 1" by (metis exp_ge_add_one_self one_add_one)
+        have "2 powr (2 * ?x) = card chi / threshold"
+          using assms \<open>0 < card chi\<close> \<open>\<delta> \<le> 1\<close>
+          apply (subst log_powr[symmetric])
+          apply auto
+          apply (smt (verit, best) divide_pos_pos less_divide_eq_1_pos real_le_rsqrt real_sqrt_zero threshold_def zero_less_log_cancel_iff)
+          using threshold_def by force
 
-        then show ?thesis
-          apply simp apply (rule powr_mono')
-          using assms \<open>\<delta> \<le> 1\<close> by auto
+        then show ?thesis by auto
       qed
 
-      finally show ?thesis using assms by simp
+      finally show ?thesis using assms sorry
     qed
   qed
 qed
