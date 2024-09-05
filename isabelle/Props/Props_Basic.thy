@@ -82,8 +82,6 @@ lemma estimate_size_empty :
   "estimate_size k {} = return_pmf 0"
   by (auto simp add: estimate_size_def)
 
-thm estimate_size_empty
-
 (*
 This shows that`?chi_size_est` is the same distribution as `?binom`, modulo a
 factor of `2 ^ k`.
@@ -94,8 +92,8 @@ The key observations and steps are:
     This puts `?binom` into a similar form as `?chi_size_est`, on which we
     can perform more simplifications.
 2. Finish the proof via a congruence property of `map_pmf` via
-    `map_pmf_cong` and routine simplifications, using the functor laws
-    via `map_pmf_comp` to squish multiple `map_pmf` into one.
+  `map_pmf_cong` and routine simplifications, using the functor laws
+  via `map_pmf_comp` to squish multiple `map_pmf` into one.
 *)
 lemma estimate_size_eq_binomial :
   defines "binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)"
@@ -153,10 +151,8 @@ proof -
     have "
       \<P>(\<omega> in ?chi_size_est. \<bar>(\<omega> :: real) - card chi\<bar> > \<epsilon> * card chi)
       \<le> \<P>(\<omega> in ?binom. \<bar>2 ^ k * (\<omega> :: real) - card chi\<bar> \<ge> \<epsilon> * card chi)"
-      using assms
-      by (auto
-          intro!: measure_pmf.finite_measure_mono
-          simp add: estimate_size_eq_binomial)
+      unfolding estimate_size_eq_binomial
+      by (auto intro!: measure_pmf.finite_measure_mono)
 
     (*
     We then transform the expression into a form that's more suitable for
@@ -211,7 +207,7 @@ proof -
     (* also have "... \<le> 2 * exp (-2 * \<epsilon> ^ 2 / 2 ^ (2 * k))"
       using assms \<open>0 < card chi\<close> divide_le_cancel by fastforce  *)
 
-    finally show ?thesis using assms by force
+    finally show ?thesis using assms by blast
   qed
 qed
 
@@ -222,7 +218,7 @@ lemma estimate_size_approx_correct' :
   assumes "
     \<epsilon> > 0" and "
     \<delta> > 0" and "
-    k \<le> log2 (sqrt <| card chi / threshold)" (is "_ \<le> ?x")
+    k \<le> (log2 (card chi / threshold)) / 2" (is "_ \<le> ?x")
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   show ?thesis when "\<lbrakk>\<delta> \<le> 1; card chi > 0\<rbrakk> \<Longrightarrow> ?thesis"
@@ -246,25 +242,25 @@ proof -
     show ?thesis
     proof -
       have "?\<delta> k \<le> ?\<delta> ?x"
-      proof -
-        show ?thesis
-          using assms
-          sorry
-      qed
+        using assms by (simp add: field_simps landau_o.R_mult_left_mono)
 
-      also have "... = 2 * exp (- 2 * \<epsilon>\<^sup>2 * threshold)"
-      proof -
-        have "2 powr (2 * ?x) = card chi / threshold"
-          using assms \<open>0 < card chi\<close> \<open>\<delta> \<le> 1\<close>
-          apply (subst log_powr[symmetric])
-          apply auto
-          apply (smt (verit, best) divide_pos_pos less_divide_eq_1_pos real_le_rsqrt real_sqrt_zero threshold_def zero_less_log_cancel_iff)
-          using threshold_def by force
+      (* also have "... = 2 * exp (- 2 * \<epsilon>\<^sup>2 * threshold)"
+        using assms \<open>0 < card chi\<close> \<open>\<delta> \<le> 1\<close> by (simp add: threshold_def)  *)
 
-        then show ?thesis by auto
-      qed
+      also have "... = 2 * exp (- log2 <| 2 / \<delta>)"
+        using assms \<open>0 < card chi\<close> \<open>\<delta> \<le> 1\<close> by (simp add: threshold_def)
 
-      finally show ?thesis using assms sorry
+      also have "... = 2 * exp (log2 <| \<delta> / 2)"
+        by (simp add: assms(2) log_divide) 
+
+      also have "... = 2 * (\<delta> / 2) powr log2 (exp 1)"
+        by (metis (no_types, opaque_lifting) app_def assms(2) div_by_1 divide_divide_eq_right divide_eq_0_iff id_apply ln_exp log_def mult.commute order_less_irrefl powr_def)
+
+      also have "... \<le> \<delta>"
+        using \<open>\<delta> \<le> 1\<close>
+        by (smt (verit, best) assms(2) divide_minus_left exp_ge_add_one_self one_le_log_cancel_iff powr_le_one_le real_average_minus_first)
+
+      finally show ?thesis by blast
     qed
   qed
 qed
