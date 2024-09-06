@@ -16,7 +16,7 @@ definition app :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (inf
   [simp] : "(<|) \<equiv> id"
 
 definition comp_right :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-  (infixl ">>>" 55) where "
+  (infixl ">>>" 55) where [simp] : "
   f >>> g = g \<circ> f"
 
 (* abbreviation kleisli_bind_left (infixr ">=>" 1) where

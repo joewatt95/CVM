@@ -69,9 +69,7 @@ fun result :: "'a state \<Rightarrow> nat" where "
     nat \<lfloor>(card chi :: real) / p\<rfloor>"
 
 definition estimate_size :: "'a list \<Rightarrow> nat spmf" where "
-  estimate_size \<equiv>
-    flip (foldM_spmf step) initial_state
-      >>> map_spmf result"
+  estimate_size \<equiv> run_steps initial_state >>> map_spmf result"
 
 end
 
