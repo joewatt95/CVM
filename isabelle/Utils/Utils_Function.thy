@@ -15,6 +15,10 @@ definition pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (inf
 definition app :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "<|" 0) where
   [simp] : "(<|) \<equiv> id"
 
+definition comp_right :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
+  (infixl ">>>" 55) where "
+  f >>> g = g \<circ> f"
+
 (* abbreviation kleisli_bind_left (infixr ">=>" 1) where
   "(f >=> g) \<equiv> (\<lambda> x. f x \<bind> g)" *)
 

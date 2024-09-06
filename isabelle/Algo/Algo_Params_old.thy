@@ -1,9 +1,9 @@
-theory Algo_Params
+theory Algo_Params_old
 
 imports
   HOL.Transcendental
   CVM.Utils_Real
-  CVM.Algo_StatesTraces
+  CVM.Algo_StatesTraces_old
 
 begin
 

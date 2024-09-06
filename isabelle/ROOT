@@ -1,6 +1,9 @@
 session CVM = Frequency_Moments +
   options [timeout = 300]
   
+  sessions
+    Constructive_Cryptography_CM
+  
   directories
     "Algo"
     "Props"
@@ -10,12 +13,16 @@ session CVM = Frequency_Moments +
     CVM
 
     "Algo/Algo_Basic"
-    "Algo/Algo_Params"
+    "Algo/Algo_Final"
+    "Algo/Algo_Params_old"
     "Algo/Algo_Properties_old"
-    "Algo/Algo_StatesTraces"
+    "Algo/Algo_StatesTraces_old"
 
+    "Props/Props_Approx_Algo"
     "Props/Props_Basic"
+    "Props/Props_Final"
 
     "Utils/Utils_Function"
     "Utils/Utils_Real"
     "Utils/Utils_PMF"
+    "Utils/Utils_SPMF"
