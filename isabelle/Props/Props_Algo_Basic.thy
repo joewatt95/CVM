@@ -31,14 +31,34 @@ begin
 context includes pattern_aliases
 begin
 
-(* lemma prob_fail_foldl_spmf_cons :
+thm option.case_distrib [of pmf, symmetric]
+
+lemma pmf_foldM_spmf_cons : "
+  pmf (foldM_spmf f (x # xs) acc)
+  = (\<lambda> b.
+      \<integral> acc'.
+        (case acc' of
+          None \<Rightarrow> pmf fail_spmf b |
+          Some acc' \<Rightarrow> pmf (foldM_spmf f xs acc') b)
+        \<partial> f x acc)"
+  apply simp
+  unfolding bind_spmf_def pmf_bind
+  apply (subst option.case_distrib [of pmf])
+  sorry
+  (* by (metis ext not_Some_eq option.simps(4) option.simps(5)) *)
+  (* by (metis bind_spmf_def option.case_distrib pmf_bind)  *)
+
+lemma prob_fail_foldM_spmf :
   fixes
-    x :: 'a and
     xs :: "'a list"
-  shows "
-    prob_fail (foldl_spmf f p (x # xs))
-    = prob_fail p + prob_fail (foldl_spmf f p xs)"
-  sorry *)
+  assumes "\<And> x acc. prob_fail (f acc x) \<le> p"
+  shows "prob_fail (foldM_spmf f xs acc) \<le> length xs * p"
+proof (induction xs)
+ case Nil then show ?case unfolding prob_fail_def by simp
+next
+  case (Cons x xs)
+  then show ?case sorry
+qed
 
 lemma prob_fail_step : "
   prob_fail (step state x) \<le> 2 powr threshold"
