@@ -1,4 +1,4 @@
-theory Props_Basic
+theory Props_Algo_Basic
 
 imports
   HOL.Power
@@ -30,6 +30,25 @@ begin
 
 context includes pattern_aliases
 begin
+
+(* lemma prob_fail_foldl_spmf_cons :
+  fixes
+    x :: 'a and
+    xs :: "'a list"
+  shows "
+    prob_fail (foldl_spmf f p (x # xs))
+    = prob_fail p + prob_fail (foldl_spmf f p xs)"
+  sorry *)
+
+lemma prob_fail_step : "
+  prob_fail (step state x) \<le> 2 powr threshold"
+  sorry
+
+lemma prob_fail_estimate_size :
+  fixes xs :: "'a list"
+  defines "len \<equiv> length xs"
+  shows "prob_fail (estimate_size xs) \<le> len * 2 powr threshold"
+  sorry
 
 end
 

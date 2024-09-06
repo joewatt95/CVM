@@ -4,7 +4,6 @@ imports
   "HOL-Library.Pattern_Aliases"
   "HOL-Probability.Product_PMF"
   "HOL-Probability.SPMF"
-  Constructive_Cryptography_CM.Fold_Spmf
   (* Frequency_Moments.Frequency_Moments *)
   CVM.Utils_Function
   CVM.Utils_PMF
@@ -30,8 +29,8 @@ definition initial_state :: "'a state" where "
 (* definition initial_trace :: "'a trace" where
   [simp] : "initial_trace \<equiv> [Some initial_state]" *)
 
-fun step :: "'a state \<Rightarrow> 'a \<Rightarrow> 'a state spmf" where "
-  step (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) x = do {
+fun step :: "'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf" where "
+  step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
     remove_x_from_chi \<leftarrow> bernoulli_pmf p;
     let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
 
@@ -48,8 +47,8 @@ fun step :: "'a state \<Rightarrow> 'a \<Rightarrow> 'a state spmf" where "
     else return_spmf (state\<lparr>state_chi := chi\<rparr>) }"
 
 definition run_steps :: "
-  'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf" where
-  "run_steps state \<equiv> foldl_spmf step (return_spmf state)"
+  'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf" where "
+  run_steps \<equiv> flip (foldM_spmf step)"
 
 (* fun step_with_trace :: "'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf" where "
   step_with_trace x (Some state # _ =: states) = do {
@@ -70,7 +69,9 @@ fun result :: "'a state \<Rightarrow> nat" where "
     nat \<lfloor>(card chi :: real) / p\<rfloor>"
 
 definition estimate_size :: "'a list \<Rightarrow> nat spmf" where "
-  estimate_size \<equiv> run_steps initial_state >>> map_spmf result"
+  estimate_size \<equiv>
+    flip (foldM_spmf step) initial_state
+      >>> map_spmf result"
 
 end
 

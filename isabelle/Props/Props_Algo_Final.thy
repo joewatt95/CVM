@@ -1,4 +1,4 @@
-theory Props_Final
+theory Props_Algo_Final
 
 imports
   HOL.Power

@@ -1,9 +1,8 @@
 theory CVM
 
 imports
-  Frequency_Moments.Probability_Ext
-  CVM.Algo_Properties_old
-  CVM.Props_Basic
+  CVM.Props_Algo_Basic
+  CVM.Props_Algo_Final
 
 begin
 
