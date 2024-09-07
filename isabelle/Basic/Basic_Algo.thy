@@ -13,7 +13,7 @@ begin
 
 record 'a state =
   state_p :: real
-  state_chi :: "'a set"
+  state_chi :: \<open>'a set\<close>
 
 locale algo_basic =
   fixes threshold :: real
@@ -22,14 +22,14 @@ begin
 context includes pattern_aliases
 begin
 
-definition initial_state :: "'a state" where "
-  initial_state \<equiv> \<lparr>state_p = 1, state_chi = {}\<rparr>"
+definition initial_state :: \<open>'a state\<close> where
+  \<open>initial_state \<equiv> \<lparr>state_p = 1, state_chi = {}\<rparr>\<close>
 
-(* definition initial_trace :: "'a trace" where
-  [simp] : "initial_trace \<equiv> [Some initial_state]" *)
+(* definition initial_trace :: \<open>'a trace\<close> where
+  [simp] : \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
 
-fun step :: "'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf" where "
-  step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
+fun step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
+  \<open>step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
     remove_x_from_chi \<leftarrow> bernoulli_pmf p;
     let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
 
@@ -43,32 +43,30 @@ fun step :: "'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf" where "
       if card chi \<ge> threshold
       then fail_spmf
       else return_spmf \<lparr>state_p = p / 2, state_chi = chi\<rparr> }
-    else return_spmf (state\<lparr>state_chi := chi\<rparr>) }"
+    else return_spmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
-definition run_steps :: "
-  'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf" where "
-  run_steps \<equiv> flip (foldM_spmf step)"
+definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf\<close> where
+  \<open>run_steps \<equiv> flip (foldM_spmf step)\<close>
 
-(* fun step_with_trace :: "'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf" where "
-  step_with_trace x (Some state # _ =: states) = do {
+(* fun step_with_trace :: \<open>'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf\<close> where
+  \<open>step_with_trace x (Some state # _ =: states) = do {
     state \<leftarrow> step x state; 
-    return_pmf <| state # states }" | "
-  step_with_trace _ states = return_pmf states" *)
+    return_pmf <| state # states }\<close> |
+  \<open>step_with_trace _ states = return_pmf states\<close> *)
 
-(* fun run_steps_with_trace :: "
-  'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a trace pmf" where "
-  run_steps_with_trace xs state =
-    foldM_pmf step_with_trace xs [Some state]"
+(* fun run_steps_with_trace :: \<open>'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a trace pmf\<close> where
+  \<open>run_steps_with_trace xs state =
+    foldM_pmf step_with_trace xs [Some state]\<close>
 
-fun run_steps :: "'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf" where
-  "run_steps x = map_pmf hd \<circ> run_steps_with_trace x" *)
+fun run_steps :: \<open>'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf\<close> where
+  \<open>run_steps x = map_pmf hd \<circ> run_steps_with_trace x\<close> *)
 
-fun result :: "'a state \<Rightarrow> nat" where "
-  result \<lparr>state_p = p, state_chi = chi\<rparr> =
-    nat \<lfloor>(card chi :: real) / p\<rfloor>"
+fun result :: \<open>'a state \<Rightarrow> nat\<close> where
+  \<open>result \<lparr>state_p = p, state_chi = chi\<rparr> =
+    nat \<lfloor>(card chi :: real) / p\<rfloor>\<close>
 
-definition estimate_size :: "'a list \<Rightarrow> nat spmf" where "
-  estimate_size \<equiv> run_steps initial_state >>> map_spmf result"
+definition estimate_size :: \<open>'a list \<Rightarrow> nat spmf\<close> where
+  \<open>estimate_size \<equiv> run_steps initial_state >>> map_spmf result\<close>
 
 end
 

@@ -31,64 +31,51 @@ begin
 context includes pattern_aliases
 begin
 
-(* thm option.case_distrib [of pmf, symmetric] *)
-
-(* lemma pmf_foldM_spmf_cons : "
-  pmf (foldM_spmf f (x # xs) acc) a
+lemma pmf_foldM_spmf_cons :
+  \<open>pmf (foldM_spmf f (x # xs) acc) a
   = \<integral> acc'. (
       case acc' of
         None \<Rightarrow> pmf fail_spmf a |
         Some acc' \<Rightarrow> pmf (foldM_spmf f xs acc') a)
-      \<partial> f x acc"
-  apply simp
-  unfolding bind_spmf_def pmf_bind
-  apply (subst option.case_distrib [of pmf])
-  sorry *)
+      \<partial> f x acc\<close>
 
-(* lemma spmf_foldM_spmf_cons :
-  assumes "
-    integrable
-      (measure_spmf (f x acc))
-      (\<lambda> acc'. spmf (foldM_spmf f xs acc') acc'')"
-  shows "
-    spmf (foldM_spmf f (x # xs) acc) acc''
-    = \<integral> acc'.
-        spmf (f x acc) acc' * spmf (foldM_spmf f xs acc') acc''
-        \<partial> count_space UNIV"
-  by (simp add: assms integral_measure_spmf spmf_bind) *)
+  apply (simp add: bind_spmf_def pmf_bind)
+  by (metis (mono_tags, lifting) option.exhaust option.simps(4) option.simps(5))
 
-find_theorems "integrable (measure_pmf _)"
+find_theorems \<open>integrable (measure_pmf _)\<close>
 
 lemma prob_fail_foldM_spmf :
   fixes
-    p :: real and
-    xs :: "'a list"
-  assumes "
-    p \<ge> 0" and "
-    \<And> x acc. prob_fail (f x acc) \<le> p" and "
-    integrable
+    f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
+    x :: 'a and
+    xs :: \<open>'a list\<close> and
+    p :: real
+  assumes
+    \<open>p \<ge> 0\<close> and
+    \<open>\<And> x acc. prob_fail (f x acc) \<le> p\<close> and
+    \<open>integrable
       (measure_spmf <| f x acc) <|
-      prob_fail \<circ> (foldM_spmf f xs)"
-  shows "prob_fail (foldM_spmf f xs acc) \<le> length xs * p"
+      prob_fail \<circ> (foldM_spmf f xs)\<close>
+  shows \<open>prob_fail (foldM_spmf f xs acc) \<le> length xs * p\<close>
 proof (induction xs arbitrary: acc)
- case Nil then show ?case unfolding prob_fail_def by simp
+ case Nil
+ then show ?case unfolding prob_fail_def by simp
 next
   case (Cons x xs)
 
-  then have ih : "\<And> acc. prob_fail (foldM_spmf f xs acc) \<le> length xs * p"
+  then have ih : \<open>\<And> acc. prob_fail (foldM_spmf f xs acc) \<le> length xs * p\<close>
     by blast
 
-  then have "
-    prob_fail (foldM_spmf f (x # xs) acc)
+  then have
+    \<open>prob_fail (foldM_spmf f (x # xs) acc)
     = prob_fail (f x acc)
-      + \<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> measure_spmf (f x acc)"
-    unfolding prob_fail_def by (simp add: pmf_bind_spmf_None)
+      + \<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> measure_spmf (f x acc)\<close>
+    by (simp add: prob_fail_def pmf_bind_spmf_None)
 
   also have "
     ... \<le> p + \<integral> acc'. length xs * p \<partial> measure_spmf (f x acc)"
   proof -
-    have * : "\<And> a a' b b' :: real.
-      \<lbrakk>a \<le> a'; b \<le> b'\<rbrakk> \<Longrightarrow> a + b \<le> a' + b'"
+    have * : \<open>\<And> a a' b b' :: real. \<lbrakk>a \<le> a'; b \<le> b'\<rbrakk> \<Longrightarrow> a + b \<le> a' + b'\<close>
       by simp
 
     then show ?thesis
@@ -98,21 +85,21 @@ next
       sorry
   qed
 
-  (* also have "
-    ... = p + (length xs * p) * \<integral> acc'. 1 \<partial> measure_spmf (f x acc)"
+  (* also have
+    \<open>... = p + (length xs * p) * \<integral> acc'. 1 \<partial> measure_spmf (f x acc)\<close>
     by simp *)
 
-  also have "
-    ... \<le> p + (length xs * p) * 1"
+  also have \<open>... \<le> p + (length xs * p) * 1\<close>
   proof -
-    have * : "\<And> a b c :: real.
-      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0; c \<ge> 0\<rbrakk> \<Longrightarrow> a * b * c \<le> b * c"
+    have * : \<open>\<And> a b c :: real.
+      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0; c \<ge> 0\<rbrakk> \<Longrightarrow> a * b * c \<le> b * c\<close>
       by (simp add: mult_left_le_one_le mult_mono)
 
     show ?thesis
       apply simp
-      apply (rule *)
-      using assms by (auto simp add: weight_spmf_le_1)
+      (* apply (rule * )
+      using assms by (auto simp add: weight_spmf_le_1) *)
+      sorry
   qed
 
   finally show ?case
@@ -121,16 +108,16 @@ next
     sorry
 qed
 
-lemma prob_fail_step : "
-  prob_fail (step state x) \<le> 2 powr threshold"
+lemma prob_fail_step :
+  \<open>prob_fail (step state x) \<le> 2 powr threshold\<close>
   sorry
 
 lemma prob_fail_estimate_size :
-  fixes xs :: "'a list"
-  shows "prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold"
+  fixes xs :: \<open>'a list\<close>
+  shows \<open>prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold\<close>
 proof -
-  have [simp] : "
-    prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)"
+  have [simp] :
+    \<open>prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)\<close>
     apply (simp add: estimate_size_def)
     sorry
 

@@ -2,24 +2,21 @@ theory Utils_Function
 
 imports
   Main
-  "HOL-Library.Monad_Syntax"
+  (* "HOL-Library.Monad_Syntax" *)
 
 begin
 
-definition flip :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-  [simp] : "flip f x y \<equiv> f y x"
+definition flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
+  [simp] : \<open>flip f x y \<equiv> f y x\<close>
 
-definition pipe :: "'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b" (infixl "|>" 0) where
-  [simp] : "(|>) \<equiv> flip id"
+definition pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close> (infixl \<open>|>\<close> 0) where
+  [simp] : \<open>(|>) \<equiv> flip id\<close>
 
-definition app :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "<|" 0) where
-  [simp] : "(<|) \<equiv> id"
+definition app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close> (infixr \<open><|\<close> 0) where
+  [simp] : \<open>(<|) \<equiv> id\<close>
 
-definition comp_right :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"
-  (infixl ">>>" 55) where [simp] : "
-  f >>> g = g \<circ> f"
-
-(* abbreviation kleisli_bind_left (infixr ">=>" 1) where
-  "(f >=> g) \<equiv> (\<lambda> x. f x \<bind> g)" *)
+definition comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
+  (infixl \<open>>>>\<close> 55) where
+  [simp] : \<open>(f >>> g) \<equiv> g \<circ> f\<close>
 
 end

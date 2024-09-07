@@ -6,28 +6,15 @@ imports
 
 begin
 
-sledgehammer_params [
-  (* verbose = true, *)
-  minimize = true,
-  preplay_timeout = 15,
-  timeout = 60,
-  max_facts = smart,
-  provers = "
-    cvc4 z3 verit
-    e vampire spass
-  "
-]
+abbreviation fail_spmf :: \<open>'a spmf\<close> where
+  \<open>fail_spmf \<equiv> return_pmf None\<close>
 
-abbreviation fail_spmf :: "'a spmf" where
-  "fail_spmf \<equiv> return_pmf None"
-
-definition prob_fail :: "'a spmf \<Rightarrow> real" where
-  "prob_fail \<equiv> flip pmf None"
+definition prob_fail :: \<open>'a spmf \<Rightarrow> real\<close> where
+  \<open>prob_fail \<equiv> flip pmf None\<close>
 
 fun
-  foldM_spmf :: "
-    ('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf" where "
-  foldM_spmf _ [] acc = return_spmf acc" | "
-  foldM_spmf f (x # xs) acc = f x acc \<bind> foldM_spmf f xs"
+  foldM_spmf :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
+  \<open>foldM_spmf _ [] acc = return_spmf acc\<close> |
+  \<open>foldM_spmf f (x # xs) acc = f x acc \<bind> foldM_spmf f xs\<close>
 
 end
