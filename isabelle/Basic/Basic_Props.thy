@@ -1,11 +1,11 @@
-theory Props_Algo_Basic
+theory Basic_Props
 
 imports
   HOL.Power
   "HOL-Probability.Product_PMF"
   "HOL-Probability.Hoeffding"
-  CVM.Algo_Basic
-  CVM.Props_Approx_Algo
+  CVM.Basic_Algo
+  CVM.Utils_Approx_Algo
   CVM.Utils_Function
   CVM.Utils_PMF
   CVM.Utils_SPMF

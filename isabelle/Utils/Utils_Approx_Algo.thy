@@ -1,4 +1,4 @@
-theory Props_Approx_Algo
+theory Utils_Approx_Algo
 
 imports
   HOL.Power

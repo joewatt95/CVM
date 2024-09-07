@@ -1,8 +1,8 @@
 theory CVM
 
 imports
-  CVM.Props_Algo_Basic
-  CVM.Props_Algo_Final
+  CVM.Basic_Props
+  CVM.Final_Props
 
 begin
 

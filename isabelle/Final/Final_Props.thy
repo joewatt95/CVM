@@ -1,11 +1,11 @@
-theory Props_Algo_Final
+theory Final_Props
 
 imports
   HOL.Power
   "HOL-Probability.Product_PMF"
   "HOL-Probability.Hoeffding"
-  CVM.Algo_Final
-  CVM.Props_Approx_Algo
+  CVM.Final_Algo
+  CVM.Utils_Approx_Algo
   CVM.Utils_Function
   CVM.Utils_PMF
   CVM.Utils_Real

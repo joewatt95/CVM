@@ -1,4 +1,4 @@
-theory Algo_Basic
+theory Basic_Algo
 
 imports
   "HOL-Library.Pattern_Aliases"
@@ -8,7 +8,6 @@ imports
   CVM.Utils_Function
   CVM.Utils_PMF
   CVM.Utils_SPMF
-  (* CVM.Algo_Params *)
 
 begin
 

@@ -2,24 +2,21 @@ session CVM = Frequency_Moments +
   options [timeout = 300]
 
   directories
-    "Algo"
-    "Props"
+    "Basic"
+    "Final"
     "Utils"
 
   theories [document = false]
     CVM
 
-    "Algo/Algo_Basic"
-    "Algo/Algo_Final"
-    "Algo/Algo_Params_old"
-    "Algo/Algo_Properties_old"
-    "Algo/Algo_StatesTraces_old"
+    "Basic/Basic_Algo"
+    "Basic/Basic_Props"
 
-    "Props/Props_Approx_Algo"
-    "Props/Props_Algo_Basic"
-    "Props/Props_Algo_Final"
+    "Final/Final_Algo"
+    "Final/Final_Props"
 
+    "Utils/Utils_Approx_Algo"
     "Utils/Utils_Function"
-    "Utils/Utils_Real"
     "Utils/Utils_PMF"
+    "Utils/Utils_Real"
     "Utils/Utils_SPMF"

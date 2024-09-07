@@ -1,4 +1,4 @@
-theory Algo_Final
+theory Final_Algo
 
 imports
   "HOL-Probability.Product_PMF"
