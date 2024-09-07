@@ -17,9 +17,20 @@ fun
   \<open>foldM_spmf _ [] acc = return_spmf acc\<close> |
   \<open>foldM_spmf f (x # xs) acc = f x acc \<bind> foldM_spmf f xs\<close>
 
-(* find_theorems \<open>integrable (measure_spmf _)\<close> *)
+locale foldM_spmf =
+  fixes
+    f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
+    x :: 'a and
+    xs :: \<open>'a list\<close> and
+    acc :: 'b
+begin
 
-(* thm measure_spmf.integrable_const_bound *)
+lemma pmf_foldM_spmf_nil :
+  fixes acc' :: 'b
+  shows
+    \<open>spmf (foldM_spmf f [] acc) acc = 1\<close> and
+    \<open>acc \<noteq> acc' \<Longrightarrow> spmf (foldM_spmf f [] acc) acc' = 0\<close>
+  by auto
 
 lemma pmf_foldM_spmf_cons :
   \<open>pmf (foldM_spmf f (x # xs) acc) a
@@ -32,16 +43,14 @@ lemma pmf_foldM_spmf_cons :
   apply (simp add: bind_spmf_def pmf_bind)
   by (metis (mono_tags, lifting) option.exhaust option.simps(4) option.simps(5))
 
+(* find_theorems \<open>integrable (measure_spmf _)\<close> *)
+
+(* thm measure_spmf.integrable_const_bound *)
+
 lemma integrable_prob_fail_foldM_spmf :
-  fixes
-    f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
-    x :: 'a and
-    xs :: \<open>'a list\<close> and
-    acc :: 'b
-  shows
-    \<open>integrable
-      (measure_spmf <| f x acc) <|
-      prob_fail <<< (foldM_spmf f xs)\<close>
+  \<open>integrable
+    (measure_spmf <| f x acc) <|
+    prob_fail <<< (foldM_spmf f xs)\<close>
 
   by (auto
       intro!: measure_spmf.integrable_const_bound[where ?B = 1]
@@ -49,10 +58,6 @@ lemma integrable_prob_fail_foldM_spmf :
 
 lemma prob_fail_foldM_spmf :
   fixes
-    f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
-    x :: 'a and
-    xs :: \<open>'a list\<close> and
-    acc :: 'b and
     p :: real
   assumes
     \<open>p \<ge> 0\<close> and
@@ -64,20 +69,21 @@ proof (induction xs arbitrary: acc)
 next
   case (Cons x xs)
 
-  then have
+  let ?acc' = \<open>f x acc\<close>
+  let ?\<mu>' = \<open>measure_spmf ?acc'\<close>
+
+  have
     \<open>prob_fail (foldM_spmf f (x # xs) acc)
-      = prob_fail (f x acc)
-      + \<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> measure_spmf (f x acc)\<close>
+    = prob_fail ?acc' + \<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>'\<close>
     by (simp add: prob_fail_def pmf_bind_spmf_None)
 
-  also have
-    \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> measure_spmf (f x acc)\<close>
+  also have \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
   proof -
     have * : \<open>\<And> a a' b b' :: real. \<lbrakk>a \<le> a'; b \<le> b'\<rbrakk> \<Longrightarrow> a + b \<le> a' + b'\<close>
       by simp
 
     then show ?thesis
-      using local.Cons assms integrable_prob_fail_foldM_spmf
+      using local.Cons assms foldM_spmf.integrable_prob_fail_foldM_spmf
       apply (intro *)
       apply blast
       apply (intro integral_mono)
@@ -96,5 +102,6 @@ next
   finally show ?case by (simp add: distrib_right)
 qed
 
+end
 
 end

@@ -1,4 +1,4 @@
-session CVM = Frequency_Moments +
+session CVM = Monad_Normalisation +
   options [timeout = 300]
 
   directories

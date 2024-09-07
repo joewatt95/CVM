@@ -4,6 +4,7 @@ imports
   HOL.Power
   "HOL-Probability.Product_PMF"
   "HOL-Probability.Hoeffding"
+  Monad_Normalisation.Monad_Normalisation
   CVM.Basic_Algo
   CVM.Utils_Approx_Algo
   CVM.Utils_Function
@@ -31,23 +32,39 @@ begin
 context includes pattern_aliases
 begin
 
+context includes monad_normalisation
+begin
+
 lemma prob_fail_step :
-  \<open>prob_fail (step state x) \<le> 2 powr threshold\<close>
-  sorry
+  fixes
+    x :: 'a and
+    state :: \<open>'a state\<close>
+  shows \<open>prob_fail (step x state) \<le> 2 powr threshold\<close>
+proof (cases state)
+  case (fields p chi)
+
+  show ?thesis
+    using local.fields
+    apply simp
+    sorry
+
+  (* apply (simp add: prob_fail_def fail_spmf_def) *)
+qed
 
 lemma prob_fail_estimate_size :
   fixes xs :: \<open>'a list\<close>
   shows \<open>prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold\<close>
 proof -
-  have
-    \<open>prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)\<close>
+  have \<open>prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)\<close>
     by (simp add: estimate_size_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
     by (auto
-        intro!: prob_fail_foldM_spmf prob_fail_step
+        intro!: foldM_spmf.prob_fail_foldM_spmf prob_fail_step
         simp add: run_steps_def)
 qed
+
+end
 
 end
 
