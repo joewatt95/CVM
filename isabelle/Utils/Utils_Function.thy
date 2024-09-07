@@ -15,8 +15,12 @@ definition pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b
 definition app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close> (infixr \<open><|\<close> 0) where
   [simp] : \<open>(<|) \<equiv> id\<close>
 
+definition comp_left :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
+  (infixl \<open><<<\<close> 55) where
+  [simp] : \<open>(g <<< f) \<equiv> (\<lambda> x. g (f x))\<close>
+
 definition comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
   (infixl \<open>>>>\<close> 55) where
-  [simp] : \<open>(f >>> g) \<equiv> g \<circ> f\<close>
+  [simp] : \<open>(f >>> g) \<equiv> (\<lambda> x. g (f x))\<close>
 
 end

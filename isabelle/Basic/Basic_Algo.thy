@@ -4,7 +4,6 @@ imports
   "HOL-Library.Pattern_Aliases"
   "HOL-Probability.Product_PMF"
   "HOL-Probability.SPMF"
-  (* Frequency_Moments.Frequency_Moments *)
   CVM.Utils_Function
   CVM.Utils_PMF
   CVM.Utils_SPMF

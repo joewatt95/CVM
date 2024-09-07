@@ -42,20 +42,20 @@ lemma pmf_foldM_spmf_cons :
   apply (simp add: bind_spmf_def pmf_bind)
   by (metis (mono_tags, lifting) option.exhaust option.simps(4) option.simps(5))
 
-find_theorems \<open>integrable (measure_pmf _)\<close>
+(* find_theorems \<open>integrable (measure_spmf _)\<close>
+
+thm measure_spmf.integrable_const_bound *)
 
 lemma prob_fail_foldM_spmf :
   fixes
     f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
     x :: 'a and
     xs :: \<open>'a list\<close> and
+    acc :: 'b and
     p :: real
   assumes
     \<open>p \<ge> 0\<close> and
-    \<open>\<And> x acc. prob_fail (f x acc) \<le> p\<close> and
-    \<open>integrable
-      (measure_spmf <| f x acc) <|
-      prob_fail \<circ> (foldM_spmf f xs)\<close>
+    \<open>\<And> x acc. prob_fail (f x acc) \<le> p\<close>
   shows \<open>prob_fail (foldM_spmf f xs acc) \<le> length xs * p\<close>
 proof (induction xs arbitrary: acc)
  case Nil
@@ -63,49 +63,36 @@ proof (induction xs arbitrary: acc)
 next
   case (Cons x xs)
 
-  then have ih : \<open>\<And> acc. prob_fail (foldM_spmf f xs acc) \<le> length xs * p\<close>
-    by blast
-
   then have
     \<open>prob_fail (foldM_spmf f (x # xs) acc)
-    = prob_fail (f x acc)
+      = prob_fail (f x acc)
       + \<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> measure_spmf (f x acc)\<close>
     by (simp add: prob_fail_def pmf_bind_spmf_None)
 
-  also have "
-    ... \<le> p + \<integral> acc'. length xs * p \<partial> measure_spmf (f x acc)"
+  also have
+    \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> measure_spmf (f x acc)\<close>
   proof -
     have * : \<open>\<And> a a' b b' :: real. \<lbrakk>a \<le> a'; b \<le> b'\<rbrakk> \<Longrightarrow> a + b \<le> a' + b'\<close>
       by simp
 
     then show ?thesis
-      using assms apply (subst *, blast)
-      apply (rule integral_mono)
-      apply simp_all
-      sorry
+      using local.Cons assms integrable_prob_fail_foldM_spmf
+      apply (intro *)
+      apply blast
+      apply (intro integral_mono)
+      by simp_all
   qed
 
-  (* also have
-    \<open>... = p + (length xs * p) * \<integral> acc'. 1 \<partial> measure_spmf (f x acc)\<close>
-    by simp *)
-
-  also have \<open>... \<le> p + (length xs * p) * 1\<close>
+  also have \<open>... \<le> p + length xs * p\<close>
   proof -
     have * : \<open>\<And> a b c :: real.
-      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0; c \<ge> 0\<rbrakk> \<Longrightarrow> a * b * c \<le> b * c\<close>
+      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0; c \<ge> 0\<rbrakk> \<Longrightarrow> a * (b * c) \<le> b * c\<close>
       by (simp add: mult_left_le_one_le mult_mono)
 
-    show ?thesis
-      apply simp
-      (* apply (rule * )
-      using assms by (auto simp add: weight_spmf_le_1) *)
-      sorry
+    show ?thesis using assms by (auto intro!: * simp add: weight_spmf_le_1)
   qed
 
-  finally show ?case
-    using assms
-    apply simp
-    sorry
+  finally show ?case by (simp add: distrib_right)
 qed
 
 lemma prob_fail_step :
@@ -116,16 +103,14 @@ lemma prob_fail_estimate_size :
   fixes xs :: \<open>'a list\<close>
   shows \<open>prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold\<close>
 proof -
-  have [simp] :
+  have
     \<open>prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)\<close>
-    apply (simp add: estimate_size_def)
-    sorry
+    by (simp add: estimate_size_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
-    apply (simp add: run_steps_def)
-    apply (rule prob_fail_foldM_spmf)
-    apply (auto intro: prob_fail_step)
-    sorry
+    by (auto
+        intro!: prob_fail_foldM_spmf prob_fail_step
+        simp add: run_steps_def)
 qed
 
 end
