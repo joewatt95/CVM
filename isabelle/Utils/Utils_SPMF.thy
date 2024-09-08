@@ -2,6 +2,7 @@ theory Utils_SPMF
 
 imports
   "HOL-Probability.SPMF"
+  "HOL-Probability.Hoeffding"
   CVM.Utils_Function
 
 begin
@@ -100,6 +101,57 @@ next
   qed
 
   finally show ?case by (simp add: distrib_right)
+qed
+
+(* lemma prob_loop :
+  fixes
+    P :: \<open>'b \<Rightarrow> bool\<close>
+  assumes
+    \<open>P acc\<close> and
+    (* x \<in> set_spmf (f x acc) \<bind> set_spmf \<circ> foldM_spmf f xs *)
+    \<open>\<And> x acc.
+      (\<exists> acc' \<in> set_spmf (f x acc). acc \<in> set_spmf (foldM_spmf f xs acc'))
+      \<Longrightarrow> P acc\<close>
+  shows \<open>AE acc' in measure_spmf (foldM_spmf f xs acc). P acc'\<close>
+proof (induction xs)
+  case Nil
+  then show ?case using assms by auto
+next
+  case (Cons x xs)
+  show ?case
+    apply (auto simp add: set_bind_spmf)
+    (* apply (subst (asm) set_bind_spmf) *)
+    sorry
+qed *)
+
+lemma prob_loop :
+  fixes
+    P :: \<open>'b \<Rightarrow> bool\<close> and
+    p :: real
+  assumes
+    \<open>P acc \<and> (case xs of
+      [] \<Rightarrow> True |
+      x # xs \<Rightarrow>
+        \<forall> acc'' \<in> set_spmf (f x acc).
+          P acc'' \<and> acc' \<in> set_spmf (foldM_spmf f xs acc''))\<close>
+  shows \<open>AE acc' in measure_spmf (foldM_spmf f xs acc). P acc'\<close>
+proof (induction xs)
+ case Nil
+  then show ?case using assms by auto
+next
+  case (Cons x xs)
+
+  then show ?case
+  proof (cases xs)
+    case Nil
+    then show ?thesis
+      using assms
+      apply auto
+      sorry
+  next
+    case (Cons a list)
+    then show ?thesis sorry
+  qed
 qed
 
 end

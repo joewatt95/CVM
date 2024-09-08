@@ -45,10 +45,11 @@ proof (cases state)
 
   show ?thesis
     using local.fields
-    apply simp
+    apply (auto simp add: prob_fail_def pmf_bind)
+    apply (subst integral_bernoulli_pmf)
+    apply auto
     sorry
 
-  (* apply (simp add: prob_fail_def fail_spmf_def) *)
 qed
 
 lemma prob_fail_estimate_size :
