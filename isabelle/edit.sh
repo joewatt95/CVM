@@ -1,5 +1,5 @@
 export CVC5_SOLVER="/usr/sbin/cvc5"
-export CVC5_VERSION="1.1.2"
+export CVC5_VERSION="1.2.0"
 
 export Z3_SOLVER="/usr/sbin/z3"
 export Z3_VERSION="4.13.0"
