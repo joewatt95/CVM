@@ -124,14 +124,14 @@ next
   then show ?case using assms local.Cons.IH Cons.prems by simp
 qed *)
 
-lemma integrable_prob_fail_foldM_spmf :
+(* lemma integrable_prob_fail_foldM_spmf :
   \<open>integrable
     (measure_spmf <| f x acc) <|
     prob_fail <<< (foldM_spmf f xs)\<close>
 
   by (auto
       intro!: measure_spmf.integrable_const_bound[where ?B = 1]
-      simp add: prob_fail_def pmf_le_1)
+      simp add: prob_fail_def pmf_le_1) *)
 
 lemma prob_fail_foldM_spmf_le :
   fixes
@@ -160,9 +160,6 @@ next
 
   also have \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
   proof -
-    have * : \<open>\<And> a a' b b' :: real. \<lbrakk>a \<le> a'; b \<le> b'\<rbrakk> \<Longrightarrow> a + b \<le> a' + b'\<close>
-      by simp
-
     have \<open>AE acc' in measure_spmf (foldM_spmf f (x # xs) acc). P acc'\<close>
       by (meson \<open>P acc\<close> assms(2) foldM_spmf.loop)
 
@@ -177,9 +174,7 @@ next
       \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>') \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
       using assms(1) calculation(2) integral_mono_AE' by fastforce 
 
-    ultimately show ?thesis
-      using foldM_spmf.integrable_prob_fail_foldM_spmf
-      by auto
+    ultimately show ?thesis by simp
   qed
 
   also have \<open>... \<le> p + length xs * p\<close>
