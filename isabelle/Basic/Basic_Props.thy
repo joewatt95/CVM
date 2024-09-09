@@ -44,21 +44,15 @@ lemma prob_fail_step :
   fixes
     x :: 'a and
     state :: \<open>'a state\<close>
-  assumes
-    \<open>\<turnstile> state ok\<close> 
   shows \<open>prob_fail (step x state) \<le> 2 powr threshold\<close>
 proof (cases state)
   case (fields p chi)
-
   (*
   0 \<le> p \<le> 1 is required to simp using integral_bernoulli_pmf
   *)
-  (* have "0 \<le> p" and "p \<le> 1" sorry
+  moreover have \<open>\<turnstile> state ok\<close> sorry
 
-  moreover have "card chi \<le> threshold" sorry *)
-
-  then show ?thesis
-    using assms
+  ultimately show ?thesis
     apply (auto simp add: prob_fail_def pmf_bind)
     (* apply (subst expectation_prod_Pi_pmf) *)
     sorry
@@ -73,10 +67,9 @@ proof -
     by (simp add: estimate_size_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
-    sorry
-    (* by (auto
+    by (auto
         intro!: foldM_spmf.prob_fail_foldM_spmf prob_fail_step
-        simp add: run_steps_def) *)
+        simp add: run_steps_def)
 qed
 
 end
