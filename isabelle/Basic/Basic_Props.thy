@@ -40,7 +40,7 @@ fun well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
 context includes monad_normalisation
 begin
 
-lemma prob_fail_step :
+lemma prob_fail_step_le :
   fixes
     x :: 'a and
     state :: \<open>'a state\<close>
@@ -50,16 +50,16 @@ proof (cases state)
   (*
   0 \<le> p \<le> 1 is required to simp using integral_bernoulli_pmf
   *)
-  moreover have \<open>\<turnstile> state ok\<close> sorry
+  have \<open>\<turnstile> state ok\<close> sorry
 
-  ultimately show ?thesis
+  then show ?thesis
     apply (auto simp add: prob_fail_def pmf_bind)
     (* apply (subst expectation_prod_Pi_pmf) *)
     sorry
 
 qed
 
-lemma prob_fail_estimate_size :
+lemma prob_fail_estimate_size_le :
   fixes xs :: \<open>'a list\<close>
   shows \<open>prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold\<close>
 proof -
@@ -68,7 +68,7 @@ proof -
 
   then show ?thesis
     by (auto
-        intro!: foldM_spmf.prob_fail_foldM_spmf prob_fail_step
+        intro!: foldM_spmf.prob_fail_foldM_spmf_le prob_fail_step_le
         simp add: run_steps_def)
 qed
 

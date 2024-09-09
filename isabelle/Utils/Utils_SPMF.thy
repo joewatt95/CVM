@@ -57,7 +57,7 @@ lemma integrable_prob_fail_foldM_spmf :
       intro!: measure_spmf.integrable_const_bound[where ?B = 1]
       simp add: prob_fail_def pmf_le_1)
 
-lemma prob_fail_foldM_spmf :
+lemma prob_fail_foldM_spmf_le :
   fixes
     p :: real
   assumes
