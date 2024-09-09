@@ -7,6 +7,18 @@ imports
 
 begin
 
+sledgehammer_params [
+  (* verbose = true, *)
+  minimize = true,
+  preplay_timeout = 15,
+  timeout = 60,
+  max_facts = smart,
+  provers = "
+    cvc4 z3 verit
+    e vampire spass
+  "
+]
+
 abbreviation fail_spmf :: \<open>'a spmf\<close> where
   \<open>fail_spmf \<equiv> return_pmf None\<close>
 
@@ -47,6 +59,71 @@ lemma pmf_foldM_spmf_cons :
 (* find_theorems \<open>integrable (measure_spmf _)\<close> *)
 
 (* thm measure_spmf.integrable_const_bound *)
+
+lemma loop :
+  fixes P :: \<open>'b \<Rightarrow> bool\<close>
+  assumes \<open>\<And> x acc. P acc \<Longrightarrow> AE acc' in measure_spmf (f x acc). P acc'\<close>
+  shows \<open>\<And> acc. P acc \<Longrightarrow> AE acc' in measure_spmf (foldM_spmf f xs acc). P acc'\<close>
+proof (induction xs)
+  case Nil
+  then show ?case using assms by simp
+next
+  case (Cons x xs)
+
+  {
+    fix acc acc'
+    assume
+      \<open>P acc\<close> and
+      \<open>acc' \<in> set_spmf (f x acc \<bind> foldM_spmf f xs)\<close>
+
+    then obtain acc'' where
+      \<open>acc'' \<in> set_spmf (f x acc)\<close> and
+      \<open>acc' \<in> set_spmf (foldM_spmf f xs acc'')\<close>
+      by (auto simp add: set_bind_spmf)
+
+    then have \<open>P acc'\<close>
+      by (metis AE_measure_spmf_iff assms local.Cons.IH \<open>P acc\<close>)
+  }
+
+  then show ?case using Cons.prems by simp
+qed
+
+(* find_theorems "_ = measure _ _ * measure _ _"  *)
+
+(* lemma loop' :
+  fixes
+    P :: \<open>'b \<Rightarrow> bool\<close> and
+    p :: real
+  assumes
+    \<open>\<And> x acc. P acc \<Longrightarrow> \<P>(acc' in measure_spmf (f x acc). P acc') = p\<close>
+  shows
+    \<open>\<And> acc.
+      P acc
+      \<Longrightarrow> \<P>(acc' in measure_spmf (foldM_spmf f xs acc). P acc')
+          = p ^ length xs\<close>
+proof (induction xs)
+  case Nil
+  then show ?case
+    using assms by (simp add: measure_return measure_spmf_return_spmf)
+next
+  case (Cons x xs)
+
+  then have
+    \<open>\<P>(acc' in measure_spmf (f x acc). P acc') = p\<close> and
+    \<open>\<P>(acc' in measure_spmf (foldM_spmf f xs acc). P acc') = p ^ length xs\<close>
+    using assms
+    apply blast
+    by (simp add: Cons.IH Cons.prems)
+
+  moreover have
+    \<open>\<P>(acc' in measure_spmf (foldM_spmf f (x # xs) acc). P acc')
+      = \<P>(acc' in measure_spmf (f x acc). P acc')
+        * \<P>(acc' in measure_spmf (foldM_spmf f xs acc). P acc')\<close>
+    apply (simp add: measure_spmf_bind)
+    sorry
+
+  then show ?case using assms local.Cons.IH Cons.prems by simp
+qed *)
 
 lemma integrable_prob_fail_foldM_spmf :
   \<open>integrable
@@ -101,57 +178,6 @@ next
   qed
 
   finally show ?case by (simp add: distrib_right)
-qed
-
-(* lemma prob_loop :
-  fixes
-    P :: \<open>'b \<Rightarrow> bool\<close>
-  assumes
-    \<open>P acc\<close> and
-    (* x \<in> set_spmf (f x acc) \<bind> set_spmf \<circ> foldM_spmf f xs *)
-    \<open>\<And> x acc.
-      (\<exists> acc' \<in> set_spmf (f x acc). acc \<in> set_spmf (foldM_spmf f xs acc'))
-      \<Longrightarrow> P acc\<close>
-  shows \<open>AE acc' in measure_spmf (foldM_spmf f xs acc). P acc'\<close>
-proof (induction xs)
-  case Nil
-  then show ?case using assms by auto
-next
-  case (Cons x xs)
-  show ?case
-    apply (auto simp add: set_bind_spmf)
-    (* apply (subst (asm) set_bind_spmf) *)
-    sorry
-qed *)
-
-lemma prob_loop :
-  fixes
-    P :: \<open>'b \<Rightarrow> bool\<close> and
-    p :: real
-  assumes
-    \<open>P acc \<and> (case xs of
-      [] \<Rightarrow> True |
-      x # xs \<Rightarrow>
-        \<forall> acc'' \<in> set_spmf (f x acc).
-          P acc'' \<and> acc' \<in> set_spmf (foldM_spmf f xs acc''))\<close>
-  shows \<open>AE acc' in measure_spmf (foldM_spmf f xs acc). P acc'\<close>
-proof (induction xs)
- case Nil
-  then show ?case using assms by auto
-next
-  case (Cons x xs)
-
-  then show ?case
-  proof (cases xs)
-    case Nil
-    then show ?thesis
-      using assms
-      apply auto
-      sorry
-  next
-    case (Cons a list)
-    then show ?thesis sorry
-  qed
 qed
 
 end
