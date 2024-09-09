@@ -8,7 +8,7 @@ begin
 abbreviation eps_del_approxs (\<open>_ \<approx> \<langle> _ , _ \<rangle> _\<close>) where
   \<open>f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> > \<epsilon> * x) \<le> \<delta>\<close>
 
-locale props_approx_algo =
+locale approx_algo =
   fixes \<epsilon> \<delta> :: real
 begin
 

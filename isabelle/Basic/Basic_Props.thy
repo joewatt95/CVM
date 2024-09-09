@@ -26,11 +26,16 @@ sledgehammer_params [
   "
 ]
 
-locale props_basic = props_approx_algo + algo_basic
+locale props_basic = approx_algo + basic_algo
 begin
 
 context includes pattern_aliases
 begin
+
+fun well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
+  (\<open>\<turnstile> _ ok\<close> [60]) where
+  \<open>\<turnstile> \<lparr>state_p = p, state_chi = chi\<rparr> ok =
+    (p \<in> {0 <.. 1} \<and> card chi < threshold)\<close>
 
 context includes monad_normalisation
 begin
@@ -39,15 +44,23 @@ lemma prob_fail_step :
   fixes
     x :: 'a and
     state :: \<open>'a state\<close>
+  assumes
+    \<open>\<turnstile> state ok\<close> 
   shows \<open>prob_fail (step x state) \<le> 2 powr threshold\<close>
 proof (cases state)
   case (fields p chi)
 
-  show ?thesis
-    using local.fields
+  (*
+  0 \<le> p \<le> 1 is required to simp using integral_bernoulli_pmf
+  *)
+  (* have "0 \<le> p" and "p \<le> 1" sorry
+
+  moreover have "card chi \<le> threshold" sorry *)
+
+  then show ?thesis
+    using assms
     apply (auto simp add: prob_fail_def pmf_bind)
-    apply (subst integral_bernoulli_pmf)
-    apply auto
+    (* apply (subst expectation_prod_Pi_pmf) *)
     sorry
 
 qed
@@ -60,9 +73,10 @@ proof -
     by (simp add: estimate_size_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
-    by (auto
+    sorry
+    (* by (auto
         intro!: foldM_spmf.prob_fail_foldM_spmf prob_fail_step
-        simp add: run_steps_def)
+        simp add: run_steps_def) *)
 qed
 
 end

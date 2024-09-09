@@ -14,7 +14,7 @@ record 'a state =
   state_p :: real
   state_chi :: \<open>'a set\<close>
 
-locale algo_basic =
+locale basic_algo =
   fixes threshold :: real
 begin
 
