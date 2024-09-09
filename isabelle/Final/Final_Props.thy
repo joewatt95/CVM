@@ -12,7 +12,7 @@ imports
 
 begin
 
-locale props_final = props_approx_algo +
+locale props_final = approx_algo +
   fixes
     k :: nat and
     chi :: \<open>'a set\<close>
