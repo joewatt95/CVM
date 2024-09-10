@@ -143,22 +143,18 @@ next
 
   also have \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
   proof -
-    have \<open>\<turnstile> { \<lblot>True\<rblot> } \<lblot>foldM_spmf f (x # xs) acc\<rblot> { P }\<close>
-      by (metis \<open>P acc\<close> assms(2) hoare_triple_def loop) 
-
-    then have \<open>prob_fail ?acc' \<le> p\<close>
-      using \<open>P acc\<close> assms by auto
-
-    moreover have
+    have
       \<open>\<turnstile> { \<lblot>True\<rblot> } \<lblot>?acc'\<rblot> { (\<lambda> acc'. prob_fail (foldM_spmf f xs acc') \<le> length xs * p) }\<close>
       using assms Cons.IH \<open>P acc\<close>
       by (smt (verit, ccfv_threshold) hoare_triple_elim hoare_triple_intro skip)
 
-    moreover have
+    then have
       \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>') \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?acc'\<rblot>\<close>])
-      using assms calculation foldM_spmf.integrable_prob_fail_foldM_spmf
+      using assms foldM_spmf.integrable_prob_fail_foldM_spmf
       by auto
+
+    moreover have \<open>prob_fail ?acc' \<le> p\<close> using \<open>P acc\<close> assms by auto
 
     ultimately show ?thesis by simp
   qed
