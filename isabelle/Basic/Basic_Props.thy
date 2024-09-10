@@ -9,7 +9,7 @@ imports
   CVM.Utils_Approx_Algo
   CVM.Utils_Function
   CVM.Utils_PMF
-  CVM.Utils_SPMF
+  CVM.Utils_SPMF_Hoare
   CVM.Utils_Real
 
 begin
@@ -33,7 +33,7 @@ context includes pattern_aliases
 begin
 
 fun well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
-  (\<open>\<turnstile> _ ok\<close> [60]) where
+  (\<open>\<turnstile> _ ok\<close> [20] 60) where
   \<open>\<turnstile> \<lparr>state_p = p, state_chi = chi\<rparr> ok =
     (p \<in> {0 <.. 1} \<and> card chi < threshold)\<close>
 

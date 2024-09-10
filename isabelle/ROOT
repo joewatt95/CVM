@@ -5,6 +5,7 @@ session CVM = Monad_Normalisation +
     "Basic"
     "Final"
     "Utils"
+    "Utils/SPMF"
 
   theories [document = false]
     CVM
@@ -19,4 +20,5 @@ session CVM = Monad_Normalisation +
     "Utils/Utils_Function"
     "Utils/Utils_PMF"
     "Utils/Utils_Real"
-    "Utils/Utils_SPMF"
+    "Utils/SPMF/Utils_SPMF_Common"
+    "Utils/SPMF/Utils_SPMF_Hoare"

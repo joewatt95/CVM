@@ -6,7 +6,7 @@ imports
   "HOL-Probability.SPMF"
   CVM.Utils_Function
   CVM.Utils_PMF
-  CVM.Utils_SPMF
+  CVM.Utils_SPMF_Common
 
 begin
 
