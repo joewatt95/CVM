@@ -29,13 +29,14 @@ definition initial_state :: \<open>'a state\<close> where
 
 fun step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
-    remove_x_from_chi \<leftarrow> bernoulli_pmf p;
+    remove_x_from_chi \<leftarrow> spmf_of_pmf <| bernoulli_pmf p;
     let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
 
     if card chi \<ge> threshold
     then do {
       keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-        Pi_pmf chi undefined <| \<lambda> _. bernoulli_pmf ((1 :: real) / 2);
+        spmf_of_pmf <|
+          Pi_pmf chi undefined \<lblot>bernoulli_pmf ((1 :: real) / 2)\<rblot>;
 
       let chi = (chi |> Set.filter keep_in_chi);
 
@@ -49,7 +50,7 @@ definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a s
 
 (* fun step_with_trace :: \<open>'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf\<close> where
   \<open>step_with_trace x (Some state # _ =: states) = do {
-    state \<leftarrow> step x state; 
+    state \<leftarrow> step x state;
     return_pmf <| state # states }\<close> |
   \<open>step_with_trace _ states = return_pmf states\<close> *)
 

@@ -33,26 +33,57 @@ context includes pattern_aliases
 begin
 
 fun well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
-  (\<open>\<turnstile> _ ok\<close> [20] 60) where
-  \<open>\<turnstile> \<lparr>state_p = p, state_chi = chi\<rparr> ok =
+  (\<open>_ ok\<close> [20] 60) where
+  \<open>\<lparr>state_p = p, state_chi = chi\<rparr> ok =
     (p \<in> {0 <.. 1} \<and> card chi < threshold)\<close>
 
 context includes monad_normalisation
 begin
 
+lemma initial_state_well_formed :
+  assumes \<open>card (state_chi initial_state) < threshold\<close>
+  shows \<open>initial_state ok\<close>
+  using assms
+  by (metis assms basic_algo.initial_state_def card.empty greaterThanAtMost_iff less_eq_real_def simps(2) verit_comp_simplify(28) well_formed_state.simps)
+
+lemma step_preserves_well_formedness :
+  fixes x :: 'a
+  shows \<open>\<turnstile> { well_formed_state } step x { well_formed_state } \<close>
+
+proof (rule hoare_triple_intro)
+  fix state state'
+  assume 0 : \<open>state ok\<close> and 1 : \<open>\<turnstile> step x state \<Down>? state'\<close>
+
+  then show \<open>state' ok\<close>
+  proof (cases state)
+    case (fields p chi)
+
+    then show ?thesis
+      using 0 1
+      apply (simp del: bind_spmf_of_pmf)
+      apply (elim bind_elim)
+      subgoal premises prems
+        proof -
+          show ?thesis sorry
+        qed
+      done
+  qed
+qed
+
 lemma prob_fail_step_le :
   fixes
     x :: 'a and
     state :: \<open>'a state\<close>
+  assumes \<open>state ok\<close>
   shows \<open>prob_fail (step x state) \<le> 2 powr threshold\<close>
 proof (cases state)
   case (fields p chi)
   (*
   0 \<le> p \<le> 1 is required to simp using integral_bernoulli_pmf
   *)
-  have \<open>\<turnstile> state ok\<close> sorry
 
   then show ?thesis
+    using assms
     apply (auto simp add: prob_fail_def pmf_bind)
     (* apply (subst expectation_prod_Pi_pmf) *)
     sorry
@@ -61,14 +92,18 @@ qed
 
 lemma prob_fail_estimate_size_le :
   fixes xs :: \<open>'a list\<close>
+  assumes \<open>card (state_chi initial_state) < threshold\<close>
   shows \<open>prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold\<close>
 proof -
   have \<open>prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)\<close>
     by (simp add: estimate_size_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
+    using assms
     by (auto
-        intro!: foldM_spmf.prob_fail_foldM_spmf_le prob_fail_step_le
+        intro!:
+          prob_fail_foldM_spmf_le initial_state_well_formed
+          prob_fail_step_le step_preserves_well_formedness
         simp add: run_steps_def)
 qed
 

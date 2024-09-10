@@ -161,7 +161,7 @@ lemma estimate_size_approx_correct' :
   assumes
     \<open>\<epsilon> > 0\<close> and
     \<open>\<delta> > 0\<close> and
-    \<open>k \<le> (log2 (card chi / threshold)) / 2\<close> (is \<open>_ \<le> ?x\<close>)
+    \<open>k \<le> (log2 <| card chi / threshold) / 2\<close> (is \<open>_ \<le> ?x\<close>)
   shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   show ?thesis when \<open>\<lbrakk>\<delta> \<le> 1; card chi > 0\<rbrakk> \<Longrightarrow> ?thesis\<close>

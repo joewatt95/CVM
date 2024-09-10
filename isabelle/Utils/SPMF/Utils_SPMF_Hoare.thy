@@ -32,15 +32,13 @@ definition hoare_triple ::
   (\<open>\<turnstile> { _ } _ { _ } \<close> [21, 20, 21] 60) where
   \<open>\<turnstile> { P } f { Q } \<equiv> \<forall> x. P x \<longrightarrow> (AE y in measure_spmf <| f x. Q y)\<close>
 
-abbreviation constantly (\<open>\<lblot> _ \<rblot>\<close> 60) where
-  \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
-
 abbreviation possibly_evals_to (\<open>\<turnstile> _ \<Down>? _\<close> [20, 2] 60) where
   \<open>\<turnstile> p \<Down>? x \<equiv> x \<in> set_spmf p\<close>
 
 lemma hoare_triple_intro :
   assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile> f x \<Down>? y\<rbrakk> \<Longrightarrow> Q y\<close>
   shows \<open>\<turnstile> { P } f { Q }\<close>
+
   by (metis AE_measure_spmf_iff app_def assms hoare_triple_def id_apply) 
 
 lemma hoare_triple_elim :
@@ -50,6 +48,7 @@ lemma hoare_triple_elim :
     \<open>P x\<close> and
     \<open>\<turnstile> f x \<Down>? y\<close>
   shows \<open>Q y\<close>
+
   by (metis AE_measure_spmf_iff app_def assms hoare_triple_def id_apply)
 
 lemma precond_postcond :
@@ -58,15 +57,18 @@ lemma precond_postcond :
     \<open>\<And> x. P' x \<Longrightarrow> P x\<close>
     \<open>\<And> x. Q x \<Longrightarrow> Q' x\<close>
   shows \<open>\<turnstile> { P' } f { Q' }\<close>
+
   by (metis assms hoare_triple_intro hoare_triple_elim)
 
 lemma skip [simp] :
   \<open>(\<turnstile> { P } return_spmf { Q }) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
+
   by (auto intro!: hoare_triple_intro elim!: hoare_triple_elim)
 
 lemma skip_intro [intro!] :
   assumes \<open>\<And> x. P x \<Longrightarrow> Q x\<close> 
   shows \<open>\<turnstile> { P } return_spmf { Q }\<close>
+
   using assms by simp
 
 lemma skip_elim [elim!] :
@@ -75,6 +77,7 @@ lemma skip_elim [elim!] :
     \<open>\<turnstile> { P } return_spmf { Q }\<close> and
     \<open>P x\<close>
   shows \<open>Q x\<close>
+
   using assms by simp
 
 lemma bind_elim :
@@ -82,15 +85,30 @@ lemma bind_elim :
   obtains y where
     \<open>\<turnstile> f x \<Down>? y\<close> and 
     \<open>\<turnstile> g y \<Down>? z\<close>
+
   using assms by (auto simp add: set_bind_spmf)
 
-lemma compose [intro!] :
+(* lemma pmf_bind_elim :
+  fixes
+    x :: 'a and
+    z :: 'c and
+    f :: \<open>'a \<Rightarrow> 'b pmf\<close> and
+    g :: \<open>'b \<Rightarrow> 'c spmf\<close>
+  assumes \<open>\<turnstile> spmf_of_pmf (f x) \<bind> g \<Down>? z\<close>
+  obtains y where
+    \<open>\<turnstile> f x \<Down>? y\<close> and 
+    \<open>\<turnstile> g y \<Down>? z\<close>
+
+  using assms by (auto simp add: set_bind_spmf) *)
+
+lemma seq [intro!] :
   assumes
     \<open>\<turnstile> { P } f { Q }\<close> and
     \<open>\<turnstile> { Q } g { R }\<close>
   shows
     \<open>\<turnstile> { P } f >=> g { R }\<close> and
     \<open>\<turnstile> { P } (\<lambda> x. f x \<bind> g) { R }\<close>
+
   using assms
   by (auto
       simp add: kleisli_compose_left_def

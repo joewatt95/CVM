@@ -5,7 +5,7 @@ imports
 
 begin
 
-abbreviation eps_del_approxs (\<open>_ \<approx> \<langle> _ , _ \<rangle> _\<close>) where
+abbreviation eps_del_approxs (\<open>_ \<approx> \<langle> _ , _ \<rangle> _\<close> [60, 60, 60, 60] 60) where
   \<open>f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x \<equiv> \<P>(\<omega> in measure_pmf f. \<bar>\<omega> - x\<bar> > \<epsilon> * x) \<le> \<delta>\<close>
 
 locale approx_algo =
@@ -26,11 +26,8 @@ lemma approx_correct_of_correct :
   using assms by (simp add: mult_less_0_iff)
 
 lemma eps_del_approx_iff [simp] :
- fixes
-    f :: \<open>real pmf\<close>
-  shows
-    \<open>(\<forall> x \<epsilon> \<delta>. (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))
-      \<longleftrightarrow> (\<forall> x \<epsilon> \<delta>. \<delta> \<le> 1 \<longrightarrow> (f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x))\<close>
+ fixes f :: \<open>real pmf\<close>
+  shows \<open>(\<forall> x \<epsilon> \<delta>. f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x) \<longleftrightarrow> (\<forall> x \<epsilon> \<delta>. \<delta> \<le> 1 \<longrightarrow> f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x)\<close>
 
   by (meson dual_order.refl linorder_not_le order_less_trans)
 
@@ -44,7 +41,8 @@ lemma relax_eps_del_approx :
     \<open>\<delta>' \<ge> \<delta>\<close>
   shows \<open>f \<approx>\<langle>\<epsilon>', \<delta>'\<rangle> x\<close>
 
-  using assms by (smt (verit, best) UNIV_I measure_pmf.finite_measure_mono mem_Collect_eq mult_pos_neg mult_right_mono sets_measure_pmf subsetI) 
+  using assms
+  by (smt (verit, best) UNIV_I measure_pmf.finite_measure_mono mem_Collect_eq mult_pos_neg mult_right_mono sets_measure_pmf subsetI) 
 
 end
 

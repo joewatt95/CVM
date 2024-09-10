@@ -23,4 +23,7 @@ definition comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Righta
   (infixl \<open>>>>\<close> 55) where
   [simp] : \<open>(f >>> g) \<equiv> (\<lambda> x. g (f x))\<close>
 
+abbreviation constantly (\<open>\<lblot> _ \<rblot>\<close> 1000) where
+  \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
+
 end
