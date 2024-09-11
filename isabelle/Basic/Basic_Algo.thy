@@ -27,8 +27,11 @@ definition initial_state :: \<open>'a state\<close> where
 (* definition initial_trace :: \<open>'a trace\<close> where
   [simp] : \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
 
-fun step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do {
+definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
+  (* \<open>step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do { *)
+  \<open>step x state \<equiv> do {
+    let p = state_p state;
+    let chi = state_chi state;
     remove_x_from_chi \<leftarrow> spmf_of_pmf <| bernoulli_pmf p;
     let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
 

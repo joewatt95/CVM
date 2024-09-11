@@ -51,6 +51,14 @@ lemma hoare_triple_elim :
 
   by (metis AE_measure_spmf_iff app_def assms hoare_triple_def id_apply)
 
+lemma bind_elim :
+  assumes \<open>\<turnstile> f x \<bind> g \<Down>? z\<close>
+  obtains y where
+    \<open>\<turnstile> f x \<Down>? y\<close> and 
+    \<open>\<turnstile> g y \<Down>? z\<close>
+
+  using assms by (auto simp add: set_bind_spmf)
+
 lemma precond_postcond :
   assumes
     \<open>\<turnstile> { P } f { Q }\<close> and
@@ -59,6 +67,15 @@ lemma precond_postcond :
   shows \<open>\<turnstile> { P' } f { Q' }\<close>
 
   by (metis assms hoare_triple_intro hoare_triple_elim)
+  
+lemma postcond_true :
+  \<open>\<turnstile> { P } f { \<lblot>True\<rblot> }\<close>
+  by (simp add: hoare_triple_intro)
+
+lemma fail [simp] :
+  \<open>\<turnstile> { P } \<lblot>fail_spmf\<rblot> { Q }\<close>
+
+  by (metis empty_iff hoare_triple_intro set_spmf_return_pmf_None) 
 
 lemma skip [simp] :
   \<open>(\<turnstile> { P } return_spmf { Q }) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
@@ -80,26 +97,16 @@ lemma skip_elim [elim!] :
 
   using assms by simp
 
-lemma bind_elim :
-  assumes \<open>\<turnstile> f x \<bind> g \<Down>? z\<close>
-  obtains y where
-    \<open>\<turnstile> f x \<Down>? y\<close> and 
-    \<open>\<turnstile> g y \<Down>? z\<close>
+lemma skip_intro' :
+  assumes \<open>\<And> x. P x \<Longrightarrow> Q (f x)\<close>
+  shows \<open>\<turnstile> { P } (\<lambda> x. return_spmf (f x)) { Q }\<close>
 
-  using assms by (auto simp add: set_bind_spmf)
+  by (metis assms hoare_triple_intro set_return_spmf singletonD)
 
-(* lemma pmf_bind_elim :
-  fixes
-    x :: 'a and
-    z :: 'c and
-    f :: \<open>'a \<Rightarrow> 'b pmf\<close> and
-    g :: \<open>'b \<Rightarrow> 'c spmf\<close>
-  assumes \<open>\<turnstile> spmf_of_pmf (f x) \<bind> g \<Down>? z\<close>
-  obtains y where
-    \<open>\<turnstile> f x \<Down>? y\<close> and 
-    \<open>\<turnstile> g y \<Down>? z\<close>
+lemma hoare_triple_altdef :
+  \<open>\<turnstile> { P } f { Q } \<longleftrightarrow> \<turnstile> { P } f { (\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile> f x \<Down>? y) \<longrightarrow> Q y) }\<close>
 
-  using assms by (auto simp add: set_bind_spmf) *)
+  by (smt (verit, ccfv_SIG) hoare_triple_elim hoare_triple_intro) 
 
 lemma seq [intro!] :
   assumes
@@ -114,6 +121,26 @@ lemma seq [intro!] :
       simp add: kleisli_compose_left_def
       intro!: hoare_triple_intro
       elim!: bind_elim hoare_triple_elim)
+
+lemma seq' [intro!] :
+  assumes
+    \<open>\<turnstile> { P } f { Q }\<close> and
+    \<open>\<And> x. P x \<Longrightarrow> \<turnstile> { Q } g x { R }\<close>
+  shows
+    \<open>\<turnstile> { P } (\<lambda> x. f x \<bind> g x) { R }\<close>
+
+  using assms
+  by (smt (verit, best) hoare_triple_elim hoare_triple_intro kleisli_compose_left_def seq(1)) 
+
+lemma if_then_else [intro!] :
+  assumes
+    \<open>\<And> b. f b \<Longrightarrow> \<turnstile> { P } g { Q }\<close> and
+    \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile> { P } h { Q }\<close>
+  shows
+    \<open>\<turnstile> { P } (\<lambda> b. if f b then g b else h b) { Q }\<close>
+
+  using assms
+  by (simp add: hoare_triple_def)
 
 lemma loop :
   fixes P :: \<open>'b \<Rightarrow> bool\<close>

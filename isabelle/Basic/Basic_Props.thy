@@ -35,7 +35,32 @@ begin
 fun well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
   \<open>\<lparr>state_p = p, state_chi = chi\<rparr> ok =
-    (p \<in> {0 <.. 1} \<and> card chi < threshold)\<close>
+    (p \<in> {0 <.. 1} \<and> finite chi \<and> card chi < threshold)\<close>
+
+lemma aux :
+  assumes
+    \<open>state ok\<close> and
+    \<open>(state_p state' = state_p state / 2) \<or> state_p state' = state_p state\<close> and
+    \<open>finite (state_chi state')\<close> and
+    \<open>card (state_chi state') \<le> card (state_chi state)\<close>
+  shows \<open>state' ok\<close>
+
+  using assms
+  apply (cases state)
+  apply (cases state')
+  by auto
+
+lemma aux' :
+  fixes a :: real
+  assumes
+    \<open>finite y\<close> and
+    \<open>x \<subseteq> y\<close> and
+    \<open>card y < a\<close>
+  shows \<open>card x < a\<close>
+proof -
+  have \<open>card x \<le> card y\<close> using assms by (auto intro!: card_mono)
+  then show ?thesis using assms by auto
+qed
 
 context includes monad_normalisation
 begin
@@ -43,32 +68,34 @@ begin
 lemma initial_state_well_formed :
   assumes \<open>card (state_chi initial_state) < threshold\<close>
   shows \<open>initial_state ok\<close>
-  using assms
-  by (metis assms basic_algo.initial_state_def card.empty greaterThanAtMost_iff less_eq_real_def simps(2) verit_comp_simplify(28) well_formed_state.simps)
+
+  using assms by (simp add: initial_state_def)
+
+thm well_formed_state.elims
 
 lemma step_preserves_well_formedness :
   fixes x :: 'a
   shows \<open>\<turnstile> { well_formed_state } step x { well_formed_state } \<close>
 
-proof (rule hoare_triple_intro)
-  fix state state'
-  assume 0 : \<open>state ok\<close> and 1 : \<open>\<turnstile> step x state \<Down>? state'\<close>
-
-  then show \<open>state' ok\<close>
-  proof (cases state)
-    case (fields p chi)
-
-    then show ?thesis
-      using 0 1
-      apply (simp del: bind_spmf_of_pmf)
-      apply (elim bind_elim)
-      subgoal premises prems
-        proof -
-          show ?thesis sorry
-        qed
-      done
-  qed
-qed
+  unfolding step_def
+  apply (simp_all del: bind_spmf_of_pmf)
+  apply (intro seq' [where ?Q = \<open>\<lblot>True\<rblot>\<close>])
+  apply (intro postcond_true)
+  apply (intro if_then_else)
+  apply (intro seq'[where ?Q = \<open>\<lblot>True\<rblot>\<close>])
+  apply (simp add: postcond_true)
+  apply auto
+  apply (intro hoare_triple_intro)
+  apply (auto simp add: Set.filter_def)
+  using well_formed_state.elims(2) apply fastforce 
+  apply (metis basic_trans_rules(23) greaterThanAtMost_iff one_le_numeral simps(1) well_formed_state.elims(2))
+  using well_formed_state.elims(2) apply fastforce
+  apply (metis (no_types, lifting) aux' mem_Collect_eq select_convs(2) subsetI well_formed_state.elims(2))
+  prefer 2
+  apply (intro skip_intro')
+  apply auto
+  prefer 2
+  sorry
 
 lemma prob_fail_step_le :
   fixes
