@@ -33,13 +33,17 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
     let k = state_k state;
     let chi = state_chi state;
 
-    remove_x_from_chi \<leftarrow> spmf_of_pmf <| bernoulli_pmf ((1 :: real) / 2 ^ k);
-    let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
+    remove_x_from_chi \<leftarrow> spmf_of_pmf <| bernoulli_pmf (1 / 2 ^ k);
+
+    let chi = (
+      if remove_x_from_chi
+      then Set.remove x chi
+      else insert x chi);
 
     if card chi < threshold
     then return_spmf (state\<lparr>state_chi := chi\<rparr>)
     else (
-      Pi_pmf chi undefined \<lblot>bernoulli_pmf ((1 :: real) / 2)\<rblot>
+      Pi_pmf chi undefined \<lblot>bernoulli_pmf (1 / 2)\<rblot>
         |> map_pmf (\<lambda> keep_in_chi.
           let chi = Set.filter keep_in_chi chi
           in if card chi < threshold

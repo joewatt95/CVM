@@ -32,38 +32,11 @@ begin
 context includes pattern_aliases
 begin
 
-(* Change p to (1 / 2 ^ k) k starting from 0 *)
-
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
   \<open>state ok \<equiv> (
     let chi = state_chi state
     in finite chi \<and> card chi < threshold)\<close>
-
-(* lemma aux :
-  assumes
-    \<open>state ok\<close> and
-    \<open>(state_p state' = state_p state / 2) \<or> state_p state' = state_p state\<close> and
-    \<open>finite (state_chi state')\<close> and
-    \<open>card (state_chi state') \<le> card (state_chi state)\<close>
-  shows \<open>state' ok\<close>
-
-  using assms
-  apply (cases state)
-  apply (cases state')
-  by auto
-
-lemma aux' :
-  fixes a :: real
-  assumes
-    \<open>finite y\<close> and
-    \<open>x \<subseteq> y\<close> and
-    \<open>card y < a\<close>
-  shows \<open>card x < a\<close>
-proof -
-  have \<open>card x \<le> card y\<close> using assms by (auto intro!: card_mono)
-  then show ?thesis using assms by auto
-qed *)
 
 context includes monad_normalisation
 begin
@@ -74,40 +47,26 @@ lemma initial_state_well_formed :
 
   using assms by (simp add: initial_state_def well_formed_state_def)
 
-lemma aux :
-  assumes \<open>\<turnstile> map_pmf (\<lambda> x. if f x then Some (g x) else None) x \<Down>? y\<close>
-  shows \<open>\<turnstile> spmf_of_pmf (map_pmf g x) \<Down>? y\<close>
-
-  using assms
-  by (smt (verit, del_insts) image_iff in_set_spmf option.discI pmf.set_map set_spmf_spmf_of_pmf)
-
-(* lemma step_preserves_well_formedness :
+lemma step_preserves_well_formedness :
   fixes x :: 'a
-  shows \<open>\<turnstile> { well_formed_state } step x { well_formed_state } \<close>
+  shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace> \<close>
 
-  apply (intro hoare_triple_intro)
-  apply (simp add: step_def del: bind_spmf_of_pmf map_spmf_of_pmf)
-  apply (simp only: set_bind_spmf set_map_spmf)
-  apply (auto simp del: bind_spmf_of_pmf map_spmf_of_pmf split: if_splits)
-  apply (simp_all del: bind_spmf_of_pmf map_spmf_of_pmf add: well_formed_state_def remove_def Set.filter_def card.insert_remove)
-  apply (metis card_Diff1_less card_Diff_singleton_if dual_order.strict_trans of_nat_less_iff)
-  apply (metis card_Diff1_less card_Diff_singleton_if dual_order.strict_trans of_nat_less_iff)
-  apply (subst (asm) aux)
-  sorry *)
-
-find_theorems "measure_pmf.prob (Pi_pmf _ _ _) _"
+  unfolding step_def
+  apply (simp del: bind_spmf_of_pmf)
+  apply (rule seq'[where ?Q = \<open>\<lblot>True\<rblot>\<close>])
+  by (auto
+      intro!: hoare_triple_intro
+      split: if_splits
+      simp add: in_set_spmf well_formed_state_def remove_def)
 
 lemma prob_fail_step_le :
   fixes
     x :: 'a and
     state :: \<open>'a state\<close>
+  assumes \<open>state ok\<close>
   shows \<open>prob_fail (step x state) \<le> 2 powr threshold\<close>
 
-  apply (auto simp add: step_def prob_fail_def pmf_bind pmf_map split: if_splits)
-  apply (smt (verit, best) divide_le_eq_1_pos divide_pos_pos gr_one_powr measure_nonneg measure_pmf.prob_le_1 mult_eq_0_iff nonzero_mult_div_cancel_left of_nat_0_le_iff zero_less_power) 
-  apply (metis basic_trans_rules(21) card_insert_le insert_Diff_single of_nat_le_iff remove_def)
-  apply (auto simp add: vimage_def filter_def remove_def)
-  sorry
+  by (metis assms ge_one_powr_ge_zero less_eq_real_def nle_le numeral_le_one_iff of_nat_0_le_iff order.trans pmf_le_1 prob_fail_def semiring_norm(69) well_formed_state_def) 
 
 lemma prob_fail_estimate_size_le :
   fixes xs :: \<open>'a list\<close>

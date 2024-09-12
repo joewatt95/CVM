@@ -6,24 +6,24 @@ imports
 
 begin
 
-definition flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
-  [simp] : \<open>flip f x y \<equiv> f y x\<close>
+abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
+  \<open>flip f x y \<equiv> f y x\<close>
 
-definition pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close> (infixl \<open>|>\<close> 0) where
-  [simp] : \<open>(|>) \<equiv> flip id\<close>
+abbreviation (input) pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close> (infixl \<open>|>\<close> 0) where
+  \<open>(|>) \<equiv> flip id\<close>
 
-definition app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close> (infixr \<open><|\<close> 0) where
-  [simp] : \<open>(<|) \<equiv> id\<close>
+abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close> (infixr \<open><|\<close> 0) where
+  \<open>(<|) \<equiv> id\<close>
 
-definition comp_left :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
+abbreviation (input) comp_left :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
   (infixl \<open><<<\<close> 55) where
-  [simp] : \<open>(g <<< f) \<equiv> (\<lambda> x. g (f x))\<close>
+  \<open>(g <<< f) \<equiv> (\<lambda> x. g (f x))\<close>
 
-definition comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
+abbreviation (input) comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
   (infixl \<open>>>>\<close> 55) where
-  [simp] : \<open>(f >>> g) \<equiv> (\<lambda> x. g (f x))\<close>
+  \<open>(f >>> g) \<equiv> (\<lambda> x. g (f x))\<close>
 
-abbreviation constantly (\<open>\<lblot> _ \<rblot>\<close> 1000) where
+abbreviation (input) constantly (\<open>\<lblot> _ \<rblot>\<close> 1000) where
   \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
 
 end
