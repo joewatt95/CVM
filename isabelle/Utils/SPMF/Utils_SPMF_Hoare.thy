@@ -213,10 +213,7 @@ next
       by (metis Cons.prems assms(2) dual_order.trans flip_def pmf_nonneg prob_fail_def that) 
 
     then show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
-    proof -
-      assume \<open>p \<ge> 0\<close>
-      then show ?thesis by (auto intro!: * simp add: weight_spmf_le_1)
-    qed
+      by (auto intro!: * simp add: weight_spmf_le_1)
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 
