@@ -168,7 +168,6 @@ lemma prob_fail_foldM_spmf_le :
     p :: real and
     P :: \<open>'b \<Rightarrow> bool\<close>
   assumes
-    \<open>p \<ge> 0\<close> and
     \<open>\<And> x. \<turnstile> { P } f x { P }\<close> and
     \<open>\<And> x acc. P acc \<Longrightarrow> prob_fail (f x acc) \<le> p\<close>
   shows \<open>P acc \<Longrightarrow> prob_fail (foldM_spmf f xs acc) \<le> length xs * p\<close>
@@ -210,7 +209,14 @@ next
       \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0; c \<ge> 0\<rbrakk> \<Longrightarrow> a * (b * c) \<le> b * c\<close>
       by (simp add: mult_left_le_one_le mult_mono)
 
-    show ?thesis using assms by (auto intro!: * simp add: weight_spmf_le_1)
+    show \<open>?thesis\<close> when \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
+      by (metis Cons.prems assms(2) dual_order.trans flip_def pmf_nonneg prob_fail_def that) 
+
+    then show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
+    proof -
+      assume \<open>p \<ge> 0\<close>
+      then show ?thesis by (auto intro!: * simp add: weight_spmf_le_1)
+    qed
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 

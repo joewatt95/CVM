@@ -91,10 +91,8 @@ lemma step_preserves_well_formedness :
   apply (metis basic_trans_rules(23) greaterThanAtMost_iff one_le_numeral simps(1) well_formed_state.elims(2))
   using well_formed_state.elims(2) apply fastforce
   apply (metis (no_types, lifting) aux' mem_Collect_eq select_convs(2) subsetI well_formed_state.elims(2))
-  prefer 2
   apply (intro skip_intro')
   apply auto
-  prefer 2
   sorry
 
 lemma prob_fail_step_le :
@@ -111,7 +109,7 @@ proof (cases state)
 
   then show ?thesis
     using assms
-    apply (auto simp add: prob_fail_def pmf_bind)
+    apply (auto simp add: prob_fail_def pmf_bind step_def)
     (* apply (subst expectation_prod_Pi_pmf) *)
     sorry
 

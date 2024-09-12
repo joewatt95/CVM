@@ -32,6 +32,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
   \<open>step x state \<equiv> do {
     let p = state_p state;
     let chi = state_chi state;
+
     remove_x_from_chi \<leftarrow> spmf_of_pmf <| bernoulli_pmf p;
     let chi = (chi |> if remove_x_from_chi then Set.remove x else insert x);
 
