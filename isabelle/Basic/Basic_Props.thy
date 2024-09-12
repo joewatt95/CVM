@@ -57,7 +57,7 @@ lemma step_preserves_well_formedness :
   by (auto
       intro!: hoare_triple_intro
       split: if_splits
-      simp add: in_set_spmf well_formed_state_def remove_def)
+      simp add: fail_spmf_def in_set_spmf well_formed_state_def remove_def)
 
 lemma prob_fail_step_le :
   fixes

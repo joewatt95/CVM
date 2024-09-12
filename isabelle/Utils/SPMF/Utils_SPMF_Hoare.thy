@@ -75,7 +75,7 @@ lemma postcond_true :
 lemma fail [simp] :
   \<open>\<turnstile> \<lbrace>P\<rbrace> \<lblot>fail_spmf\<rblot> \<lbrace>Q\<rbrace>\<close>
 
-  by (metis empty_iff hoare_triple_intro set_spmf_return_pmf_None) 
+  by (metis fail_spmf_def empty_iff hoare_triple_intro set_spmf_return_pmf_None)
 
 lemma skip [simp] :
   \<open>(\<turnstile> \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
