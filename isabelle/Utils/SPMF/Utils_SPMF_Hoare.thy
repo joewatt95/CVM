@@ -32,7 +32,7 @@ definition hoare_triple ::
   (\<open>\<turnstile> { _ } _ { _ } \<close> [21, 20, 21] 60) where
   \<open>\<turnstile> { P } f { Q } \<equiv> \<forall> x. P x \<longrightarrow> (AE y in measure_spmf <| f x. Q y)\<close>
 
-abbreviation possibly_evals_to (\<open>\<turnstile> _ \<Down>? _\<close> [20, 2] 60) where
+abbreviation (input) possibly_evals_to (\<open>\<turnstile> _ \<Down>? _\<close> [20, 2] 60) where
   \<open>\<turnstile> p \<Down>? x \<equiv> x \<in> set_spmf p\<close>
 
 lemma hoare_triple_intro :
