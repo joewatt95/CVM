@@ -6,7 +6,7 @@ imports
 
 begin
 
-abbreviation fail_spmf :: \<open>'a spmf\<close> where
+definition fail_spmf :: \<open>'a spmf\<close> where
   \<open>fail_spmf \<equiv> return_pmf None\<close>
 
 definition prob_fail :: \<open>'a spmf \<Rightarrow> real\<close> where

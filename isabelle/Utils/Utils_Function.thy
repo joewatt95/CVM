@@ -9,11 +9,11 @@ begin
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
   \<open>flip f x y \<equiv> f y x\<close>
 
-abbreviation (input) pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close> (infixl \<open>|>\<close> 0) where
-  \<open>(|>) \<equiv> flip id\<close>
-
 abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close> (infixr \<open><|\<close> 0) where
   \<open>(<|) \<equiv> id\<close>
+
+abbreviation (input) pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close> (infixl \<open>|>\<close> 0) where
+  \<open>(|>) \<equiv> flip (<|)\<close>
 
 abbreviation (input) comp_left :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
   (infixl \<open><<<\<close> 55) where

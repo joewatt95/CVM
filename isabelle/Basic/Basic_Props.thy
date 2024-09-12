@@ -49,7 +49,7 @@ lemma initial_state_well_formed :
 
 lemma step_preserves_well_formedness :
   fixes x :: 'a
-  shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace> \<close>
+  shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
   apply (simp del: bind_spmf_of_pmf)
