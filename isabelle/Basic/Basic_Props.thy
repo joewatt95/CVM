@@ -32,14 +32,14 @@ begin
 context includes pattern_aliases
 begin
 
+context includes monad_normalisation
+begin
+
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
   \<open>state ok \<equiv> (
     let chi = state_chi state
     in finite chi \<and> card chi < threshold)\<close>
-
-context includes monad_normalisation
-begin
 
 lemma initial_state_well_formed :
   assumes \<open>card (state_chi initial_state) < threshold\<close>
