@@ -11,7 +11,7 @@ imports
 begin
 
 sledgehammer_params [
-  (* verbose = true, *)
+  (* verbose *)
   minimize = true,
   preplay_timeout = 15,
   timeout = 60,

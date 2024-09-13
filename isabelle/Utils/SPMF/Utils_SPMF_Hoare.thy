@@ -17,7 +17,7 @@ imports
 begin
 
 sledgehammer_params [
-  (* verbose = true, *)
+  (* verbose *)
   minimize = true,
   preplay_timeout = 15,
   timeout = 60,
@@ -68,9 +68,10 @@ lemma precond_postcond :
   shows \<open>\<turnstile> \<lbrace>P'\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
 
   by (metis assms hoare_triple_intro hoare_triple_elim)
-  
+
 lemma postcond_true :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>True\<rblot>\<rbrace>\<close>
+
   by (simp add: hoare_triple_intro)
 
 lemma fail [simp] :
@@ -133,7 +134,8 @@ lemma loop :
   assumes \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
 
-  apply (induction xs) using assms by (auto intro: seq)
+  apply (induction xs)
+  using assms by (auto intro: seq)
 
 lemma integral_mono_of_hoare_triple :
   fixes
@@ -173,13 +175,15 @@ next
 
   also have \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
   proof -
-    have
-      \<open>\<turnstile> \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?acc'\<rblot> \<lbrace>(\<lambda> acc'. prob_fail (foldM_spmf f xs acc') \<le> length xs * p)\<rbrace>\<close>
+    have \<open>\<turnstile>
+      \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?acc'\<rblot>
+      \<lbrace>(\<lambda> acc'. prob_fail (foldM_spmf f xs acc') \<le> length xs * p)\<rbrace>\<close>
       using assms Cons.IH \<open>P acc\<close>
       by (smt (verit, ccfv_threshold) hoare_triple_elim hoare_triple_intro skip)
 
     then have
-      \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>') \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
+      \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>')
+        \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?acc'\<rblot>\<close>])
       using assms spmf_foldM.integrable_prob_fail_foldM_spmf by auto
 
