@@ -41,7 +41,8 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
     if card chi < threshold
     then return_spmf (state\<lparr>state_chi := chi\<rparr>)
     else do {
-      keep_in_chi \<leftarrow> Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
+        Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
 
       let chi = Set.filter keep_in_chi chi;
 
