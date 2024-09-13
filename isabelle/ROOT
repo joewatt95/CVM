@@ -3,7 +3,10 @@ session CVM = "HOL-Probability" +
 
   directories
     "Basic"
+    "Basic/Props"
+
     "Final"
+
     "Utils"
     "Utils/SPMF"
 
@@ -11,7 +14,8 @@ session CVM = "HOL-Probability" +
     CVM
 
     "Basic/Basic_Algo"
-    "Basic/Basic_Props"
+    "Basic/Props/Basic_Props_With_Failure"
+    "Basic/Props/Basic_Props_Without_Failure"
 
     "Final/Final_Algo"
     "Final/Final_Props"

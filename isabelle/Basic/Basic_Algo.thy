@@ -13,7 +13,9 @@ record 'a state =
   state_chi :: \<open>'a set\<close>
 
 locale basic_algo =
-  fixes threshold :: real
+  fixes
+    threshold :: real and
+    fail_if_threshold_exceeded :: bool
 begin
 
 context includes pattern_aliases
@@ -46,7 +48,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 
       let chi = Set.filter keep_in_chi chi;
 
-      if card chi < threshold
+      if \<not> fail_if_threshold_exceeded \<or> card chi < threshold
       then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
       else fail_spmf } }\<close>
 

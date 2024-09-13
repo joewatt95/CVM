@@ -1,10 +1,11 @@
-theory Basic_Props
+theory Basic_Props_With_Failure
 
 imports
   HOL.Power
   "HOL-Probability.Product_PMF"
   "HOL-Probability.Hoeffding"
   CVM.Basic_Algo
+  CVM.Basic_Props_Common
   CVM.Utils_Approx_Algo
   CVM.Utils_SPMF_Hoare
 
@@ -22,11 +23,8 @@ sledgehammer_params [
   "
 ]
 
-locale basic_props = approx_algo + basic_algo +
-  assumes \<open>threshold > 0\<close>
-begin
-
-context includes pattern_aliases
+locale basic_props_without_failure = basic_props_common +
+  assumes fail_if_threshold_exceeded : \<open>fail_if_threshold_exceeded\<close>
 begin
 
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
@@ -38,20 +36,21 @@ definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
 lemma initial_state_well_formed :
   \<open>initial_state ok\<close>
 
-  using basic_props_axioms
-  by (simp add: basic_props_def initial_state_def well_formed_state_def)
+  using threshold_pos 
+  by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
   fixes x :: 'a
   shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
-  apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric])
+  apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric] Let_def)
   apply (rule seq'[where ?Q = \<open>\<lblot>True\<rblot>\<close>])
+  using fail_if_threshold_exceeded
   by (auto
       intro!: hoare_triple_intro
       split: if_splits
-      simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def)
+      simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def Let_def)
 
 lemma prob_fail_step_le :
   fixes
@@ -70,15 +69,13 @@ proof -
     by (simp add: estimate_distinct_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
-    using basic_props_axioms
+    using threshold_pos
     by (auto
         intro!:
           prob_fail_foldM_spmf_le initial_state_well_formed
           prob_fail_step_le step_preserves_well_formedness
         simp add: run_steps_def)
 qed
-
-end
 
 end
 

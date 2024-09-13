@@ -44,6 +44,13 @@ lemma integrable_prob_fail_foldM_spmf :
       intro!: measure_spmf.integrable_const_bound[where ?B = 1]
       simp add: prob_fail_def pmf_le_1)
 
+lemma foldM_spmf_lossless_of_always_lossless :
+  assumes \<open>\<And> x acc. lossless_spmf <| f x acc\<close>
+  shows \<open>lossless_spmf <| foldM_spmf f xs acc\<close>
+
+  apply (induction xs arbitrary: acc)
+  using assms by auto
+
 end
 
 end
