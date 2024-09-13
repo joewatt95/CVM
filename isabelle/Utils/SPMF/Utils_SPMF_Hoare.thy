@@ -43,13 +43,13 @@ lemma bind_elim :
 definition hoare_triple ::
   \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
   (\<open>\<turnstile> \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
-  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> \<forall> x. P x \<longrightarrow> (AE y in measure_spmf <| f x. Q y)\<close>
+  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> \<forall> x y. P x \<longrightarrow> (\<turnstile> f x \<Rightarrow>? y) \<longrightarrow> Q y\<close>
 
 lemma hoare_triple_intro :
   assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile> f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
 
-  by (metis AE_measure_spmf_iff assms hoare_triple_def) 
+  by (metis assms hoare_triple_def) 
 
 lemma hoare_triple_elim :
   assumes
@@ -58,8 +58,7 @@ lemma hoare_triple_elim :
     \<open>\<turnstile> f x \<Rightarrow>? y\<close>
   shows \<open>Q y\<close>
 
-  by (metis AE_measure_spmf_iff assms hoare_triple_def)
-
+  by (metis assms hoare_triple_def)
 
 lemma precond_postcond :
   assumes
