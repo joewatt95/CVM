@@ -18,13 +18,13 @@ locale spmf_foldM =
     acc :: 'b
 begin
 
-lemma pmf_foldM_nil :
+lemma pmf_foldM_spmf_nil :
   shows
     ‹spmf (foldM_spmf f [] acc) acc = 1› and
     ‹acc ≠ acc' ⟹ spmf (foldM_spmf f [] acc) acc' = 0›
   by auto
 
-lemma pmf_foldM_cons :
+lemma pmf_foldM_spmf_cons :
   ‹pmf (foldM_spmf f (x # xs) acc) a
   = ∫ acc'. (
       case acc' of
@@ -35,7 +35,7 @@ lemma pmf_foldM_cons :
   apply (simp add: bind_spmf_def pmf_bind)
   by (metis fail_spmf_def option.case_eq_if)
 
-lemma integrable_prob_fail_foldM :
+lemma integrable_prob_fail_foldM_spmf :
   ‹integrable
     (measure_spmf <| f x acc) <|
     prob_fail <<< (foldM_spmf f xs)›

@@ -181,7 +181,7 @@ next
     then have
       \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>') \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?acc'\<rblot>\<close>])
-      using assms spmf_foldM.integrable_prob_fail_foldM
+      using assms spmf_foldM.integrable_prob_fail_foldM_spmf
       by auto
 
     moreover have \<open>prob_fail ?acc' \<le> p\<close> using \<open>P acc\<close> assms by simp
