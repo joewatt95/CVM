@@ -141,13 +141,13 @@ lemma integral_mono_of_hoare_triple :
   fixes
     x :: 'a and
     f :: \<open>'a \<Rightarrow> 'b spmf\<close> and
-    f' g' :: \<open>'b \<Rightarrow> real\<close>
+    g h :: \<open>'b \<Rightarrow> real\<close>
   defines \<open>\<mu> \<equiv> measure_spmf (f x)\<close>
   assumes
-    \<open>\<turnstile> \<lbrace>\<lblot>True\<rblot>\<rbrace> f \<lbrace>(\<lambda> y. f' y \<le> g' y)\<rbrace>\<close> and
-    \<open>integrable \<mu> f'\<close> and
-    \<open>integrable \<mu> g'\<close>
-  shows \<open>(\<integral> y. f' y \<partial> \<mu>) \<le> \<integral> y. g' y \<partial> \<mu>\<close>
+    \<open>\<turnstile> \<lbrace>\<lblot>True\<rblot>\<rbrace> f \<lbrace>(\<lambda> y. g y \<le> h y)\<rbrace>\<close> and
+    \<open>integrable \<mu> g\<close> and
+    \<open>integrable \<mu> h\<close>
+  shows \<open>(\<integral> y. g y \<partial> \<mu>) \<le> \<integral> y. h y \<partial> \<mu>\<close>
 
   using assms by (auto intro!: integral_mono_AE elim!: hoare_triple_elim)
 
