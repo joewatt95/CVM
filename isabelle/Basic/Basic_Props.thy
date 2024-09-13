@@ -64,10 +64,10 @@ lemma prob_fail_step_le :
 
 lemma prob_fail_estimate_size_le :
   fixes xs :: \<open>'a list\<close>
-  shows \<open>prob_fail (estimate_size xs) \<le> length xs * 2 powr threshold\<close>
+  shows \<open>prob_fail (estimate_distinct xs) \<le> length xs * 2 powr threshold\<close>
 proof -
-  have \<open>prob_fail (estimate_size xs) = prob_fail (run_steps initial_state xs)\<close>
-    by (simp add: estimate_size_def prob_fail_def pmf_None_eq_weight_spmf)
+  have \<open>prob_fail (estimate_distinct xs) = prob_fail (run_steps initial_state xs)\<close>
+    by (simp add: estimate_distinct_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
     using basic_props_axioms

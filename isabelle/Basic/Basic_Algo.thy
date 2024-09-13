@@ -69,8 +69,8 @@ fun run_steps :: \<open>'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state
 fun result :: \<open>'a state \<Rightarrow> nat\<close> where
   \<open>result \<lparr>state_k = k, state_chi = chi\<rparr> = card chi * 2 ^ k\<close>
 
-definition estimate_size :: \<open>'a list \<Rightarrow> nat spmf\<close> where
-  \<open>estimate_size \<equiv> run_steps initial_state >>> map_spmf result\<close>
+definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
+  \<open>estimate_distinct \<equiv> run_steps initial_state >>> map_spmf result\<close>
 
 end
 
