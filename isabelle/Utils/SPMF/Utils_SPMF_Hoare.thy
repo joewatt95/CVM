@@ -2,16 +2,17 @@ theory Utils_SPMF_Hoare
 
 (*
 Specialisation of Lean's SatisfiesM to the SPMF monad.
-This enables Hoare-logic-like reasoning over (probabilistic) monadic programs.
+This enables Hoare-logic-like reasoning for the partial correctness of spmf
+monadic programs.
 
+References:
 https://leanprover-community.github.io/mathlib4_docs/Batteries/Classes/SatisfiesM.html
-
-https://cs.ioc.ee/mpc-amast06/amast/mossakowski-slides.pdf 
+https://link.springer.com/content/pdf/10.1007/3-540-36578-8_19.pdf
 https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
 *)
 
 imports
-  "CVM.Utils_SPMF_Common"
+  "CVM.Utils_SPMF_FoldM"
 
 begin
 
@@ -27,29 +28,9 @@ sledgehammer_params [
   "
 ]
 
-definition hoare_triple ::
-  \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
-  (\<open>\<turnstile> \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
-  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> \<forall> x. P x \<longrightarrow> (AE y in measure_spmf <| f x. Q y)\<close>
-
-abbreviation (input) possibly_evals_to (\<open>\<turnstile> _ \<Rightarrow>? _\<close> [20, 2] 60) where
+abbreviation possibly_evals_to
+  (\<open>\<turnstile> _ \<Rightarrow>? _\<close> [20, 2] 60) where
   \<open>\<turnstile> p \<Rightarrow>? x \<equiv> x \<in> set_spmf p\<close>
-
-lemma hoare_triple_intro :
-  assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile> f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y\<close>
-  shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-
-  by (metis AE_measure_spmf_iff assms hoare_triple_def id_apply) 
-
-lemma hoare_triple_elim :
-  fixes x y
-  assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
-    \<open>P x\<close> and
-    \<open>\<turnstile> f x \<Rightarrow>? y\<close>
-  shows \<open>Q y\<close>
-
-  by (metis AE_measure_spmf_iff assms hoare_triple_def id_apply)
 
 lemma bind_elim :
   assumes \<open>\<turnstile> f x \<bind> g \<Rightarrow>? z\<close>
@@ -58,6 +39,27 @@ lemma bind_elim :
     \<open>\<turnstile> g y \<Rightarrow>? z\<close>
 
   using assms by (auto simp add: set_bind_spmf)
+
+definition hoare_triple ::
+  \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
+  (\<open>\<turnstile> \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
+  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> \<forall> x. P x \<longrightarrow> (AE y in measure_spmf <| f x. Q y)\<close>
+
+lemma hoare_triple_intro :
+  assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile> f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+
+  by (metis AE_measure_spmf_iff assms hoare_triple_def) 
+
+lemma hoare_triple_elim :
+  assumes
+    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
+    \<open>P x\<close> and
+    \<open>\<turnstile> f x \<Rightarrow>? y\<close>
+  shows \<open>Q y\<close>
+
+  by (metis AE_measure_spmf_iff assms hoare_triple_def)
+
 
 lemma precond_postcond :
   assumes
@@ -82,33 +84,17 @@ lemma skip [simp] :
 
   by (auto intro!: hoare_triple_intro elim!: hoare_triple_elim)
 
-lemma skip_intro [intro!] :
-  assumes \<open>\<And> x. P x \<Longrightarrow> Q x\<close> 
-  shows \<open>\<turnstile> \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>\<close>
+lemma skip' [simp] :
+  \<open>(\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q (f x))\<close>
 
-  using assms by simp
-
-lemma skip_elim [elim!] :
-  fixes x
-  assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>\<close> and
-    \<open>P x\<close>
-  shows \<open>Q x\<close>
-
-  using assms by simp
-
-lemma skip_intro' :
-  assumes \<open>\<And> x. P x \<Longrightarrow> Q (f x)\<close>
-  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>\<close>
-
-  by (metis assms hoare_triple_intro set_return_spmf singletonD)
+  by (simp add: hoare_triple_def) 
 
 lemma hoare_triple_altdef :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<longleftrightarrow> \<turnstile> \<lbrace>P\<rbrace> f \<lbrace>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile> f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrace>\<close>
 
   by (smt (verit, ccfv_SIG) hoare_triple_elim hoare_triple_intro) 
 
-lemma seq [intro!] :
+lemma seq :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close> and
     \<open>\<turnstile> \<lbrace>Q\<rbrace> g \<lbrace>R\<rbrace>\<close>
@@ -132,7 +118,7 @@ lemma seq' :
   using assms
   by (smt (verit, best) hoare_triple_elim hoare_triple_intro kleisli_compose_left_def seq(1)) 
 
-lemma if_then_else [intro!] :
+lemma if_then_else :
   assumes
     \<open>\<And> b. f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> g \<lbrace>Q\<rbrace>\<close> and
     \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> h \<lbrace>Q\<rbrace>\<close>
@@ -147,7 +133,7 @@ lemma loop :
   assumes \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
 
-  apply (induction xs) using assms by auto
+  apply (induction xs) using assms by (auto intro: seq)
 
 lemma integral_mono_of_hoare_triple :
   fixes
@@ -195,18 +181,18 @@ next
     then have
       \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>') \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?acc'\<rblot>\<close>])
-      using assms foldM_spmf.integrable_prob_fail_foldM_spmf
+      using assms spmf_foldM.integrable_prob_fail_foldM
       by auto
 
-    moreover have \<open>prob_fail ?acc' \<le> p\<close> using \<open>P acc\<close> assms by auto
+    moreover have \<open>prob_fail ?acc' \<le> p\<close> using \<open>P acc\<close> assms by simp
 
     ultimately show ?thesis by simp
   qed
 
   also have \<open>... \<le> p + length xs * p\<close>
   proof -
-    have * : \<open>\<And> a b c :: real.
-      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0; c \<ge> 0\<rbrakk> \<Longrightarrow> a * (b * c) \<le> b * c\<close>
+    have * : \<open>\<And> a b :: real.
+      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0\<rbrakk> \<Longrightarrow> a * b \<le> b\<close>
       by (simp add: mult_left_le_one_le mult_mono)
 
     show \<open>?thesis\<close> when \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>

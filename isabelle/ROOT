@@ -1,4 +1,4 @@
-session CVM = Monad_Normalisation +
+session CVM = "HOL-Probability" +
   options [timeout = 300]
 
   directories
@@ -21,4 +21,5 @@ session CVM = Monad_Normalisation +
     "Utils/Utils_PMF"
     "Utils/Utils_Real"
     "Utils/SPMF/Utils_SPMF_Common"
+    "Utils/SPMF/Utils_SPMF_FoldM"
     "Utils/SPMF/Utils_SPMF_Hoare"

@@ -3,10 +3,8 @@ theory Basic_Algo
 imports
   "HOL-Library.Pattern_Aliases"
   "HOL-Probability.Product_PMF"
-  "HOL-Probability.SPMF"
-  CVM.Utils_Function
   CVM.Utils_PMF
-  CVM.Utils_SPMF_Common
+  CVM.Utils_SPMF_FoldM
 
 begin
 
@@ -33,7 +31,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
     let k = state_k state;
     let chi = state_chi state;
 
-    remove_x_from_chi \<leftarrow> spmf_of_pmf <| bernoulli_pmf <| 1 / 2 ^ k;
+    remove_x_from_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
 
     let chi = (chi |>
       if remove_x_from_chi

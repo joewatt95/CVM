@@ -2,17 +2,18 @@ theory Utils_Function
 
 imports
   Main
-  (* "HOL-Library.Monad_Syntax" *)
 
 begin
 
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
   \<open>flip f x y \<equiv> f y x\<close>
 
-abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close> (infixr \<open><|\<close> 0) where
-  \<open>(<|) \<equiv> id\<close>
+abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close>
+  (infixr \<open><|\<close> 0) where
+  \<open>(<|) f \<equiv> f\<close>
 
-abbreviation (input) pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close> (infixl \<open>|>\<close> 0) where
+abbreviation (input) pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close>
+(infixl \<open>|>\<close> 0) where
   \<open>(|>) \<equiv> flip (<|)\<close>
 
 abbreviation (input) comp_left :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
@@ -23,7 +24,8 @@ abbreviation (input) comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('
   (infixl \<open>>>>\<close> 55) where
   \<open>(f >>> g) \<equiv> (\<lambda> x. g (f x))\<close>
 
-abbreviation (input) constantly (\<open>\<lblot> _ \<rblot>\<close> 1000) where
+abbreviation (input) constantly
+  (\<open>\<lblot> _ \<rblot>\<close> 1000) where
   \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
 
 end

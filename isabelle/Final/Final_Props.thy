@@ -194,7 +194,7 @@ proof -
         by (simp add: assms(2) log_divide) 
 
       also have \<open>... = 2 * (\<delta> / 2) powr log2 (exp 1)\<close>
-        by (metis (no_types, opaque_lifting) assms(2) div_by_1 divide_divide_eq_right divide_eq_0_iff id_apply ln_exp log_def mult.commute order_less_irrefl powr_def)
+        by (metis (no_types, opaque_lifting) assms(2) div_by_1 divide_divide_eq_right divide_eq_0_iff ln_exp log_def mult.commute order_less_irrefl powr_def)
 
       also have \<open>... \<le> \<delta>\<close>
         using \<open>\<delta> \<le> 1\<close>
