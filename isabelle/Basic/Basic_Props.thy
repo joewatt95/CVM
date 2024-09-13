@@ -46,13 +46,12 @@ lemma step_preserves_well_formedness :
   shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
-  apply simp
-  apply (subst bind_spmf_of_pmf[symmetric])
+  apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric])
   apply (rule seq'[where ?Q = \<open>\<lblot>True\<rblot>\<close>])
   by (auto
       intro!: hoare_triple_intro
       split: if_splits
-      simp add: fail_spmf_def in_set_spmf well_formed_state_def remove_def)
+      simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def)
 
 lemma prob_fail_step_le :
   fixes
