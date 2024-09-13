@@ -36,7 +36,7 @@ definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
     in finite chi \<and> card chi < threshold)\<close>
 
 lemma initial_state_well_formed :
-  shows \<open>initial_state ok\<close>
+  \<open>initial_state ok\<close>
 
   using basic_props_axioms
   by (simp add: basic_props_def initial_state_def well_formed_state_def)

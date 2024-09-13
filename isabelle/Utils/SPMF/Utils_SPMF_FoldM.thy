@@ -6,39 +6,39 @@ imports
 begin
 
 fun
-  foldM_spmf :: ‹('a ⇒ 'b ⇒ 'b spmf) ⇒ 'a list ⇒ 'b ⇒ 'b spmf› where
-  ‹foldM_spmf _ [] acc = return_spmf acc› |
-  ‹foldM_spmf f (x # xs) acc = f x acc ⤜ foldM_spmf f xs›
+  foldM_spmf :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
+  \<open>foldM_spmf _ [] acc = return_spmf acc\<close> |
+  \<open>foldM_spmf f (x # xs) acc = f x acc \<bind> foldM_spmf f xs\<close>
 
 locale spmf_foldM =
   fixes
-    f :: ‹'a ⇒ 'b ⇒ 'b spmf› and
+    f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
     x :: 'a and
-    xs :: ‹'a list› and
+    xs :: \<open>'a list\<close> and
     acc :: 'b
 begin
 
 lemma pmf_foldM_spmf_nil :
   shows
-    ‹spmf (foldM_spmf f [] acc) acc = 1› and
-    ‹acc ≠ acc' ⟹ spmf (foldM_spmf f [] acc) acc' = 0›
+    \<open>spmf (foldM_spmf f [] acc) acc = 1\<close> and
+    \<open>acc \<noteq> acc' \<Longrightarrow> spmf (foldM_spmf f [] acc) acc' = 0\<close>
   by auto
 
 lemma pmf_foldM_spmf_cons :
-  ‹pmf (foldM_spmf f (x # xs) acc) a
-  = ∫ acc'. (
+  \<open>pmf (foldM_spmf f (x # xs) acc) a
+  = \<integral> acc'. (
       case acc' of
-        None ⇒ pmf fail_spmf a |
-        Some acc' ⇒ pmf (foldM_spmf f xs acc') a)
-      ∂ f x acc›
+        None \<Rightarrow> pmf fail_spmf a |
+        Some acc' \<Rightarrow> pmf (foldM_spmf f xs acc') a)
+      \<partial> f x acc\<close>
 
   apply (simp add: bind_spmf_def pmf_bind)
   by (metis fail_spmf_def option.case_eq_if)
 
 lemma integrable_prob_fail_foldM_spmf :
-  ‹integrable
+  \<open>integrable
     (measure_spmf <| f x acc) <|
-    prob_fail <<< (foldM_spmf f xs)›
+    prob_fail <<< (foldM_spmf f xs)\<close>
 
   by (auto
       intro!: measure_spmf.integrable_const_bound[where ?B = 1]

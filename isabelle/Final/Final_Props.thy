@@ -140,7 +140,7 @@ proof -
       have \<open>card chi / 2 ^ k = card chi * ?binom_prob\<close> by simp
       then show ?thesis
         using binomial_distribution.prob_abs_ge assms
-        by (simp, metis \<open>0 < card chi\<close> atLeastAtMost_iff binomial_distribution.intro divide_le_eq_1_pos divide_pos_pos less_eq_real_def mult_pos_pos of_nat_0_less_iff two_realpow_ge_one zero_le_divide_1_iff zero_less_numeral zero_less_power)
+        by (simp, metis \<open>card chi > 0\<close> atLeastAtMost_iff binomial_distribution.intro divide_le_eq_1_pos divide_pos_pos less_eq_real_def mult_pos_pos of_nat_0_less_iff two_realpow_ge_one zero_le_divide_1_iff zero_less_numeral zero_less_power)
     qed
 
     (* Finally, we do some simplifications and relaxation of the bound. *)

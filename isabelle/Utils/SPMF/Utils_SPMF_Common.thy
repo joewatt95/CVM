@@ -17,7 +17,9 @@ definition kleisli_compose_left ::
   (infixl \<open>>=>\<close> 50) where
   \<open>(f >=> g) \<equiv> \<lambda> x. bind_spmf (f x) g\<close>
 
-definition kleisli_compose_right (infixr \<open><=<\<close> 50) where
+definition kleisli_compose_right ::
+  \<open>('b \<Rightarrow> 'c spmf) \<Rightarrow> ('a \<Rightarrow> 'b spmf) \<Rightarrow> 'a \<Rightarrow> 'c spmf\<close>
+  (infixr \<open><=<\<close> 50) where
   \<open>(f <=< g) \<equiv> g >=> f\<close>
 
 end

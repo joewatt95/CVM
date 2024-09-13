@@ -49,7 +49,7 @@ lemma hoare_triple_intro :
   assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile> f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
 
-  by (metis assms hoare_triple_def) 
+  by (metis assms hoare_triple_def)
 
 lemma hoare_triple_elim :
   assumes
@@ -112,10 +112,11 @@ lemma seq' :
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile> \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
   shows
+    \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close> and
     \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. f x \<bind> g x) \<lbrace>R\<rbrace>\<close>
 
-  using assms
-  by (smt (verit, best) hoare_triple_elim hoare_triple_intro kleisli_compose_left_def seq(1)) 
+  using assms apply (smt (verit, ccfv_threshold) hoare_triple_def seq(1))
+  by (smt (verit, ccfv_threshold) assms(1) assms(2) hoare_triple_def seq(2)) 
 
 lemma if_then_else :
   assumes
@@ -180,8 +181,7 @@ next
     then have
       \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>') \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?acc'\<rblot>\<close>])
-      using assms spmf_foldM.integrable_prob_fail_foldM_spmf
-      by auto
+      using assms spmf_foldM.integrable_prob_fail_foldM_spmf by auto
 
     moreover have \<open>prob_fail ?acc' \<le> p\<close> using \<open>P acc\<close> assms by simp
 

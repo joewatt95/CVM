@@ -26,7 +26,7 @@ lemma approx_correct_of_correct :
   using assms by (simp add: mult_less_0_iff)
 
 lemma eps_del_approx_iff [simp] :
- fixes f :: \<open>real pmf\<close>
+  fixes f :: \<open>real pmf\<close>
   shows \<open>(\<forall> x \<epsilon> \<delta>. f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x) \<longleftrightarrow> (\<forall> x \<epsilon> \<delta>. \<delta> \<le> 1 \<longrightarrow> f \<approx>\<langle>\<epsilon>, \<delta>\<rangle> x)\<close>
 
   by (meson dual_order.refl linorder_not_le order_less_trans)
