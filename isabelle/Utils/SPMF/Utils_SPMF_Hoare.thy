@@ -202,7 +202,7 @@ next
       by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def that)
 
     then show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
-      by (auto intro!: * simp add: weight_spmf_le_1)
+      by (auto intro: * simp add: weight_spmf_le_1)
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 
