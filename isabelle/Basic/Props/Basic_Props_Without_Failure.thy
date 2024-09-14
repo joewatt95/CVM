@@ -18,7 +18,7 @@ sledgehammer_params [
 ]
 
 locale basic_props_with_failure = basic_props_common +
-  assumes dont_fail_if_threshold_exceeded : \<open>fail_if_threshold_exceeded = False\<close>
+  assumes dont_fail_if_threshold_exceeded : \<open>\<not> fail_if_threshold_exceeded\<close>
 begin
 
 lemma step_lossless :

@@ -87,12 +87,12 @@ lemma skip [simp] :
 lemma skip' [simp] :
   \<open>(\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q (f x))\<close>
 
-  by (simp add: hoare_triple_def) 
+  by (simp add: hoare_triple_def)
 
 lemma hoare_triple_altdef :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<longleftrightarrow> \<turnstile> \<lbrace>P\<rbrace> f \<lbrace>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile> f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrace>\<close>
 
-  by (smt (verit, ccfv_SIG) hoare_triple_elim hoare_triple_intro) 
+  by (smt (verit, ccfv_SIG) hoare_triple_elim hoare_triple_intro)
 
 lemma seq :
   assumes
@@ -117,7 +117,7 @@ lemma seq' :
     \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. f x \<bind> g x) \<lbrace>R\<rbrace>\<close>
 
   using assms apply (smt (verit, ccfv_threshold) hoare_triple_def seq(1))
-  by (smt (verit, ccfv_threshold) assms(1) assms(2) hoare_triple_def seq(2)) 
+  by (smt (verit, ccfv_threshold) assms(1) assms(2) hoare_triple_def seq(2))
 
 lemma if_then_else :
   assumes
@@ -199,7 +199,7 @@ next
       by (simp add: mult_left_le_one_le mult_mono)
 
     show \<open>?thesis\<close> when \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
-      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def that) 
+      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def that)
 
     then show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
       by (auto intro!: * simp add: weight_spmf_le_1)
