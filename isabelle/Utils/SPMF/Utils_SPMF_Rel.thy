@@ -42,5 +42,4 @@ proof -
     by (smt (verit, best) Collect_cong UNIV_I assms(1) assms(3) ennreal_inj equiv_up_to_failure_def measure_nonneg measure_spmf.bounded_measure measure_spmf.emeasure_eq_measure mem_Collect_eq nn_integral_cong nn_integral_spmf prob_def rel_spmf_measureD space_count_space space_measure_spmf weight_return_pmf_None)
 qed
 
-
 end
