@@ -28,25 +28,18 @@ context
 begin
 
 lemma step_lossless :
-  fixes
-    x :: 'a and
-    state :: \<open>'a state\<close>
-  shows \<open>lossless_spmf <| step fail_if_threshold_exceeded x state\<close>
+  \<open>lossless_spmf <| step fail_if_threshold_exceeded x state\<close>
 
   unfolding step_def
   by (simp add: dont_fail_if_threshold_exceeded Let_def)
 
 lemma run_steps_lossless :
-  fixes
-    xs :: \<open>'a list\<close> and
-    state :: \<open>'a state\<close>
-  shows \<open>lossless_spmf <| run_steps fail_if_threshold_exceeded state xs\<close>
+  \<open>lossless_spmf <| run_steps fail_if_threshold_exceeded state xs\<close>
 
   by (metis run_steps_def foldM_spmf_lossless_of_always_lossless step_lossless)
 
 lemma estimate_distinct_lossless :
-  fixes xs :: \<open>'a list\<close>
-  shows \<open>lossless_spmf <| estimate_distinct fail_if_threshold_exceeded xs\<close>
+  \<open>lossless_spmf <| estimate_distinct fail_if_threshold_exceeded xs\<close>
 
   by (simp add: estimate_distinct_def run_steps_lossless)
 

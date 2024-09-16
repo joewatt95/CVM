@@ -45,8 +45,7 @@ lemma initial_state_well_formed :
   by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
-  fixes x :: 'a
-  shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step fail_if_threshold_exceeded x \<lbrace>well_formed_state\<rbrace>\<close>
+  \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step fail_if_threshold_exceeded x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
   apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric] Let_def)
@@ -67,10 +66,8 @@ lemma prob_fail_step_le :
   by (metis assms ge_one_powr_ge_zero less_eq_real_def nle_le numeral_le_one_iff of_nat_0_le_iff order.trans pmf_le_1 prob_fail_def semiring_norm(69) well_formed_state_def) 
 
 lemma prob_fail_estimate_size_le :
-  fixes xs :: \<open>'a list\<close>
-  shows
-    \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
-      \<le> length xs * 2 powr threshold\<close>
+  \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
+    \<le> length xs * 2 powr threshold\<close>
 proof -
   have
     \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
