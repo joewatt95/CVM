@@ -26,6 +26,7 @@ session CVM = "HOL-Probability" +
     "Utils/Utils_PMF"
     "Utils/Utils_Real"
     "Utils/SPMF/Utils_SPMF_Common"
+    "Utils/SPMF/Utils_SPMF_Rel"
     "Utils/SPMF/Utils_SPMF_FoldM"
     "Utils/SPMF/Utils_SPMF_Hoare"
 
