@@ -10,7 +10,7 @@ session CVM = "HOL-Probability" +
     "Utils"
     "Utils/SPMF"
 
-  theories [document = false]
+  theories
     CVM
 
     "Basic/Basic_Algo"
@@ -27,3 +27,6 @@ session CVM = "HOL-Probability" +
     "Utils/SPMF/Utils_SPMF_Common"
     "Utils/SPMF/Utils_SPMF_FoldM"
     "Utils/SPMF/Utils_SPMF_Hoare"
+
+  document_files
+    "root.tex"

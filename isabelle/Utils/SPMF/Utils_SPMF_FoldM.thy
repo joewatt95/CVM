@@ -10,14 +10,6 @@ fun
   \<open>foldM_spmf _ [] acc = return_spmf acc\<close> |
   \<open>foldM_spmf f (x # xs) acc = f x acc \<bind> foldM_spmf f xs\<close>
 
-locale spmf_foldM =
-  fixes
-    f :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> and
-    x :: 'a and
-    xs :: \<open>'a list\<close> and
-    acc :: 'b
-begin
-
 lemma pmf_foldM_spmf_nil :
   shows
     \<open>spmf (foldM_spmf f [] acc) acc = 1\<close> and
@@ -50,7 +42,5 @@ lemma foldM_spmf_lossless_of_always_lossless :
 
   apply (induction xs arbitrary: acc)
   using assms by auto
-
-end
 
 end

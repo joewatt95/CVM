@@ -5,7 +5,6 @@ imports
   "HOL-Probability.Product_PMF"
   "HOL-Probability.Hoeffding"
   CVM.Basic_Algo
-  CVM.Basic_Props_Common
   CVM.Utils_Approx_Algo
   CVM.Utils_SPMF_Hoare
 
@@ -23,8 +22,14 @@ sledgehammer_params [
   "
 ]
 
-locale basic_props_without_failure = basic_props_common +
-  assumes fail_if_threshold_exceeded : \<open>fail_if_threshold_exceeded\<close>
+context basic_algo
+begin
+
+context
+  fixes fail_if_threshold_exceeded :: bool
+  assumes
+    threshold_pos : \<open>threshold > 0\<close> and
+    fail_if_threshold_exceeded : \<open>fail_if_threshold_exceeded\<close>
 begin
 
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
@@ -41,7 +46,7 @@ lemma initial_state_well_formed :
 
 lemma step_preserves_well_formedness :
   fixes x :: 'a
-  shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step fail_if_threshold_exceeded x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
   apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric] Let_def)
@@ -57,15 +62,19 @@ lemma prob_fail_step_le :
     x :: 'a and
     state :: \<open>'a state\<close>
   assumes \<open>state ok\<close>
-  shows \<open>prob_fail (step x state) \<le> 2 powr threshold\<close>
+  shows \<open>prob_fail (step fail_if_threshold_exceeded x state) \<le> 2 powr threshold\<close>
 
   by (metis assms ge_one_powr_ge_zero less_eq_real_def nle_le numeral_le_one_iff of_nat_0_le_iff order.trans pmf_le_1 prob_fail_def semiring_norm(69) well_formed_state_def) 
 
 lemma prob_fail_estimate_size_le :
   fixes xs :: \<open>'a list\<close>
-  shows \<open>prob_fail (estimate_distinct xs) \<le> length xs * 2 powr threshold\<close>
+  shows
+    \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
+      \<le> length xs * 2 powr threshold\<close>
 proof -
-  have \<open>prob_fail (estimate_distinct xs) = prob_fail (run_steps initial_state xs)\<close>
+  have
+    \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
+      = prob_fail (run_steps fail_if_threshold_exceeded initial_state xs)\<close>
     by (simp add: estimate_distinct_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
@@ -76,6 +85,8 @@ proof -
           prob_fail_step_le step_preserves_well_formedness
         simp add: run_steps_def)
 qed
+
+end
 
 end
 

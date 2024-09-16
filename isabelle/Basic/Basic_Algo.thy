@@ -12,13 +12,13 @@ record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
 
-locale basic_algo =
+locale basic_algo = 
   fixes
-    threshold :: real and
-    fail_if_threshold_exceeded :: bool
+    threshold :: real
 begin
 
-context includes pattern_aliases
+context
+    fixes fail_if_threshold_exceeded :: bool
 begin
 
 definition initial_state :: \<open>'a state\<close> where
