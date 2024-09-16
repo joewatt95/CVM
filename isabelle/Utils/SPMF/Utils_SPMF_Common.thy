@@ -33,22 +33,8 @@ lemma test :
   defines
     \<open>prob \<equiv> \<P>(x in measure_spmf p. P x)\<close> and
     \<open>prob' \<equiv> \<P>(x' in measure_spmf p'. P' x')\<close>
-  shows
-    \<open>prob_fail p = prob_fail p'\<close> and
-    \<open>\<bar>prob - prob'\<bar> \<le> prob_fail p\<close> and
-    \<open>prob \<le> prob' + prob_fail p\<close>
-proof -
-  show \<open>prob_fail p = prob_fail p'\<close>
-    by (metis assms(1) equiv_up_to_failure_def pmf_None_eq_weight_spmf prob_fail_def rel_spmf_weightD)
-  
-  then show \<open>\<bar>prob - prob'\<bar> \<le> prob_fail p\<close>
-    using assms
-    apply (auto simp add: equiv_up_to_failure_def prob_fail_def measure_measure_spmf_conv_measure_pmf)
-    sorry
+  shows \<open>prob \<le> prob' + prob_fail p\<close>
 
-  then show \<open>prob \<le> prob' + prob_fail p\<close> by linarith
-
-qed
-
+  by (smt (verit, best) Collect_cong UNIV_I assms(1) assms(3) ennreal_inj equiv_up_to_failure_def measure_le_0_iff measure_spmf.bounded_measure measure_spmf.emeasure_eq_measure mem_Collect_eq nn_integral_cong nn_integral_spmf prob_def prob_fail_def rel_spmf_measureD space_count_space space_measure_spmf weight_return_pmf_None weight_spmf_conv_pmf_None weight_spmf_le_1)
 
 end
