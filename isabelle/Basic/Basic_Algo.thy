@@ -12,9 +12,8 @@ record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
 
-locale basic_algo = 
-  fixes
-    threshold :: real
+locale basic_algo =
+  fixes threshold :: real
 begin
 
 context

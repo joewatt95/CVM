@@ -22,4 +22,24 @@ definition kleisli_compose_right ::
   (infixr \<open><=<\<close> 50) where
   \<open>(f <=< g) \<equiv> g >=> f\<close>
 
+term rel_option
+
+definition equiv_up_to_failure where
+  \<open>equiv_up_to_failure P p P' p' \<equiv> (
+    let rel = \<lambda> x x'.
+      let
+        P_P'_equiv_events = rel_option (\<lambda> x x'. P x \<longleftrightarrow> P' x') x x';
+        fail_together = Option.is_none x \<longleftrightarrow> Option.is_none x'
+      in fail_together \<and> P_P'_equiv_events
+    in rel_pmf rel p p')\<close>
+
+lemma test :
+  fixes p p' P P'
+  assumes \<open>equiv_up_to_failure P p P' p'\<close>
+  shows
+    \<open>prob_fail p = prob_fail p'\<close> and
+    \<open>\<bar>\<P>(x in measure_spmf p. P x) - \<P>(x' in measure_spmf p'. P' x')\<bar> \<le> prob_fail p\<close>
+
+  sorry
+
 end

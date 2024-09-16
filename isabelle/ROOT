@@ -16,6 +16,7 @@ session CVM = "HOL-Probability" +
     "Basic/Basic_Algo"
     "Basic/Props/Basic_Props_With_Failure"
     "Basic/Props/Basic_Props_Without_Failure"
+    "Basic/Props/Basic_Props"
 
     "Final/Final_Algo"
     "Final/Final_Props"
