@@ -43,12 +43,19 @@ lemma test :
 
   using assms
   apply (auto
-    intro!: spmf_eqI
     simp del: bind_spmf_of_pmf
     simp add:
-      spmf_bind
       bind_spmf_of_pmf[symmetric] fail dont_fail step_def well_formed_state_def
       Let_def)
+
+  apply (rule bind_spmf_cong)
+
+  apply (auto
+    simp del: bind_spmf_of_pmf
+    simp add: bind_spmf_of_pmf[symmetric] well_formed_state_def Let_def)
+
+  apply (rule bind_spmf_cong)
+  apply (auto simp add: fail_spmf_def)
 
   (* apply (simp
     del: bind_spmf_of_pmf
