@@ -1,8 +1,9 @@
 theory Basic_Props
 
 imports
-  Basic_Props_With_Failure
-  Basic_Props_Without_Failure
+  CVM.Basic_Props_With_Failure
+  CVM.Basic_Props_Without_Failure
+  CVM.Utils_SPMF_Rel
 
 begin
 
@@ -25,9 +26,9 @@ context
   fixes
     fail :: bool and
     dont_fail :: bool
-  (* assumes
+  assumes
     fail : \<open>fail\<close> and
-    dont_fail : \<open>\<not> dont_fail\<close> *)
+    dont_fail : \<open>\<not> dont_fail\<close>
 begin
 
 abbreviation step_with_failure where
@@ -35,6 +36,28 @@ abbreviation step_with_failure where
 
 abbreviation step_without_failure where
   \<open>step_without_failure \<equiv> step dont_fail\<close>
+
+lemma step_equiv_up_to_failure :
+  fixes P x state
+  shows \<open>\<turnstile> \<lbrakk>P\<rbrakk>(step_with_failure x state) \<simeq> \<lbrakk>P\<rbrakk>(step_without_failure x state)\<close>
+
+  using fail dont_fail
+  apply (simp
+    del: bind_spmf_of_pmf
+    add: bind_spmf_of_pmf[symmetric] equiv_up_to_failure_def step_def Let_def)
+  apply (intro rel_spmf_bindI)
+  apply auto
+  apply (intro rel_pmf_reflI)
+  apply auto
+  apply (simp_all
+    del: bind_spmf_of_pmf
+    add: bind_spmf_of_pmf[symmetric] equiv_up_to_failure_def step_def Let_def)
+  apply (intro rel_spmf_bindI)
+  apply auto
+  apply (intro rel_pmf_reflI)
+  apply (auto simp add: fail_spmf_def)
+
+  sorry
 
 (* definition rel where
   \<open>rel state state' \<equiv> 0\<close> *)
