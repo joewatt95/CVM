@@ -12,7 +12,7 @@ imports
 
 begin
 
-locale props_final = approx_algo +
+context
   fixes
     k :: nat and
     chi :: \<open>'a set\<close>
@@ -48,6 +48,7 @@ lemma estimate_size_eq_binomial :
       simp add: map_pmf_comp Set.filter_def finite_chi)
 
 lemma estimate_size_approx_correct :
+  fixes \<epsilon> :: real
   assumes \<open>\<epsilon> > 0\<close>
   defines \<open>\<delta> \<equiv> 2 * exp (-2 * \<epsilon>\<^sup>2 * card chi / 2 ^ (2 * k))\<close>
   shows \<open>(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)\<close>

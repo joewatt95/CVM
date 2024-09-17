@@ -35,8 +35,8 @@ abbreviation step_with_failure where
 
 abbreviation step_without_failure where
   \<open>step_without_failure \<equiv> step dont_fail\<close>
-(* 
-definition rel where
+
+(* definition rel where
   \<open>rel state state' \<equiv> 0\<close> *)
 
 (* lemma test :
