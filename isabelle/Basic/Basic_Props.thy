@@ -38,10 +38,19 @@ abbreviation step_without_failure where
   \<open>step_without_failure \<equiv> step dont_fail\<close>
 
 lemma test :
-  \<open>step_with_failure x state = step_without_failure x state\<close>
+  assumes \<open>state ok\<close>
+  shows \<open>step_with_failure x state = step_without_failure x state\<close>
 
-  using fail dont_fail
-  apply (simp
+  using assms
+  apply (auto
+    intro!: spmf_eqI
+    simp del: bind_spmf_of_pmf
+    simp add:
+      spmf_bind
+      bind_spmf_of_pmf[symmetric] fail dont_fail step_def well_formed_state_def
+      Let_def)
+
+  (* apply (simp
     del: bind_spmf_of_pmf
     add: bind_spmf_of_pmf[symmetric] step_def Let_def)
   apply (intro spmf_eqI)
@@ -51,7 +60,7 @@ lemma test :
     del: bind_spmf_of_pmf
     add: bind_spmf_of_pmf[symmetric] Let_def)
   apply (simp_all only: spmf_bind)
-  apply auto
+  apply auto *)
 
   sorry
 

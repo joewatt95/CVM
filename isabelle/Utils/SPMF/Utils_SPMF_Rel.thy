@@ -17,6 +17,12 @@ definition equiv_up_to_failure ::
   (\<open>\<turnstile> \<lbrakk> _ \<rbrakk> _ \<simeq> \<lbrakk> _ \<rbrakk> _\<close>) where
   \<open>\<turnstile> \<lbrakk> P \<rbrakk> p \<simeq> \<lbrakk> P' \<rbrakk> p' \<equiv> rel_spmf (\<lambda> x x'. P x \<longleftrightarrow> P' x') p p'\<close>
 
+lemma equiv_up_to_failure_refl_intro :
+  assumes \<open>p = p'\<close>
+  shows \<open>\<turnstile> \<lbrakk> P \<rbrakk> p \<simeq> \<lbrakk> P \<rbrakk> p'\<close>
+
+  by (simp add: assms equiv_up_to_failure_def rel_spmf_reflI)
+
 lemma equiv_up_to_failure_symm :
   assumes \<open>\<turnstile> \<lbrakk>P\<rbrakk>p \<simeq> \<lbrakk>P'\<rbrakk>p'\<close>
   shows \<open>\<turnstile> \<lbrakk>P'\<rbrakk>p' \<simeq> \<lbrakk>P\<rbrakk>p\<close>
