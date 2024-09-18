@@ -25,32 +25,6 @@ proof -
     by (metis UNIV_I finite_measure.finite_measure_subadditive measure_measure_spmf_conv_measure_pmf measure_pmf.prob_space_axioms pmf.rep_eq prob_space_def sets_measure_pmf singleton_conv)
 qed
 
-(*
-Here, `ord_spmf (R) p p'` says that:
-If we view `p` and `p'` as modelling probabilistic programs, and evaluate them
-together (ie parameterised over the same stream of random bits), and assuming
-that `p` doesn't fail and evaluates to `x`, then:
-  1. `p'` doesn't fail either and so evaluates to (say) `x'`
-  2. `x R x'` holds
-
-In brief, this allows us to compare the outputs of `p` and `p'` via `R`, modulo
-the cases when `p` fails, ie doesn't terminate successfully.
-
-With this, the Lemma below says that;
-If we know that the outputs of `p` and `p'` agree with each other wherever `p`
-doesn't fail (ie `ord_spmf (=) p p'`),
-then the probability that a successful output of `p` satisfies `P` is \<le> that of `p'`
-(ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of `p` and
-`p'` as measures restricted to their successful outputs).
-*)
-lemma prob_le_prob_of_ord_spmf_eq :
-  fixes P p p'
-  assumes \<open>ord_spmf (=) p p'\<close>
-  defines \<open>prob p'' \<equiv> \<P>(\<omega> in measure_spmf p''. P \<omega>)\<close>
-  shows \<open>prob p \<le> prob p'\<close>
-
-  using assms
-  by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
 definition kleisli_compose_left ::
   \<open>('a \<Rightarrow> 'b spmf) \<Rightarrow> ('b \<Rightarrow> 'c spmf) \<Rightarrow> 'a \<Rightarrow> 'c spmf\<close>

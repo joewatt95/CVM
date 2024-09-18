@@ -5,6 +5,50 @@ imports
 
 begin
 
+(*
+This result says that if we know that the outputs of `p` and `p'` agree with
+each other wherever `p` doesn't fail (ie `ord_spmf (=) p p'`),
+then the probability that a successful output of `p` satisfies `P` is \<le> that of `p'`
+(ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of `p` and
+`p'` as measures restricted to their successful outputs).
+
+Roughly, `ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
+(viewed as probabilistic programs), operating over the same source of randomness,
+via `R`, modulo the cases when `p` fails, ie doesn't terminate successfully.
+
+Slightly more precisely, if we evaluate `p` and `p'`, and assuming that `p`
+doesn't fail and evaluates to `x`, then:
+  1. `p'` doesn't fail either and so evaluates to (say) `x'`
+  2. `x R x'` holds
+
+Under the hood, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
+- `rel_pmf` probabilistically couples `p` and `p'` (viewed as measures) together
+  so we can analyse them relationally, via R, as if they were programs
+  operating over the same source of randomness.
+- `ord_option R x x'` compares `y R y'` when `x = Some y` and `x' = Some y'`.
+
+For more details, see:
+- The chapter on coupling in Foundations of Probabilistic Programming
+https://www.cambridge.org/core/books/foundations-of-probabilistic-programming/819623B1B5B33836476618AC0621F0EE
+
+It's also worth noting here that this coupling technique is:
+- Commonly used to bound the distance (in terms of the total variation metric)
+  between two distributions (see Lemma 5.16 in the aforementioned book), and
+  that the fundamental lemma of SPMFs, and related versions commonly used in
+  crypto game-hopping proofs are all instances of that result.
+- Forms the foundation for relational probabilistic hoare logic, because it lets
+  us in a sense, parameterize probabilistic programs over a common source of
+  randomness.
+*)
+lemma prob_le_prob_of_ord_spmf_eq :
+  fixes P p p'
+  assumes \<open>ord_spmf (=) p p'\<close>
+  defines \<open>prob p'' \<equiv> \<P>(\<omega> in measure_spmf p''. P \<omega>)\<close>
+  shows \<open>prob p \<le> prob p'\<close>
+
+  using assms
+  by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
+
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
