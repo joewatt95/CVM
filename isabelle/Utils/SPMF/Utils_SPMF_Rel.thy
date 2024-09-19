@@ -6,8 +6,9 @@ imports
 begin
 
 (*
-This result says that if we know that the outputs of `p` and `p'` agree with
-each other wherever `p` doesn't fail (ie `ord_spmf (=) p p'`),
+This result says that if we know that the outputs of `p` and `p'` (viewed as
+probabilistic programs) agree with each other wherever `p` doesn't fail
+(ie `ord_spmf (=) p p'`),
 then the probability that a successful output of `p` satisfies `P` is \<le> that of `p'`
 (ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of `p` and
 `p'` as measures restricted to their successful outputs).
@@ -25,20 +26,22 @@ Under the hood, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
 - `rel_pmf` probabilistically couples `p` and `p'` (viewed as measures) together
   so we can analyse them relationally, via R, as if they were programs
   operating over the same source of randomness.
+
+  This is also used in the fundamental Lemma for SPMFs and related forms that
+  are found in crypto game hopping proofs, to bound the distance (in terms of
+  the total variation metric, or equivalently an L1 metric as our distributions
+  have countable support) between them (see Lemma 5.16 in [1] and 4.1.11 in [2]).
+
+  It's also worth noting here that this coupling technique forms the foundation
+  of relational probabilistic hoare logic (see chapter 5 of [1]).
+
 - `ord_option R x x'` compares `y R y'` when `x = Some y` and `x' = Some y'`.
 
-For more details, see:
-- The chapter on coupling in Foundations of Probabilistic Programming
-https://www.cambridge.org/core/books/foundations-of-probabilistic-programming/819623B1B5B33836476618AC0621F0EE
-
-It's also worth noting here that this coupling technique is:
-- Commonly used to bound the distance (in terms of the total variation metric)
-  between two distributions (see Lemma 5.16 in the aforementioned book), and
-  that the fundamental lemma of SPMFs, and related versions commonly used in
-  crypto game-hopping proofs are all instances of that result.
-- Forms the foundation for relational probabilistic hoare logic, because it lets
-  us in a sense, parameterize probabilistic programs over a common source of
-  randomness.
+References:
+[1] Foundations of Probabilistic Programming
+    https://www.cambridge.org/core/books/foundations-of-probabilistic-programming/819623B1B5B33836476618AC0621F0EE
+[2] Modern discrete probability
+    https://people.math.wisc.edu/~roch/mdp/
 *)
 lemma prob_le_prob_of_ord_spmf_eq :
   fixes P p p'
