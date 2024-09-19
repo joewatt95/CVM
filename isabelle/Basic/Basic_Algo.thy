@@ -17,14 +17,14 @@ locale basic_algo =
 begin
 
 context
-    fixes fail_if_threshold_exceeded :: bool
+  fixes fail_if_threshold_exceeded :: bool
 begin
 
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
 (* definition initial_trace :: \<open>'a trace\<close> where
-  [simp] : \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
+  \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step x state \<equiv> do {
@@ -66,8 +66,8 @@ definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a s
 fun run_steps :: \<open>'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps x = map_pmf hd \<circ> run_steps_with_trace x\<close> *)
 
-fun result :: \<open>'a state \<Rightarrow> nat\<close> where
-  \<open>result \<lparr>state_k = k, state_chi = chi\<rparr> = card chi * 2 ^ k\<close>
+definition result :: \<open>'a state \<Rightarrow> nat\<close> where
+  \<open>result state \<equiv> card (state_chi state) * 2 ^ (state_k state)\<close>
 
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct \<equiv> run_steps initial_state >>> map_spmf result\<close>

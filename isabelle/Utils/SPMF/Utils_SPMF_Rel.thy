@@ -58,7 +58,7 @@ lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
   shows \<open>ord_spmf (=) (foldM_spmf f xs acc) <| foldM_spmf f' xs acc\<close>
 
   apply (induction xs arbitrary: acc)
-  using assms by (auto intro!: ord_spmf_bindI[of \<open>(=)\<close>])
+  using assms by (auto intro: ord_spmf_bindI)
 
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>

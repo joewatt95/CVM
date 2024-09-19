@@ -54,17 +54,13 @@ lemma step_ord_spmf_eq :
   by (auto
       intro!: ord_spmf_bind_reflI
       simp del: bind_spmf_of_pmf
-      simp add:
-        step_def fail_spmf_def
-        bind_spmf_of_pmf[symmetric] Let_def)
+      simp add: step_def fail_spmf_def bind_spmf_of_pmf[symmetric] Let_def)
 
 lemma estimate_distinct_ord_spmf_eq :
   \<open>ord_spmf (=) (estimate_distinct True xs) <| estimate_distinct False xs\<close>
 
   by (auto
-      intro:
-        foldM_spmf_ord_spmf_eq_of_ord_spmf_eq step_ord_spmf_eq
-        ord_spmf_mono
+      intro: foldM_spmf_ord_spmf_eq_of_ord_spmf_eq step_ord_spmf_eq ord_spmf_mono
       simp add: estimate_distinct_def run_steps_def ord_spmf_map_spmf)
 
 context
@@ -73,14 +69,14 @@ context
     xs :: \<open>nat list\<close>
 begin
 
-abbreviation prob_P :: \<open>bool \<Rightarrow> real\<close> where
+private abbreviation prob_P :: \<open>bool \<Rightarrow> real\<close> where
   \<open>prob_P fail \<equiv>
     \<P>(state' in measure_spmf <| estimate_distinct fail xs. P state')\<close>
 
 lemma prob_estimate_distinct_le :
   \<open>prob_P True \<le> prob_P False\<close>
 
-  by (auto intro!: prob_le_prob_of_ord_spmf_eq estimate_distinct_ord_spmf_eq)
+  by (auto intro: prob_le_prob_of_ord_spmf_eq estimate_distinct_ord_spmf_eq)
 
 lemma prob_estimate_distinct_fail_or_satisfies_le :
   assumes \<open>threshold > 0\<close>

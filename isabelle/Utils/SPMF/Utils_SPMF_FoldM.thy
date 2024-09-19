@@ -1,7 +1,7 @@
 theory Utils_SPMF_FoldM
 
 imports
-  "CVM.Utils_SPMF_Common"
+  CVM.Utils_SPMF_Common
 
 begin
 
@@ -14,7 +14,7 @@ lemma pmf_foldM_spmf_nil :
   shows
     \<open>spmf (foldM_spmf f [] acc) acc = 1\<close> and
     \<open>acc \<noteq> acc' \<Longrightarrow> spmf (foldM_spmf f [] acc) acc' = 0\<close>
-  by auto
+  by simp_all
 
 lemma pmf_foldM_spmf_cons :
   \<open>pmf (foldM_spmf f (x # xs) acc) a
@@ -33,7 +33,7 @@ lemma integrable_prob_fail_foldM_spmf :
     prob_fail <<< (foldM_spmf f xs)\<close>
 
   by (auto
-      intro!: measure_spmf.integrable_const_bound[where ?B = 1]
+      intro: measure_spmf.integrable_const_bound[where ?B = 1]
       simp add: prob_fail_def pmf_le_1)
 
 lemma foldM_spmf_lossless_of_always_lossless :

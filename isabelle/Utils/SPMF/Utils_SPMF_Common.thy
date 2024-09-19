@@ -19,7 +19,7 @@ lemma prob_fail_or_satisfies_le_prob_fail_plus_prob :
   \<open>\<P>(x in measure_pmf p. x |> fail_or_satisfies P)
     \<le> prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
-  have \<open>{x. x |> Option.case_option True P} = {None} \<union> Some ` Collect P\<close>
+  have \<open>Collect (fail_or_satisfies P) = {None} \<union> Some ` Collect P\<close>
     by (auto elim: case_optionE)
 
   then show ?thesis

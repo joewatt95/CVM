@@ -26,10 +26,7 @@ context basic_algo
 begin
 
 context
-  fixes fail_if_threshold_exceeded :: bool
-  assumes
-    threshold_pos : \<open>threshold > 0\<close> and
-    fail_if_threshold_exceeded : \<open>fail_if_threshold_exceeded\<close>
+  assumes threshold_pos : \<open>threshold > 0\<close>
 begin
 
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
@@ -41,16 +38,14 @@ definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
 lemma initial_state_well_formed :
   \<open>initial_state ok\<close>
 
-  using threshold_pos 
-  by (simp add: initial_state_def well_formed_state_def)
+  using threshold_pos by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
-  \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step fail_if_threshold_exceeded x \<lbrace>well_formed_state\<rbrace>\<close>
+  \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step True x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
   apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric] Let_def)
-  apply (rule seq'[where ?Q = \<open>\<lblot>True\<rblot>\<close>])
-  using fail_if_threshold_exceeded
+  apply (rule seq')
   by (auto
       intro!: hoare_triple_intro
       split: if_splits
@@ -61,23 +56,23 @@ lemma prob_fail_step_le :
     x :: 'a and
     state :: \<open>'a state\<close>
   assumes \<open>state ok\<close>
-  shows \<open>prob_fail (step fail_if_threshold_exceeded x state) \<le> 2 powr threshold\<close>
+  shows \<open>prob_fail (step True x state) \<le> 2 powr threshold\<close>
 
   by (metis assms ge_one_powr_ge_zero less_eq_real_def nle_le numeral_le_one_iff of_nat_0_le_iff order.trans pmf_le_1 prob_fail_def semiring_norm(69) well_formed_state_def) 
 
 lemma prob_fail_estimate_size_le :
-  \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
+  \<open>prob_fail (estimate_distinct True xs)
     \<le> length xs * 2 powr threshold\<close>
 proof -
   have
-    \<open>prob_fail (estimate_distinct fail_if_threshold_exceeded xs)
-      = prob_fail (run_steps fail_if_threshold_exceeded initial_state xs)\<close>
+    \<open>prob_fail (estimate_distinct True xs)
+      = prob_fail (run_steps True initial_state xs)\<close>
     by (simp add: estimate_distinct_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis
     using threshold_pos
     by (auto
-        intro!:
+        intro:
           prob_fail_foldM_spmf_le initial_state_well_formed
           prob_fail_step_le step_preserves_well_formedness
         simp add: run_steps_def)

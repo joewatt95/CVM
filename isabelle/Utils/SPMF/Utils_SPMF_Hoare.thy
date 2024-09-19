@@ -116,7 +116,8 @@ lemma seq' :
     \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close> and
     \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. f x \<bind> g x) \<lbrace>R\<rbrace>\<close>
 
-  using assms apply (smt (verit, ccfv_threshold) hoare_triple_def seq(1))
+  using assms
+  apply (smt (verit, ccfv_threshold) hoare_triple_def seq(1))
   by (smt (verit, ccfv_threshold) assms(1) assms(2) hoare_triple_def seq(2))
 
 lemma if_then_else :
@@ -126,8 +127,7 @@ lemma if_then_else :
   shows
     \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> b. if f b then g b else h b) \<lbrace>Q\<rbrace>\<close>
 
-  using assms
-  by (simp add: hoare_triple_def)
+  using assms by (simp add: hoare_triple_def)
 
 lemma loop :
   fixes P :: \<open>'b \<Rightarrow> bool\<close>
