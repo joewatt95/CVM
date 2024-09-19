@@ -12,8 +12,11 @@ definition fail_spmf :: \<open>'a spmf\<close> where
 definition prob_fail :: \<open>'a spmf \<Rightarrow> real\<close> where
   \<open>prob_fail \<equiv> flip pmf None\<close>
 
-lemma prob_fail_or_pred_le_prob_fail_plus_prob :
-  \<open>\<P>(x in measure_pmf p. x |> Option.case_option True P)
+abbreviation fail_or_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
+  \<open>fail_or_satisfies \<equiv> Option.case_option True\<close>
+
+lemma prob_fail_or_satisfies_le_prob_fail_plus_prob :
+  \<open>\<P>(x in measure_pmf p. x |> fail_or_satisfies P)
     \<le> prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
   have \<open>{x. x |> Option.case_option True P} = {None} \<union> Some ` Collect P\<close>

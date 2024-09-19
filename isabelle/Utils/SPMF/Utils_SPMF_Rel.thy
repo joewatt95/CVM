@@ -1,21 +1,15 @@
 theory Utils_SPMF_Rel
 
 imports
-  CVM.Utils_SPMF_Common
+  CVM.Utils_SPMF_FoldM
 
 begin
 
 (*
-This result says that if we know that the outputs of `p` and `p'` (viewed as
-probabilistic programs) agree with each other wherever `p` doesn't fail
-(ie `ord_spmf (=) p p'`),
-then the probability that a successful output of `p` satisfies `P` is \<le> that of `p'`
-(ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of `p` and
-`p'` as measures restricted to their successful outputs).
-
-Roughly, `ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
-(viewed as probabilistic programs), operating over the same source of randomness,
-via `R`, ignoring the cases when `p` fails, ie doesn't terminate successfully.
+Roughly,`ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
+(viewed as probabilistic programs), operating over the same source of
+randomness, via `R`, ignoring the cases when `p` fails, ie doesn't terminate
+successfully.
 
 More precisely, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
 - `rel_pmf` probabilistically couples `p` and `p'` (viewed as measures) together
@@ -41,6 +35,15 @@ References:
 [2] Modern discrete probability
     https://people.math.wisc.edu/~roch/mdp/
 *)
+
+(*
+This result says that if we know that the outputs of `p` and `p'` agree with
+each other whenever they are executed by the same source of randomness, and
+wherever `p` doesn't fail (ie `ord_spmf (=) p p'`),
+then the probability that a successful output of `p` satisfies `P` is \<le> that of
+`p'` (ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of
+`p` and `p'` as measures restricted to their successful outputs).
+*)
 lemma prob_le_prob_of_ord_spmf_eq :
   fixes P p p'
   assumes \<open>ord_spmf (=) p p'\<close>
@@ -50,6 +53,13 @@ lemma prob_le_prob_of_ord_spmf_eq :
   using assms
   by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
+lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
+  assumes \<open>\<And> x acc. ord_spmf (=) (f x acc) (f' x acc)\<close>
+  shows \<open>ord_spmf (=) (foldM_spmf f xs acc) <| foldM_spmf f' xs acc\<close>
+
+  apply (induction xs arbitrary: acc)
+  using assms by (auto intro!: ord_spmf_bindI[of \<open>(=)\<close>])
+
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
@@ -57,7 +67,7 @@ lemma prob_fail_eq_of_rel_spmf :
   using assms
   by (simp add: pmf_None_eq_weight_spmf prob_fail_def rel_spmf_weightD)
 
-definition equiv_up_to_failure ::
+(* definition equiv_up_to_failure ::
   \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a spmf \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'b spmf \<Rightarrow> bool\<close>
   (\<open>\<turnstile> \<lbrakk> _ \<rbrakk> _ \<simeq> \<lbrakk> _ \<rbrakk> _\<close>) where
   \<open>\<turnstile> \<lbrakk> P \<rbrakk> p \<simeq> \<lbrakk> P' \<rbrakk> p' \<equiv> rel_spmf (\<lambda> x x'. P x \<longleftrightarrow> P' x') p p'\<close>
@@ -91,6 +101,6 @@ proof -
   then show \<open>\<bar>prob - prob'\<bar> \<le> prob_fail p\<close>
     using equiv_up_to_failure_symm
     by (smt (verit, best) Collect_cong UNIV_I assms(1) assms(3) ennreal_inj equiv_up_to_failure_def measure_nonneg measure_spmf.bounded_measure measure_spmf.emeasure_eq_measure mem_Collect_eq nn_integral_cong nn_integral_spmf prob_def rel_spmf_measureD space_count_space space_measure_spmf weight_return_pmf_None)
-qed
+qed *)
 
 end
