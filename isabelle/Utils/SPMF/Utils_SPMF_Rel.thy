@@ -15,14 +15,9 @@ then the probability that a successful output of `p` satisfies `P` is \<le> that
 
 Roughly, `ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
 (viewed as probabilistic programs), operating over the same source of randomness,
-via `R`, modulo the cases when `p` fails, ie doesn't terminate successfully.
+via `R`, ignoring the cases when `p` fails, ie doesn't terminate successfully.
 
-Slightly more precisely, if we evaluate `p` and `p'`, and assuming that `p`
-doesn't fail and evaluates to `x`, then:
-  1. `p'` doesn't fail either and so evaluates to (say) `x'`
-  2. `x R x'` holds
-
-Under the hood, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
+More precisely, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
 - `rel_pmf` probabilistically couples `p` and `p'` (viewed as measures) together
   so we can analyse them relationally, via R, as if they were programs
   operating over the same source of randomness.
@@ -35,7 +30,10 @@ Under the hood, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
   It's also worth noting here that this coupling technique forms the foundation
   of relational probabilistic hoare logic (see chapter 5 of [1]).
 
-- `ord_option R x x'` compares `y R y'` when `x = Some y` and `x' = Some y'`.
+- `ord_option R x x'`:
+  - ignores (ie returns true) when x is None
+  - fails (ie returns false) when x is Some but x' is None
+  -  compares `y R y'` when `x` is `Some y` and `x'` is `Some y'`
 
 References:
 [1] Foundations of Probabilistic Programming
