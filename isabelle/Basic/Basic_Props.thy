@@ -65,8 +65,8 @@ lemma estimate_distinct_ord_spmf_eq :
 
 context
   fixes
-    P :: \<open>nat \<Rightarrow> bool\<close> and
-    xs :: \<open>nat list\<close>
+    P :: \<open>'a final_state \<Rightarrow> bool\<close> and
+    xs :: \<open>'a list\<close>
 begin
 
 private abbreviation prob_P :: \<open>bool \<Rightarrow> real\<close> where
