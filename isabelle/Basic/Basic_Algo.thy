@@ -27,7 +27,6 @@ definition initial_state :: \<open>'a state\<close> where
   [simp] : \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  (* \<open>step x (\<lparr>state_p = p, state_chi = chi\<rparr> =: state) = do { *)
   \<open>step x state \<equiv> do {
     let k = state_k state;
     let chi = state_chi state;
