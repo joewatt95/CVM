@@ -21,9 +21,9 @@ context
     finite_chi : \<open>finite chi\<close>
 begin
 
-lemma estimate_size_empty :
-  \<open>estimate_size k {} = return_pmf 0\<close>
-  by (auto simp add: estimate_size_def)
+lemma estimate_distinct_empty :
+  \<open>estimate_distinct k {} = return_pmf 0\<close>
+  by (auto simp add: estimate_distinct_def)
 
 (*
 This shows that`?chi_size_est` is the same distribution as `?binom`, modulo a
@@ -38,40 +38,40 @@ The key observations and steps are:
   `map_pmf_cong` and routine simplifications, using the functor laws
   via `map_pmf_comp` to squish multiple `map_pmf` into one.
 *)
-lemma estimate_size_eq_binomial :
+lemma estimate_distinct_eq_binomial :
   defines \<open>binom \<equiv> binomial_pmf (card chi) ((1 :: real) / 2 ^ k)\<close>
-  shows \<open>estimate_size k chi = map_pmf ((*) <| 2 ^ k) binom\<close>
+  shows \<open>estimate_distinct k chi = map_pmf ((*) <| 2 ^ k) binom\<close>
 
-  apply (simp only: estimate_size_def binom_def)
+  apply (simp only: estimate_distinct_def binom_def)
   apply (subst binomial_pmf_altdef')
   by (auto
       intro!: map_pmf_cong
       simp add: map_pmf_comp Set.filter_def finite_chi)
 
-lemma estimate_size_approx_correct :
+lemma estimate_distinct_approx_correct :
   assumes \<open>\<epsilon> > 0\<close>
   defines \<open>\<delta> \<equiv> 2 * exp (-2 * \<epsilon>\<^sup>2 * card chi / 2 ^ (2 * k))\<close>
-  shows \<open>(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)\<close>
+  shows \<open>(estimate_distinct k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)\<close>
 proof -
   (*
   First, we may assume wlog that chi is nonempty, because if chi were empty,
-  then `estimate_size_empty` is the key result that says the function is simply
+  then `estimate_distinct_empty` is the key result that says the function is simply
   the 0 distribution, and so we always get the exact, correct solution when we
   sample from it.
 
   To get this to work, I (Joe) had to:
   1. Increase timeouts: sledgehammer[timeout = 60, preplay_timeout = 10]
-  2. Explicitly pass in the key `estimate_size_empty` lemma, and `that`. 
+  2. Explicitly pass in the key `estimate_distinct_empty` lemma, and `that`. 
   *)
   show ?thesis when \<open>card chi > 0 \<Longrightarrow> ?thesis\<close>
-    using estimate_size_empty finite_chi assms that
+    using estimate_distinct_empty finite_chi assms that
     by (smt (verit, best) card_0_eq exp_gt_zero gr_zeroI indicator_simps(2) measure_return_pmf mem_Collect_eq mult_not_zero of_nat_0)
 
   then show \<open>card chi > 0 \<Longrightarrow> ?thesis\<close>
   proof -
     assume \<open>card chi > 0\<close>
 
-    let ?chi_size_est = \<open>estimate_size k chi\<close>
+    let ?chi_size_est = \<open>estimate_distinct k chi\<close>
     let ?binom_prob = \<open>(1 :: real) / 2 ^ k\<close>
     let ?binom = \<open>binomial_pmf (card chi) ?binom_prob\<close>
     let ?binom_mean = \<open>card chi * ?binom_prob\<close>
@@ -95,7 +95,7 @@ proof -
     have
       \<open>\<P>(\<omega> in ?chi_size_est. \<bar>(\<omega> :: real) - card chi\<bar> > \<epsilon> * card chi)
         \<le> \<P>(\<omega> in ?binom. \<bar>2 ^ k * (\<omega> :: real) - card chi\<bar> \<ge> \<epsilon> * card chi)\<close>
-      unfolding estimate_size_eq_binomial
+      unfolding estimate_distinct_eq_binomial
       by (auto intro!: measure_pmf.finite_measure_mono)
 
     (*
@@ -158,15 +158,15 @@ qed
 definition threshold :: real where
   \<open>threshold \<equiv> log2 (2 / \<delta>) / (2 * \<epsilon>\<^sup>2)\<close>
 
-lemma estimate_size_approx_correct' :
+lemma estimate_distinct_approx_correct' :
   assumes
     \<open>\<epsilon> > 0\<close> and
     \<open>\<delta> > 0\<close> and
     \<open>k \<le> (log2 <| card chi / threshold) / 2\<close> (is \<open>_ \<le> ?x\<close>)
-  shows "(estimate_size k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
+  shows "(estimate_distinct k chi) \<approx>\<langle>\<epsilon>, \<delta>\<rangle> (card chi)"
 proof -
   show ?thesis when \<open>\<lbrakk>\<delta> \<le> 1; card chi > 0\<rbrakk> \<Longrightarrow> ?thesis\<close>
-    using assms finite_chi estimate_size_empty
+    using assms finite_chi estimate_distinct_empty
     by (metis (mono_tags, lifting) abs_eq_0 card_gt_0_iff diff_zero indicator_simps(2) landau_o.R_linear less_eq_real_def measure_pmf.subprob_measure_le_1 measure_return_pmf mem_Collect_eq mult_eq_0_iff nat_less_le of_nat_0_eq_iff order_less_irrefl order_trans that zero_le)
 
   then show \<open>\<lbrakk>\<delta> \<le> 1; card chi > 0\<rbrakk> \<Longrightarrow> ?thesis\<close>
@@ -175,8 +175,8 @@ proof -
 
     let ?\<delta> = \<open>\<lambda> pow. 2 * exp (-2 * \<epsilon>\<^sup>2  * card chi / (2 powr (2 * pow)))\<close>
 
-    have \<open>(estimate_size k chi) \<approx>\<langle>\<epsilon>, ?\<delta> k\<rangle> (card chi)\<close>
-      using assms estimate_size_approx_correct
+    have \<open>(estimate_distinct k chi) \<approx>\<langle>\<epsilon>, ?\<delta> k\<rangle> (card chi)\<close>
+      using assms estimate_distinct_approx_correct
       apply simp
       by (metis of_nat_numeral power_even_eq powr_power powr_realpow zero_less_numeral zero_neq_numeral)
 

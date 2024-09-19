@@ -22,40 +22,47 @@ sledgehammer_params [
 context basic_algo
 begin
 
-context
-  fixes
-    fail :: bool and
-    dont_fail :: bool
-  assumes
-    fail : \<open>fail\<close> and
-    dont_fail : \<open>\<not> dont_fail\<close>
-begin
+lemma step_with_fail_ord_spmf_eq_step_without_fail :
+  \<open>ord_spmf (=) (step True x state) <| step False x state\<close>
 
-abbreviation step_with_failure ::
-  \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step_with_failure \<equiv> step fail\<close>
+  by (auto
+      intro!: ord_spmf_bind_reflI
+      simp del: bind_spmf_of_pmf
+      simp add:
+        step_def fail_spmf_def
+        bind_spmf_of_pmf[symmetric] Let_def)
 
-abbreviation step_without_failure ::
-  \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step_without_failure \<equiv> step dont_fail\<close>
+lemma
+  \<open>ord_spmf (=) (estimate_distinct True xs) <| estimate_distinct False xs\<close>
+
+  using step_with_fail_ord_spmf_eq_step_without_fail
+  apply (induction xs)
+
+  apply (auto
+    intro!: ord_spmf_bindI
+    simp add:
+      estimate_distinct_def run_steps_def
+      ord_spmf_map_spmf12)
+
+  sorry
 
 lemma prob_step_with_failure_le_step_without_failure :
   fixes P x state
-  defines \<open>prob f \<equiv> \<P>(state' in measure_spmf <| f x state. P state')\<close>
-  shows \<open>prob step_with_failure \<le> prob step_without_failure\<close>
-proof -
-  have \<open>ord_spmf (=) (step_with_failure x state) (step_without_failure x state)\<close> 
-    by (auto
-        intro!: ord_spmf_bind_reflI
-        simp del: bind_spmf_of_pmf
-        simp add:
-          fail dont_fail step_def fail_spmf_def
-          bind_spmf_of_pmf[symmetric] Let_def)
+  defines
+    \<open>prob fail \<equiv>
+      \<P>(state' in measure_spmf <| step fail x state. P state')\<close>
+  shows \<open>prob True \<le> prob False\<close>
 
-  then show ?thesis using prob_le_prob_of_ord_spmf_eq assms by simp
-qed
+  by (simp add: prob_le_prob_of_ord_spmf_eq step_with_fail_ord_spmf_eq_step_without_fail assms)
 
-end
+lemma
+  fixes P xs
+  defines
+    \<open>prob fail \<equiv>
+      \<P>(state' in measure_spmf <| estimate_distinct fail xs. P state')\<close>
+  shows \<open>prob True \<le> prob False\<close>
+
+  sorry
 
 end
 
