@@ -66,7 +66,7 @@ like metis and smt struggled heavily with the higher order \<exists> involved wh
 invoking Choice.
 auto and related tactics like fastforce all struggled with that as well.
 *)
-lemma estimate_distinct_pmf :
+lemma spmf_of_pmf_estimate_distinct_pmf_eq :
   \<open>P estimate_distinct_pmf\<close>
 proof -
   let ?R = \<open>\<lambda> p xs. spmf_of_pmf p = estimate_distinct False xs\<close>
@@ -80,6 +80,14 @@ proof -
 
   then show ?thesis unfolding estimate_distinct_pmf_def by (rule someI_ex)
 qed
+
+(* lemma prob_estimate_distinct_pmf_eq :
+  fixes P
+  shows
+    \<open>\<P>(result in estimate_distinct_pmf xs. P result)
+      = \<P>(result in measure_spmf <| estimate_distinct False xs. P result)\<close>
+
+  by (metis (no_types, lifting) Collect_cong spmf_of_pmf_estimate_distinct_pmf_eq measure_spmf_spmf_of_pmf)  *)
 
 end
 
