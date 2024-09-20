@@ -30,13 +30,21 @@ lemma estimate_distinct_lossless :
 
   by (simp add: estimate_distinct_def foldM_spmf_lossless_of_always_lossless run_steps_def step_lossless)
 
-thm lossless_spmf_conv_spmf_of_pmf
+lemma estimate_distinct_pmf :
+  obtains estimate_distinct_pmf ::
+    \<open>'a list \<Rightarrow> 'a final_state pmf\<close> where 
+    \<open>spmf_of_pmf <<< estimate_distinct_pmf = estimate_distinct False\<close>
+proof -
+  let ?R = \<open>\<lambda> p xs. spmf_of_pmf p = estimate_distinct False xs\<close>
 
-(* lemma
-  obtains estimate_distinct_pmf where 
-    \<open>spmf_of_pmf <<< estimate_distinct_pmf False = estimate_distinct False\<close>
+  have \<open>\<forall> xs. \<exists> p. ?R p xs\<close>
+    by (metis estimate_distinct_lossless lossless_spmf_conv_spmf_of_pmf)
 
-  by (metis estimate_distinct_lossless lossless_spmf_conv_spmf_of_pmf) *)
+  (* Note: metis struggles with the higher-order \<exists> involved with Choice. *)
+  then have \<open>\<exists> choice_fn. \<forall> xs. ?R (choice_fn xs) xs\<close> by (auto intro!: choice)
+
+  then show ?thesis using that by auto
+qed
 
 end
 
