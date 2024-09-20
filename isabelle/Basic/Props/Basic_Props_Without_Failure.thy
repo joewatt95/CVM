@@ -62,8 +62,8 @@ definition estimate_distinct_pmf :: \<open>'a list \<Rightarrow> 'a final_state 
 (*
 Note:
 While sledgehammer can work out the required lemmas, the reconstruction methods
-like metis and smt struggled heavily with the higher order \<exists> involved when
-invoking Choice.
+like metis and smt struggled heavily with the 2nd order \<exists> involved when
+invoking Choice to invert \<forall> \<exists> to \<exists> \<forall>.
 auto and related tactics like fastforce all struggled with that as well.
 *)
 lemma spmf_of_pmf_estimate_distinct_pmf_eq :
