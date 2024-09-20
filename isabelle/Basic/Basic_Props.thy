@@ -69,7 +69,7 @@ context
     xs :: \<open>'a list\<close>
 begin
 
-private abbreviation prob_P :: \<open>bool \<Rightarrow> real\<close> where
+abbreviation (input) prob_P :: \<open>bool \<Rightarrow> real\<close> where
   \<open>prob_P fail \<equiv>
     \<P>(state' in measure_spmf <| estimate_distinct fail xs. P state')\<close>
 
