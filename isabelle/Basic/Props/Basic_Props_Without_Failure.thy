@@ -59,6 +59,13 @@ abbreviation (input) P where
 definition estimate_distinct_pmf :: \<open>'a list \<Rightarrow> 'a final_state pmf\<close> where
   \<open>estimate_distinct_pmf \<equiv> \<some> f. P f\<close>
 
+(*
+Note:
+While sledgehammer can work out the required lemmas, the reconstruction methods
+like metis and smt struggled heavily with the higher order \<exists> involved when
+invoking Choice.
+auto and related tactics like fastforce all struggled with that as well.
+*)
 lemma estimate_distinct_pmf :
   \<open>P estimate_distinct_pmf\<close>
 proof -
@@ -67,7 +74,6 @@ proof -
   have \<open>\<forall> xs. \<exists> p. ?R p xs\<close>
     by (metis estimate_distinct_lossless lossless_spmf_conv_spmf_of_pmf)
 
-  (* Note: metis struggles with the higher-order \<exists> involved with Choice. *)
   then have \<open>\<exists> choice_fn. \<forall> xs. ?R (choice_fn xs) xs\<close> by (rule choice)
 
   then have \<open>\<exists> choice_fn. P choice_fn\<close> by blast
