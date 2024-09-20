@@ -41,7 +41,7 @@ proof -
     by (metis estimate_distinct_lossless lossless_spmf_conv_spmf_of_pmf)
 
   (* Note: metis struggles with the higher-order \<exists> involved with Choice. *)
-  then have \<open>\<exists> choice_fn. \<forall> xs. ?R (choice_fn xs) xs\<close> by (auto intro!: choice)
+  then have \<open>\<exists> choice_fn. \<forall> xs. ?R (choice_fn xs) xs\<close> by (fast intro: choice)
 
   then show ?thesis using that by auto
 qed
