@@ -13,7 +13,7 @@ record 'a state =
   state_chi :: \<open>'a set\<close>
 
 record 'a final_state = \<open>'a state\<close> +
-  state_estimate :: nat
+  state_estimated_size :: nat
 
 locale basic_algo =
   fixes threshold :: real
@@ -71,8 +71,8 @@ fun run_steps :: \<open>'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state
 
 definition result :: \<open>'a state \<Rightarrow> 'a final_state\<close> where
   \<open>result state \<equiv>
-    state.extend
-      state \<lparr>state_estimate = card (state_chi state) * 2 ^ (state_k state)\<rparr>\<close>
+    state.extend state
+      \<lparr>state_estimated_size = card (state_chi state) * 2 ^ (state_k state)\<rparr>\<close>
 
 definition estimate_distinct :: \<open>'a list \<Rightarrow> 'a final_state spmf\<close> where
   \<open>estimate_distinct \<equiv> run_steps initial_state >>> map_spmf result\<close>
