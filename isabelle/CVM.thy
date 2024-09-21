@@ -34,9 +34,9 @@ lemma test1 :
   apply simp
   sorry
 
-find_theorems "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?A"
+(* find_theorems "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?A"
 
-thm pmf.rel_mono
+thm pmf.rel_mono *)
 
 lemma test2 :
   fixes P :: \<open>real \<Rightarrow> bool\<close>
@@ -46,6 +46,12 @@ lemma test2 :
       \<le> \<P>(estimated_size in Final_Algo.estimate_distinct k (set xs). P estimated_size)\<close>
 
   apply simp
+  sorry
+
+lemma test3 :
+  \<open>map_pmf state_k (cond_pmf (estimate_distinct_pmf xs) {final_state. k = state_k final_state})
+    = Final_Algo.estimate_distinct k (set xs)\<close>
+
   sorry
 
 end

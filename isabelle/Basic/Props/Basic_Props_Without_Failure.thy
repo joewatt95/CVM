@@ -60,11 +60,21 @@ definition estimate_distinct_pmf :: \<open>'a list \<Rightarrow> 'a final_state 
   \<open>estimate_distinct_pmf \<equiv> \<some> f. P f\<close>
 
 (*
+This Lemma appeals to Choice (and an indefinite description operator) to define
+`estimate_distinct_pmf` as a choice function mapping each input `xs` to its
+ corresponding result in the `pmf` monad, lifted from `spmf`.
+
 Note:
-While sledgehammer can work out the required lemmas, the reconstruction methods
-like metis and smt struggled heavily with the 2nd order \<exists> involved when
-invoking Choice to invert \<forall> \<exists> to \<exists> \<forall>.
-auto and related tactics like fastforce all struggled with that as well.
+- While sledgehammer can work out the required lemmas, the reconstruction methods
+  like metis and smt struggled heavily with the 2nd order \<exists> involved when
+  invoking Choice to invert \<forall> \<exists> to \<exists> \<forall>.
+  auto and related tactics like fastforce all struggled with that as well.
+
+- Our appeal to Choice and its non-constructiveness can get in the way of future
+  proofs, in that the lack of an explicit closed form expression witnessing
+  the existential means that we cannot perform simplification (ie symbolic
+  execution) directly on it.
+  This must all be done indirectly via the original spmf version.
 *)
 lemma spmf_of_pmf_estimate_distinct_pmf_eq :
   \<open>P estimate_distinct_pmf\<close>
