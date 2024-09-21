@@ -5,6 +5,48 @@ imports
 
 begin
 
+text \<open> Directly relate step to step_pmf version using the relator \<close>
+context basic_algo
+begin
+
+definition step_pmf :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
+  \<open>step_pmf x state \<equiv> do {
+    let k = state_k state;
+    let chi = state_chi state;
+
+    remove_x_from_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
+
+    let chi = (chi |>
+      if remove_x_from_chi
+      then Set.remove x
+      else insert x);
+
+    if card chi < threshold
+    then return_pmf (state\<lparr>state_chi := chi\<rparr>)
+    else do {
+      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
+        Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+
+      let chi = Set.filter keep_in_chi chi;
+
+      return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
+ } }\<close>
+
+lemma rel_pmf_step_aux:
+  shows "rel_pmf (\<lambda>s p. s = Some p) (step False x state) (step_pmf x state)"
+  unfolding step_def step_pmf_def Let_def
+  apply (subst rel_pmf_bindI[of "(=)"])
+  apply (auto simp add: pmf.rel_eq)
+  apply (smt (verit, del_insts) pmf.rel_eq rel_pmf_bindI rel_return_pmf)
+  by (smt (verit, del_insts) pmf.rel_eq rel_pmf_bindI rel_return_pmf)
+
+lemma rel_pmf_step:
+  shows "step False x state = map_pmf Some (step_pmf x state)"
+  apply (subst pmf.rel_eq[symmetric])
+  by (auto simp add: pmf.rel_map rel_pmf_step_aux)
+
+end
+
 (*
 Here we show that the execution of
 `estimate_distinct False :: 'a list \<Rightarrow> 'a final_state spmf` never fails so that
