@@ -12,6 +12,10 @@ imports
 
 begin
 
+lemma estimate_distinct_empty :
+  \<open>estimate_distinct k {} = return_pmf 0\<close>
+  by (auto simp add: estimate_distinct_def)
+
 context
   fixes
     \<epsilon> \<delta> :: real and
@@ -20,10 +24,6 @@ context
   assumes
     finite_chi : \<open>finite chi\<close>
 begin
-
-lemma estimate_distinct_empty :
-  \<open>estimate_distinct k {} = return_pmf 0\<close>
-  by (auto simp add: estimate_distinct_def)
 
 (*
 This shows that`?chi_size_est` is the same distribution as `?binom`, modulo a
