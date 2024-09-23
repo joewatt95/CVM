@@ -12,10 +12,9 @@ abbreviation foldM_spmf
 
 lemma foldM_spmf_eq_foldM_pmf_case :
   \<open>foldM_spmf f xs =
-    Some >>>
-      foldM_pmf
-        (\<lambda> x. case_option fail_spmf (f x))
-        xs\<close>
+    foldM_pmf
+      (\<lambda> x. case_option fail_spmf (f x))
+      xs <<< Some\<close>
   (is \<open>_ = Some >>> ?foldM_pmf\<close>)
 proof -
   have
@@ -53,7 +52,7 @@ lemma pmf_foldM_spmf_cons :
 lemma integrable_prob_fail_foldM_spmf :
   \<open>integrable
     (measure_spmf <| f x acc) <|
-    prob_fail <<< (foldM_spmf f xs)\<close>
+    prob_fail <<< foldM_spmf f xs\<close>
 
   by (auto
       intro: measure_spmf.integrable_const_bound[where ?B = 1]
