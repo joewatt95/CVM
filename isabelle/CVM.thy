@@ -39,7 +39,7 @@ lemma
         (estimate_distinct False xs)
         {final_state. k = state_k final_state}\<close>
   shows
-    \<open>ord_spmf (=)
+    \<open>rel_spmf (=)
       (map_spmf state_k estimate_distinct_k) <|
       spmf_of_pmf <| Final_Algo.estimate_distinct k <| set xs\<close>
 
@@ -53,8 +53,6 @@ lemma
       spmf_rel_eq[symmetric] spmf_rel_map
     simp del: map_spmf_of_pmf
     )
-
-  apply auto
 
   sorry
 
