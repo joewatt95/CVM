@@ -14,12 +14,12 @@ lemma foldM_spmf_eq_foldM_pmf_case :
   \<open>foldM_spmf f xs =
     Some >>>
       foldM_pmf
-        (\<lambda> x val. (val |> case_option fail_spmf (f x)))
+        (\<lambda> x. case_option fail_spmf (f x))
         xs\<close>
+  (is \<open>_ = Some >>> ?foldM_pmf\<close>)
 proof -
   have
-    \<open>case_option fail_spmf (foldM_spmf f xs)
-      = foldM_pmf (\<lambda> x. case_option fail_spmf (f x)) xs\<close>
+    \<open>?foldM_pmf = case_option fail_spmf (foldM_spmf f xs)\<close>
     apply (induction xs)
     apply (metis fail_spmf_def foldM.simps(1) not_None_eq option.simps(4) option.simps(5)) 
     by (metis (mono_tags, lifting) bind_return_pmf bind_spmf_def fail_spmf_def foldM.simps(2) not_None_eq option.simps(4) return_bind_spmf)
