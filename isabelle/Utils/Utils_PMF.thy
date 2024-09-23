@@ -6,9 +6,9 @@ imports
 
 begin
 
-fun foldM_pmf :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
-  \<open>foldM_pmf _ [] val = return_pmf val\<close> |
-  \<open>foldM_pmf f (x # xs) val = f x val \<bind> foldM_pmf f xs\<close>
+abbreviation foldM_pmf ::
+  \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
+  \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 
 lemma bernoulli_pmf_one [simp] :
   \<open>bernoulli_pmf 1 = return_pmf True\<close>

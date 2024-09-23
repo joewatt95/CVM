@@ -2,13 +2,36 @@ theory Utils_SPMF_FoldM
 
 imports
   CVM.Utils_SPMF_Common
+  CVM.Utils_PMF
 
 begin
 
-fun
-  foldM_spmf :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
-  \<open>foldM_spmf _ [] acc = return_spmf acc\<close> |
-  \<open>foldM_spmf f (x # xs) acc = f x acc \<bind> foldM_spmf f xs\<close>
+abbreviation foldM_spmf
+  :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
+  \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
+
+lemma foldM_spmf_eq_foldM_pmf_case :
+  \<open>foldM_spmf f xs =
+    Some >>>
+      foldM_pmf
+        (\<lambda> x val. (val |> case_option fail_spmf (f x)))
+        xs\<close>
+proof -
+  have
+    \<open>case_option fail_spmf (foldM_spmf f xs)
+      = foldM_pmf (\<lambda> x. case_option fail_spmf (f x)) xs\<close>
+    apply (induction xs)
+    apply (metis fail_spmf_def foldM.simps(1) not_None_eq option.simps(4) option.simps(5)) 
+    by (metis (mono_tags, lifting) bind_return_pmf bind_spmf_def fail_spmf_def foldM.simps(2) not_None_eq option.simps(4) return_bind_spmf)
+
+  then show ?thesis by (metis option.simps(5))
+qed
+
+lemma spmf_of_pmf_foldM_pmf_eq_foldM_spmf :
+  \<open>spmf_of_pmf <<< foldM_pmf f xs = foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs\<close>
+
+  apply (induction xs)
+  by (simp_all add: spmf_of_pmf_bind)
 
 lemma pmf_foldM_spmf_nil :
   shows

@@ -28,4 +28,9 @@ abbreviation (input) constantly
   (\<open>\<lblot> _ \<rblot>\<close> 1000) where
   \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
 
+fun foldM ::
+  \<open>('a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> ('d \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> 'd list \<Rightarrow> 'b \<Rightarrow> 'c\<close> where
+  \<open>foldM _ return _ [] val = return val\<close> |
+  \<open>foldM bind return f (x # xs) val = bind (f x val) (foldM bind return f xs)\<close>
+
 end
