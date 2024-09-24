@@ -58,7 +58,7 @@ proof -
 
     sorry
 
-  then show ?thesis by (simp add: bind_return_pmf') *)
-qed
+  then show ?thesis by (simp add: bind_return_pmf')
+qed *)
 
 end
