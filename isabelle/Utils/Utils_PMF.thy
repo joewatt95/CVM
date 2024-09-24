@@ -26,7 +26,7 @@ lemma map_pmf_times_one [simp] :
 
   by (simp add: pmf.map_ident_strong) 
 
-definition p::"bool pmf"
+(* definition p::"bool pmf"
   where "p = bernoulli_pmf (1/2)"
 
 definition q::"bool pmf"
@@ -56,9 +56,9 @@ proof -
 
     apply (subst rel_return_pmf)
 
-    sorry 
+    sorry
 
-  then show ?thesis by (simp add: bind_return_pmf')
+  then show ?thesis by (simp add: bind_return_pmf') *)
 qed
 
 end
