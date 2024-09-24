@@ -54,10 +54,10 @@ lemma prob_le_prob_of_ord_spmf_eq :
   by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
-  assumes \<open>\<And> x acc. ord_spmf (=) (f x acc) (f' x acc)\<close>
-  shows \<open>ord_spmf (=) (foldM_spmf f xs acc) <| foldM_spmf f' xs acc\<close>
+  assumes \<open>\<And> x val. ord_spmf (=) (f x val) (f' x val)\<close>
+  shows \<open>ord_spmf (=) (foldM_spmf f xs val) <| foldM_spmf f' xs val\<close>
 
-  apply (induction xs arbitrary: acc)
+  apply (induction xs arbitrary: val)
   using assms by (auto intro: ord_spmf_bindI)
 
 lemma prob_fail_eq_of_rel_spmf :
