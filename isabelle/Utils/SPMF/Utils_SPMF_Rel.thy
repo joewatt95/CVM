@@ -26,7 +26,7 @@ More precisely, `ord_spmf (R) p p' = rel_pmf (ord_option R) p p'`, where:
 
 - `ord_option R x x'`:
   - ignores (ie returns true) when x is None
-  - fails (ie returns false) when x is Some but x' is None
+  - fails (ie returns false) when x step_defis Some but x' is None
   -  compares `y R y'` when `x` is `Some y` and `x'` is `Some y'`
 
 References:
@@ -67,40 +67,54 @@ lemma prob_fail_eq_of_rel_spmf :
   using assms
   by (simp add: pmf_None_eq_weight_spmf prob_fail_def rel_spmf_weightD)
 
-(* definition equiv_up_to_failure ::
-  \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a spmf \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> 'b spmf \<Rightarrow> bool\<close>
-  (\<open>\<turnstile> \<lbrakk> _ \<rbrakk> _ \<simeq> \<lbrakk> _ \<rbrakk> _\<close>) where
-  \<open>\<turnstile> \<lbrakk> P \<rbrakk> p \<simeq> \<lbrakk> P' \<rbrakk> p' \<equiv> rel_spmf (\<lambda> x x'. P x \<longleftrightarrow> P' x') p p'\<close>
+definition relational_hoare_triple ::
+  \<open>['a \<Rightarrow> 'b \<Rightarrow> bool, 'a \<Rightarrow> 'c spmf, 'b \<Rightarrow> 'd spmf, 'c \<Rightarrow> 'd \<Rightarrow> bool] \<Rightarrow> bool\<close>
+  (\<open>\<turnstile> \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
+  \<open>(\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> \<forall> x x'. R x x' \<longrightarrow> rel_spmf S (f x) (f' x')\<close>
 
-lemma equiv_up_to_failure_refl_intro :
-  assumes \<open>p = p'\<close>
-  shows \<open>\<turnstile> \<lbrakk>P\<rbrakk> p \<simeq> \<lbrakk>P\<rbrakk>p'\<close>
+lemma skip [simp] :
+  \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
+    \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
 
-  by (simp add: assms equiv_up_to_failure_def rel_spmf_reflI)
+  by (simp add: relational_hoare_triple_def) 
 
-lemma equiv_up_to_failure_symm :
-  assumes \<open>\<turnstile> \<lbrakk>P\<rbrakk>p \<simeq> \<lbrakk>P'\<rbrakk>p'\<close>
-  shows \<open>\<turnstile> \<lbrakk>P'\<rbrakk>p' \<simeq> \<lbrakk>P\<rbrakk>p\<close>
+lemma skip' [simp] :
+  \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
+    \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
+
+  by (simp add: relational_hoare_triple_def)
+
+lemma seq :
+  assumes
+    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
+    \<open>\<turnstile> \<lbrace>S\<rbrace> \<langle>g | g'\<rangle> \<lbrace>T\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(f >=> g) | (f' >=> g')\<rangle> \<lbrace>T\<rbrace>\<close>
 
   using assms
-  by (metis (mono_tags, lifting) conversep_iff equiv_up_to_failure_def option.rel_conversep pmf.rel_flip rel_spmf_mono_strong) 
+  by (auto
+      intro!: rel_spmf_bindI
+      simp add: kleisli_compose_left_def relational_hoare_triple_def)
 
-lemma prob_le_fail_of_equiv :
-  fixes p p' P P'
-  assumes \<open>\<turnstile> \<lbrakk>P\<rbrakk>p \<simeq> \<lbrakk>P'\<rbrakk>p'\<close>
-  defines
-    \<open>prob \<equiv> \<P>(x in measure_spmf p. P x)\<close> and
-    \<open>prob' \<equiv> \<P>(x' in measure_spmf p'. P' x')\<close>
-  shows
-    \<open>prob \<le> prob' + prob_fail p\<close> and
-    \<open>\<bar>prob - prob'\<bar> \<le> prob_fail p\<close>
-proof -
-  show \<open>prob \<le> prob' + prob_fail p\<close>
-    by (smt (verit, best) Collect_cong UNIV_I assms(1) assms(3) ennreal_inj equiv_up_to_failure_def measure_le_0_iff measure_spmf.bounded_measure measure_spmf.emeasure_eq_measure mem_Collect_eq nn_integral_cong nn_integral_spmf prob_def prob_fail_def rel_spmf_measureD space_count_space space_measure_spmf weight_return_pmf_None weight_spmf_conv_pmf_None weight_spmf_le_1)
+lemma seq' :
+  assumes
+    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
+    \<open>\<And> x x'. R x x' \<longrightarrow> \<turnstile> \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
 
-  then show \<open>\<bar>prob - prob'\<bar> \<le> prob_fail p\<close>
-    using equiv_up_to_failure_symm
-    by (smt (verit, best) Collect_cong UNIV_I assms(1) assms(3) ennreal_inj equiv_up_to_failure_def measure_nonneg measure_spmf.bounded_measure measure_spmf.emeasure_eq_measure mem_Collect_eq nn_integral_cong nn_integral_spmf prob_def rel_spmf_measureD space_count_space space_measure_spmf weight_return_pmf_None)
-qed *)
+  using assms
+  by (auto
+      intro!: rel_spmf_bindI
+      simp add: kleisli_compose_left_def relational_hoare_triple_def)
+
+lemma loop :
+  assumes \<open>\<And> x x'. \<turnstile> \<lbrace>R\<rbrace> \<langle>f x | f' x'\<rangle> \<lbrace>R\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
+
+  apply (induction xs)
+  apply simp
+  using assms
+  by (fastforce
+      intro!: rel_spmf_bindI
+      simp add: relational_hoare_triple_def)
 
 end

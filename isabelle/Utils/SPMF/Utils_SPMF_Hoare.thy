@@ -130,7 +130,6 @@ lemma if_then_else :
   using assms by (simp add: hoare_triple_def)
 
 lemma loop :
-  fixes P :: \<open>'b \<Rightarrow> bool\<close>
   assumes \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
 
