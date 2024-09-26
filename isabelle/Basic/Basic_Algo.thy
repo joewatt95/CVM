@@ -1,7 +1,6 @@
 theory Basic_Algo
 
 imports
-  "HOL-Library.Pattern_Aliases"
   "HOL-Probability.Product_PMF"
   CVM.Utils_PMF
   CVM.Utils_SPMF_FoldM

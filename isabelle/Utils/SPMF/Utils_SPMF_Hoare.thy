@@ -12,7 +12,7 @@ https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
 *)
 
 imports
-  "CVM.Utils_SPMF_FoldM"
+  CVM.Utils_SPMF_FoldM
 
 begin
 

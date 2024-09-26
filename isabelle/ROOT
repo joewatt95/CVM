@@ -5,6 +5,8 @@ session CVM = "HOL-Probability" +
     "Basic"
     "Basic/Props"
 
+    "Intermediate"
+
     "Final"
 
     "Utils"
@@ -17,6 +19,9 @@ session CVM = "HOL-Probability" +
     "Basic/Props/Basic_Props_With_Failure"
     "Basic/Props/Basic_Props_Without_Failure"
     "Basic/Props/Basic_Props"
+
+    "Intermediate/Intermediate_Algo"
+    "Intermediate/Intermediate_Props"
 
     "Final/Final_Algo"
     "Final/Final_Props"

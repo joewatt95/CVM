@@ -33,4 +33,10 @@ fun foldM ::
   \<open>foldM _ return _ [] val = return val\<close> |
   \<open>foldM bind return f (x # xs) val = bind (f x val) (foldM bind return f xs)\<close>
 
+abbreviation uncurry :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c\<close> where
+  \<open>uncurry f \<equiv> \<lambda> (a, b). f a b\<close>
+
+definition map_index :: \<open>(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> where
+  \<open>map_index f \<equiv> map (uncurry f) <<< enumerate 0\<close>
+
 end
