@@ -138,9 +138,10 @@ lemma loop :
 
 lemma
   fixes P xs n start offset
+  assumes
+    \<open>\<And> index x. \<turnstile> \<lbrace>(\<lambda> val. index < length xs \<and> P index val)\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>\<close>
   shows
-    \<open>\<And> index x. \<turnstile> \<lbrace>(\<lambda> val. index < length xs \<and> P index val)\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>
-      \<Longrightarrow> \<turnstile> \<lbrace>P index\<rbrace> foldM_spmf f xs \<lbrace>P (index + length xs)\<rbrace>\<close>
+    \<open>\<turnstile> \<lbrace>P index\<rbrace> foldM_spmf f xs \<lbrace>P (index + length xs)\<rbrace>\<close>
 proof (induction xs arbitrary: index)
   case Nil
   then show ?case by simp
