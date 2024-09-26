@@ -32,6 +32,26 @@ lemma
   sorry
 
 lemma
+  fixes
+    P :: \<open>real \<Rightarrow> bool\<close>
+  shows
+    \<open>\<P>(state in estimate_distinct_pmf xs.
+        P (state_k state) \<and> k = state_k state)
+      = \<P>(estimated_size in Final_Algo.estimate_distinct k <| set xs.
+            P estimated_size)\<close>
+
+  sorry
+
+(* lemma
+  fixes P :: \<open>real \<Rightarrow> bool\<close>
+  shows
+    \<open>\<P>(state in cond_pmf (estimate_distinct_pmf xs) {final_state. k = state_k final_state}.
+        P (state_k state))
+      \<le> \<P>(estimated_size in Final_Algo.estimate_distinct k (set xs). P estimated_size)\<close>
+
+  sorry *)
+
+lemma
   fixes k xs
   defines
     \<open>estimate_distinct_k \<equiv>
