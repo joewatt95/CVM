@@ -9,7 +9,7 @@ definition step :: \<open>'a \<Rightarrow> 'a set list \<Rightarrow> 'a set list
   \<open>step x chis \<equiv> do {
     num_heads \<leftarrow> geometric_pmf <| 1 / 2;
 
-    let capped_num_heads = max num_heads (length chis);
+    let capped_num_heads = min num_heads (length chis);
 
     let insert_or_remove = (\<lambda> index.
       if index \<le> capped_num_heads
