@@ -136,6 +136,22 @@ lemma loop :
   apply (induction xs)
   using assms by (auto intro: seq)
 
+lemma
+  fixes P xs n start offset
+  shows
+    \<open>\<And> index x. \<turnstile> \<lbrace>(\<lambda> val. index < length xs \<and> P index val)\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>
+      \<Longrightarrow> \<turnstile> \<lbrace>P index\<rbrace> foldM_spmf f xs \<lbrace>P (index + length xs)\<rbrace>\<close>
+proof (induction xs arbitrary: index)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+
+  then show ?case
+    apply (auto intro!: seq[where ?Q = \<open>P (index + 1)\<close>])
+    sorry
+qed
+
 lemma integral_mono_of_hoare_triple :
   fixes
     x :: 'a and
