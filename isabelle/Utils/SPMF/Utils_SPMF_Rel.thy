@@ -98,7 +98,7 @@ lemma seq :
 lemma seq' :
   assumes
     \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
-    \<open>\<And> x x'. R x x' \<longrightarrow> \<turnstile> \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
+    \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile> \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
 
   using assms
