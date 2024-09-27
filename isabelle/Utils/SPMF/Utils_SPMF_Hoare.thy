@@ -196,8 +196,8 @@ lemma prob_fail_foldM_spmf_le :
     \<open>\<And> x val. P val \<Longrightarrow> prob_fail (f x val) \<le> p\<close>
   shows \<open>P val \<Longrightarrow> prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close>
 proof (induction xs arbitrary: val)
- case Nil
- then show ?case by (simp add: prob_fail_def)
+  case Nil
+  then show ?case by (simp add: prob_fail_def)
 next
   case (Cons x xs)
 
