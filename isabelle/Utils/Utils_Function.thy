@@ -39,11 +39,15 @@ fun foldM ::
   \<open>foldM _ return _ [] val = return val\<close> |
   \<open>foldM bind return f (x # xs) val = bind (f x val) (foldM bind return f xs)\<close>
 
+definition foldM_enumerate where
+  \<open>foldM_enumerate bind return f xs offset \<equiv>
+    foldM bind return f (List.enumerate offset xs)\<close>
+
 lemma foldM_eq_foldM_enumerate :
   \<open>foldM bind return f xs
-    = foldM bind return (f \<circ> snd) (List.enumerate offset xs)\<close>
+    = foldM_enumerate bind return (f \<circ> snd) xs offset\<close>
 
   apply (induction xs arbitrary: offset)
-  by auto
+  by (auto simp add: foldM_enumerate_def)
 
 end

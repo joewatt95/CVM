@@ -10,6 +10,9 @@ abbreviation foldM_spmf
   :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
   \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
 
+abbreviation foldM_spmf_enumerate where
+  \<open>foldM_spmf_enumerate \<equiv> foldM_enumerate bind_spmf return_spmf\<close>
+
 lemma foldM_spmf_eq_foldM_pmf_case :
   \<open>foldM_spmf f xs =
     foldM_pmf

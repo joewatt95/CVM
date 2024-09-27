@@ -104,7 +104,6 @@ lemma seq :
 
   using assms
   by (auto
-      simp add: kleisli_compose_left_def
       intro!: hoare_triple_intro
       elim!: bind_elim hoare_triple_elim)
 
@@ -142,16 +141,16 @@ abbreviation (input) P' :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close
 lemma loop_enumerate :
   \<open>(\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f (index, x) \<lbrace>P (index + 1)\<rbrace>)
     \<Longrightarrow> \<turnstile> \<lbrace>P offset\<rbrace>
-          foldM_spmf f (List.enumerate offset xs)
+          foldM_spmf_enumerate f xs offset
           \<lbrace>P (offset + length xs)\<rbrace>\<close>
 proof (induction xs arbitrary: offset)
   case Nil
-  then show ?case by simp
+  then show ?case by (simp add: foldM_enumerate_def)
 next
   case (Cons x xs)
   then show ?case
     using Cons
-    apply simp
+    apply (simp add: foldM_enumerate_def)
     apply (intro seq[where ?Q = \<open>P <| offset + 1\<close>])
     apply (simp_all add: hoare_triple_def)
     by (metis add_Suc)
@@ -161,8 +160,10 @@ lemma loop :
   assumes \<open>\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
 
-  apply (subst foldM_eq_foldM_enumerate[where ?offset = offset])
-  using assms by (auto intro: loop_enumerate)
+  using assms
+  by (auto
+      intro: loop_enumerate
+      simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
 
 end
 

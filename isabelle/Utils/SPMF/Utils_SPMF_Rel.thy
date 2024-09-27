@@ -93,7 +93,7 @@ lemma seq :
   using assms
   by (auto
       intro!: rel_spmf_bindI
-      simp add: kleisli_compose_left_def relational_hoare_triple_def)
+      simp add: relational_hoare_triple_def)
 
 lemma seq' :
   assumes
@@ -104,17 +104,58 @@ lemma seq' :
   using assms
   by (auto
       intro!: rel_spmf_bindI
-      simp add: kleisli_compose_left_def relational_hoare_triple_def)
+      simp add: relational_hoare_triple_def)
+
+context
+  fixes
+    R :: \<open>nat \<Rightarrow> 'b \<Rightarrow>'c \<Rightarrow> bool\<close> and
+    xs :: \<open>'a list\<close> and
+    offset :: nat
+begin
+
+abbreviation (input) foldM_enumerate' where
+  \<open>foldM_enumerate' fn \<equiv> foldM_spmf_enumerate fn xs offset\<close>
+
+abbreviation (input) R' :: \<open>nat \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> bool\<close> where
+  \<open>R' index val val' \<equiv> index < offset + length xs \<and> R index val val'\<close>
+
+lemma loop_enumerate :
+  \<open>(\<And> index x x'. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x')\<rangle> \<lbrace>R (index + 1)\<rbrace>)
+    \<Longrightarrow> \<turnstile> \<lbrace>R offset\<rbrace>
+        \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
+        \<lbrace>R (offset + length xs)\<rbrace>\<close>
+proof (induction xs arbitrary: offset)
+  case Nil
+  then show ?case by (simp add: foldM_enumerate_def)
+next
+  case (Cons x xs)
+  then show ?case
+    using Cons
+    apply (simp add: foldM_enumerate_def)
+    apply (intro seq[where ?S = \<open>R <| offset + 1\<close>])
+    apply (simp_all add: relational_hoare_triple_def)
+    by (metis add_Suc)
+qed
 
 lemma loop :
+  assumes \<open>\<And> index x x'. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f x | f' x'\<rangle> \<lbrace>R (index + 1)\<rbrace>\<close>
+  shows
+    \<open>\<turnstile> \<lbrace>R offset\<rbrace>
+      \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
+      \<lbrace>R (offset + length xs)\<rbrace>\<close>
+
+  using assms
+  by (auto
+      intro: loop_enumerate
+      simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
+
+end
+
+lemma loop_unindexed :
   assumes \<open>\<And> x x'. \<turnstile> \<lbrace>R\<rbrace> \<langle>f x | f' x'\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
 
-  apply (induction xs)
-  apply simp
-  using assms
-  by (fastforce
-      intro!: rel_spmf_bindI
-      simp add: relational_hoare_triple_def)
+  using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
+  by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
 
 end
