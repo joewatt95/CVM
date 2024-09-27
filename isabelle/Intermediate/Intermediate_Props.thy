@@ -23,9 +23,18 @@ locale intermediate_algo = basic_algo
 begin
 
 lemma
-  defines \<open>R \<equiv> \<lambda> state chis.
-    state_chi state = chis ! state_k state\<close>
-  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>step False x | (spmf_of_pmf <<< Intermediate_Algo.step x)\<rangle> \<lbrace>R\<rbrace>\<close>
+  fixes index n
+  defines \<open>R \<equiv> \<lambda> index state chis. (
+    let
+      k = state_k state;
+      chi = state_chi state
+    in length chis = n
+      \<and> k \<le> index
+      \<and> chi = chis ! k)\<close>
+  shows
+    \<open>\<turnstile> \<lbrace>(\<lambda> val val'. index < n \<and> R index val val')\<rbrace>
+      \<langle>step False x | (spmf_of_pmf <<< Intermediate_Algo.step x)\<rangle>
+      \<lbrace>R (index + 1)\<rbrace>\<close>
 
   sorry
 
