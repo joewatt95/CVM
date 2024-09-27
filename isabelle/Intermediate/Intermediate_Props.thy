@@ -28,8 +28,7 @@ lemma
     let
       k = state_k state;
       chi = state_chi state
-    in length chis = n
-      \<and> k \<le> index
+    in k \<le> index \<and> length chis = n
       \<and> chi = chis ! k)\<close>
   shows
     \<open>\<turnstile> \<lbrace>(\<lambda> val val'. index < n \<and> R index val val')\<rbrace>
