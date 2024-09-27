@@ -129,29 +129,49 @@ lemma if_then_else :
 
   using assms by (simp add: hoare_triple_def)
 
-lemma loop :
-  assumes \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
+context
+  fixes
+    P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> and
+    xs :: \<open>'a list\<close> and
+    offset :: nat
+begin
 
-  apply (induction xs)
-  using assms by (auto intro: seq)
+abbreviation (input) P' :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> where
+  \<open>P' index val \<equiv> index < offset + length xs \<and> P index val\<close>
 
-lemma
-  fixes P xs n start offset
-  assumes
-    \<open>\<And> index x. \<turnstile> \<lbrace>(\<lambda> val. index < length xs \<and> P index val)\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>\<close>
-  shows
-    \<open>\<turnstile> \<lbrace>P index\<rbrace> foldM_spmf f xs \<lbrace>P (index + length xs)\<rbrace>\<close>
-proof (induction xs arbitrary: index)
+lemma loop_enumerate :
+  \<open>(\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f (index, x) \<lbrace>P (index + 1)\<rbrace>)
+    \<Longrightarrow> \<turnstile> \<lbrace>P offset\<rbrace>
+          foldM_spmf f (List.enumerate offset xs)
+          \<lbrace>P (offset + length xs)\<rbrace>\<close>
+proof (induction xs arbitrary: offset)
   case Nil
   then show ?case by simp
 next
   case (Cons x xs)
-
   then show ?case
-    apply (auto intro!: seq[where ?Q = \<open>P (index + 1)\<close>])
-    sorry
+    using Cons
+    apply simp
+    apply (intro seq[where ?Q = \<open>P <| offset + 1\<close>])
+    apply (simp_all add: hoare_triple_def)
+    by (metis add_Suc)
 qed
+
+lemma loop :
+  assumes \<open>\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
+
+  apply (subst foldM_eq_foldM_enumerate[where ?offset = offset])
+  using assms by (auto intro: loop_enumerate)
+
+end
+
+lemma loop_unindexed :
+  assumes \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
+
+  using loop[where ?P = \<open>curry <| snd >>> P\<close>, where ?offset = 0] assms
+  by (fastforce simp add: hoare_triple_def curry_def snd_def)
 
 lemma integral_mono_of_hoare_triple :
   fixes
