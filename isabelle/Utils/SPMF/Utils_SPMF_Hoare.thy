@@ -193,37 +193,37 @@ lemma prob_fail_foldM_spmf_le :
     P :: \<open>'b \<Rightarrow> bool\<close>
   assumes
     \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close> and
-    \<open>\<And> x acc. P acc \<Longrightarrow> prob_fail (f x acc) \<le> p\<close>
-  shows \<open>P acc \<Longrightarrow> prob_fail (foldM_spmf f xs acc) \<le> length xs * p\<close>
-proof (induction xs arbitrary: acc)
+    \<open>\<And> x val. P val \<Longrightarrow> prob_fail (f x val) \<le> p\<close>
+  shows \<open>P val \<Longrightarrow> prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close>
+proof (induction xs arbitrary: val)
  case Nil
  then show ?case by (simp add: prob_fail_def)
 next
   case (Cons x xs)
 
-  let ?acc' = \<open>f x acc\<close>
-  let ?\<mu>' = \<open>measure_spmf ?acc'\<close>
+  let ?val' = \<open>f x val\<close>
+  let ?\<mu>' = \<open>measure_spmf ?val'\<close>
 
   have
-    \<open>prob_fail (foldM_spmf f (x # xs) acc)
-    = prob_fail ?acc' + \<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>'\<close>
+    \<open>prob_fail (foldM_spmf f (x # xs) val)
+    = prob_fail ?val' + \<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>'\<close>
     by (simp add: prob_fail_def pmf_bind_spmf_None)
 
-  also have \<open>... \<le> p + \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
+  also have \<open>... \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
   proof -
     have \<open>\<turnstile>
-      \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?acc'\<rblot>
-      \<lbrace>(\<lambda> acc'. prob_fail (foldM_spmf f xs acc') \<le> length xs * p)\<rbrace>\<close>
-      using assms Cons.IH \<open>P acc\<close>
+      \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?val'\<rblot>
+      \<lbrace>(\<lambda> val'. prob_fail (foldM_spmf f xs val') \<le> length xs * p)\<rbrace>\<close>
+      using assms Cons.IH \<open>P val\<close>
       by (smt (verit, ccfv_threshold) hoare_triple_elim hoare_triple_intro skip)
 
     then have
-      \<open>(\<integral> acc'. prob_fail (foldM_spmf f xs acc') \<partial> ?\<mu>')
-        \<le> \<integral> acc'. length xs * p \<partial> ?\<mu>'\<close>
-      apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?acc'\<rblot>\<close>])
+      \<open>(\<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>')
+        \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+      apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?val'\<rblot>\<close>])
       using assms integrable_prob_fail_foldM_spmf by auto
 
-    moreover have \<open>prob_fail ?acc' \<le> p\<close> using \<open>P acc\<close> assms by simp
+    moreover have \<open>prob_fail ?val' \<le> p\<close> using \<open>P val\<close> assms by simp
 
     ultimately show ?thesis by simp
   qed

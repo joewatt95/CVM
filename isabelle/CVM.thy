@@ -6,10 +6,7 @@ imports
 
 begin
 
-context basic_algo
-begin
-
-lemma
+(* lemma
   fixes xs k
   defines
     \<open>R final_state estimated_size' \<equiv>
@@ -29,9 +26,9 @@ lemma
       spmf_rel_map Set.filter_def state.extend_def Let_def Set.remove_def
     simp del: map_spmf_of_pmf bind_spmf_of_pmf)
 
-  sorry
+  sorry *)
 
-lemma
+(* lemma
   fixes
     P :: \<open>real \<Rightarrow> bool\<close>
   shows
@@ -40,7 +37,7 @@ lemma
       = \<P>(estimated_size in Final_Algo.estimate_distinct k <| set xs.
             P estimated_size)\<close>
 
-  sorry
+  sorry *)
 
 (* lemma
   fixes P :: \<open>real \<Rightarrow> bool\<close>
@@ -51,7 +48,7 @@ lemma
 
   sorry *)
 
-lemma
+(* lemma
   fixes k xs
   defines
     \<open>estimate_distinct_k \<equiv>
@@ -74,8 +71,6 @@ lemma
     simp del: map_spmf_of_pmf
     )
 
-  sorry
-
-end
+  sorry *)
 
 end
