@@ -18,11 +18,4 @@ definition step :: \<open>'a \<Rightarrow> 'a set list \<Rightarrow> 'a set list
 
     chis |> map_index insert_or_remove |> return_pmf }\<close>
 
-(* lemma
-  \<open>step x chis = return_pmf []\<close>
-
-  apply (simp add: step_def Let_def map_pmf_def[symmetric])
-
-  sorry *)
-
 end
