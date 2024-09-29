@@ -50,7 +50,7 @@ For more details, see Utils/SPMF/Utils_SPMF_Rel.thy
 *)
 
 lemma step_ord_spmf_eq :
-  \<open>ord_spmf (=) (step True x state) <| step False x state\<close>
+  \<open>ord_spmf (=) (step Fail x state) <| step No_fail x state\<close>
 
   by (auto
       intro!: ord_spmf_bind_reflI
@@ -59,10 +59,10 @@ lemma step_ord_spmf_eq :
 
 lemma estimate_distinct_ord_spmf_eq :
   \<open>ord_spmf (=)
-    (estimate_distinct True xs) <|
+    (estimate_distinct Fail xs) <|
     spmf_of_pmf <| estimate_distinct_pmf xs\<close>
 proof -
-  have \<open>spmf_of_pmf (estimate_distinct_pmf xs) = estimate_distinct False xs\<close>
+  have \<open>spmf_of_pmf (estimate_distinct_pmf xs) = estimate_distinct No_fail xs\<close>
     by (metis spmf_of_pmf_estimate_distinct_pmf_eq) 
 
   then show ?thesis
@@ -78,7 +78,7 @@ context
 begin
 
 lemma prob_estimate_distinct_le :
-  \<open>\<P>(state in measure_spmf <| estimate_distinct True xs. P state)
+  \<open>\<P>(state in measure_spmf <| estimate_distinct Fail xs. P state)
     \<le> \<P>(state in estimate_distinct_pmf xs. P state)\<close>
 
   using estimate_distinct_ord_spmf_eq prob_le_prob_of_ord_spmf_eq by fastforce
@@ -86,7 +86,7 @@ lemma prob_estimate_distinct_le :
 lemma prob_estimate_distinct_fail_or_satisfies_le :
   assumes \<open>threshold > 0\<close>
   shows
-    \<open>\<P>(state in estimate_distinct True xs. state |> fail_or_satisfies P)
+    \<open>\<P>(state in estimate_distinct Fail xs. state |> fail_or_satisfies P)
       \<le> (length xs :: real) * 2 powr threshold
           + \<P>(state in estimate_distinct_pmf xs. P state)\<close>
 

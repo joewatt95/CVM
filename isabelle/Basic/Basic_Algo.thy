@@ -22,9 +22,8 @@ datatype Fail_if_threshold_exceeded
   = Fail
   | No_fail
 
-fun bool_of_fail :: \<open>Fail_if_threshold_exceeded \<Rightarrow> bool\<close> where
-  \<open>bool_of_fail Fail = True\<close> |
-  \<open>bool_of_fail No_fail = False\<close>
+abbreviation (input) bool_of_fail :: \<open>Fail_if_threshold_exceeded \<Rightarrow> bool\<close> where
+  \<open>bool_of_fail \<equiv> (=) Fail\<close>
 
 declare [[coercion bool_of_fail]]
 
