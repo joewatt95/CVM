@@ -41,7 +41,7 @@ lemma initial_state_well_formed :
   using threshold_pos by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
-  \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step True x \<lbrace>well_formed_state\<rbrace>\<close>
+  \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step Fail x \<lbrace>well_formed_state\<rbrace>\<close>
 
   unfolding step_def
   apply (simp del: bind_spmf_of_pmf add: bind_spmf_of_pmf[symmetric] Let_def)
@@ -56,16 +56,16 @@ lemma prob_fail_step_le :
     x :: 'a and
     state :: \<open>'a state\<close>
   assumes \<open>state ok\<close>
-  shows \<open>prob_fail (step True x state) \<le> 2 powr threshold\<close>
+  shows \<open>prob_fail (step Fail x state) \<le> 2 powr threshold\<close>
 
   by (metis assms ge_one_powr_ge_zero less_eq_real_def nle_le numeral_le_one_iff of_nat_0_le_iff order.trans pmf_le_1 prob_fail_def semiring_norm(69) well_formed_state_def) 
 
 lemma prob_fail_estimate_size_le :
-  \<open>prob_fail (estimate_distinct True xs) \<le> length xs * 2 powr threshold\<close>
+  \<open>prob_fail (estimate_distinct Fail xs) \<le> length xs * 2 powr threshold\<close>
 proof -
   have
-    \<open>prob_fail (estimate_distinct True xs)
-      = prob_fail (run_steps True initial_state xs)\<close>
+    \<open>prob_fail (estimate_distinct Fail xs)
+      = prob_fail (run_steps Fail initial_state xs)\<close>
     by (simp add: estimate_distinct_def prob_fail_def pmf_None_eq_weight_spmf)
 
   then show ?thesis

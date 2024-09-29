@@ -33,7 +33,7 @@ definition step_pmf :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state p
  } }\<close>
 
 lemma rel_pmf_step_aux:
-  shows "rel_pmf (\<lambda>s p. s = Some p) (step False x state) (step_pmf x state)"
+  shows "rel_pmf (\<lambda>s p. s = Some p) (step No_fail x state) (step_pmf x state)"
   unfolding step_def step_pmf_def Let_def
   apply (subst rel_pmf_bindI[of "(=)"])
   apply (auto simp add: pmf.rel_eq)
@@ -41,7 +41,7 @@ lemma rel_pmf_step_aux:
   by (smt (verit, del_insts) pmf.rel_eq rel_pmf_bindI rel_return_pmf)
 
 lemma rel_pmf_step:
-  shows "step False x state = map_pmf Some (step_pmf x state)"
+  shows "step No_fail x state = map_pmf Some (step_pmf x state)"
   apply (subst pmf.rel_eq[symmetric])
   by (auto simp add: pmf.rel_map rel_pmf_step_aux)
 
@@ -86,17 +86,17 @@ context basic_algo
 begin
 
 lemma step_lossless :
-  \<open>lossless_spmf <| step False x state\<close>
+  \<open>lossless_spmf <| step No_fail x state\<close>
 
   unfolding step_def by (simp add: Let_def)
 
 lemma estimate_distinct_lossless :
-  \<open>lossless_spmf <| estimate_distinct False xs\<close>
+  \<open>lossless_spmf <| estimate_distinct No_fail xs\<close>
 
   by (simp add: estimate_distinct_def foldM_spmf_lossless_of_always_lossless run_steps_def step_lossless)
 
 abbreviation (input) P where
-  \<open>P f \<equiv> spmf_of_pmf <<< f = estimate_distinct False\<close>
+  \<open>P f \<equiv> spmf_of_pmf <<< f = estimate_distinct No_fail\<close>
 
 definition estimate_distinct_pmf :: \<open>'a list \<Rightarrow> 'a final_state pmf\<close> where
   \<open>estimate_distinct_pmf \<equiv> \<some> f. P f\<close>
@@ -121,7 +121,7 @@ Note:
 lemma spmf_of_pmf_estimate_distinct_pmf_eq :
   \<open>P estimate_distinct_pmf\<close>
 proof -
-  let ?R = \<open>\<lambda> p xs. spmf_of_pmf p = estimate_distinct False xs\<close>
+  let ?R = \<open>\<lambda> p xs. spmf_of_pmf p = estimate_distinct No_fail xs\<close>
 
   have \<open>\<forall> xs. \<exists> p. ?R p xs\<close>
     by (metis estimate_distinct_lossless lossless_spmf_conv_spmf_of_pmf)
