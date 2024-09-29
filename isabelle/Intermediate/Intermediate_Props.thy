@@ -33,7 +33,7 @@ lemma
         \<and> chi = chis ! k)\<close>
   shows
     \<open>\<turnstile> \<lbrace>(\<lambda> state chis. index < n \<and> R index state chis)\<rbrace>
-      \<langle>step False x | (spmf_of_pmf <<< Intermediate_Algo.step x)\<rangle>
+      \<langle>step No_fail x | (spmf_of_pmf <<< Intermediate_Algo.step x)\<rangle>
       \<lbrace>R (index + 1)\<rbrace>\<close>
     (is \<open>\<turnstile> \<lbrace>?R'\<rbrace> \<langle>?p | ?q\<rangle> \<lbrace>_\<rbrace>\<close>)
 proof -
