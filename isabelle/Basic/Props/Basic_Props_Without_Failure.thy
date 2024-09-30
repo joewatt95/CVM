@@ -14,12 +14,12 @@ definition step_pmf :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state p
     let k = state_k state;
     let chi = state_chi state;
 
-    remove_x_from_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
 
     let chi = (chi |>
-      if remove_x_from_chi
-      then Set.remove x
-      else insert x);
+      if insert_x_into_chi
+      then insert x
+      else Set.remove x);
 
     if card chi < threshold
     then return_pmf (state\<lparr>state_chi := chi\<rparr>)
