@@ -1,6 +1,9 @@
 session CVM = "HOL-Probability" +
   options [timeout = 300]
 
+  sessions
+    "Finite-Map-Extras"
+
   directories
     "Basic"
     "Basic/Props"

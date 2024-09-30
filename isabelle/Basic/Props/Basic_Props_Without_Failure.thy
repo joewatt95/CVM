@@ -29,7 +29,7 @@ definition step_pmf :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state p
 
       let chi = Set.filter keep_in_chi chi;
 
-      return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
+      return_pmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>)
  } }\<close>
 
 lemma rel_pmf_step_aux:

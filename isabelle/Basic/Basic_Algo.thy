@@ -2,6 +2,7 @@ theory Basic_Algo
 
 imports
   "HOL-Probability.Product_PMF"
+  "Finite-Map-Extras.Finite_Map_Extras"
   CVM.Utils_PMF
   CVM.Utils_SPMF_FoldM
 
@@ -10,6 +11,8 @@ begin
 record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
+
+  state_flipped_coins :: \<open>(nat \<times> nat, bool) fmap\<close>
 
 record 'a final_state = \<open>'a state\<close> +
   state_estimated_size :: nat
@@ -32,7 +35,10 @@ context
 begin
 
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
+  \<open>initial_state \<equiv> \<lparr>
+    state_k = 0,
+    state_chi = {},
+    state_flipped_coins = {$$}\<rparr>\<close>
 
 (* definition initial_trace :: \<open>'a trace\<close> where
   \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
@@ -58,7 +64,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
       let chi = Set.filter keep_in_chi chi;
 
       if \<not> fail_if_threshold_exceeded \<or> card chi < threshold
-      then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
+      then return_spmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr>
       else fail_spmf } }\<close>
 
 definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf\<close> where
