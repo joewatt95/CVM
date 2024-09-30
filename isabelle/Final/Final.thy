@@ -43,7 +43,7 @@ definition fix_k :: "nat \<Rightarrow> nat \<Rightarrow>
       let X = fmrestrict_set {x. k \<le> X x} X in
       (k,X)
   )"
-  
+ 
 fun eager_geom_step :: "nat \<Rightarrow> ('a \<times> nat) \<Rightarrow>
     nat \<times> ('a \<Rightarrow>\<^sub>F nat) \<Rightarrow>
     nat \<times> ('a \<Rightarrow>\<^sub>F nat)"
