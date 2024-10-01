@@ -67,21 +67,6 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
       then return_spmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr>
       else fail_spmf }}\<close>
 
-find_theorems "pmf (map_pmf _ _) _"
-find_theorems "measure_pmf.prob (Pi_pmf _ _ _)"
-
-lemma
-  assumes
-    \<open>chi \<subseteq> set xs\<close>
-  shows
-    \<open>map_pmf (flip Set.filter chi) (Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)
-      = map_pmf (\<lambda> f. {x \<in> chi. \<exists> n. f n \<and> xs ! n = x}) (Pi_pmf {0 ..< length xs} undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)\<close>
-
-  apply (intro pmf_eqI)
-  apply (simp add: pmf_map)
-
-  sorry
-
 definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf\<close> where
   \<open>run_steps \<equiv> flip (foldM_spmf step)\<close>
 

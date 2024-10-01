@@ -23,6 +23,8 @@ session CVM = "HOL-Probability" +
     "Basic/Props/Basic_Props_Without_Failure"
     "Basic/Props/Basic_Props"
 
+    "Basic/Props/Basic_Experiments"
+
     "Intermediate/Intermediate_Algo"
     "Intermediate/Intermediate_Props"
 
