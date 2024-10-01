@@ -29,6 +29,32 @@ lemma least_index_inj_on :
   \<open>is_some x \<equiv> \<not> Option.is_none x\<close> *)
 
 lemma
+  \<open>replicate_pmf n p = (
+    \<lblot>p\<rblot>
+      |> Pi_pmf {0 ..< n} dflt
+      |> map_pmf (flip map [0 ..< n]))\<close>
+proof (induction n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+
+  (* have * : \<open>{0 ..< Suc n} = insert n {0 ..< n}\<close> by fastforce *)
+
+  show ?case
+    apply (simp add: Suc)
+    apply (subst Pi_pmf_subset[
+      where ?A = \<open>{0 ..< Suc n}\<close>,
+      where ?A' = \<open>{0 ..< n}\<close>])
+    apply (simp_all add: map_pmf_comp map_pmf_def[symmetric])
+
+    apply (intro pmf_eqI)
+    apply (simp add: pmf_bind pmf_map vimage_def)
+
+    sorry
+qed
+
+lemma
   assumes
     \<open>chi \<subseteq> set xs\<close>
   defines
