@@ -74,7 +74,7 @@ proof -
         Pi_pmf_subset[where ?A' = ?least_indices_in_chi, where ?A = indices])
       apply simp
       using indices_def least_index_le_length apply fastforce
-      apply (simp add: map_pmf_comp) apply (intro map_pmf_cong) apply (simp add: indices_def)
+      apply (simp add: map_pmf_comp) apply (intro map_pmf_cong) apply simp
       by (smt (verit) Collect_cong assms(1) basic_algo.least_index_def option.simps(5) subset_eq) 
 
     also have
@@ -89,8 +89,7 @@ proof -
       apply (simp add: image_def least_index_def)
       apply (subst (asm) set_Pi_pmf)
       apply simp apply (smt (z3) Least_le bounded_nat_set_is_finite in_set_conv_nth mem_Collect_eq order_le_less_trans)
-      apply (intro set_eqI)
-      by (smt (verit) LeastI_ex in_set_conv_nth mem_Collect_eq)
+      apply (intro set_eqI) by (smt (verit) LeastI_ex in_set_conv_nth mem_Collect_eq)
 
     also have
       \<open>... = ?rhs\<close>
