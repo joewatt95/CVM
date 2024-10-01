@@ -59,7 +59,7 @@ proof -
   let ?rhs =
     \<open>Pow ?least_indices_in_chi
       |> pmf_of_set
-      |> map_pmf (\<lambda> indices. (!) xs ` indices)\<close>
+      |> map_pmf ?lookup_indices_in_xs\<close>
 
   have \<open>lhs = ?lhs\<close>
     using assms
@@ -79,8 +79,10 @@ proof -
 
     also have
       \<open>... = (
-        Pi_pmf ?least_indices_in_chi False \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-          |> map_pmf (\<lambda> keep_index. {index \<in> ?least_indices_in_chi. keep_index index})
+        \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
+          |> Pi_pmf ?least_indices_in_chi False 
+          |> map_pmf
+              (\<lambda> keep_index. {index \<in> ?least_indices_in_chi. keep_index index})
           |> map_pmf ?lookup_indices_in_xs)\<close>
       unfolding assms
       apply (simp add: map_pmf_comp) apply (intro map_pmf_cong) apply blast
