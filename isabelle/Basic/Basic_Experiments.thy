@@ -140,13 +140,12 @@ next
   have ** : \<open>\<And> offset f.
     1 \<le> n
     \<Longrightarrow> map f [offset ..< n + offset] = f offset # map f [Suc offset ..< n + offset]\<close>
-    apply (induction n) using not_less_eq_eq by auto
+    apply (induction n) using not_less_eq_eq by simp_all
 
   show ?case
     apply (subst *) apply (subst Pi_pmf_insert')
-    by (auto
-        intro: bind_pmf_cong
-        simp add:
+    by (simp_all
+        add:
           Suc[of \<open>Suc offset\<close>] **
           map_bind_pmf map_pmf_def[symmetric] map_pmf_comp set_Pi_pmf)
 qed
