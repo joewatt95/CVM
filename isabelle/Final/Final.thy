@@ -80,10 +80,9 @@ abbreviation eager_geom_aux where
 
 (* The eager estimation algorithm *)
 definition eager_geom :: "nat \<Rightarrow> 'a list \<Rightarrow>
-  (nat \<times> ('a \<times> nat) list) \<Rightarrow>
   (nat \<times> 'a set) pmf"
-  where "eager_geom thresh ls st = (
-    map_pmf ( (\<lambda>(k,X). (k, fst ` set X)) \<circ> eager_geom_aux thresh st) (geom_rand ls)
+  where "eager_geom thresh ls = (
+    map_pmf ( (\<lambda>(k,X). (k, fst ` set X)) \<circ> eager_geom_aux thresh (0,[])) (geom_rand ls)
   )"
 
 lemma remdups1_snoc:
@@ -147,7 +146,7 @@ lemma eager_geom_aux_eq':
 
 lemma rel_pmf_eager_geom_nondet_geom:
   "rel_pmf (\<lambda>(k,X) Y. k = K \<longrightarrow> X = Y)
-    (eager_geom thresh ls (0,[])) (nondet_geom K ls)"
+    (eager_geom thresh ls) (nondet_geom K ls)"
   unfolding eager_geom_def nondet_geom_def pmf.rel_map
   apply (intro rel_pmf_reflI)
   using eager_geom_aux_eq'
@@ -155,12 +154,12 @@ lemma rel_pmf_eager_geom_nondet_geom:
 
 lemma eager_geom_nondet_geom_measureD:
   shows "
-  measure_pmf.prob (eager_geom thresh ls (0,[]))
+  measure_pmf.prob (eager_geom thresh ls)
     {kX. fst kX = K \<and> P (snd kX)} \<le>
   measure_pmf.prob (nondet_geom K ls) {Y. P Y}"
 proof -
   have "
-    measure_pmf.prob (eager_geom thresh ls (0,[]))
+    measure_pmf.prob (eager_geom thresh ls)
       {kX. fst kX = K \<and> P (snd kX)} \<le>
     measure_pmf.prob (nondet_geom K ls)
       {y. \<exists>x\<in>{kX. fst kX = K \<and> P (snd kX)}.
