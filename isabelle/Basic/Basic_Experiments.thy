@@ -140,7 +140,7 @@ next
   have ** : \<open>\<And> offset f.
     1 \<le> n
     \<Longrightarrow> map f [offset ..< n + offset] = f offset # map f [Suc offset ..< n + offset]\<close>
-    apply (induction n) using not_less_eq_eq by simp_all
+    apply (induction n) by (simp_all add: not_less_eq_eq)
 
   show ?case
     apply (subst *) apply (subst Pi_pmf_insert')
