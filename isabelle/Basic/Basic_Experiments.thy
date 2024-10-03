@@ -29,32 +29,6 @@ lemma least_index_inj_on :
   \<open>is_some x \<equiv> \<not> Option.is_none x\<close> *)
 
 lemma
-  \<open>replicate_pmf n p = (
-    \<lblot>p\<rblot>
-      |> Pi_pmf {0 ..< n} dflt
-      |> map_pmf (flip map [0 ..< n]))\<close>
-proof (induction n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-
-  (* have * : \<open>{0 ..< Suc n} = insert n {0 ..< n}\<close> by fastforce *)
-
-  show ?case
-    apply (simp add: Suc)
-    apply (subst Pi_pmf_subset[
-      where ?A = \<open>{0 ..< Suc n}\<close>,
-      where ?A' = \<open>{0 ..< n}\<close>])
-    apply (simp_all add: map_pmf_comp map_pmf_def[symmetric])
-
-    apply (intro pmf_eqI)
-    apply (simp add: pmf_bind pmf_map vimage_def)
-
-    sorry
-qed
-
-lemma
   assumes
     \<open>chi \<subseteq> set xs\<close>
   defines
@@ -146,6 +120,35 @@ proof -
   qed
 
   ultimately show ?thesis by metis
+qed
+
+lemma
+  \<open>replicate_pmf n p = (
+    \<lblot>p\<rblot>
+      |> Pi_pmf {offset ..< n + offset} dflt
+      |> map_pmf (flip map [offset ..< n + offset]))\<close>
+proof (induction n arbitrary: offset)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+
+  have * : \<open>\<And> offset n.
+    {offset ..< Suc n + offset} = insert offset {Suc offset ..< Suc n + offset}\<close>
+    by fastforce
+
+  have ** : \<open>\<And> offset f.
+    1 \<le> n
+    \<Longrightarrow> map f [offset ..< n + offset] = f offset # map f [Suc offset ..< n + offset]\<close>
+    apply (induction n) using not_less_eq_eq by auto
+
+  show ?case
+    apply (subst *) apply (subst Pi_pmf_insert')
+    by (auto
+        intro: bind_pmf_cong
+        simp add:
+          Suc[of \<open>Suc offset\<close>] **
+          map_bind_pmf map_pmf_def[symmetric] map_pmf_comp set_Pi_pmf)
 qed
 
 end
