@@ -37,9 +37,9 @@ lemma
         |> Pi_pmf chi False
         |> map_pmf (flip Set.filter chi))\<close> and
 
-    \<open>rhs S \<equiv> (
+    \<open>rhs indices \<equiv> (
       \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-        |> Pi_pmf S False
+        |> Pi_pmf indices False
         |> map_pmf
             (\<lambda> keep_index.
               {x \<in> chi. x
