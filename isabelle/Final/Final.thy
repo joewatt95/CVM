@@ -2,6 +2,7 @@ theory Final
 
 imports
   "Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF"
+  "Monad_Normalisation.Monad_Normalisation"
 begin
 
 (* The geometric PMF in Isabelle starts from 0,
@@ -170,5 +171,107 @@ proof -
     by auto
   finally show ?thesis .
 qed
+
+(* copied from rel_spmf_bindI1 *)
+lemma rel_pmf_bindI1:
+  assumes f: "\<And>x. x \<in> set_pmf p \<Longrightarrow> rel_pmf R (f x) q"
+  shows "rel_pmf R (bind_pmf p f) q"
+proof -
+  fix x :: 'a
+  have "rel_pmf R (bind_pmf p f) (bind_pmf (return_pmf x) (\<lambda>_. q))"
+    by(rule rel_pmf_bindI[where R="\<lambda>x _. x \<in> set_pmf p"])(simp_all add: rel_pmf_return_pmf2 f)
+  then show ?thesis by simp
+qed
+
+(* copied from rel_spmf_bindI2 *)
+lemma rel_pmf_bindI2:
+  "\<lbrakk> \<And>x. x \<in> set_pmf q \<Longrightarrow> rel_pmf R p (f x) \<rbrakk>
+  \<Longrightarrow> rel_pmf R p (bind_pmf q f)"
+  using rel_pmf_bindI1[of q "conversep R" f p]
+  by(simp add: pmf.rel_conversep)
+
+lemma map_pmf_cons_eq:
+  shows "map_pmf (\<lambda>ls. c # f ls) p =
+    map_pmf (\<lambda>ls. c # ls) (map_pmf f p)"
+  by (simp add: map_pmf_comp)
+    
+lemma remdups1_replicate_pmf:
+  shows"
+  map_pmf (zip (remdups ls)) (replicate_pmf (length (remdups ls)) p) =
+  map_pmf (remdups1 \<circ> zip ls) (replicate_pmf (length ls) p)"
+  including monad_normalisation
+  apply (induction ls)
+  subgoal
+    by auto
+  apply (auto simp add:map_pmf_def)
+  subgoal for x ls
+    apply (subst pmf.rel_eq[symmetric])
+    apply (intro rel_pmf_bindI2[of p])
+    apply (clarsimp simp add: pmf.rel_eq map_pmf_def[symmetric])
+    apply (intro pmf.map_cong0)
+    apply auto
+    by (metis (mono_tags, lifting) list.set_map map_fst_zip mem_Collect_eq set_replicate_pmf)
+  subgoal for x ls
+    apply (subst pmf.rel_eq[symmetric])
+    apply (intro rel_pmf_bindI[of "(=)" p])
+     apply (simp add: pmf.rel_eq)
+    apply (clarsimp simp add: pmf.rel_eq map_pmf_def[symmetric])
+    apply (subst  map_pmf_cons_eq)
+    apply (simp add: map_pmf_comp)
+    apply (intro pmf.map_cong0)
+    using set_zip_leftD by fastforce
+  done
+
+lemma Pi_pmf_map_of_replicate_pmf:
+  assumes "distinct ls"
+  shows "
+    Pi_pmf (set ls) None (\<lambda>_. map_pmf Some p) =
+    map_pmf (map_of \<circ> zip ls) (replicate_pmf (length ls) p)"
+  including monad_normalisation
+  using assms
+  apply (induction ls)
+   apply auto
+  apply (subst Pi_pmf_insert')
+  by (auto simp add: map_pmf_def)
+
+(* TODO: extend this calculation more to reach
+  a desirable final PMF to analyze *)
+lemma nondet_geom_eq:
+  "nondet_geom k ls =
+   map_pmf
+     (\<lambda>m. {x. case m x of None \<Rightarrow> False | Some x \<Rightarrow> k \<le> x})
+     (Pi_pmf (set ls) None (\<lambda>_. map_pmf Some (geometric_pmf (1 / 2))))"
+proof -
+  have "nondet_geom k ls =
+  map_pmf
+  (\<lambda>ls. {x. case map_of ls x of None \<Rightarrow> False
+                | Some x \<Rightarrow> k \<le> x})
+  (map_pmf (remdups1 \<circ> zip ls)
+       (replicate_pmf (length ls) (geometric_pmf (1 / 2))))"
+  unfolding nondet_geom_def nondet_geom_aux_def
+    geom_rand_def remdups1_rev_map_of pmf.map_comp
+  by (auto simp add: o_def)
+  also have "... =
+    map_pmf
+     (\<lambda>m. {x. case m x of None \<Rightarrow> False | Some x \<Rightarrow> k \<le> x})
+     (map_pmf (map_of \<circ> zip (remdups ls))
+       (replicate_pmf (length (remdups ls))
+         (geometric_pmf (1 / 2))))"
+    unfolding remdups1_replicate_pmf[symmetric] 
+    by (auto simp add: map_pmf_comp)
+  also have "... =
+     map_pmf
+     (\<lambda>m. {x. case m x of None \<Rightarrow> False | Some x \<Rightarrow> k \<le> x})
+     (Pi_pmf (set ls) None (\<lambda>_. map_pmf Some (geometric_pmf (1 / 2))))"
+    apply (subst Pi_pmf_map_of_replicate_pmf[symmetric])
+    by auto
+  finally show ?thesis  .
+qed
+
+lemma nondet_geom_eq_Pi_pmf:
+  "nondet_geom k ls =
+    map_pmf Collect (Pi_pmf (set ls) False (\<lambda>_. bernoulli_pmf (1/2^k)))"
+  apply (induction ls)
+  apply (auto simp add: nondet_geom_def geom_rand_def  nondet_geom_aux_eq_filter_remdups1)
 
 end
