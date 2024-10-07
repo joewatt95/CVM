@@ -18,23 +18,10 @@ definition initial_state :: \<open>'a state_with_history\<close> where
 locale with_history = basic_algo
 begin
 
-(* definition record_coin_flip where
-  \<open>record_coin_flip k index b state \<equiv> (
-    if \<not> track_coin_flip_history opts
-    then state
-    else
-      let
-        update_history = \<lambda> coin_flip_history.
-          coin_flip_history
-            \<lparr>history := (history coin_flip_history)((k, index) := Some b)\<rparr>
-      in state
-        \<lparr>state_coin_flip_history :=
-          state |> state_coin_flip_history |> map_option update_history\<rparr>)\<close> *)
-
 definition flip_coins_and_record where
-  \<open>flip_coins_and_record start_index num_bits p state \<equiv> do {
+  \<open>flip_coins_and_record start_index num_flips p state \<equiv> do {
     new_coin_flips :: nat \<Rightarrow> bool \<leftarrow>
-      Pi_pmf {0 ..< num_bits} False \<lblot>bernoulli_pmf p\<rblot>;
+      Pi_pmf {0 ..< num_flips} False \<lblot>bernoulli_pmf p\<rblot>;
 
     let seen_coin_flips = state_seen_coin_flips state;
     let k = state_k state;
@@ -80,7 +67,7 @@ definition step_with_history ::
         flip_coins_and_record 1 (length seen_elems) (1 / 2) state; 
 
       let chi = {x \<in> chi. \<exists> index.
-        greatest_index seen_elems x = Some index
+        least_index seen_elems x = Some index
           \<and> coin_flips index};
 
       return_pmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>) }}\<close>

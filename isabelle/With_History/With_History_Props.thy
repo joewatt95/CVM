@@ -79,8 +79,7 @@ proof -
         Pi_pmf_subset[
           where ?A' = ?least_indices_in_chi,
           where ?A = ?indices_in_xs])
-      apply simp
-      using least_index_le_length apply fastforce
+      apply simp using least_index_le_length apply fastforce
       by (auto
           intro: map_pmf_cong
           simp add: least_index_def map_pmf_comp)
@@ -94,12 +93,11 @@ proof -
           |> map_pmf ?lookup_indices_in_xs)\<close>
       unfolding assms
       apply (simp add: map_pmf_comp) apply (intro map_pmf_cong) apply blast
-      apply (simp add: image_def)
       apply (subst (asm) set_Pi_pmf)
       apply simp apply (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
       apply (intro set_eqI)
-      apply (simp add: least_index_def)
-       by (smt (verit, ccfv_SIG) LeastI_ex in_set_conv_nth) 
+      apply (simp add: image_def least_index_def)
+      by (smt (verit, ccfv_SIG) LeastI_ex in_set_conv_nth) 
 
     also have
       \<open>... = ?rhs\<close>
