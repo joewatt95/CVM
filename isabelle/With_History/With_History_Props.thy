@@ -20,11 +20,10 @@ lemma
 
   shows \<open>lhs = rhs\<close>
 
-  by (simp
-      add:
-        assms flip_coins_and_record_def
-        map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
-        Pi_pmf_singleton Let_def)
+  by (simp add:
+      assms flip_coins_and_record_def
+      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
+      Pi_pmf_singleton Let_def)
 
 lemma
   fixes xs chi state start_index
@@ -71,18 +70,14 @@ proof -
         \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
           |> Pi_pmf ?least_indices_in_chi False
           |> map_pmf ?filter_chi)\<close>
-      apply (simp
-        add:
+        apply (simp add:
           assms flip_coins_and_record_def Let_def
           map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
-      apply (subst
-        Pi_pmf_subset[
-          where ?A' = ?least_indices_in_chi,
-          where ?A = ?indices_in_xs])
-      apply simp using least_index_le_length apply fastforce
-      by (auto
-          intro: map_pmf_cong
-          simp add: least_index_def map_pmf_comp)
+        apply (subst Pi_pmf_subset[of ?indices_in_xs ?least_indices_in_chi])
+        apply blast apply (fastforce intro: least_index_le_length)
+        by (auto
+            intro: map_pmf_cong
+            simp add: least_index_def map_pmf_comp)
 
     also have
       \<open>... = (
@@ -91,20 +86,16 @@ proof -
           |> map_pmf
               (\<lambda> coin_flips. {index \<in> ?least_indices_in_chi. coin_flips index})
           |> map_pmf ?lookup_indices_in_xs)\<close>
-      unfolding assms
-      apply (simp add: map_pmf_comp) apply (intro map_pmf_cong) apply blast
-      apply (subst (asm) set_Pi_pmf)
-      apply simp apply (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
+      apply (simp add: map_pmf_comp image_def) apply (intro map_pmf_cong) apply blast
       apply (intro set_eqI)
-      apply (simp add: image_def least_index_def)
-      by (smt (verit, ccfv_SIG) LeastI_ex in_set_conv_nth) 
+      by (smt (verit, ccfv_SIG) LeastI assms(1) in_set_conv_nth least_index_def mem_Collect_eq option.simps(5) subset_eq) 
 
-    also have
-      \<open>... = ?rhs\<close>
-      apply (intro map_pmf_cong)
-      apply (subst pmf_of_set_Pow_conv_bernoulli)
-      apply (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
-      by auto
+    also have \<open>... = ?rhs\<close>
+    proof -
+      have \<open>finite ?least_indices_in_chi\<close>
+        by (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
+      then show ?thesis using pmf_of_set_Pow_conv_bernoulli by fastforce
+    qed
 
     finally show ?thesis by blast
   qed
