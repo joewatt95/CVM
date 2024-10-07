@@ -1,7 +1,7 @@
-theory Basic_Experiments
+theory With_History_Experiments
 
 imports
-  "CVM.Basic_Algo"
+  CVM.Basic_Algo
 
 begin
 

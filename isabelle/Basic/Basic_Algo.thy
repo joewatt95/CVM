@@ -2,7 +2,6 @@ theory Basic_Algo
 
 imports
   "HOL-Probability.Product_PMF"
-  "Finite-Map-Extras.Finite_Map_Extras"
   CVM.Utils_PMF
   CVM.Utils_SPMF_FoldM
 
@@ -11,8 +10,6 @@ begin
 record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
-
-  state_flipped_coins :: \<open>(nat \<times> nat, bool) fmap\<close>
 
 record 'a final_state = \<open>'a state\<close> +
   state_estimated_size :: nat
@@ -30,18 +27,21 @@ abbreviation (input) bool_of_fail :: \<open>Fail_if_threshold_exceeded \<Rightar
 
 declare [[coercion bool_of_fail]]
 
-context
-  fixes fail_if_threshold_exceeded :: Fail_if_threshold_exceeded
-begin
-
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>
     state_k = 0,
-    state_chi = {},
-    state_flipped_coins = {$$}\<rparr>\<close>
+    state_chi = {}\<rparr>\<close>
 
 (* definition initial_trace :: \<open>'a trace\<close> where
   \<open>initial_trace \<equiv> [Some initial_state]\<close> *)
+
+    (* insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
+
+    let state = (state |> record_coin_flip k 0 insert_x_into_chi); *)
+
+context
+  fixes fail_if_threshold_exceeded :: Fail_if_threshold_exceeded
+begin
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step x state \<equiv> do {
