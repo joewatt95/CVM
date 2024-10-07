@@ -16,7 +16,7 @@ lemma
     \<open>rhs \<equiv> (
       state
         |> flip_coins_and_record start_index 1 p
-        |> map_pmf (\<lambda> (coin_flips, _). f (coin_flips 0)))\<close>
+        |> map_pmf (fst >>> (\<lambda> coin_flips. f (coin_flips 0))))\<close>
 
   shows \<open>lhs = rhs\<close>
 
