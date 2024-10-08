@@ -107,29 +107,18 @@ proof -
 
   moreover have \<open>?lhs = ?rhs\<close>
   proof -
-    show ?thesis when
-      \<open>bij_betw ?lookup_indices_in_xs (Pow ?least_indices_in_chi) <| Pow chi\<close>
-      (is ?thesis)
-      using assms that bij_betw_finite finite_subset
-      apply (intro map_pmf_of_set_bij_betw[symmetric])
-      apply blast apply blast by blast
+    have
+      \<open>bij_betw ?lookup_indices_in_xs (Pow ?least_indices_in_chi) (Pow chi)\<close>
+      apply (intro bij_betw_byWitness[where ?f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
+      apply (simp_all add: image_def least_index_def in_these_eq subset_eq set_eq_iff Int_def Un_def)
+      apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
+      apply (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)
+      apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
+      by fastforce
 
-    let ?least_indices_of_elems =
-      \<open>Option.these <<< (`) (least_index xs)\<close>
-
-    have \<open>finite ?least_indices_in_chi\<close>
-      by (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
-
-    show ?thesis
-      apply (simp add: bij_betw_iff_bijections)
-      apply (intro exI[where ?x = ?least_indices_of_elems])
-      apply (auto simp add: image_def least_index_def in_these_eq)
-      apply (smt (verit, ccfv_SIG) LeastI_ex in_set_conv_nth mem_Collect_eq subset_eq)
-      apply (smt (verit, best) LeastI dual_order.antisym in_mono in_set_conv_nth linorder_not_le mem_Collect_eq not_less_Least) 
-      apply (smt (verit, del_insts) IntI LeastI in_set_conv_nth mem_Collect_eq subsetD) 
-      apply blast
-      apply (smt (verit, best) LeastI mem_Collect_eq set_conv_nth)
-      by (smt (verit, ccfv_SIG) Collect_empty_eq Int_Un_eq(2) LeastI_ex assms(1) in_these_eq inf_bot_left le_iff_inf mem_Collect_eq order_trans set_conv_nth subsetD sup_commute)
+    then show ?thesis
+      using \<open>chi \<subseteq> set xs\<close> bij_betw_finite finite_subset map_pmf_of_set_bij_betw
+      by fastforce
   qed
 
   ultimately show ?thesis by metis
