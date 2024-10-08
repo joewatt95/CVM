@@ -52,76 +52,46 @@ lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
 proof -
   let ?least_indices_in_chi =
     \<open>{index. \<exists> x \<in> chi. least_index xs x = Some index}\<close>
-
   let ?lookup_indices_in_xs = \<open>(`) <| (!) xs\<close>
 
-  let ?lhs = \<open>Pow chi |> pmf_of_set\<close>
-  let ?rhs =
-    \<open>Pow ?least_indices_in_chi
-      |> pmf_of_set
-      |> map_pmf ?lookup_indices_in_xs\<close>
+  have
+    \<open>bij_betw ?lookup_indices_in_xs
+      (Pow ?least_indices_in_chi) (Pow chi)\<close>
+    apply (intro bij_betw_byWitness[where ?f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
+    apply (simp_all add: image_def least_index_def in_these_eq subset_eq set_eq_iff Int_def Un_def)
+    apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
+    apply (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)
+    apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
+    by fastforce
 
-  let ?indices_in_xs = \<open>{0 ..< length xs}\<close>
+  then have
+    \<open>lhs = (
+      Pow ?least_indices_in_chi
+        |> pmf_of_set
+        |> map_pmf ?lookup_indices_in_xs)\<close>
+    using assms bij_betw_finite finite_subset map_pmf_of_set_bij_betw
+    by (fastforce simp add: Set.filter_def pmf_of_set_Pow_conv_bernoulli)
 
-  have \<open>lhs = ?lhs\<close>
-    using assms
-    by (simp add: Set.filter_def finite_subset pmf_of_set_Pow_conv_bernoulli)
+  also have
+    \<open>... = (
+      \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
+        |> Pi_pmf ?least_indices_in_chi False
+        |> map_pmf ?filter_chi_with)\<close>
+    apply (subst pmf_of_set_Pow_conv_bernoulli[symmetric])
+    apply (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
+    apply (simp add: map_pmf_comp image_def least_index_def)
+    apply (intro map_pmf_cong) apply blast apply (intro set_eqI)
+    by (smt (verit, best) \<open>chi \<subseteq> set xs\<close> LeastI_ex in_mono mem_Collect_eq set_conv_nth)
 
-  moreover have \<open>rhs = ?rhs\<close>
-  proof -
-    have
-      \<open>rhs = (
-        \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-          |> Pi_pmf ?least_indices_in_chi False
-          |> map_pmf ?filter_chi_with)\<close>
-        apply (simp add:
-          assms flip_coins_and_record_def Let_def
-          map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
-        apply (subst Pi_pmf_subset[of ?indices_in_xs ?least_indices_in_chi])
-        using \<open>chi \<subseteq> set xs\<close> by (auto
-          intro!: least_index_le_length
-          intro: map_pmf_cong
-          simp add: least_index_def map_pmf_comp)
-
-    also have
-      \<open>... = (
-        \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-          |> Pi_pmf ?least_indices_in_chi False 
-          |> map_pmf
-              (\<lambda> coin_flips. {index \<in> ?least_indices_in_chi. coin_flips index})
-          |> map_pmf ?lookup_indices_in_xs)\<close>
-      apply (simp add: map_pmf_comp image_def least_index_def)
-      apply (intro map_pmf_cong) apply blast
-      apply (intro set_eqI)
-      by (smt (verit, best) \<open>chi \<subseteq> set xs\<close> LeastI_ex in_mono mem_Collect_eq set_conv_nth)
-
-    also have \<open>... = ?rhs\<close>
-    proof -
-      have \<open>finite ?least_indices_in_chi\<close>
-        by (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
-      then show ?thesis using pmf_of_set_Pow_conv_bernoulli by fastforce
-    qed
-
-    finally show ?thesis by blast
-  qed
-
-  moreover have \<open>?lhs = ?rhs\<close>
-  proof -
-    have
-      \<open>bij_betw ?lookup_indices_in_xs (Pow ?least_indices_in_chi) (Pow chi)\<close>
-      apply (intro bij_betw_byWitness[where ?f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
-      apply (simp_all add: image_def least_index_def in_these_eq subset_eq set_eq_iff Int_def Un_def)
-      apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
-      apply (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)
-      apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
-      by fastforce
-
-    then show ?thesis
-      using \<open>chi \<subseteq> set xs\<close> bij_betw_finite finite_subset map_pmf_of_set_bij_betw
-      by fastforce
-  qed
-
-  ultimately show ?thesis by metis
+  finally show ?thesis
+    apply (simp add:
+      assms flip_coins_and_record_def Let_def
+      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
+    apply (subst Pi_pmf_subset[of \<open>{0 ..< length xs}\<close> ?least_indices_in_chi])
+    using \<open>chi \<subseteq> set xs\<close> by (auto
+      intro!: least_index_le_length
+      intro: map_pmf_cong
+      simp add: least_index_def map_pmf_comp)
 qed
 
 end
