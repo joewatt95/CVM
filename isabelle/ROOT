@@ -2,7 +2,7 @@ session CVM = "HOL-Probability" +
   options [timeout = 300]
 
   sessions
-    "Finite-Map-Extras"
+    "HOL-Matrix_LP"
 
   directories
     "Basic"
@@ -39,6 +39,7 @@ session CVM = "HOL-Probability" +
     "Utils/Utils_Approx_Algo"
     "Utils/Utils_Function"
     "Utils/Utils_List"
+    "Utils/Utils_Option"
     "Utils/Utils_PMF"
     "Utils/Utils_Real"
     "Utils/SPMF/Utils_SPMF_Common"

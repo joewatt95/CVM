@@ -5,27 +5,33 @@ imports
 
 begin
 
+sledgehammer_params [
+  (* verbose *)
+  minimize = true,
+  preplay_timeout = 15,
+  timeout = 60,
+  max_facts = smart,
+  provers = "
+    cvc4 z3 verit
+    e vampire spass
+  "
+]
+
 context with_history
 begin
 
-lemma
-  fixes p f state start_index
-  defines
-    \<open>lhs \<equiv> (bernoulli_pmf p |> map_pmf f)\<close> and
-
-    \<open>rhs \<equiv> (
-      state
-        |> flip_coins_and_record start_index 1 p
-        |> map_pmf (fst >>> (\<lambda> coin_flips. f (coin_flips 0))))\<close>
-
-  shows \<open>lhs = rhs\<close>
+lemma bernoulli_pmf_eq_flip_and_record :
+  \<open>bernoulli_pmf p = (
+    state
+      |> flip_coins_and_record 1 p
+      |> map_pmf (\<lambda> (coin_flips, _). coin_flips 0))\<close>
 
   by (simp add:
-      assms flip_coins_and_record_def
-      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
-      Pi_pmf_singleton Let_def)
+    flip_coins_and_record_def
+    map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
+    Pi_pmf_singleton Let_def)
 
-lemma
+lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
   fixes xs chi state start_index
   assumes \<open>chi \<subseteq> set xs\<close>
   defines
@@ -35,14 +41,12 @@ lemma
         |> map_pmf (flip Set.filter chi))\<close> and
 
     \<open>rhs \<equiv> (
-      state
-        |> flip_coins_and_record start_index (length xs) (1 / 2)
-        |> map_pmf
-            (fst >>> (\<lambda> coin_flips.
-              {x \<in> chi. x
-                |> least_index xs
-                |> Option.case_option False coin_flips})))\<close>
-    (is \<open>_ \<equiv> (state |> _ |> map_pmf (fst >>> ?filter_chi))\<close>)
+      let filter_chi_with = \<lambda> coin_flips. (
+        {x \<in> chi. coin_flips (the <| least_index xs x)})
+      in (state
+        |> flip_coins_and_record (length xs) (1 / 2)
+        |> map_pmf (\<lambda> (coin_flips, _). filter_chi_with coin_flips)))\<close>
+    (is \<open>_ \<equiv> let _ = ?filter_chi_with in _\<close>)
 
   shows \<open>lhs = rhs\<close>
 proof -
@@ -69,15 +73,15 @@ proof -
       \<open>rhs = (
         \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
           |> Pi_pmf ?least_indices_in_chi False
-          |> map_pmf ?filter_chi)\<close>
+          |> map_pmf ?filter_chi_with)\<close>
         apply (simp add:
           assms flip_coins_and_record_def Let_def
           map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
         apply (subst Pi_pmf_subset[of ?indices_in_xs ?least_indices_in_chi])
-        apply blast apply (fastforce intro: least_index_le_length)
-        by (auto
-            intro: map_pmf_cong
-            simp add: least_index_def map_pmf_comp)
+        using \<open>chi \<subseteq> set xs\<close> by (auto
+          intro!: least_index_le_length
+          intro: map_pmf_cong
+          simp add: least_index_def map_pmf_comp)
 
     also have
       \<open>... = (
@@ -86,9 +90,10 @@ proof -
           |> map_pmf
               (\<lambda> coin_flips. {index \<in> ?least_indices_in_chi. coin_flips index})
           |> map_pmf ?lookup_indices_in_xs)\<close>
-      apply (simp add: map_pmf_comp image_def) apply (intro map_pmf_cong) apply blast
+      apply (simp add: map_pmf_comp image_def least_index_def)
+      apply (intro map_pmf_cong) apply blast
       apply (intro set_eqI)
-      by (smt (verit, ccfv_SIG) LeastI assms(1) in_set_conv_nth least_index_def mem_Collect_eq option.simps(5) subset_eq) 
+      by (smt (verit, best) \<open>chi \<subseteq> set xs\<close> LeastI_ex in_mono mem_Collect_eq set_conv_nth)
 
     also have \<open>... = ?rhs\<close>
     proof -
@@ -112,10 +117,19 @@ proof -
     let ?least_indices_of_elems =
       \<open>Option.these <<< (`) (least_index xs)\<close>
 
+    have \<open>finite ?least_indices_in_chi\<close>
+      by (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
+
     show ?thesis
       apply (simp add: bij_betw_iff_bijections)
       apply (intro exI[where ?x = ?least_indices_of_elems])
-      sorry
+      apply (auto simp add: image_def least_index_def in_these_eq)
+      apply (smt (verit, ccfv_SIG) LeastI_ex in_set_conv_nth mem_Collect_eq subset_eq)
+      apply (smt (verit, best) LeastI dual_order.antisym in_mono in_set_conv_nth linorder_not_le mem_Collect_eq not_less_Least) 
+      apply (smt (verit, del_insts) IntI LeastI in_set_conv_nth mem_Collect_eq subsetD) 
+      apply blast
+      apply (smt (verit, best) LeastI mem_Collect_eq set_conv_nth)
+      by (smt (verit, ccfv_SIG) Collect_empty_eq Int_Un_eq(2) LeastI_ex assms(1) in_these_eq inf_bot_left le_iff_inf mem_Collect_eq order_trans set_conv_nth subsetD sup_commute)
   qed
 
   ultimately show ?thesis by metis
