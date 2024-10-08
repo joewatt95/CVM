@@ -58,11 +58,8 @@ proof -
     \<open>bij_betw ?lookup_indices_in_xs
       (Pow ?least_indices_in_chi) (Pow chi)\<close>
     apply (intro bij_betw_byWitness[where ?f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
-    apply (simp_all add: image_def least_index_def in_these_eq subset_eq set_eq_iff Int_def Un_def)
-    apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
-    apply (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)
-    apply (smt (verit, best) LeastI_ex PowD in_set_conv_nth mem_Collect_eq subsetD) 
-    by fastforce
+    apply (simp_all add: image_def least_index_def subset_eq set_eq_iff Int_def Un_def)
+    by (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)+
 
   then have
     \<open>lhs = (
@@ -81,7 +78,7 @@ proof -
     apply (smt (z3) bounded_nat_set_is_finite least_index_le_length mem_Collect_eq) 
     apply (simp add: map_pmf_comp image_def least_index_def)
     apply (intro map_pmf_cong) apply blast apply (intro set_eqI)
-    by (smt (verit, best) \<open>chi \<subseteq> set xs\<close> LeastI_ex in_mono mem_Collect_eq set_conv_nth)
+    by (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)
 
   finally show ?thesis
     apply (simp add:
@@ -89,8 +86,7 @@ proof -
       map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
     apply (subst Pi_pmf_subset[of \<open>{0 ..< length xs}\<close> ?least_indices_in_chi])
     using \<open>chi \<subseteq> set xs\<close> by (auto
-      intro!: least_index_le_length
-      intro: map_pmf_cong
+      intro!: least_index_le_length intro: map_pmf_cong
       simp add: least_index_def map_pmf_comp)
 qed
 
