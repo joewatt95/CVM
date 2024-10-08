@@ -32,7 +32,7 @@ lemma bernoulli_pmf_eq_flip_and_record :
     Pi_pmf_singleton Let_def)
 
 lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
-  fixes xs chi state start_index
+  fixes xs chi state
   assumes \<open>chi \<subseteq> set xs\<close>
   defines
     \<open>lhs \<equiv> (
