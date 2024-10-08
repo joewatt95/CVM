@@ -37,7 +37,7 @@ lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
   defines
     \<open>lhs \<equiv> (
       \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-        |> Pi_pmf chi False
+        |> Pi_pmf chi undefined
         |> map_pmf (flip Set.filter chi))\<close> and
 
     \<open>rhs \<equiv> (
@@ -88,6 +88,27 @@ proof -
     using \<open>chi \<subseteq> set xs\<close> by (auto
       intro!: least_index_le_length intro: map_pmf_cong
       simp add: least_index_def map_pmf_comp)
+qed
+
+lemma
+  \<open>step No_fail x state = undefined\<close>
+proof-
+  have 0 : \<open>\<And> P e e'.
+    (if Fail \<noteq> No_fail \<or> P then e else e') = e\<close>
+    by simp
+
+  show ?thesis
+    apply (simp add: step_def Let_def)
+    apply (subst 0)
+    apply (simp only: Let_def map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
+    apply (subst map_pmf_comp[
+      symmetric,
+      of \<open>\<lambda> chi. Some (state\<lparr>state_k := state_k state + 1, state_chi := chi\<rparr>)\<close>])
+
+    apply (subst bernoulli_pmf_eq_flip_and_record)
+    apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter)
+
+    sorry
 qed
 
 end
