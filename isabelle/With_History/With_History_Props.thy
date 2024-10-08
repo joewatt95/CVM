@@ -41,12 +41,12 @@ lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
         |> map_pmf (flip Set.filter chi))\<close> and
 
     \<open>rhs \<equiv> (
-      let filter_chi_with = \<lambda> coin_flips. (
-        {x \<in> chi. coin_flips (the <| least_index xs x)})
-      in (state
+      state
         |> flip_coins_and_record (length xs) (1 / 2)
-        |> map_pmf (\<lambda> (coin_flips, _). filter_chi_with coin_flips)))\<close>
-    (is \<open>_ \<equiv> let _ = ?filter_chi_with in _\<close>)
+        |> map_pmf (
+            \<lambda> (coin_flips, _).
+              {x \<in> chi. coin_flips <| the <| least_index xs x}))\<close>
+    (is \<open>_ \<equiv> (_ |> _ |> map_pmf (\<lambda> (x, _). ?filter_chi_with x))\<close>)
 
   shows \<open>lhs = rhs\<close>
 proof -
