@@ -107,24 +107,18 @@ lemma step_without_failure_eq_map_truncate_step_with_history :
     \<open>step No_fail x (state.truncate state)
       = map_spmf state.truncate (step_with_history x state_with_history)\<close>
 proof -
-  let ?xs = \<open>x # state_seen_elems state_with_history\<close>
-
   have * : \<open>\<And> P e e'.
     (if Fail \<noteq> No_fail \<or> P then e else e') = e\<close>
     by simp
 
   show ?thesis
-    unfolding
-      * step_def Let_def state.defs(4) state.simps map_pmf_def[symmetric]
+    unfolding * step_def Let_def state.defs(4) state.simps map_pmf_def[symmetric]
     apply (subst map_pmf_comp[
       symmetric,
       of \<open>\<lambda> chi. Some \<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>\<close>])
     apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
-      where xs = ?xs, where state = state_with_history])
-    unfolding
-      bernoulli_pmf_eq_flip_and_record[
-        where state = \<open>state_with_history\<lparr>state_seen_elems := ?xs\<rparr>\<close>]
-
+      of _ \<open>x # state_seen_elems state_with_history\<close> state_with_history])
+    unfolding bernoulli_pmf_eq_flip_and_record[of _ state_with_history]
     using assms by (auto
       intro!: bind_pmf_cong map_pmf_cong
       simp add:
