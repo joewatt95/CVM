@@ -57,7 +57,7 @@ proof -
   have
     \<open>bij_betw ?lookup_indices_in_xs
       (Pow ?least_indices_in_chi) (Pow chi)\<close>
-    apply (intro bij_betw_byWitness[where f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
+    apply (intro bij_betw_byWitness[of _ \<open>Option.these <<< (`) (least_index xs)\<close>])
     apply (simp_all add: image_def least_index_def subset_eq set_eq_iff Int_def Un_def)
     by (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)+
 
