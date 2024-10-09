@@ -91,35 +91,40 @@ proof -
 qed
 
 lemma
+  fixes x state_with_history
   assumes
     \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
+  defines
+    \<open>run_and_truncate_to_state f \<equiv>
+      (f x state_with_history |> map_spmf state.truncate)\<close>
   shows
-    \<open>map_spmf state.truncate (step No_fail x state_with_history)
-      = map_spmf state.truncate (step_with_history x state_with_history)\<close>
+    \<open>run_and_truncate_to_state (step No_fail)
+      = run_and_truncate_to_state step_with_history\<close>
 proof -
+  let ?xs = \<open>x # state_seen_elems state_with_history\<close>
+
   have * : \<open>\<And> P e e'.
     (if Fail \<noteq> No_fail \<or> P then e else e') = e\<close>
     by simp
 
-  then show ?thesis
+  show ?thesis
     unfolding
-      step_def step_with_history_def
+      assms step_def step_with_history_def
       Let_def *
-      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
+      map_bind_pmf map_pmf_def[symmetric]
 
     apply (subst map_pmf_comp[
       symmetric,
       of \<open>\<lambda> chi. Some (state_with_history\<lparr>state_k := state_k state_with_history + 1, state_chi := chi\<rparr>)\<close>])
 
     apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
-      where ?state = state_with_history,
-      where ?xs = \<open>x # state_seen_elems state_with_history\<close>])
+      where ?state = state_with_history, where ?xs = ?xs])
 
     subgoal using assms by auto
 
     apply (simp add:
       bernoulli_pmf_eq_flip_and_record[
-        where ?state = \<open>state_with_history\<lparr>state_seen_elems := x # state_seen_elems state_with_history\<rparr>\<close>]
+        where ?state = \<open>state_with_history\<lparr>state_seen_elems := ?xs\<rparr>\<close>]
       bind_map_pmf)
     apply (intro bind_pmf_cong)
     using assms by (auto
