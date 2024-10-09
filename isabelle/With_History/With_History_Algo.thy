@@ -58,7 +58,7 @@ definition lookup_coin_flip where
       |> ((|>) (k, index)))\<close>
 
 definition step_with_history ::
-  \<open>'a \<Rightarrow> 'a state_with_history \<Rightarrow> 'a state_with_history pmf\<close> where
+  \<open>'a \<Rightarrow> ('a, 'b) state_with_history_scheme \<Rightarrow> ('a, 'b) state_with_history_scheme spmf\<close> where
   \<open>step_with_history x state \<equiv> do {
     let seen_elems = x # state_seen_elems state;
     let state = state\<lparr>state_seen_elems := seen_elems\<rparr>;
@@ -74,7 +74,7 @@ definition step_with_history ::
       else Set.remove x);
 
     if card chi < threshold
-    then return_pmf (state\<lparr>state_chi := chi\<rparr>)
+    then return_spmf (state\<lparr>state_chi := chi\<rparr>)
     else do {
       (coin_flips, state) \<leftarrow>
         flip_coins_and_record (length seen_elems) (1 / 2) state; 
@@ -83,7 +83,7 @@ definition step_with_history ::
         least_index seen_elems x = Some index
           \<and> coin_flips index};
 
-      return_pmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>) }}\<close>
+      return_spmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>) }}\<close>
 
 end
 

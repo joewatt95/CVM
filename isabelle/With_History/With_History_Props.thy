@@ -91,24 +91,43 @@ proof -
 qed
 
 lemma
-  \<open>step No_fail x state = undefined\<close>
-proof-
-  have 0 : \<open>\<And> P e e'.
+  assumes
+    \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
+  shows
+    \<open>map_spmf state.truncate (step No_fail x state_with_history)
+      = map_spmf state.truncate (step_with_history x state_with_history)\<close>
+proof -
+  have * : \<open>\<And> P e e'.
     (if Fail \<noteq> No_fail \<or> P then e else e') = e\<close>
     by simp
 
-  show ?thesis
-    apply (simp add: step_def Let_def)
-    apply (subst 0)
-    apply (simp only: Let_def map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
+  then show ?thesis
+    unfolding
+      step_def step_with_history_def
+      Let_def *
+      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
+
     apply (subst map_pmf_comp[
       symmetric,
-      of \<open>\<lambda> chi. Some (state\<lparr>state_k := state_k state + 1, state_chi := chi\<rparr>)\<close>])
+      of \<open>\<lambda> chi. Some (state_with_history\<lparr>state_k := state_k state_with_history + 1, state_chi := chi\<rparr>)\<close>])
 
-    apply (subst bernoulli_pmf_eq_flip_and_record)
-    apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter)
+    apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
+      where ?state = state_with_history,
+      where ?xs = \<open>x # state_seen_elems state_with_history\<close>])
 
-    sorry
+    subgoal using assms by auto
+
+    apply (simp add:
+      bernoulli_pmf_eq_flip_and_record[
+        where ?state = \<open>state_with_history\<lparr>state_seen_elems := x # state_seen_elems state_with_history\<rparr>\<close>]
+      bind_map_pmf)
+    apply (intro bind_pmf_cong)
+    using assms by (auto
+      intro!: map_pmf_cong
+      simp add:
+        flip_coins_and_record_def least_index_def
+        state.defs Let_def
+        map_bind_pmf bind_map_pmf map_pmf_def[symmetric] map_pmf_comp)
 qed
 
 end

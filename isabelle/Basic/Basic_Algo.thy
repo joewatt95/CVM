@@ -11,7 +11,7 @@ record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
 
-record 'a final_state = \<open>'a state\<close> +
+record 'a state_with_estimate = \<open>'a state\<close> +
   state_estimated_size :: nat
 
 locale basic_algo =
@@ -43,7 +43,7 @@ context
   fixes fail_if_threshold_exceeded :: Fail_if_threshold_exceeded
 begin
 
-definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
+definition step :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme spmf\<close> where
   \<open>step x state \<equiv> do {
     let k = state_k state;
     let chi = state_chi state;
@@ -67,7 +67,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
       then return_spmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr>
       else fail_spmf }}\<close>
 
-definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf\<close> where
+definition run_steps :: \<open>('a, 'b) state_scheme \<Rightarrow> 'a list \<Rightarrow> ('a, 'b) state_scheme spmf\<close> where
   \<open>run_steps \<equiv> flip (foldM_spmf step)\<close>
 
 (* fun step_with_trace :: \<open>'a \<Rightarrow> 'a trace \<Rightarrow> 'a trace pmf\<close> where
@@ -83,12 +83,14 @@ definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a s
 fun run_steps :: \<open>'a list \<Rightarrow> 'a ok_state \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps x = map_pmf hd \<circ> run_steps_with_trace x\<close> *)
 
-definition result :: \<open>'a state \<Rightarrow> 'a final_state\<close> where
+definition result ::
+  \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_with_estimate_scheme\<close> where
   \<open>result state \<equiv>
-    state.extend state
-      \<lparr>state_estimated_size = card (state_chi state) * 2 ^ (state_k state)\<rparr>\<close>
+    state.extend (state.truncate state)
+      \<lparr>state_estimated_size = card (state_chi state) * 2 ^ (state_k state),
+      \<dots> = state.more state\<rparr>\<close>
 
-definition estimate_distinct :: \<open>'a list \<Rightarrow> 'a final_state spmf\<close> where
+definition estimate_distinct :: \<open>'a list \<Rightarrow> 'a state_with_estimate spmf\<close> where
   \<open>estimate_distinct \<equiv> run_steps initial_state >>> map_spmf result\<close>
 
 end

@@ -73,7 +73,7 @@ qed
 
 context
   fixes
-    P :: \<open>'a final_state \<Rightarrow> bool\<close> and
+    P :: \<open>'a state_with_estimate \<Rightarrow> bool\<close> and
     xs :: \<open>'a list\<close>
 begin
 

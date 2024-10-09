@@ -98,7 +98,7 @@ lemma estimate_distinct_lossless :
 abbreviation (input) P where
   \<open>P f \<equiv> spmf_of_pmf <<< f = estimate_distinct No_fail\<close>
 
-definition estimate_distinct_pmf :: \<open>'a list \<Rightarrow> 'a final_state pmf\<close> where
+definition estimate_distinct_pmf :: \<open>'a list \<Rightarrow> 'a state_with_estimate pmf\<close> where
   \<open>estimate_distinct_pmf \<equiv> \<some> f. P f\<close>
 
 (*

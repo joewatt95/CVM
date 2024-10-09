@@ -29,7 +29,7 @@ context
   assumes threshold_pos : \<open>threshold > 0\<close>
 begin
 
-definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
+definition well_formed_state :: \<open>('a, 'b) state_scheme \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
   \<open>state ok \<equiv> (
     let chi = state_chi state
