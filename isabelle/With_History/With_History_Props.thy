@@ -86,16 +86,25 @@ proof -
       map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
     apply (subst Pi_pmf_subset[of \<open>{0 ..< length xs}\<close> ?least_indices_in_chi])
     using \<open>chi \<subseteq> set xs\<close> by (auto
-      intro!: least_index_le_length intro: map_pmf_cong
+      intro!: least_index_le_length map_pmf_cong
       simp add: least_index_def map_pmf_comp)
 qed
 
-lemma aux :
+lemma map_truncate_step_eq_step_truncate :
+  \<open>map_spmf state.truncate (step No_fail x state)
+    = step No_fail x (state.truncate state)\<close>
+  by (auto
+    intro: bind_pmf_cong
+    simp add:
+      step_def state.defs(4) Let_def
+      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
+
+lemma step_without_failure_eq_map_truncate_step_with_history :
   assumes
+    \<open>state.truncate state = state.truncate state_with_history\<close>
     \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
-    \<open>state.truncate state_with_history = state.truncate state\<close>
   shows
-    \<open>map_spmf state.truncate (step No_fail x state)
+    \<open>step No_fail x (state.truncate state)
       = map_spmf state.truncate (step_with_history x state_with_history)\<close>
 proof -
   let ?xs = \<open>x # state_seen_elems state_with_history\<close>
@@ -106,47 +115,36 @@ proof -
 
   show ?thesis
     unfolding
-      step_def step_with_history_def Let_def *
-      map_bind_pmf map_pmf_def[symmetric]
+      * step_def Let_def state.defs(4) state.simps map_pmf_def[symmetric]
 
     apply (subst map_pmf_comp[
       symmetric,
-      of \<open>\<lambda> chi. Some (state\<lparr>state_k := state_k state + 1, state_chi := chi\<rparr>)\<close>])
+      of \<open>\<lambda> chi. Some (\<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>)\<close>])
 
     apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
       where ?state = state_with_history, where ?xs = ?xs])
 
-    subgoal using assms by (auto simp add: state.defs(4))
-
-    apply (simp add:
+    unfolding
+      step_with_history_def
       bernoulli_pmf_eq_flip_and_record[
         where ?state = \<open>state_with_history\<lparr>state_seen_elems := ?xs\<rparr>\<close>]
-      bind_map_pmf)
-    apply (intro bind_pmf_cong)
+
     using assms by (auto
-      intro!: map_pmf_cong
+      intro!: bind_pmf_cong map_pmf_cong
       simp add:
-        flip_coins_and_record_def least_index_def
-        state.defs(4) Let_def
+        flip_coins_and_record_def least_index_def state.defs(4) Let_def
         map_bind_pmf bind_map_pmf map_pmf_def[symmetric] map_pmf_comp)
 qed
 
 lemma
   assumes
-    \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
     \<open>state.truncate state_with_history = state\<close>
+    \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
   shows
     \<open>step No_fail x state
       = map_spmf state.truncate (step_with_history x state_with_history)\<close>
-  using assms by (auto
-    intro: bind_pmf_cong
-    simp add:
-      aux[
-        symmetric,
-        where ?state = state,
-        where ?state_with_history = state_with_history]
-      step_def state.defs(4) Let_def
-      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
+
+  by (metis assms step_without_failure_eq_map_truncate_step_with_history)
 
 end
 
