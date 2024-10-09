@@ -82,7 +82,7 @@ proof -
 
   finally show ?thesis
     apply (simp add: flip_coins_and_record_def assms)
-    apply (subst Pi_pmf_subset[of \<open>{0 ..< length xs}\<close> ?least_indices_in_chi])
+    apply (subst Pi_pmf_subset[of \<open>{0 ..< length xs}\<close>])
     using \<open>chi \<subseteq> set xs\<close> by (auto
       intro!: least_index_le_length map_pmf_cong
       simp add: least_index_def Let_def map_pmf_def[symmetric] map_pmf_comp)
