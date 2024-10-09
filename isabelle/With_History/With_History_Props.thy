@@ -90,16 +90,13 @@ proof -
       simp add: least_index_def map_pmf_comp)
 qed
 
-lemma
-  fixes x state_with_history
+lemma aux :
   assumes
     \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
-  defines
-    \<open>run_and_truncate_to_state f \<equiv>
-      (f x state_with_history |> map_spmf state.truncate)\<close>
+    \<open>state.truncate state_with_history = state.truncate state\<close>
   shows
-    \<open>run_and_truncate_to_state (step No_fail)
-      = run_and_truncate_to_state step_with_history\<close>
+    \<open>map_spmf state.truncate (step No_fail x state)
+      = map_spmf state.truncate (step_with_history x state_with_history)\<close>
 proof -
   let ?xs = \<open>x # state_seen_elems state_with_history\<close>
 
@@ -109,18 +106,17 @@ proof -
 
   show ?thesis
     unfolding
-      assms step_def step_with_history_def
-      Let_def *
+      step_def step_with_history_def Let_def *
       map_bind_pmf map_pmf_def[symmetric]
 
     apply (subst map_pmf_comp[
       symmetric,
-      of \<open>\<lambda> chi. Some (state_with_history\<lparr>state_k := state_k state_with_history + 1, state_chi := chi\<rparr>)\<close>])
+      of \<open>\<lambda> chi. Some (state\<lparr>state_k := state_k state + 1, state_chi := chi\<rparr>)\<close>])
 
     apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
       where ?state = state_with_history, where ?xs = ?xs])
 
-    subgoal using assms by auto
+    subgoal using assms by (auto simp add: state.defs(4))
 
     apply (simp add:
       bernoulli_pmf_eq_flip_and_record[
@@ -131,9 +127,26 @@ proof -
       intro!: map_pmf_cong
       simp add:
         flip_coins_and_record_def least_index_def
-        state.defs Let_def
+        state.defs(4) Let_def
         map_bind_pmf bind_map_pmf map_pmf_def[symmetric] map_pmf_comp)
 qed
+
+lemma
+  assumes
+    \<open>state_chi state_with_history \<subseteq> set (state_seen_elems state_with_history)\<close>
+    \<open>state.truncate state_with_history = state\<close>
+  shows
+    \<open>step No_fail x state
+      = map_spmf state.truncate (step_with_history x state_with_history)\<close>
+  using assms by (auto
+    intro: bind_pmf_cong
+    simp add:
+      aux[
+        symmetric,
+        where ?state = state,
+        where ?state_with_history = state_with_history]
+      step_def state.defs(4) Let_def
+      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
 
 end
 
