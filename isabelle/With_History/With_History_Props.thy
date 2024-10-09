@@ -81,13 +81,11 @@ proof -
     by (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)
 
   finally show ?thesis
-    apply (simp add:
-      assms flip_coins_and_record_def Let_def
-      map_bind_pmf map_pmf_def[symmetric] map_pmf_comp)
+    apply (simp add: flip_coins_and_record_def assms)
     apply (subst Pi_pmf_subset[of \<open>{0 ..< length xs}\<close> ?least_indices_in_chi])
     using \<open>chi \<subseteq> set xs\<close> by (auto
       intro!: least_index_le_length map_pmf_cong
-      simp add: least_index_def map_pmf_comp)
+      simp add: least_index_def Let_def map_pmf_def[symmetric] map_pmf_comp)
 qed
 
 lemma map_truncate_step_eq_step_truncate :
