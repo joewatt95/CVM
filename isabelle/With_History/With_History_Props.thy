@@ -32,7 +32,7 @@ lemma bernoulli_pmf_eq_flip_and_record :
     Pi_pmf_singleton Let_def)
 
 lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
-  fixes xs chi state
+  fixes chi xs state
   assumes \<open>chi \<subseteq> set xs\<close>
   defines
     \<open>lhs \<equiv> (
@@ -57,7 +57,7 @@ proof -
   have
     \<open>bij_betw ?lookup_indices_in_xs
       (Pow ?least_indices_in_chi) (Pow chi)\<close>
-    apply (intro bij_betw_byWitness[where ?f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
+    apply (intro bij_betw_byWitness[where f' = \<open>Option.these <<< (`) (least_index xs)\<close>])
     apply (simp_all add: image_def least_index_def subset_eq set_eq_iff Int_def Un_def)
     by (smt (verit, ccfv_SIG) \<open>chi \<subseteq> set xs\<close> in_these_eq LeastI_ex in_set_conv_nth mem_Collect_eq PowD option.exhaust option.inject subsetD)+
 
@@ -116,23 +116,20 @@ proof -
   show ?thesis
     unfolding
       * step_def Let_def state.defs(4) state.simps map_pmf_def[symmetric]
-
     apply (subst map_pmf_comp[
       symmetric,
-      of \<open>\<lambda> chi. Some (\<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>)\<close>])
-
+      of \<open>\<lambda> chi. Some \<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>\<close>])
     apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
-      where ?state = state_with_history, where ?xs = ?xs])
-
+      where xs = ?xs, where state = state_with_history])
     unfolding
-      step_with_history_def
       bernoulli_pmf_eq_flip_and_record[
-        where ?state = \<open>state_with_history\<lparr>state_seen_elems := ?xs\<rparr>\<close>]
+        where state = \<open>state_with_history\<lparr>state_seen_elems := ?xs\<rparr>\<close>]
 
     using assms by (auto
       intro!: bind_pmf_cong map_pmf_cong
       simp add:
-        flip_coins_and_record_def least_index_def state.defs(4) Let_def
+        step_with_history_def flip_coins_and_record_def least_index_def
+        state.defs(4) Let_def
         map_bind_pmf bind_map_pmf map_pmf_def[symmetric] map_pmf_comp)
 qed
 
