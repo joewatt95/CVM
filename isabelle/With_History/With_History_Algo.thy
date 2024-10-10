@@ -20,7 +20,12 @@ definition initial_state :: \<open>'a state_with_history\<close> where
 locale with_history = basic_algo
 begin
 
-definition flip_coins_and_record where
+\<comment> \<open>Given `state`, flip `num_flips` coins, each with probability `p`, and append
+  them to the kth row of the matrix of seen coin flips in `state`.
+  This returns both the new sequence of coin flips, along with the updated state.\<close>
+definition flip_coins_and_record ::
+  \<open>nat \<Rightarrow> real \<Rightarrow> ('a, 'b) state_with_history_scheme \<Rightarrow>
+    ((nat \<Rightarrow> bool) \<times> ('a, 'b) state_with_history_scheme) pmf\<close> where
   \<open>flip_coins_and_record num_flips p state \<equiv> do {
     \<comment> \<open>Generate a sequence of `num_flips` coin flips via `Pi_pmf`.\<close>
     new_coin_flips :: nat \<Rightarrow> bool \<leftarrow>
@@ -39,7 +44,7 @@ definition flip_coins_and_record where
     let seen_coin_flips_k =
       override_on
         (seen_coin_flips k)
-        (\<lambda> index. Some (new_coin_flips <| index - start_index))
+        (\<lambda> index. Some (new_coin_flips <| start_index + num_flips - Suc index))
         {start_index ..< start_index + num_flips};
     \<comment> \<open>Update the kth row of `seen_coin_flips` and convert it back to a matrix.\<close>
     let seen_coin_flips =

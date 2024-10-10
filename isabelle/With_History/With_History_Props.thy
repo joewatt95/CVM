@@ -31,6 +31,85 @@ lemma bernoulli_pmf_eq_flip_and_record :
     map_bind_pmf map_pmf_def[symmetric] map_pmf_comp
     Pi_pmf_singleton Let_def)
 
+thm pmf_of_set_Pow_conv_bernoulli
+
+find_theorems "bernoulli_pmf" "measure_pmf.prob"
+
+find_theorems "measure_pmf.prob _ {_}"
+
+lemma aux :
+  assumes \<open>0 < p\<close> \<open>p < 1\<close> \<open>0 < p'\<close> \<open>p' < 1\<close>
+  shows
+    \<open>bernoulli_pmf (p * p') = do {
+      b \<leftarrow> bernoulli_pmf p;
+      b' \<leftarrow> bernoulli_pmf p';
+      return_pmf <| b \<and> b'
+    }\<close>
+proof -
+  have \<open>p * p' < 1\<close>
+    by (smt (verit, ccfv_threshold) assms(1) assms(2) assms(4) mult_less_cancel_left2)
+  
+  moreover have \<open>- (p * p') = (1 - p') * p - p\<close> by argo
+
+  ultimately show ?thesis
+    using assms by (auto
+      intro: pmf_eqI
+      simp add:
+        bernoulli_pmf.rep_eq measure_pmf_single vimage_def
+        map_pmf_def[symmetric] pmf_bind pmf_map)
+qed
+
+lemma
+  assumes \<open>0 < p\<close> \<open>p < 1\<close>
+  shows
+    \<open>bernoulli_pmf (p * p ^ k) = (
+      \<lblot>bernoulli_pmf p\<rblot>
+        |> Pi_pmf {offset .. offset + k} False
+        |> map_pmf (Ball {offset .. offset + k}))\<close>
+  (is \<open>?lhs = ?rhs\<close>)
+proof (induction k arbitrary: offset)
+  case 0
+  then show ?case by (simp add: assms Pi_pmf_singleton map_pmf_comp)
+next
+  case (Suc k)
+
+  have * : \<open>\<And> offset k.
+    {offset .. Suc (offset + k)} = insert offset {Suc offset .. Suc offset + k}\<close>
+    by fastforce
+
+  show ?case
+    apply (simp add: *) apply (subst Pi_pmf_insert') apply simp_all
+    apply (subst bind_commute_pmf)
+    apply (subst aux) apply (simp_all add: assms) apply (metis assms(1) assms(2) less_eq_real_def power_Suc power_less_one_iff zero_less_Suc)
+    apply (subst bind_commute_pmf)
+    by (simp add:
+      Suc[of \<open>Suc offset\<close>]
+      assms map_pmf_def[symmetric] map_pmf_comp bind_map_pmf map_bind_pmf)
+qed
+
+(* proof (induction k arbitrary: offset)
+  case 0
+  show ?case by (simp add: Pi_pmf_singleton map_pmf_comp)
+next
+  case (Suc k)
+
+  have * : \<open>\<And> offset k.
+    {offset .. Suc (offset + k)} = insert offset {Suc offset .. Suc (offset + k)}\<close>
+    by fastforce
+
+
+  then show ?case
+    (* using Suc
+    apply (simp add: pmf_eq_iff * Pi_pmf_insert')
+    apply (subst bind_commute_pmf)
+    apply (auto simp add:
+      bernoulli_pmf.rep_eq vimage_def
+      map_pmf_def[symmetric] map_pmf_comp
+      bind_map_pmf map_bind_pmf
+      pmf_map pmf_bind) *)
+    sorry
+qed *)
+
 lemma filter_Pi_pmf_eq_flip_and_record_and_filter :
   fixes chi xs state
   assumes \<open>chi \<subseteq> set xs\<close>
@@ -115,7 +194,7 @@ proof -
       symmetric,
       of \<open>\<lambda> chi. Some \<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>\<close>])
     apply (subst filter_Pi_pmf_eq_flip_and_record_and_filter[
-      of _ \<open>x # state_seen_elems state_with_history\<close> state_with_history])
+      of _ \<open>x # state_seen_elems state_with_history\<close>])
     unfolding bernoulli_pmf_eq_flip_and_record[of _ state_with_history]
     using assms by (auto
       intro!: bind_pmf_cong map_pmf_cong
