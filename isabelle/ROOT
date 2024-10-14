@@ -9,6 +9,9 @@ session CVM = "HOL-Probability" +
   directories
     "Basic"
     "Basic/Props"
+
+    "Combined"
+
     "Eager_Lazy_Conversion"
 
     "With_History"
@@ -28,7 +31,11 @@ session CVM = "HOL-Probability" +
     "Basic/Props/Basic_Props_Without_Failure"
     "Basic/Props/Basic_Props"
 
-    "Eager_Lazy_Conversion/Conversion"
+    "Combined/Distinct_Elem_Alg"
+    "Combined/Distinct_Elem_Alg_Eager"
+    "Combined/Distinct_Elem_Alg_No_Fail"
+    "Combined/Distinct_Elem_Alg_Nondet"
+
     "Eager_Lazy_Conversion/Lazify"
     "Eager_Lazy_Conversion/Reader_Monad"
 

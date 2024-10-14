@@ -396,18 +396,23 @@ lemma depends_on_step:
   defines "n \<equiv> length xs"
   shows "depends_on (map_rd ((=) v) (eager_step (xs @ [x]) n \<sigma>)) ({state_k \<sigma>..<state_k v}\<times>{..<n+1} \<union> {..<state_k \<sigma>}\<times>{n})"
 proof -
-  have
-    "depends_on (map_rd ((=) v) (eager_step_2 (xs @ [x]) (length xs) (run_reader (eager_step_1 (xs @ [x]) n \<sigma>) \<omega>)))
-           ({state_k \<sigma>..<state_k v} \<times> {..<n+1} \<union> {..<state_k \<sigma>} \<times> {length xs})" for \<omega>
-  proof -
-    have a: "state_k \<sigma> = state_k (run_reader (eager_step_1 (xs @ [x]) n \<sigma>) \<omega>)"
-      unfolding eager_step_1_def by (simp add:run_reader_simps)
-    thus ?thesis
-      unfolding a n_def by (intro depends_on_mono[OF depends_on_step2_eq]) auto
+  show ?thesis unfolding n_def eager_step_split
+  proof (intro depends_on_bind_eq conjI)
+    fix w
+    assume a:"w \<in> ran_rd (eager_step_1 (xs @ [x]) (length xs) \<sigma>)"
+    assume "v \<in> ran_rd (eager_step_2 (xs @ [x]) (length xs) w)"
+
+    show "depends_on (map_rd ((=) w) (eager_step_1 (xs @ [x]) (length xs) \<sigma>))
+          ({state_k \<sigma>..<state_k v} \<times> {..<length xs + 1} \<union> {..<state_k \<sigma>} \<times> {length xs})"
+      unfolding map_rd_def
+      by (intro depends_on_bind depends_on_mono[OF depends_on_step1] depends_on_return) auto
+
+    have "state_k \<sigma> = state_k w"
+      using a unfolding ran_rd_def eager_step_1_def by (auto simp:run_reader_simps)
+    thus "depends_on (map_rd ((=) v) (eager_step_2 (xs @ [x]) (length xs) w))
+          ({state_k \<sigma>..<state_k v} \<times> {..<length xs + 1} \<union> {..<state_k \<sigma>} \<times> {length xs})"
+      by (intro depends_on_mono[OF depends_on_step2_eq]) auto
   qed
-  thus ?thesis
-    unfolding n_def eager_step_split map_bind_rd
-    by (intro depends_on_bind depends_on_mono[OF depends_on_step1]) (auto simp:n_def)
 qed
 
 lemma depends_on_algorithm:
@@ -450,7 +455,7 @@ qed
 text \<open>Convert between the algorithms\<close>
 
 lemma lazy_algorithm_eq_aux:
-  shows "foldM_pmf (lazy_step xs) [0..<length xs] st 
+  shows "foldM_pmf (lazy_step xs) [0..<length xs] st
     = flip (foldM_pmf step_nf) st xs"
 proof (induction xs arbitrary:st)
   case Nil
