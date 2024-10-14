@@ -28,7 +28,7 @@ abbreviation (input) constantly
   (\<open>\<lblot> _ \<rblot>\<close> 1000) where
   \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
 
-abbreviation uncurry :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c\<close> where
+abbreviation (input) uncurry :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c\<close> where
   \<open>uncurry f \<equiv> \<lambda> (a, b). f a b\<close>
 
 definition map_index :: \<open>(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> where

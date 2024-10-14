@@ -43,6 +43,54 @@ lemma step_preserves_well_formedness :
     split: if_splits
     simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def Let_def)
 
+lemma aux :
+  assumes
+    \<open>finite (state_chi state)\<close> (is \<open>finite ?chi\<close>)
+    \<open>card (state_chi state) \<le> threshold\<close>
+  shows
+    \<open>do {
+      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
+        Pi_pmf ?chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+
+      let chi = Set.filter keep_in_chi ?chi;
+
+      if card chi < threshold
+      then return_spmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr>
+      else fail_spmf }
+    = (
+      \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
+        |> Pi_pmf ?chi undefined
+        |> map_pmf
+            (\<lambda> keep_in_chi.
+              if card ?chi < threshold \<or>
+                restrict keep_in_chi ?chi \<noteq> restrict \<lblot>False\<rblot> ?chi
+              then Some (state\<lparr>
+                state_k := k + 1,
+                state_chi := Set.filter keep_in_chi ?chi\<rparr>)
+              else None))\<close>
+proof -
+  have * : \<open>\<And> b x.
+    (if b then return_spmf x else fail_spmf)
+      = return_pmf (if b then Some x else None)\<close>
+    by (simp add: fail_spmf_def)
+
+  have ** : \<open>\<And> keep_in_chi chi.
+    restrict keep_in_chi chi = restrict \<lblot>False\<rblot> chi \<longleftrightarrow>
+      (\<forall> x \<in> chi. keep_in_chi x = False)\<close>
+    using restrict_ext
+    by (metis (full_types) restrict_apply')
+
+  show ?thesis
+    using assms
+    unfolding * **
+    apply (simp add:
+      fail_spmf_def Let_def
+      map_pmf_def[symmetric] map_pmf_comp map_bind_pmf bind_map_pmf)
+    apply (intro map_pmf_cong) apply blast
+    apply (auto simp add: set_prod_pmf Set.filter_def)
+    sorry
+qed
+
 lemma prob_fail_step_le :
   fixes
     x :: 'a and
@@ -56,8 +104,18 @@ lemma prob_fail_step_le :
       Let_def Set.filter_def Set.remove_def fail_spmf_def
       pmf_bind pmf_map
       map_pmf_def[symmetric] map_pmf_comp map_bind_pmf bind_map_pmf)
-  apply (metis basic_trans_rules(21) card_Diff1_le remove_def)
+  apply (meson basic_trans_rules(21) card_Diff1_le)
   subgoal premises prems
+    using prems
+    apply (subst Pi_pmf_insert')
+      apply blast
+      apply (metis insert_absorb)
+    apply (simp add:
+      map_pmf_def[symmetric] map_pmf_comp
+      map_bind_pmf bind_map_pmf)
+    apply (subst pmf_expectation_bind[of \<open>{True, False}\<close>])
+    apply (simp_all add: image_def set_prod_pmf finite_funcset_iff)
+    apply blast
     sorry
   by (meson basic_trans_rules(21) card_Diff1_le) 
 
