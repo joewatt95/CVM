@@ -113,4 +113,33 @@ lemma bool_pmf_eqI:
   shows "p = q"
   using assms pmf_False_conv_True by (intro pmf_eqI) (metis (full_types))
 
+text \<open>Better version of Pi_pmf_map.\<close>
+lemma Pi_pmf_map':
+  assumes "finite I"
+  shows "Pi_pmf I d (\<lambda>i. map_pmf (f i) (M i)) = map_pmf (\<lambda> x i. if i \<in> I then f i (x i) else d) (Pi_pmf I d' M)"
+  unfolding map_pmf_def by (intro Pi_pmf_bind_return assms)
+
+lemma prod_pmf_uncurry:
+  fixes I :: "'a set"
+  assumes "finite I"
+  shows "prod_pmf (I\<times>I) (\<lambda>_. M) =
+    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>I. \<omega> (fst x) (snd x)) (prod_pmf I (\<lambda>_. prod_pmf I (\<lambda>_. M)))" (is "?L = ?R")
+proof -
+  let ?map1 = "map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>I. \<omega> (fst x) x)"
+  let ?map2 = "map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>I. \<omega> (fst x) (snd x))"
+
+  have a: "inj_on snd ({i} \<times> I)" for i::'a
+    by (intro inj_onI) auto
+
+  have "?L = ?map1 (Pi_pmf I (\<lambda>_. undefined) (\<lambda>j. prod_pmf (Restr (fst -` {j}) I) (\<lambda>_. M)))"
+    using assms by (subst pi_pmf_decompose[where f="fst"]) (simp_all add:restrict_dfl_def restrict_def)
+  also have "... = ?map1 (Pi_pmf I (\<lambda>_. undefined) (\<lambda>j. prod_pmf ({j} \<times> I) ((\<lambda>_. M) \<circ> snd)))"
+    by (intro map_pmf_cong Pi_pmf_cong refl) auto
+  also have "... = ?map2 (prod_pmf I (\<lambda>j. prod_pmf I (\<lambda>_. M)))"
+    by (subst prod_pmf_reindex[OF assms _ a, symmetric])
+      (simp_all add: Pi_pmf_map'[OF assms, where d'="undefined"] map_pmf_comp case_prod_beta' 
+        restrict_def mem_Times_iff cong:if_cong)
+  finally show ?thesis by simp
+qed
+
 end
