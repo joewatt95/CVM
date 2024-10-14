@@ -39,6 +39,21 @@ fun foldM ::
   \<open>foldM _ return _ [] val = return val\<close> |
   \<open>foldM bind return f (x # xs) val = bind (f x val) (foldM bind return f xs)\<close>
 
+lemma foldM_cong:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = f' x"
+  shows "foldM bind return f xs v = foldM bind return f' xs v"
+  using assms
+proof (induction xs arbitrary: v)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  then show ?case by simp_all presburger
+qed
+
+lemma foldM_empty: "foldM bind return f [] = return"
+  by auto
+
 definition foldM_enumerate where
   \<open>foldM_enumerate bind return f xs offset \<equiv>
     foldM bind return f (List.enumerate offset xs)\<close>

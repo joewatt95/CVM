@@ -3,10 +3,13 @@ session CVM = "HOL-Probability" +
 
   sessions
     "HOL-Matrix_LP"
+    "Universal_Hash_Families"
+    "Finite_Fields"
 
   directories
     "Basic"
     "Basic/Props"
+    "Eager_Lazy_Conversion"
 
     "With_History"
 
@@ -24,6 +27,10 @@ session CVM = "HOL-Probability" +
     "Basic/Props/Basic_Props_With_Failure"
     "Basic/Props/Basic_Props_Without_Failure"
     "Basic/Props/Basic_Props"
+
+    "Eager_Lazy_Conversion/Conversion"
+    "Eager_Lazy_Conversion/Lazify"
+    "Eager_Lazy_Conversion/Reader_Monad"
 
     "With_History/With_History_Algo"
     "With_History/With_History_Props"
