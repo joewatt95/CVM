@@ -98,9 +98,7 @@ lemma seq :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close> and
     \<open>\<turnstile> \<lbrace>Q\<rbrace> g \<lbrace>R\<rbrace>\<close>
-  shows
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f >=> g \<lbrace>R\<rbrace>\<close> and
-    \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. f x \<bind> g) \<lbrace>R\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> f >=> g \<lbrace>R\<rbrace>\<close>
 
   using assms
   by (auto
@@ -111,13 +109,10 @@ lemma seq' :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile> \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
-  shows
-    \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close> and
-    \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. f x \<bind> g x) \<lbrace>R\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
 
   using assms
-  apply (smt (verit, ccfv_threshold) hoare_triple_def seq(1))
-  by (smt (verit, ccfv_threshold) assms(1) assms(2) hoare_triple_def seq(2))
+  by (smt (verit, ccfv_threshold) hoare_triple_def seq)
 
 lemma if_then_else :
   assumes

@@ -50,7 +50,7 @@ text \<open> The algorithm is defined in the SPMF monad (with None representing 
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct \<equiv>
     run_steps initial_state >>>
-    map_spmf (\<lambda>state. card (state_chi state) * 2 ^ (state_k state))\<close>
+      map_spmf (\<lambda>state. card (state_chi state) * 2 ^ (state_k state))\<close>
 
 end
 
