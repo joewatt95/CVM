@@ -76,8 +76,7 @@ proof -
     \<Longrightarrow> p = (\<lambda> x \<in> chi. True)\<close>
     by (smt (verit, best) assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
 
-  have \<open>\<And> p.
-    card chi < threshold \<Longrightarrow> card {x \<in> chi. p x} < threshold\<close>
+  have \<open>\<And> p. card chi < threshold \<Longrightarrow> card {x \<in> chi. p x} < threshold\<close>
     using assms by (metis Collect_subset basic_trans_rules(21) card_mono)
 
   then show ?thesis using assms by (auto
@@ -89,32 +88,25 @@ lemma prob_fail_step_le :
   assumes \<open>state ok\<close>
   shows \<open>prob_fail (step x state) \<le> 1 / 2 ^ threshold\<close>
 proof -
-  have * : \<open>\<And> f p.
-    \<lbrakk>0 \<le> p; p \<le> 1; None \<notin> set_pmf (f False)\<rbrakk>
-    \<Longrightarrow> (\<integral>x. pmf (f x) None \<partial> bernoulli_pmf p) = pmf (f True) None * p\<close>
-    by (simp add: pmf_eq_0_set_pmf)
+  let ?chi = \<open>state_chi state\<close>
+  let ?chi' = \<open>insert x ?chi\<close>
 
-  let ?chi' = \<open>insert x <| state_chi state\<close>
+  have \<open>card (Set.remove x ?chi) < threshold\<close>
+    by (metis assms card_Diff1_less card_Diff_singleton_if dual_order.strict_trans remove_def well_formed_state_def) 
 
-  have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
+  moreover have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
     by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
 
-  then show ?thesis
+  ultimately show ?thesis
     using assms
     apply (simp add: prob_fail_def step_def well_formed_state_def Let_def)
-    apply (subst aux)
-      apply (simp_all add: remove_def)
-      apply (metis Suc_leI card_Diff1_le card_insert_disjoint dual_order.trans insert_absorb le_simps(1))
-
-    apply (subst pmf_bind) apply (subst *)
-    apply (simp_all add: pmf_map set_prod_pmf vimage_def image_def remove_def measure_pmf_single pmf_prod_pmf)
-    apply (meson card_Diff1_le linorder_not_le)
-    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
+    apply (simp add: aux pmf_bind pmf_map set_prod_pmf vimage_def image_def remove_def measure_pmf_single pmf_prod_pmf)
+    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)+
 qed
 
 lemma prob_fail_map_spmf:
-  "prob_fail (map_spmf f p) = prob_fail p"
-  unfolding prob_fail_def by (simp add: pmf_None_eq_weight_spmf)
+  \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
+  by (simp add: prob_fail_def pmf_None_eq_weight_spmf)
 
 lemma prob_fail_estimate_size_le :
   \<open>prob_fail (estimate_distinct xs) \<le> length xs / 2 ^ threshold\<close>
