@@ -102,26 +102,27 @@ proof -
 qed
 
 lemma uncurry_prod_coin_pmf:
-  shows "(prod_pmf ({..<n::nat}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
-    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>{..<n} \<times> {..<n}.
+  shows "(prod_pmf ({..<m::nat}\<times>{..<n::nat}) (\<lambda>_. coin_pmf)) =
+    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>{..<m} \<times> {..<n}.
               \<omega> (snd x) (fst x))
-      (prod_pmf {..<n} (\<lambda>_. prod_pmf {..<n} (\<lambda>_. coin_pmf)))"
+      (prod_pmf {..<n} (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
   apply (subst prod_pmf_swap)
+  subgoal by auto
   subgoal by auto
   apply (subst prod_pmf_uncurry)
   by (auto intro!: map_pmf_cong simp add: map_pmf_comp o_def fun_eq_iff)
 
 lemma map_pmf_nondet_alg_aux_eq:
-  assumes "length xs \<le> n" "K \<le> n"
+  assumes "length xs \<le> n" "K \<le> m"
   shows "
     map_pmf (nondet_alg_aux K xs)
-      (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
+      (prod_pmf ({..<m}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
     map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
      (prod_pmf (set xs)
-       (\<lambda>_. prod_pmf {..<n} (\<lambda>_. coin_pmf)))"
+       (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
 proof -
   have 1: "(\<lambda>f. nondet_alg_aux K xs
-            (\<lambda>xa\<in>{..<n} \<times> {..<n}. f (snd xa) (fst xa))) =
+            (\<lambda>xa\<in>{..<m} \<times> {..<n}. f (snd xa) (fst xa))) =
      (\<lambda>f. {y \<in> set xs. (\<forall>k' < K. f y k')})
         \<circ>
      (\<lambda>f. \<lambda>i\<in>set xs. f (find_last i xs))"
@@ -129,19 +130,19 @@ proof -
     by (auto simp add: fun_eq_iff nondet_alg_aux_def dual_order.strict_trans1 find_last_correct_1(2))
 
   have "map_pmf (nondet_alg_aux K xs)
-     (prod_pmf ({..<n} \<times> {..<n})
+     (prod_pmf ({..<m} \<times> {..<n})
        (\<lambda>_. coin_pmf)) =
     map_pmf
      (\<lambda>f. nondet_alg_aux K xs
-            (\<lambda>xa\<in>{..<n} \<times> {..<n}.  f (snd xa) (fst xa)))
+            (\<lambda>xa\<in>{..<m} \<times> {..<n}.  f (snd xa) (fst xa)))
      (prod_pmf {..<n}
-       (\<lambda>_. prod_pmf {..<n}
+       (\<lambda>_. prod_pmf {..<m}
               (\<lambda>_. coin_pmf)))"
     unfolding uncurry_prod_coin_pmf map_pmf_comp by auto
   also have "... =
     map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
      (prod_pmf (set xs)
-       (\<lambda>_. prod_pmf {..<n} (\<lambda>_. coin_pmf)))"
+       (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
     unfolding 1 map_pmf_compose
     apply (clarsimp simp add: o_def)
     apply (subst prod_pmf_reindex)
