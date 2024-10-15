@@ -5,7 +5,6 @@ theory Distinct_Elem_Alg_Nondet
     CVM.Utils_List
     Distinct_Elem_Alg_Eager
     "Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF"
-    "Monad_Normalisation.Monad_Normalisation"
 begin
 
 lemma find_last_before_self_eq:
@@ -35,8 +34,9 @@ lemma eager_step_1_inv:
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
       (run_reader (eager_step_1 xs i state) \<phi>)"
-  unfolding eager_step_1_def
-  apply (auto simp add: run_reader_simps)
+  using assms
+  unfolding eager_step_1_def eager_state_inv_def nondet_alg_aux_def
+  apply (auto simp add: run_reader_simps Let_def  find_last_before_def)
   sorry
 
 lemma eager_step_2_inv:
@@ -45,9 +45,10 @@ lemma eager_step_2_inv:
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
       (run_reader (eager_step_2 xs i state) \<phi>)"
-  unfolding eager_step_2_def
-  apply (auto simp add: run_reader_simps Let_def)
-  sorry
+  using inv
+  unfolding eager_step_2_def eager_state_inv_def nondet_alg_aux_def
+  apply (auto simp add: run_reader_simps Let_def  find_last_before_def)
+  by (metis add.commute find_last_before_def less_SucE plus_1_eq_Suc)
 
 lemma eager_step_inv:
   assumes i:"i < length xs"
@@ -142,17 +143,14 @@ lemma nondet_alg_aux_eq_map_of:
     (\<forall>k' < k. \<phi> (k', the (m y)))})"
   using find_last_eq nondet_alg_aux_def by force
 
-definition nondet_alg :: "nat \<Rightarrow> ((nat \<times> 'a) \<Rightarrow> bool) \<Rightarrow> 'a set"
-  where "nondet_alg k \<phi> =
-  {y. (\<forall>k' < k. \<phi> (k', y))}"
-
-(* Removing the use of "find_last"? *)
-lemma nondet_alg_eq:
+lemma nondet_alg_aux_eq_1:
   shows "
-    map_pmf (nondet_alg_aux K xs) (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
-    map_pmf (nondet_alg K) (prod_pmf ({..<n}\<times> set xs) (\<lambda>_. coin_pmf))"
-  sorry
-
+  nondet_alg_aux k xs = (\<lambda>\<phi>'.
+    {y \<in> set xs. \<forall>k' < k. \<phi>' y k'}
+  ) \<circ> ((\<lambda>\<phi> y k. \<phi> (k, find_last y xs)))"
+  unfolding nondet_alg_aux_def
+  by auto
+  
 end
 
 end
