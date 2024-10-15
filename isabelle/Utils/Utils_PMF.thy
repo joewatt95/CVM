@@ -121,24 +121,52 @@ lemma Pi_pmf_map':
 
 lemma prod_pmf_uncurry:
   fixes I :: "'a set"
-  assumes "finite I"
-  shows "prod_pmf (I\<times>I) (\<lambda>_. M) =
-    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>I. \<omega> (fst x) (snd x)) (prod_pmf I (\<lambda>_. prod_pmf I (\<lambda>_. M)))" (is "?L = ?R")
+  fixes J :: "'b set"
+  assumes "finite I" "finite J"
+  shows "prod_pmf (I\<times>J) M =
+    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>J. \<omega> (fst x) (snd x))
+    (prod_pmf I (\<lambda>i. prod_pmf J (\<lambda>j. M (i,j))))" (is "?L = ?R")
 proof -
-  let ?map1 = "map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>I. \<omega> (fst x) x)"
-  let ?map2 = "map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>I. \<omega> (fst x) (snd x))"
+  let ?map1 = "map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>J. \<omega> (fst x) x)"
+  let ?map2 = "map_pmf (\<lambda>\<omega>. \<lambda>x\<in>I\<times>J. \<omega> (fst x) (snd x))"
 
-  have a: "inj_on snd ({i} \<times> I)" for i::'a
+  have a: "inj_on snd ({i} \<times> J)" for i::'a
     by (intro inj_onI) auto
 
-  have "?L = ?map1 (Pi_pmf I (\<lambda>_. undefined) (\<lambda>j. prod_pmf (Restr (fst -` {j}) I) (\<lambda>_. M)))"
-    using assms by (subst pi_pmf_decompose[where f="fst"]) (simp_all add:restrict_dfl_def restrict_def)
-  also have "... = ?map1 (Pi_pmf I (\<lambda>_. undefined) (\<lambda>j. prod_pmf ({j} \<times> I) ((\<lambda>_. M) \<circ> snd)))"
+  have "?L = ?map1 (Pi_pmf I (\<lambda>_. undefined) (\<lambda>i. prod_pmf ({x. fst x = i} \<inter> I \<times> J) (\<lambda>ij. M ij)))"
+    using assms
+    by (subst pi_pmf_decompose[where f="fst"])
+    (simp_all add:restrict_dfl_def restrict_def vimage_def)
+  also have "... = ?map1 (Pi_pmf I (\<lambda>_. undefined) (\<lambda>i. prod_pmf ({i} \<times> J) ((\<lambda>j. M (i,j)) \<circ> snd)))"
     by (intro map_pmf_cong Pi_pmf_cong refl) auto
-  also have "... = ?map2 (prod_pmf I (\<lambda>j. prod_pmf I (\<lambda>_. M)))"
-    by (subst prod_pmf_reindex[OF assms _ a, symmetric])
-      (simp_all add: Pi_pmf_map'[OF assms, where d'="undefined"] map_pmf_comp case_prod_beta' 
+  also have "... = ?map2 (prod_pmf I (\<lambda>i. prod_pmf J (\<lambda>j. M (i,j))))"
+    apply (subst prod_pmf_reindex[OF assms(2) _ a, symmetric])
+    by (simp_all add: Pi_pmf_map'[OF assms(1), where d'="undefined"] map_pmf_comp case_prod_beta' 
         restrict_def mem_Times_iff cong:if_cong)
+  finally show ?thesis by simp
+qed
+
+lemma prod_pmf_swap:
+  fixes I :: "'a set"
+  fixes J :: "'b set"
+  assumes "finite I" "finite J"
+  shows "prod_pmf (I\<times>J) M =
+    map_pmf (\<lambda>\<omega>. \<omega> \<circ> prod.swap)
+    (prod_pmf (J\<times>I) (M \<circ> prod.swap))" (is "?L = ?R")
+proof -
+  have f :"finite (I \<times> J)"
+    using assms by auto
+  have a: "inj_on prod.swap (J \<times> I)" for i::'a
+    by (intro inj_onI) auto
+
+  have "?R =
+    map_pmf (\<lambda>\<omega>. \<omega> \<circ> prod.swap)
+     (map_pmf (\<lambda>\<phi>. \<lambda>i\<in>J \<times> I. \<phi> (prod.swap i))
+       (prod_pmf (I \<times> J) M))"
+    apply (subst prod_pmf_reindex[OF f _ a, symmetric])
+    by auto
+  also have "... = ?L"
+    by (auto intro!: map_pmf_idI elim!: PiE_E simp add: map_pmf_comp o_def set_prod_pmf[OF f] fun_eq_iff)
   finally show ?thesis by simp
 qed
 
