@@ -101,7 +101,7 @@ proof -
     using assms
     apply (simp add: prob_fail_def step_def well_formed_state_def Let_def)
     apply (simp add: aux pmf_bind pmf_map set_prod_pmf vimage_def image_def remove_def measure_pmf_single pmf_prod_pmf)
-    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)+
+    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
 qed
 
 lemma prob_fail_map_spmf:
