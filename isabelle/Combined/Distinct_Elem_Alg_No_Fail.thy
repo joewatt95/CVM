@@ -64,12 +64,12 @@ lemma aux :
               then None
               else Some (ctx {x \<in> chi. keep_in_chi x})))\<close>
 proof -
-  have * : \<open>\<And> b e.
+  have [simp] : \<open>\<And> b e.
     (if b then return_spmf e else fail_spmf)
       = return_pmf (if b then Some e else None)\<close>
     by (simp add: fail_spmf_def)
 
-  have ** : \<open>\<And> p.
+  have [intro!] : \<open>\<And> p.
     \<lbrakk>card chi = threshold;
       p \<in> chi \<rightarrow>\<^sub>E UNIV;
       \<not> card {a \<in> chi. p a} < threshold\<rbrakk>
@@ -81,71 +81,39 @@ proof -
     using assms by (metis Collect_subset basic_trans_rules(21) card_mono)
 
   then show ?thesis using assms by (auto
-    intro!: map_pmf_cong **
-    simp add: * set_prod_pmf Let_def Set.filter_def map_pmf_def[symmetric])
+    intro: map_pmf_cong
+    simp add: set_prod_pmf Let_def Set.filter_def map_pmf_def[symmetric])
 qed
-(* 
-find_theorems "measure_pmf.prob" "Pi_pmf"
-
-find_theorems "_(_ := _)" "restrict"
-
-find_theorems "insert _ _ \<rightarrow>\<^sub>E _"
-
-find_theorems "_ \<in> Pi _ _" *)
 
 lemma prob_fail_step_le :
   assumes \<open>state ok\<close>
   shows \<open>prob_fail (step x state) \<le> 1 / 2 ^ threshold\<close>
-proof-
-  show ?thesis
+proof -
+  have * : \<open>\<And> f p.
+    \<lbrakk>0 \<le> p; p \<le> 1; None \<notin> set_pmf (f False)\<rbrakk>
+    \<Longrightarrow> (\<integral>x. pmf (f x) None \<partial> bernoulli_pmf p) = pmf (f True) None * p\<close>
+    by (simp add: pmf_eq_0_set_pmf)
+
+  let ?chi' = \<open>insert x <| state_chi state\<close>
+
+  have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
+    by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
+  
+  moreover have \<open>\<And> a b :: real. \<lbrakk>a \<ge> 0; b \<ge> 1\<rbrakk> \<Longrightarrow> a / b \<le> a\<close>
+    by (metis div_by_1 frac_le order.refl verit_comp_simplify(28))
+
+  ultimately show ?thesis
     using assms
     apply (simp add: prob_fail_def step_def well_formed_state_def Let_def)
     apply (subst aux)
-    apply (simp_all add: remove_def)
-    apply (metis Suc_leI card_Diff1_le card_insert_disjoint dual_order.trans insert_absorb le_simps(1))
-    apply (auto simp add: pmf_bind pmf_map vimage_def Set.remove_def card.insert_remove)
+      apply (simp_all add: remove_def)
+      apply (metis Suc_leI card_Diff1_le card_insert_disjoint dual_order.trans insert_absorb le_simps(1))
 
-    subgoal
-      apply (subst Pi_pmf_insert')
-      apply (simp_all add: assms well_formed_state_def Let_def)
-      apply (metis card.remove)
+    apply (subst pmf_bind) apply (subst *)
+    apply (simp_all add: pmf_map set_prod_pmf vimage_def image_def remove_def measure_pmf_single pmf_prod_pmf)
+    apply (meson card_Diff1_le linorder_not_le)
 
-      apply (simp add:
-        measure_bind_pmf vimage_def
-        map_pmf_def[symmetric] map_bind_pmf bind_map_pmf)
-
-      apply (cases \<open>x \<in> state_chi state\<close>)
-
-      subgoal premises prems
-        proof -
-          have False
-            using card_Diff1_less prems(1) prems(2) prems(3) prems(5) by fastforce 
-          then show ?thesis by blast
-        qed
-
-      subgoal premises prems
-        proof -
-          (* have
-            \<open>{p. p(x := True) = (\<lambda> _ \<in> insert x (state_chi state). True)}
-              = (\<Pi> y \<in> insert x (state_chi state).
-                  if y = x then UNIV else {True})\<close>
-            using assms prems
-            apply (auto simp add: well_formed_state_def Let_def)
-            apply (metis array_rules(2) insert_iff restrict_apply)
-            sorry *)
-
-          have
-            \<open>{p. p(x := False) = (\<lambda> _ \<in> insert x (state_chi state). True)} = {}\<close>
-            by (smt (verit) Collect_empty_eq fun_upd_same insertI1 restrict_apply') 
-
-          then show ?thesis
-            using assms prems
-            apply auto
-            sorry
-        qed
-      done
-
-  by (meson basic_trans_rules(21) card_Diff1_le)
+    by (metis dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
 qed
 
 lemma prob_fail_map_spmf:
