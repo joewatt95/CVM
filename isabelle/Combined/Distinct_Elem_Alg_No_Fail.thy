@@ -98,11 +98,8 @@ proof -
 
   have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
     by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
-  
-  moreover have \<open>\<And> a b :: real. \<lbrakk>a \<ge> 0; b \<ge> 1\<rbrakk> \<Longrightarrow> a / b \<le> a\<close>
-    by (metis div_by_1 frac_le order.refl verit_comp_simplify(28))
 
-  ultimately show ?thesis
+  then show ?thesis
     using assms
     apply (simp add: prob_fail_def step_def well_formed_state_def Let_def)
     apply (subst aux)
@@ -112,8 +109,7 @@ proof -
     apply (subst pmf_bind) apply (subst *)
     apply (simp_all add: pmf_map set_prod_pmf vimage_def image_def remove_def measure_pmf_single pmf_prod_pmf)
     apply (meson card_Diff1_le linorder_not_le)
-
-    by (metis dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
+    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
 qed
 
 lemma prob_fail_map_spmf:
