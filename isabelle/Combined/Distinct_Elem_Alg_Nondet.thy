@@ -101,55 +101,54 @@ proof -
   finally show ?thesis .
 qed
 
-lemma filter_with_upto:
-  shows"
-  filter P [0..<n] =
-  filter (\<lambda>i. P i \<and> i < n) [0..<n]"
-  by (intro filter_cong) auto
+lemma uncurry_prod_coin_pmf:
+  shows "(prod_pmf ({..<n::nat}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
+    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>{..<n} \<times> {..<n}.
+              \<omega> (snd x) (fst x))
+      (prod_pmf {..<n} (\<lambda>_. prod_pmf {..<n} (\<lambda>_. coin_pmf)))"
+  apply (subst prod_pmf_swap)
+  subgoal by auto
+  apply (subst prod_pmf_uncurry)
+  by (auto intro!: map_pmf_cong simp add: map_pmf_comp o_def fun_eq_iff)
 
-lemma find_last_eq:
-  assumes "x \<in> set xs"
-  shows "map_of (rev (zip xs [0..<length xs])) x = Some (find_last x xs)"
-  using assms
-proof (induction xs rule:rev_induct)
-  case Nil
-  then show ?case
-    by (auto simp add: find_last_def)
-next
-  case ih:(snoc x xs)
-  have *:"(filter
-             (\<lambda>i. (i < length xs \<longrightarrow>
-                    xs ! i = xs ! xb) \<and>
-                   (\<not> i < length xs \<longrightarrow>
-                    [x] ! (i - length xs) = xs ! xb))
-             [0..<length xs])
-    = filter (\<lambda>i. xs ! i = xs ! xb)
-             [0..<length xs]" for xb
-    apply (intro filter_cong)
-    by auto
-  show ?case
-    using ih
-    apply (auto simp add: nth_append
-       find_last_def Let_def filter_empty_conv *
-       split: if_splits)
-    using atLeastLessThan_iff by blast
+lemma map_pmf_nondet_alg_aux_eq:
+  assumes "length xs \<le> n" "K \<le> n"
+  shows "
+    map_pmf (nondet_alg_aux K xs)
+      (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
+    map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
+     (prod_pmf (set xs)
+       (\<lambda>_. prod_pmf {..<n} (\<lambda>_. coin_pmf)))"
+proof -
+  have 1: "(\<lambda>f. nondet_alg_aux K xs
+            (\<lambda>xa\<in>{..<n} \<times> {..<n}. f (snd xa) (fst xa))) =
+     (\<lambda>f. {y \<in> set xs. (\<forall>k' < K. f y k')})
+        \<circ>
+     (\<lambda>f. \<lambda>i\<in>set xs. f (find_last i xs))"
+    using assms
+    by (auto simp add: fun_eq_iff nondet_alg_aux_def dual_order.strict_trans1 find_last_correct_1(2))
+
+  have "map_pmf (nondet_alg_aux K xs)
+     (prod_pmf ({..<n} \<times> {..<n})
+       (\<lambda>_. coin_pmf)) =
+    map_pmf
+     (\<lambda>f. nondet_alg_aux K xs
+            (\<lambda>xa\<in>{..<n} \<times> {..<n}.  f (snd xa) (fst xa)))
+     (prod_pmf {..<n}
+       (\<lambda>_. prod_pmf {..<n}
+              (\<lambda>_. coin_pmf)))"
+    unfolding uncurry_prod_coin_pmf map_pmf_comp by auto
+  also have "... =
+    map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
+     (prod_pmf (set xs)
+       (\<lambda>_. prod_pmf {..<n} (\<lambda>_. coin_pmf)))"
+    unfolding 1 map_pmf_compose
+    apply (clarsimp simp add: o_def)
+    apply (subst prod_pmf_reindex)
+    apply (auto simp add: o_def find_last_inj)
+    using assms(1) find_last_correct_1(2) by fastforce
+  finally show ?thesis .
 qed
-
-lemma nondet_alg_aux_eq_map_of:
-  shows "
-  nondet_alg_aux k xs \<phi> = (
-  let m = map_of (rev (zip xs [0..<length xs])) in
-  {y \<in> set xs.
-    (\<forall>k' < k. \<phi> (k', the (m y)))})"
-  using find_last_eq nondet_alg_aux_def by force
-
-lemma nondet_alg_aux_eq_1:
-  shows "
-  nondet_alg_aux k xs = (\<lambda>\<phi>'.
-    {y \<in> set xs. \<forall>k' < k. \<phi>' y k'}
-  ) \<circ> ((\<lambda>\<phi> y k. \<phi> (k, find_last y xs)))"
-  unfolding nondet_alg_aux_def
-  by auto
   
 end
 
