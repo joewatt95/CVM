@@ -37,8 +37,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 
       if card chi < threshold
       then return_spmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr>
-      else fail_spmf
-    }}\<close>
+      else fail_spmf }}\<close>
 
 definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf\<close> where
   \<open>run_steps \<equiv> flip (foldM_spmf step)\<close>
