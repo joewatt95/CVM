@@ -482,7 +482,7 @@ proof -
   show ?thesis when \<open>\<And> dummies.
     foldM_pmf (lazy_step <| dummies @ xs) [length dummies ..< length dummies + length xs]
       = foldM_pmf step_no_fail xs\<close>
-    (is \<open>\<And> offset y. ?thesis offset y\<close>)
+    (is \<open>\<And> dummies. ?thesis dummies\<close>)
     using that[of \<open>[]\<close>] by auto
 
   show \<open>?thesis dummies\<close> for dummies
@@ -492,7 +492,9 @@ proof -
   next
     case (Cons x xs)
 
-    then show ?thesis
+    show ?case
+      using Cons.IH[of \<open>dummies @ [x]\<close>]
+      apply simp
       sorry
 
     (* have * :
