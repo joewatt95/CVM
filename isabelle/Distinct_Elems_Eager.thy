@@ -476,8 +476,8 @@ proof -
     to the lhs. 
 
     If not, our IH will be too weak, as it will talk about `[0 ..< length xs]`,
-    but due to the structure ouf our fold, we instead want to talk about
-      `[0 ..< length xs + 1] = 0 # [1 ..< length xs + 1]]`
+    but due to the structure of our fold, we instead want to talk about
+      `[0 ..< length xs + 1] = 0 # [1 ..< length xs + 1]`
 
     For this to work, we also need to pad the input list to `lazy_step` since it
     access elements in `xs` by indexing with the list of indices
@@ -497,6 +497,9 @@ proof -
   next
     case (Cons x xs)
 
+    (* TODO: Find out how to E-unification, modulo simp eqns, as it would be
+      nice to not have to guess Isabelle's simp-normal-forms and express things
+      as such. *)
     have [simp] :
       \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
       for a b :: nat by (simp add: upt_rec)
