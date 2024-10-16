@@ -479,22 +479,22 @@ proof -
     (is \<open>\<And> dummies val. ?thesis dummies val\<close>)
     using that[of \<open>[]\<close>] by auto
 
-  have [simp] :
-    \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
-    for a b :: nat
-    by (simp add: upt_rec)
-
-  have [simp] :
-    \<open>lazy_step (dummies @ x # xs) (length dummies) val = step_no_fail x val\<close>
-    for dummies :: \<open>'a list\<close> and x xs val
-    by (metis lazy_step_def step_no_fail_def nth_append_length)
-
   show \<open>?thesis dummies val\<close> for dummies val
   proof (induction xs arbitrary: dummies val)
     case Nil
     then show ?case by simp
   next
     case (Cons x xs)
+
+    have [simp] :
+      \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
+      for a b :: nat by (simp add: upt_rec)
+
+    have [simp] :
+      \<open>lazy_step (dummies @ x # xs) (length dummies) val = step_no_fail x val\<close>
+      for dummies :: \<open>'a list\<close> and x xs val
+      by (metis lazy_step_def step_no_fail_def nth_append_length)
+
     show ?case
       using Cons.IH[of \<open>dummies @ [x]\<close>]
       by (auto intro: bind_pmf_cong simp del: upt_Suc)
