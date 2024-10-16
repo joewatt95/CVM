@@ -45,7 +45,7 @@ definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a sta
 
       let chi = Set.filter keep_in_chi chi;
 
-      return_pmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr> }}\<close>
+      return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr> }}\<close>
 
 definition run_steps_no_fail :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps_no_fail \<equiv> flip (foldM_pmf step_no_fail)\<close>

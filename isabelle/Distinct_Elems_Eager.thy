@@ -36,7 +36,7 @@ definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rig
         then insert (xs ! i)
         else Set.remove (xs ! i));
 
-      if real (card chi) < threshold then
+      if card chi < threshold then
         return_rd (state \<lparr>state_chi := chi\<rparr>)
       else do {
         keep_in_chi \<leftarrow> map_rd (\<lambda>\<phi>. \<lambda>x \<in> chi. \<phi> (k, find_last_before i x xs)) get_rd;
@@ -59,7 +59,7 @@ definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Righ
       then insert (xs ! i)
       else Set.remove (xs ! i));
 
-    if real (card chi) < threshold then
+    if card chi < threshold then
       return_pmf (state \<lparr>state_chi := chi\<rparr>)
     else do {
       keep_in_chi \<leftarrow> Pi_pmf chi undefined (\<lambda>_. bernoulli_pmf (1/2));
@@ -468,65 +468,37 @@ qed
 
 text \<open>Convert between the algorithms\<close>
 
-lemma lazy_step_eq_aux :
-  \<open>lazy_step xs index = lazy_step (dummies @ xs) (length dummies + index)\<close>
-proof -
-  have \<open>(xs @ ys) ! (length xs + index) = ys ! index\<close> for xs ys index by simp
-
-  then show ?thesis unfolding lazy_step_def by metis
-qed
-
 lemma lazy_algorithm_eq_aux :
   \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
 proof -
-  show ?thesis when \<open>\<And> dummies.
-    foldM_pmf (lazy_step <| dummies @ xs) [length dummies ..< length dummies + length xs]
-      = foldM_pmf step_no_fail xs\<close>
-    (is \<open>\<And> dummies. ?thesis dummies\<close>)
+  show ?thesis when \<open>\<And> dummies val.
+    foldM_pmf
+      (lazy_step <| dummies @ xs)
+      [length dummies ..< length dummies + length xs] val
+    = foldM_pmf step_no_fail xs val\<close>
+    (is \<open>\<And> dummies val. ?thesis dummies val\<close>)
     using that[of \<open>[]\<close>] by auto
 
-  show \<open>?thesis dummies\<close> for dummies
-  proof (induction xs arbitrary: dummies)
+  have [simp] :
+    \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
+    for a b :: nat
+    by (simp add: upt_rec)
+
+  have [simp] :
+    \<open>lazy_step (dummies @ x # xs) (length dummies) val = step_no_fail x val\<close>
+    for dummies :: \<open>'a list\<close> and x xs val
+    by (metis lazy_step_def step_no_fail_def nth_append_length)
+
+  show \<open>?thesis dummies val\<close> for dummies val
+  proof (induction xs arbitrary: dummies val)
     case Nil
     then show ?case by simp
   next
     case (Cons x xs)
-
     show ?case
       using Cons.IH[of \<open>dummies @ [x]\<close>]
-      apply simp
-      sorry
-
-    (* have * :
-      \<open>[offset ..< offset + length (x # xs)] 
-        = offset # [Suc offset ..< Suc offset + length xs]\<close>
-      sorry
-
-    show ?case
-      apply (rule ext)
-      using Cons[of \<open>Suc offset\<close> dummy]
-      apply (subst * )
-      apply (simp only: foldM.simps)
-      apply (auto simp del: List.upt.upt_Suc)
-      sorry *)
+      by (auto intro: bind_pmf_cong simp del: upt_Suc)
   qed
-
-  (* have \<open>lazy_step xs = ?step_no_fail\<close>
-    by (fastforce
-      intro: map_pmf_cong bind_pmf_cong
-      simp add: lazy_step_def step_no_fail_def Let_def map_pmf_def[symmetric])
-  
-  then have
-    \<open>foldM_pmf step_no_fail xs
-      = foldM_pmf (\<lambda> n. ?step_no_fail (n - offset)) [offset ..< offset + length xs]\<close>
-    for offset
-    proof (induction xs arbitrary: offset)
-      case Nil
-      then show ?case by auto
-    next
-      case (Cons x xs)
-      then show ?case sorry
-    qed *)
 qed
 
 lemma lazy_algorithm_eq:
