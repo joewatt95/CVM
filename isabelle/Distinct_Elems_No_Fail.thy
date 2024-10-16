@@ -73,7 +73,7 @@ lemma step_preserves_well_formedness :
     split: if_splits
     simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def Let_def)
 
-lemma aux :
+lemma spmf_bind_filter_chi_eq_map :
   assumes
     \<open>finite chi\<close> and
     \<open>card chi \<le> threshold\<close>
@@ -95,24 +95,29 @@ lemma aux :
               then None
               else Some (ctx {x \<in> chi. keep_in_chi x})))\<close>
 proof -
-  have [simp] : \<open>\<And> b e.
-    (if b then return_spmf e else fail_spmf)
+  have [simp] :
+    \<open>(if b then return_spmf e else fail_spmf)
       = return_pmf (if b then Some e else None)\<close>
+    for b and e :: 'c
     by (simp add: fail_spmf_def)
 
-  have [intro!] : \<open>\<And> p.
-    \<lbrakk>card chi = threshold;
-      p \<in> chi \<rightarrow>\<^sub>E UNIV;
-      \<not> card {a \<in> chi. p a} < threshold\<rbrakk>
-    \<Longrightarrow> p = (\<lambda> x \<in> chi. True)\<close>
-    by (smt (verit, best) assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
+  have [intro!] :
+    \<open>p = (\<lambda> _ \<in> chi. True)\<close>
+    if
+      \<open>card chi = threshold\<close>
+      \<open>p \<in> chi \<rightarrow>\<^sub>E UNIV\<close>
+      \<open>\<not> card {x \<in> chi. p x} < threshold\<close>
+    for p
+    by (smt (verit, best) that assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
 
-  have \<open>\<And> p. card chi < threshold \<Longrightarrow> card {x \<in> chi. p x} < threshold\<close>
+  have \<open>card chi < threshold \<Longrightarrow> card {x \<in> chi. p x} < threshold\<close> for p
     using assms by (metis Collect_subset basic_trans_rules(21) card_mono)
 
-  then show ?thesis using assms by (auto
-    intro: map_pmf_cong
-    simp add: set_prod_pmf Let_def Set.filter_def map_pmf_def[symmetric])
+  then show ?thesis
+    using assms
+    by (auto
+      intro: map_pmf_cong
+      simp add: set_prod_pmf Let_def Set.filter_def map_pmf_def[symmetric])
 qed
 
 lemma prob_fail_step_le :
@@ -131,7 +136,9 @@ proof -
   ultimately show ?thesis
     using assms
     apply (simp add: prob_fail_def step_def well_formed_state_def Let_def)
-    apply (simp add: aux pmf_prod_pmf pmf_bind pmf_map measure_pmf_single vimage_def)
+    apply (simp add:
+      spmf_bind_filter_chi_eq_map pmf_prod_pmf
+      pmf_bind pmf_map measure_pmf_single vimage_def)
     by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
 qed
 
