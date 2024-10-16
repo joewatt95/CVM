@@ -471,6 +471,17 @@ text \<open>Convert between the algorithms\<close>
 lemma lazy_algorithm_eq_aux :
   \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
 proof -
+  (* As with proving things about `List.enumerate`, we need to introduce an
+    arbitrary offset to the list of indices `[0 ..< length xs]` passed as input
+    to the lhs. 
+
+    If not, our IH will be too weak, as it will talk about `[0 ..< length xs]`,
+    but due to the structure ouf our fold, we instead want to talk about
+      `[0 ..< length xs + 1] = 0 # [1 ..< length xs + 1]]`
+
+    For this to work, we also need to pad the input list to `lazy_step` since it
+    access elements in `xs` by indexing with the list of indices
+    `[0 ..< length xs]` *)
   show ?thesis when \<open>\<And> dummies val.
     foldM_pmf
       (lazy_step <| dummies @ xs)
