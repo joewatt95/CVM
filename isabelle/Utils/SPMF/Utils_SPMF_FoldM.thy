@@ -1,8 +1,8 @@
 theory Utils_SPMF_FoldM
 
 imports
+  CVM.Utils_PMF_Common
   CVM.Utils_SPMF_Common
-  CVM.Utils_PMF
 
 begin
 

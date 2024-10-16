@@ -49,21 +49,18 @@ lemma prob_le_prob_of_ord_spmf_eq :
   assumes \<open>ord_spmf (=) p p'\<close>
   defines \<open>prob p'' \<equiv> \<P>(\<omega> in measure_spmf p''. P \<omega>)\<close>
   shows \<open>prob p \<le> prob p'\<close>
-
   using assms
   by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
   assumes \<open>\<And> x val. ord_spmf (=) (f x val) (f' x val)\<close>
   shows \<open>ord_spmf (=) (foldM_spmf f xs val) <| foldM_spmf f' xs val\<close>
-
   apply (induction xs arbitrary: val)
   using assms by (auto intro: ord_spmf_bindI)
 
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
-
   using assms
   by (simp add: pmf_None_eq_weight_spmf prob_fail_def rel_spmf_weightD)
 
@@ -75,13 +72,11 @@ definition relational_hoare_triple ::
 lemma skip [simp] :
   \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
     \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
-
   by (simp add: relational_hoare_triple_def) 
 
 lemma skip' [simp] :
   \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
     \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
-
   by (simp add: relational_hoare_triple_def)
 
 lemma seq :
@@ -89,22 +84,20 @@ lemma seq :
     \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
     \<open>\<turnstile> \<lbrace>S\<rbrace> \<langle>g | g'\<rangle> \<lbrace>T\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(f >=> g) | (f' >=> g')\<rangle> \<lbrace>T\<rbrace>\<close>
-
   using assms
   by (auto
-      intro!: rel_spmf_bindI
-      simp add: relational_hoare_triple_def)
+    intro!: rel_spmf_bindI
+    simp add: relational_hoare_triple_def)
 
 lemma seq' :
   assumes
     \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
     \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile> \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
-
   using assms
   by (auto
-      intro!: rel_spmf_bindI
-      simp add: relational_hoare_triple_def)
+    intro!: rel_spmf_bindI
+    simp add: relational_hoare_triple_def)
 
 context
   fixes
@@ -143,18 +136,16 @@ lemma loop :
     \<open>\<turnstile> \<lbrace>R offset\<rbrace>
       \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
       \<lbrace>R (offset + length xs)\<rbrace>\<close>
-
   using assms
   by (auto
-      intro: loop_enumerate
-      simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
+    intro: loop_enumerate
+    simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
 
 end
 
 lemma loop_unindexed :
   assumes \<open>\<And> x x'. \<turnstile> \<lbrace>R\<rbrace> \<langle>f x | f' x'\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
-
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
 

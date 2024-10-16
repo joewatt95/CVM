@@ -16,28 +16,15 @@ imports
 
 begin
 
-sledgehammer_params [
-  (* verbose *)
-  minimize = true,
-  preplay_timeout = 15,
-  timeout = 60,
-  max_facts = smart,
-  provers = "
-    cvc4 z3 verit
-    e vampire spass
-  "
-]
-
 abbreviation possibly_evals_to
   (\<open>\<turnstile> _ \<Rightarrow>? _\<close> [20, 2] 60) where
   \<open>\<turnstile> p \<Rightarrow>? x \<equiv> x \<in> set_spmf p\<close>
 
-lemma bind_elim :
+lemma bind_spmfE :
   assumes \<open>\<turnstile> f x \<bind> g \<Rightarrow>? z\<close>
   obtains y where
     \<open>\<turnstile> f x \<Rightarrow>? y\<close> and 
     \<open>\<turnstile> g y \<Rightarrow>? z\<close>
-
   using assms by (auto simp add: set_bind_spmf)
 
 definition hoare_triple ::
@@ -45,19 +32,17 @@ definition hoare_triple ::
   (\<open>\<turnstile> \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> \<forall> x y. P x \<longrightarrow> (\<turnstile> f x \<Rightarrow>? y) \<longrightarrow> Q y\<close>
 
-lemma hoare_triple_intro :
+lemma hoare_tripleI :
   assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile> f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-
   by (metis assms hoare_triple_def)
 
-lemma hoare_triple_elim :
+lemma hoare_tripleE :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
     \<open>P x\<close> and
     \<open>\<turnstile> f x \<Rightarrow>? y\<close>
   shows \<open>Q y\<close>
-
   by (metis assms hoare_triple_def)
 
 lemma precond_postcond :
@@ -66,53 +51,44 @@ lemma precond_postcond :
     \<open>\<And> x. P' x \<Longrightarrow> P x\<close>
     \<open>\<And> x. Q x \<Longrightarrow> Q' x\<close>
   shows \<open>\<turnstile> \<lbrace>P'\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
-
-  by (metis assms hoare_triple_intro hoare_triple_elim)
+  by (metis assms hoare_tripleI hoare_tripleE)
 
 lemma postcond_true :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>True\<rblot>\<rbrace>\<close>
-
-  by (simp add: hoare_triple_intro)
+  by (simp add: hoare_tripleI)
 
 lemma fail [simp] :
   \<open>\<turnstile> \<lbrace>P\<rbrace> \<lblot>fail_spmf\<rblot> \<lbrace>Q\<rbrace>\<close>
-
-  by (metis fail_spmf_def empty_iff hoare_triple_intro set_spmf_return_pmf_None)
+  by (metis fail_spmf_def empty_iff hoare_tripleI set_spmf_return_pmf_None)
 
 lemma skip [simp] :
   \<open>(\<turnstile> \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
-
-  by (auto intro!: hoare_triple_intro elim!: hoare_triple_elim)
+  by (auto intro: hoare_tripleI elim: hoare_tripleE)
 
 lemma skip' [simp] :
   \<open>(\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q (f x))\<close>
-
   by (simp add: hoare_triple_def)
 
 lemma hoare_triple_altdef :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<longleftrightarrow> \<turnstile> \<lbrace>P\<rbrace> f \<lbrace>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile> f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrace>\<close>
-
-  by (smt (verit, ccfv_SIG) hoare_triple_elim hoare_triple_intro)
+  by (smt (verit, ccfv_SIG) hoare_tripleE hoare_tripleI)
 
 lemma seq :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close> and
     \<open>\<turnstile> \<lbrace>Q\<rbrace> g \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> f >=> g \<lbrace>R\<rbrace>\<close>
-
   using assms
   by (auto
-      intro!: hoare_triple_intro
-      elim!: bind_elim hoare_triple_elim)
+    intro!: hoare_tripleI
+    elim!: bind_spmfE hoare_tripleE)
 
 lemma seq' :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile> \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
-
-  using assms
-  by (smt (verit, ccfv_threshold) hoare_triple_def seq)
+  using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq)
 
 lemma if_then_else :
   assumes
@@ -154,18 +130,16 @@ qed
 lemma loop :
   assumes \<open>\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
-
   using assms
   by (auto
-      intro: loop_enumerate
-      simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
+   intro: loop_enumerate
+    simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
 
 end
 
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
-
   using loop[where ?P = \<open>curry <| snd >>> P\<close>, where ?offset = 0] assms
   by (fastforce simp add: hoare_triple_def curry_def snd_def)
 
@@ -176,19 +150,19 @@ lemma integral_mono_of_hoare_triple :
     g h :: \<open>'b \<Rightarrow> real\<close>
   defines \<open>\<mu> \<equiv> measure_spmf (f x)\<close>
   assumes
-    \<open>\<turnstile> \<lbrace>\<lblot>True\<rblot>\<rbrace> f \<lbrace>(\<lambda> y. g y \<le> h y)\<rbrace>\<close> and
-    \<open>integrable \<mu> g\<close> and
+    \<open>\<turnstile> \<lbrace>\<lblot>True\<rblot>\<rbrace> f \<lbrace>(\<lambda> y. g y \<le> h y)\<rbrace>\<close>
+    \<open>integrable \<mu> g\<close>
     \<open>integrable \<mu> h\<close>
   shows \<open>(\<integral> y. g y \<partial> \<mu>) \<le> \<integral> y. h y \<partial> \<mu>\<close>
 
-  using assms by (auto intro!: integral_mono_AE elim!: hoare_triple_elim)
+  using assms by (auto intro!: integral_mono_AE elim!: hoare_tripleE)
 
 lemma prob_fail_foldM_spmf_le :
   fixes
     p :: real and
     P :: \<open>'b \<Rightarrow> bool\<close>
   assumes
-    \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close> and
+    \<open>\<And> x. \<turnstile> \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
     \<open>\<And> x val. P val \<Longrightarrow> prob_fail (f x val) \<le> p\<close>
   shows \<open>P val \<Longrightarrow> prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close>
 proof (induction xs arbitrary: val)
@@ -211,7 +185,7 @@ next
       \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?val'\<rblot>
       \<lbrace>(\<lambda> val'. prob_fail (foldM_spmf f xs val') \<le> length xs * p)\<rbrace>\<close>
       using assms Cons.IH \<open>P val\<close>
-      by (smt (verit, ccfv_threshold) hoare_triple_elim hoare_triple_intro skip)
+      by (smt (verit, ccfv_threshold) hoare_tripleE hoare_tripleI skip)
 
     then have
       \<open>(\<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>')
@@ -226,15 +200,16 @@ next
 
   also have \<open>... \<le> p + length xs * p\<close>
   proof -
-    have * : \<open>\<And> a b :: real.
-      \<lbrakk>a \<in> {0 .. 1}; b \<ge> 0\<rbrakk> \<Longrightarrow> a * b \<le> b\<close>
-      by (simp add: mult_left_le_one_le mult_mono)
+    have [intro] :
+      \<open>a * b \<le> b\<close> if \<open>0 \<le> a\<close> \<open>a \<le> 1\<close> \<open>b \<ge> 0\<close> for a b :: real
+      by (simp add: mult_left_le_one_le that) 
 
-    show \<open>?thesis\<close> when \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
+    show \<open>?thesis\<close> when
+      \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
       by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def that)
 
     then show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
-      by (auto intro: * simp add: weight_spmf_le_1)
+      by (auto simp add: landau_omega.R_mult_right_mono mult_le_cancel_right2 weight_spmf_le_1)
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 

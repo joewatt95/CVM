@@ -1,9 +1,11 @@
 section \<open> TODO \<close>
-theory Distinct_Elem_Alg
+theory Distinct_Elems_Algo
 
 imports
-  CVM.Utils_PMF
+  Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  CVM.Utils_PMF_Common
   CVM.Utils_SPMF_FoldM
+
 begin
 
 record 'a state =
@@ -12,7 +14,7 @@ record 'a state =
 
 locale with_threshold =
   fixes threshold :: nat
-  assumes threshold_pos: "threshold > 0"
+  assumes threshold_pos : \<open>threshold > 0\<close>
 begin
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
@@ -31,7 +33,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
     then return_spmf (state\<lparr>state_chi := chi\<rparr>)
     else do {
       keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-        Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+        prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
 
       let chi = Set.filter keep_in_chi chi;
 
@@ -45,11 +47,13 @@ definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a s
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
-text \<open> The algorithm is defined in the SPMF monad (with None representing failure) \<close>
+text
+  \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
+
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct \<equiv>
     run_steps initial_state >>>
-      map_spmf (\<lambda>state. card (state_chi state) * 2 ^ (state_k state))\<close>
+      map_spmf (\<lambda> state. card (state_chi state) * 2 ^ (state_k state))\<close>
 
 end
 

@@ -1,12 +1,14 @@
-theory Distinct_Elem_Alg_Eager
-  imports
-    CVM.Reader_Monad
-    CVM.Lazify
-    CVM.Utils_List
-    Distinct_Elem_Alg_No_Fail
+theory Distinct_Elems_Eager
+
+imports
+  CVM.Utils_Reader_Monad
+  CVM.Utils_PMF_Lazify
+  CVM.Utils_List
+  CVM.Distinct_Elems_No_Fail
+
 begin
 
-type_synonym coin_matrix = "nat \<times> nat \<Rightarrow> bool"
+type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
 context with_threshold
 begin
@@ -456,7 +458,7 @@ text \<open>Convert between the algorithms\<close>
 
 lemma lazy_algorithm_eq_aux:
   shows "foldM_pmf (lazy_step xs) [0..<length xs] st
-    = flip (foldM_pmf step_nf) st xs"
+    = flip (foldM_pmf step_no_fail) st xs"
 proof (induction xs arbitrary:st)
   case Nil
   then show ?case by auto
@@ -466,8 +468,8 @@ next
 qed
 
 lemma lazy_algorithm_eq:
-  shows "lazy_algorithm xs  = run_steps_nf initial_state xs"
-  by (simp add: lazy_algorithm_def lazy_algorithm_eq_aux run_steps_nf_def)
+  shows "lazy_algorithm xs  = run_steps_no_fail initial_state xs"
+  by (simp add: lazy_algorithm_def lazy_algorithm_eq_aux run_steps_no_fail_def)
 
 lemma
   "length xs \<le> n \<Longrightarrow>

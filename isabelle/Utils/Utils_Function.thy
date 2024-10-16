@@ -61,7 +61,6 @@ definition foldM_enumerate where
 lemma foldM_eq_foldM_enumerate :
   \<open>foldM bind return f xs
     = foldM_enumerate bind return (f \<circ> snd) xs offset\<close>
-
   apply (induction xs arbitrary: offset)
   by (auto simp add: foldM_enumerate_def)
 

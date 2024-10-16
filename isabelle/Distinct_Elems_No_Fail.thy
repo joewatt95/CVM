@@ -1,12 +1,13 @@
 section \<open> Analysis of algorithm TODO \<close>
-theory Distinct_Elem_Alg_No_Fail
+theory Distinct_Elems_No_Fail
 
 imports
-  Distinct_Elem_Alg
-  CVM.Utils_PMF
+  CVM.Distinct_Elems_Algo
+  CVM.Utils_PMF_Common
   CVM.Utils_SPMF_FoldM
   CVM.Utils_SPMF_Rel
   CVM.Utils_SPMF_Hoare
+
 begin
 
 sledgehammer_params [
@@ -24,7 +25,37 @@ sledgehammer_params [
 context with_threshold
 begin
 
-definition well_formed_state :: \<open>('a, 'b) state_scheme \<Rightarrow> bool\<close>
+definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
+  \<open>step_no_fail x state \<equiv> do {
+    let k = state_k state;
+    let chi = state_chi state;
+
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
+
+    let chi = (chi |>
+      if insert_x_into_chi
+      then insert x
+      else Set.remove x);
+
+    if card chi < threshold
+    then return_pmf (state\<lparr>state_chi := chi\<rparr>)
+    else do {
+      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
+        Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+
+      let chi = Set.filter keep_in_chi chi;
+
+      return_pmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr> }}\<close>
+
+definition run_steps_no_fail :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state pmf\<close> where
+  \<open>run_steps_no_fail \<equiv> flip (foldM_pmf step_no_fail)\<close>
+
+definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
+  \<open>estimate_distinct_no_fail \<equiv>
+    run_steps_no_fail initial_state >>>
+      map_pmf (\<lambda> state. card (state_chi state) * 2 ^ (state_k state))\<close>
+
+definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
   \<open>state ok \<equiv> (
     let chi = state_chi state
@@ -38,7 +69,7 @@ lemma step_preserves_well_formedness :
   \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
   unfolding step_def bind_spmf_of_pmf[symmetric] Let_def
   by (fastforce
-    intro: seq' hoare_triple_intro
+    intro: seq' hoare_tripleI
     split: if_splits
     simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def Let_def)
 
@@ -115,71 +146,38 @@ lemma prob_fail_estimate_size_le :
     prob_fail_step_le initial_state_well_formed]
   by (fastforce simp add: estimate_distinct_def prob_fail_map_spmf run_steps_def)
 
-definition step_nf :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step_nf x state \<equiv> do {
-    let k = state_k state;
-    let chi = state_chi state;
-
-    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
-
-    let chi = (chi |>
-      if insert_x_into_chi
-      then insert x
-      else Set.remove x);
-
-    if card chi < threshold
-    then return_pmf (state\<lparr>state_chi := chi\<rparr>)
-    else do {
-      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-        Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
-
-      let chi = Set.filter keep_in_chi chi;
-
-      return_pmf <| state\<lparr>state_k := k + 1, state_chi := chi\<rparr> }}\<close>
-
-definition run_steps_nf :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state pmf\<close> where
-  \<open>run_steps_nf \<equiv> flip (foldM_pmf step_nf)\<close>
-
-definition estimate_distinct_nf :: \<open>'a list \<Rightarrow> nat pmf\<close> where
-  \<open>estimate_distinct_nf \<equiv>
-    run_steps_nf initial_state >>>
-      map_pmf (\<lambda>state. card (state_chi state) * 2 ^ (state_k state))\<close>
-
 lemma step_ord_spmf_eq :
-  \<open>ord_spmf (=) (step x state) (spmf_of_pmf <| step_nf x state)\<close>
+  \<open>ord_spmf (=) (step x state) (spmf_of_pmf <| step_no_fail x state)\<close>
   by (fastforce
     intro: ord_spmf_bind_reflI
     simp add:
-      step_nf_def step_def fail_spmf_def Let_def
+      step_no_fail_def step_def fail_spmf_def Let_def
       spmf_of_pmf_def bind_spmf_of_pmf[symmetric] map_bind_pmf)
-
-find_theorems "spmf_of_pmf" "map_pmf"
 
 lemma estimate_distinct_ord_spmf_eq :
   \<open>ord_spmf (=)
     (estimate_distinct xs)
-    (spmf_of_pmf <| estimate_distinct_nf xs)\<close>
+    (spmf_of_pmf <| estimate_distinct_no_fail xs)\<close>
   apply (simp
     del: map_spmf_of_pmf
     add:
       estimate_distinct_def run_steps_def
-      estimate_distinct_nf_def run_steps_nf_def
-      map_spmf_of_pmf[symmetric]
-      ord_spmf_map_spmf)
+      estimate_distinct_no_fail_def run_steps_no_fail_def
+      map_spmf_of_pmf[symmetric] ord_spmf_map_spmf)
   by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold.step_ord_spmf_eq with_threshold_axioms) 
 
 (* Think of P as event that res is the wrong count *)
 lemma prob_estimate_distinct_le :
   \<open>\<P>(res in measure_spmf <| estimate_distinct xs. P res)
-    \<le> \<P>(res in estimate_distinct_nf xs. P res)\<close>
+    \<le> \<P>(res in estimate_distinct_no_fail xs. P res)\<close>
   using estimate_distinct_ord_spmf_eq prob_le_prob_of_ord_spmf_eq by fastforce
 
 lemma prob_estimate_distinct_fail_or_satisfies_le :
-  shows
-    \<open>\<P>(state in estimate_distinct xs. state |> fail_or_satisfies P)
-      \<le> real (length xs) / 2 ^ threshold
-        + \<P>(state in estimate_distinct_nf xs. P state)\<close>
+  \<open>\<P>(state in estimate_distinct xs. state |> fail_or_satisfies P)
+    \<le> real (length xs) / 2 ^ threshold
+      + \<P>(state in estimate_distinct_no_fail xs. P state)\<close>
   by (smt (verit, best) Collect_cong prob_estimate_distinct_le prob_fail_estimate_size_le prob_fail_or_satisfies_le_prob_fail_plus_prob) 
 
 end
+
 end

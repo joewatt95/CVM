@@ -1,10 +1,12 @@
-theory Distinct_Elem_Alg_Nondet
-  imports
-    CVM.Reader_Monad
-    CVM.Lazify
-    CVM.Utils_List
-    Distinct_Elem_Alg_Eager
-    "Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF"
+theory Distinct_Elems_Nondet
+
+imports
+  Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  CVM.Utils_Reader_Monad
+  CVM.Utils_PMF_Lazify
+  CVM.Utils_List
+  CVM.Distinct_Elems_Eager
+
 begin
 
 lemma find_last_before_self_eq:
@@ -150,7 +152,7 @@ proof -
     using assms(1) find_last_correct_1(2) by fastforce
   finally show ?thesis .
 qed
-  
+
 end
 
 end
