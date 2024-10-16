@@ -75,7 +75,7 @@ lemma step_preserves_well_formedness :
 
 lemma spmf_bind_filter_chi_eq_map :
   assumes
-    \<open>finite chi\<close> and
+    \<open>finite chi\<close>
     \<open>card chi \<le> threshold\<close>
   shows
     \<open>do {
@@ -110,8 +110,10 @@ proof -
     for p
     by (smt (verit, best) that assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
 
-  have \<open>card chi < threshold \<Longrightarrow> card {x \<in> chi. p x} < threshold\<close> for p
-    using assms by (metis Collect_subset basic_trans_rules(21) card_mono)
+  have
+    \<open>card {x \<in> chi. p x} < threshold\<close> 
+    if \<open>card chi < threshold\<close> for p
+    using that assms by (metis Collect_subset basic_trans_rules(21) card_mono)
 
   then show ?thesis
     using assms
@@ -133,13 +135,16 @@ proof -
   moreover have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
     by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
 
+  moreover have
+    \<open>((1 :: real) / 2) ^ threshold / 2 ^ k \<le> 1 / 2 ^ threshold\<close> for threshold k
+    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
+
   ultimately show ?thesis
     using assms
-    apply (simp add: prob_fail_def step_def well_formed_state_def Let_def)
-    apply (simp add:
-      spmf_bind_filter_chi_eq_map pmf_prod_pmf
+    apply (simp add: step_def well_formed_state_def Let_def)
+    by (simp add:
+      spmf_bind_filter_chi_eq_map prob_fail_def pmf_prod_pmf
       pmf_bind pmf_map measure_pmf_single vimage_def)
-    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
 qed
 
 lemma prob_fail_map_spmf:
