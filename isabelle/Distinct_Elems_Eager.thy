@@ -8,6 +8,18 @@ imports
 
 begin
 
+sledgehammer_params [
+  (* verbose *)
+  minimize = true,
+  preplay_timeout = 15,
+  timeout = 60,
+  max_facts = smart,
+  provers = "
+    cvc4 z3 verit
+    e vampire spass
+  "
+]
+
 type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
 context with_threshold
@@ -456,19 +468,67 @@ qed
 
 text \<open>Convert between the algorithms\<close>
 
-lemma lazy_algorithm_eq_aux:
-  shows "foldM_pmf (lazy_step xs) [0..<length xs] st
-    = flip (foldM_pmf step_no_fail) st xs"
-proof (induction xs arbitrary:st)
-  case Nil
-  then show ?case by auto
-next
-  case (Cons a xs)
-  then show ?case sorry
+lemma lazy_step_eq_aux :
+  \<open>lazy_step xs index = lazy_step (dummies @ xs) (length dummies + index)\<close>
+proof -
+  have \<open>(xs @ ys) ! (length xs + index) = ys ! index\<close> for xs ys index by simp
+
+  then show ?thesis unfolding lazy_step_def by metis
+qed
+
+lemma lazy_algorithm_eq_aux :
+  \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
+proof -
+  show ?thesis when \<open>\<And> dummies.
+    foldM_pmf (lazy_step <| dummies @ xs) [length dummies ..< length dummies + length xs]
+      = foldM_pmf step_no_fail xs\<close>
+    (is \<open>\<And> offset y. ?thesis offset y\<close>)
+    using that[of \<open>[]\<close>] by auto
+
+  show \<open>?thesis dummies\<close> for dummies
+  proof (induction xs arbitrary: dummies)
+    case Nil
+    then show ?case by simp
+  next
+    case (Cons x xs)
+
+    then show ?thesis
+      sorry
+
+    (* have * :
+      \<open>[offset ..< offset + length (x # xs)] 
+        = offset # [Suc offset ..< Suc offset + length xs]\<close>
+      sorry
+
+    show ?case
+      apply (rule ext)
+      using Cons[of \<open>Suc offset\<close> dummy]
+      apply (subst * )
+      apply (simp only: foldM.simps)
+      apply (auto simp del: List.upt.upt_Suc)
+      sorry *)
+  qed
+
+  (* have \<open>lazy_step xs = ?step_no_fail\<close>
+    by (fastforce
+      intro: map_pmf_cong bind_pmf_cong
+      simp add: lazy_step_def step_no_fail_def Let_def map_pmf_def[symmetric])
+  
+  then have
+    \<open>foldM_pmf step_no_fail xs
+      = foldM_pmf (\<lambda> n. ?step_no_fail (n - offset)) [offset ..< offset + length xs]\<close>
+    for offset
+    proof (induction xs arbitrary: offset)
+      case Nil
+      then show ?case by auto
+    next
+      case (Cons x xs)
+      then show ?case sorry
+    qed *)
 qed
 
 lemma lazy_algorithm_eq:
-  shows "lazy_algorithm xs  = run_steps_no_fail initial_state xs"
+  shows "lazy_algorithm xs = run_steps_no_fail initial_state xs"
   by (simp add: lazy_algorithm_def lazy_algorithm_eq_aux run_steps_no_fail_def)
 
 lemma

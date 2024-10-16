@@ -135,6 +135,11 @@ proof -
   moreover have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
     by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
 
+  (* This inequality arises because assuming that |chi| = threshold - 1,
+    lhs = probability of failure at iteration i
+        = (prob of sampling H (and hence inserting x into chi)
+            with probability 1 / 2 ^ k)
+          * (prob of not throwing anything away in chi afterwards) *)
   moreover have
     \<open>((1 :: real) / 2) ^ threshold / 2 ^ k \<le> 1 / 2 ^ threshold\<close> for threshold k
     by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
