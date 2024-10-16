@@ -208,7 +208,7 @@ next
       \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
       by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def that)
 
-    then show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
+    show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
       by (auto simp add: landau_omega.R_mult_right_mono mult_le_cancel_right2 weight_spmf_le_1)
   qed
 
