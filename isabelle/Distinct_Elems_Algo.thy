@@ -50,10 +50,13 @@ definition initial_state :: \<open>'a state\<close> where
 text
   \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
 
+definition get_estimate :: "'a state \<Rightarrow> nat"
+  where "get_estimate state =  card (state_chi state) * 2 ^ (state_k state)"
+
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct \<equiv>
     run_steps initial_state >>>
-      map_spmf (\<lambda> state. card (state_chi state) * 2 ^ (state_k state))\<close>
+      map_spmf get_estimate\<close>
 
 end
 

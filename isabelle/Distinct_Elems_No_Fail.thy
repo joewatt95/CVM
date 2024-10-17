@@ -53,7 +53,7 @@ definition run_steps_no_fail :: \<open>'a state \<Rightarrow> 'a list \<Rightarr
 definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_no_fail \<equiv>
     run_steps_no_fail initial_state >>>
-      map_pmf (\<lambda> state. card (state_chi state) * 2 ^ (state_k state))\<close>
+      map_pmf get_estimate\<close>
 
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where

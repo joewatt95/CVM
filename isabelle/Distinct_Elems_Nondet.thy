@@ -15,6 +15,9 @@ lemma find_last_before_self_eq:
   unfolding find_last_before_def find_last_def Let_def
   using assms by auto
 
+(* After processing the list xs, the chi is the set of
+     distinct elements x in xs where the last time
+     we flipped coins for x, the first k elements were heads. *)
 definition nondet_alg_aux :: "nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set"
   where "nondet_alg_aux k xs \<phi> =
   {y \<in> set xs.
@@ -78,8 +81,10 @@ qed
 
 lemma rel_pmf_eager_algorithm_nondet_alg_aux:
   "rel_pmf (\<lambda>st Y. state_k st = K \<longrightarrow> state_chi st = Y)
-    (map_pmf (run_reader (eager_algorithm xs)) (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
-    (map_pmf (nondet_alg_aux K xs) (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))"
+    (map_pmf (run_reader (eager_algorithm xs))
+      (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
+    (map_pmf (nondet_alg_aux K xs)
+      (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))"
   unfolding pmf.rel_map
   apply (intro rel_pmf_reflI)
   by (meson eager_algorithm_inv eager_state_inv_def)
