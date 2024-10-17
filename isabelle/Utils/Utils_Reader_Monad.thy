@@ -18,9 +18,6 @@ definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad 
 
 adhoc_overloading Monad_Syntax.bind bind_rd
 
-definition ran_rd :: "('c, 'a) reader_monad \<Rightarrow> 'a set"
-  where "ran_rd m = run_reader m ` UNIV"
-
 abbreviation foldM_rd  :: "('a \<Rightarrow> 'b \<Rightarrow> ('c,'b) reader_monad) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> ('c,'b) reader_monad" where
   \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
 

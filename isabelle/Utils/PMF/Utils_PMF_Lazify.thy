@@ -82,13 +82,14 @@ lemma depends_on_return: "depends_on (return_rd c) S"
   unfolding depends_on_def return_rd_def by simp
 
 lemma depends_on_bind:
-  assumes "depends_on m S" "\<And>x. depends_on (f (run_reader m x)) S"
+  assumes "depends_on m S" "\<And>x. x \<in> set_pmf (sample m) \<Longrightarrow> depends_on (f x) S"
   shows "depends_on (bind_rd m f) S"
 proof (rule depends_onI)
   fix x y :: "'a \<Rightarrow> 'c"
   assume a: "x \<in> set_pmf space" "y \<in> set_pmf space"  "restrict x S = restrict y S"
+  have b: "run_reader m y \<in> set_pmf (sample m)" using a(2) unfolding sample_def by simp
   show "run_reader (m \<bind> f) x = run_reader (m \<bind> f) y"
-    unfolding run_reader_simps depends_onD[OF assms(1) a] depends_onD[OF assms(2) a] by simp
+    unfolding run_reader_simps depends_onD[OF assms(1) a] depends_onD[OF assms(2)[OF b] a] by simp
 qed
 
 lemma depends_on_bind_eq:

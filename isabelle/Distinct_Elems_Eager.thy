@@ -402,12 +402,13 @@ lemma depends_on_step_approx:
   defines "l \<equiv> length xs"
   shows "depends_on (eager_step (xs @ [x]) l \<sigma>) ({state_k \<sigma>..<state_k \<sigma>+1}\<times>{..<l+1} \<union> {..<state_k \<sigma>}\<times>{l})"
 proof -
-  have a:"state_k (run_reader (eager_step_1 (xs @ [x]) (length xs) \<sigma>) \<phi>) = state_k \<sigma>" for \<phi>
-    unfolding eager_step_1_def by (simp add:run_reader_simps)
+  have "state_k \<sigma>' = state_k \<sigma>" if "\<sigma>' \<in> set_pmf (sample (eager_step_1 (xs @ [x]) l \<sigma>))" for \<sigma>'
+    using that unfolding l_def by (simp add:eager_step_1_def sample_def)
+      (auto simp add:run_reader_simps)
 
-  show ?thesis unfolding eager_step_split l_def
-    by (intro depends_on_bind depends_on_mono[OF depends_on_step1] depends_on_mono[OF depends_on_step2])
-      (auto simp add:a)
+  thus ?thesis unfolding eager_step_split l_def
+    by (intro depends_on_bind depends_on_mono[OF depends_on_step1]
+        depends_on_mono[OF depends_on_step2]) auto
 qed
 
 lemma depends_on_step:
@@ -520,10 +521,10 @@ next
 
   have step:"lazy_step (xs @ [x]) (length xs) = step_no_fail x"
     unfolding lazy_step_def step_no_fail_def Let_def
-    by (intro ext bind_pmf_cong refl) (simp add:nth_append) 
+    by (intro ext bind_pmf_cong refl) (simp add:nth_append)
 
-  show ?case 
-    unfolding lazy_algorithm_snoc snoc 
+  show ?case
+    unfolding lazy_algorithm_snoc snoc
     unfolding run_steps_no_fail_def foldM_pmf_snoc step by simp
 qed
 
@@ -557,7 +558,7 @@ lemma lazy_algorithm_eq_aux :
 proof -
   (* As with proving things about `List.enumerate`, we need to introduce an
     arbitrary offset to the list of indices `[0 ..< length xs]` passed as input
-    to the lhs. 
+    to the lhs.
     If not, our IH will be too weak, as it will talk about `[0 ..< length xs]`,
     but due to the structure of our fold, we instead want to rewrite and apply
     our IH to the following:
