@@ -104,8 +104,8 @@ proof -
   have [intro!] :
     \<open>p = (\<lambda> _ \<in> chi. True)\<close>
     if
-      \<open>card chi = threshold\<close>
       \<open>p \<in> chi \<rightarrow>\<^sub>E UNIV\<close>
+      \<open>card chi = threshold\<close>
       \<open>\<not> card {x \<in> chi. p x} < threshold\<close>
     for p
     by (smt (verit, best) that assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
@@ -113,7 +113,7 @@ proof -
   have
     \<open>card {x \<in> chi. p x} < threshold\<close> 
     if \<open>card chi < threshold\<close> for p
-    using that assms by (metis Collect_subset basic_trans_rules(21) card_mono)
+    by (metis that assms(1) Collect_subset basic_trans_rules(21) card_mono)
 
   then show ?thesis
     using assms

@@ -468,50 +468,71 @@ qed
 
 text \<open>Convert between the algorithms\<close>
 
+(* lemma
+  \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
+proof (induction xs rule: rev_induct)
+  case Nil
+  show ?case by simp
+next
+  case (snoc x xs)
+
+  have [simp] : \<open>lazy_step (xs @ [x]) (length xs) = step_no_fail x\<close>
+    for x :: 'a and xs
+    unfolding lazy_step_def step_no_fail_def by (metis nth_append_length)
+
+  show ?case
+    apply (intro ext)
+    apply (simp add: foldM_pmf_snoc del: foldM.simps)
+    apply (intro bind_pmf_cong)
+    apply simp_all
+
+    thm snoc
+
+    sorry
+
+qed *)
+
 lemma lazy_algorithm_eq_aux :
   \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
 proof -
   (* As with proving things about `List.enumerate`, we need to introduce an
     arbitrary offset to the list of indices `[0 ..< length xs]` passed as input
     to the lhs. 
-
     If not, our IH will be too weak, as it will talk about `[0 ..< length xs]`,
-    but due to the structure of our fold, we instead want to talk about
+    but due to the structure of our fold, we instead want to rewrite and apply
+    our IH to the following:
       `[0 ..< length xs + 1] = 0 # [1 ..< length xs + 1]`
 
-    For this to work, we also need to pad the input list to `lazy_step` since it
-    access elements in `xs` by indexing with the list of indices
-    `[0 ..< length xs]` *)
-  show ?thesis when \<open>\<And> dummies val.
+    For this to work, we also need to pad the input list to `lazy_step` since
+    it access elements in `xs` by indexing with the list of indices
+    `[0 ..< length xs]`
+  *)
+  show ?thesis when \<open>\<And> padding.
     foldM_pmf
-      (lazy_step <| dummies @ xs)
-      [length dummies ..< length dummies + length xs] val
-    = foldM_pmf step_no_fail xs val\<close>
-    (is \<open>\<And> dummies val. ?thesis dummies val\<close>)
+      (lazy_step <| padding @ xs)
+      [length padding ..< length padding + length xs]
+    = foldM_pmf step_no_fail xs\<close>
+    (is \<open>\<And> padding. ?thesis padding\<close>)
     using that[of \<open>[]\<close>] by auto
 
-  show \<open>?thesis dummies val\<close> for dummies val
-  proof (induction xs arbitrary: dummies val)
+  show \<open>?thesis padding\<close> for padding
+  proof (induction xs arbitrary: padding)
     case Nil
-    then show ?case by simp
+    show ?case by simp
   next
     case (Cons x xs)
 
-    (* TODO: Find out how to E-unification, modulo simp eqns, as it would be
-      nice to not have to guess Isabelle's simp-normal-forms and express things
-      as such. *)
-    have [simp] :
-      \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
+    (* Think of `a` as `length xs` and `b` as `length padding` *)
+    have \<open>[a ..< a + (b + 1)] = a # [a + 1 ..< (a + 1) + b]\<close>
       for a b :: nat by (simp add: upt_rec)
 
-    have [simp] :
-      \<open>lazy_step (dummies @ x # xs) (length dummies) val = step_no_fail x val\<close>
-      for dummies :: \<open>'a list\<close> and x xs val
-      by (metis lazy_step_def step_no_fail_def nth_append_length)
+    moreover have
+      \<open>lazy_step (padding @ x # xs) (length padding) = step_no_fail x\<close>
+      for x :: 'a and xs padding
+      unfolding lazy_step_def step_no_fail_def by (metis nth_append_length)
 
-    show ?case
-      using Cons.IH[of \<open>dummies @ [x]\<close>]
-      by (auto intro: bind_pmf_cong simp del: upt_Suc)
+    ultimately show ?case
+      using Cons.IH[of \<open>padding @ [x]\<close>] by (auto cong: bind_pmf_cong)
   qed
 qed
 
