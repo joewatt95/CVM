@@ -101,18 +101,34 @@ proof -
     for b and e :: 'c
     by (simp add: fail_spmf_def)
 
+  (* This says that an indicator function keep_in_chi defined on chi,
+    representing the coins we flip to throw things out, evaluates to True
+    everywhere on chi if:
+    1. card chi = threshold
+    2. The subset of chi defined with keep_in_chi is still the same size as chi
+      itself.
+
+    This is marked as an intro pattern to assist automated proof search
+    procedures to prove that not filtering anything out of chi is equivalent to
+    sampling a `keep_in_chi` that is True everywhere on chi.
+    For that, the forward direction can be difficult for an automated proof
+    search procedure, as this will involve reasoning about set and subset
+    cardinalities, using the assms that we have.
+    Note that we also use intro! instead of just intro, because we want to
+    override other more general intro patterns, like function extensionality. 
+  *)
   have [intro!] :
-    \<open>p = (\<lambda> _ \<in> chi. True)\<close>
+    \<open>keep_in_chi = (\<lambda> _ \<in> chi. True)\<close>
     if
-      \<open>p \<in> chi \<rightarrow>\<^sub>E UNIV\<close>
+      \<open>keep_in_chi \<in> chi \<rightarrow>\<^sub>E UNIV\<close>
       \<open>card chi = threshold\<close>
-      \<open>\<not> card {x \<in> chi. p x} < threshold\<close>
-    for p
+      \<open>\<not> card {x \<in> chi. keep_in_chi x} < threshold\<close>
+    for keep_in_chi
     by (smt (verit, best) that assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
 
   have
-    \<open>card {x \<in> chi. p x} < threshold\<close> 
-    if \<open>card chi < threshold\<close> for p
+    \<open>card {x \<in> chi. keep_in_chi x} < threshold\<close> 
+    if \<open>card chi < threshold\<close> for keep_in_chi
     by (metis that assms(1) Collect_subset basic_trans_rules(21) card_mono)
 
   then show ?thesis
