@@ -529,7 +529,7 @@ proof -
     moreover have
       \<open>lazy_step (padding @ x # xs) (length padding) = step_no_fail x\<close>
       for x :: 'a and xs padding
-      unfolding lazy_step_def step_no_fail_def by (metis nth_append_length)
+      unfolding lazy_step_def step_no_fail_def nth_append_length ..
 
     ultimately show ?case
       using Cons.IH[of \<open>padding @ [x]\<close>] by (auto cong: bind_pmf_cong)
