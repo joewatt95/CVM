@@ -98,8 +98,7 @@ proof -
   have [simp] :
     \<open>(if b then return_spmf e else fail_spmf)
       = return_pmf (if b then Some e else None)\<close>
-    for b and e :: 'c
-    by (simp add: fail_spmf_def)
+    for b and e :: 'c by (simp add: fail_spmf_def)
 
   (* This says that an indicator function keep_in_chi defined on chi,
     representing the coins we flip to throw things out, evaluates to True
@@ -108,14 +107,14 @@ proof -
     2. The subset of chi defined with keep_in_chi is still the same size as chi
       itself.
 
-    This is marked as an intro pattern to assist automated proof search
-    procedures to prove that not filtering anything out of chi is equivalent to
-    sampling a `keep_in_chi` that is True everywhere on chi.
-    For that, the forward direction can be difficult for an automated proof
-    search procedure, as this will involve reasoning about set and subset
-    cardinalities, using the assms that we have.
+    This is marked as an intro pattern, ie a derived introduction rule, to
+    assist classical sequent calculi based proof search procedures like auto to
+    prove that not filtering anything out of chi is equivalent to sampling a
+    keep_in_chi that is True everywhere on chi.
+    The forward direction can be difficult for such procedures, as this
+    involves reasoning about set and subset cardinalities.
     Note that we also use intro! instead of just intro, because we want to
-    override other more general intro patterns, like function extensionality. 
+    override other more general intro patterns, like function extensionality.
   *)
   have [intro!] :
     \<open>keep_in_chi = (\<lambda> _ \<in> chi. True)\<close>
@@ -152,7 +151,7 @@ proof -
     by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
 
   (* This inequality arises because assuming that |chi| = threshold - 1,
-    lhs = probability of failure at iteration i
+    LHS = probability of failure at iteration i
         = (prob of sampling H (and hence inserting x into chi)
             with probability 1 / 2 ^ k)
           * (prob of not throwing anything away in chi afterwards) *)

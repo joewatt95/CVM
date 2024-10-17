@@ -89,11 +89,11 @@ definition eager_step_2 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<R
       let k = state_k state;
       let chi = state_chi state;
       if real (card chi) < threshold then
-        return_rd (state \<lparr>state_chi := chi\<rparr>)
+        return_rd (state\<lparr>state_chi := chi\<rparr>)
       else do {
         keep_in_chi \<leftarrow> map_rd (\<lambda>\<phi>. \<lambda>x \<in> chi. \<phi> (k, find_last_before i x xs)) get_rd;
         let chi = Set.filter keep_in_chi chi;
-        return_rd (\<lparr>state_k = k+1, state_chi = chi\<rparr>)
+        return_rd \<lparr>state_k = k+1, state_chi = chi\<rparr>
       }
     }"
 
