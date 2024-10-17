@@ -510,7 +510,25 @@ end
 
 text \<open>Convert between the algorithms\<close>
 
-(* lemma
+lemma lazy_algorithm_eq_snoc_version:
+  \<open>lazy_algorithm xs = run_steps_no_fail initial_state xs\<close>
+proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case unfolding lazy_algorithm_def run_steps_no_fail_def by simp
+next
+  case (snoc x xs)
+
+  have step:"lazy_step (xs @ [x]) (length xs) = step_no_fail x"
+    unfolding lazy_step_def step_no_fail_def Let_def
+    by (intro ext bind_pmf_cong refl) (simp add:nth_append) 
+
+  show ?case 
+    unfolding lazy_algorithm_snoc snoc 
+    unfolding run_steps_no_fail_def foldM_pmf_snoc step by simp
+qed
+
+(*
+lemma
   \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
 proof (induction xs rule: rev_induct)
   case Nil
