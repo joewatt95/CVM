@@ -18,20 +18,33 @@ lemma find_last_before_self_eq:
 (* After processing the list xs, the chi is the set of
      distinct elements x in xs where the last time
      we flipped coins for x, the first k elements were heads. *)
-definition nondet_alg_aux :: "nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set"
-  where "nondet_alg_aux k xs \<phi> =
-  {y \<in> set xs.
-    (\<forall>k' < k. \<phi> (k', find_last y xs))}"
+definition nondet_alg_aux ::
+  "nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set" where
+  "nondet_alg_aux k xs \<phi> =
+    {y \<in> set xs. \<forall> k' < k. \<phi> (k', find_last y xs)}"
 
 context with_threshold
 begin
 
 (* Given fixed xs and phi,
     the state having processed i elements *)
-definition eager_state_inv :: "'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a state \<Rightarrow> bool"
-  where "eager_state_inv xs \<phi> state \<equiv>
-  (state_chi state =
-    nondet_alg_aux (state_k state) xs \<phi>)"
+definition eager_state_inv ::
+  "'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a state \<Rightarrow> bool" where
+  "eager_state_inv xs \<phi> state \<equiv>
+    (state_chi state = nondet_alg_aux (state_k state) xs \<phi>)"
+
+lemma
+  assumes
+    \<open>index < length xs\<close>
+    \<open>eager_state_inv (take index xs) coins state\<close>
+  shows
+    \<open>eager_state_inv (take (index + 1) xs) coins
+      (run_reader (eager_step_1 xs index state) coins)\<close>
+proof -
+  show ?thesis
+    apply (auto simp add: eager_step_1_def run_reader_simps)
+    sorry
+qed
 
 lemma eager_step_1_inv:
   assumes i:"i < length xs"
