@@ -38,7 +38,9 @@ lemma eager_step_1_inv:
       (run_reader (eager_step_1 xs i state) \<phi>)"
   using assms
   unfolding eager_step_1_def eager_state_inv_def nondet_alg_aux_def
-  apply (auto simp add: run_reader_simps Let_def  find_last_before_def)
+  apply (auto simp add: in_set_conv_nth run_reader_simps Let_def find_last_before_def)
+  apply (metis find_last_before_def find_last_before_self_eq semiring_norm(174))
+  apply (meson less_SucI nth_take)
   sorry
 
 lemma eager_step_2_inv:
