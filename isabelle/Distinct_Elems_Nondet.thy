@@ -41,48 +41,21 @@ lemma
     \<open>i < length xs\<close>
     \<open>x \<noteq> xs ! i\<close>
     \<open>x \<in> set (take i xs)\<close>
-  shows \<open>find_last x (take i xs) = find_last_before i x xs\<close>
+  shows \<open>greatest_index (take i xs) x = greatest_index (take (i + 1) xs) x\<close>
 proof -
-  show ?thesis when \<open>\<And> padding.
-    filter
-      (\<lambda> j. take (length padding + i) (padding @ xs) ! j = x)
-      [length padding ..< length padding + i]
-    = filter
-        (\<lambda> j. take (Suc <| length padding + i) (padding @ xs) ! j = x)
-        [length padding ..< length padding + i]\<close>
-    (is \<open>\<And> padding. ?thesis padding\<close>)
-    using that[of \<open>[]\<close>] assms
-    by (auto simp add:
-      find_last_def find_last_before_def filter_empty_conv Let_def)
+  have
+    \<open>take (Suc i) xs ! j = xs ! j\<close>
+    if \<open>j \<le> i\<close> \<open>i < length xs\<close> for i j xs
+    using that by simp
 
-  show \<open>?thesis padding\<close> for padding
-  proof (induction i arbitrary: padding)
-    case 0
-    then show ?case by simp
-  next
-    case (Suc i)
+  then show ?thesis
+    using assms
+    apply (auto simp add: greatest_index_def)
 
-    have * : \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
-      for a b :: nat by (simp add: upt_rec)
+    prefer 2
+    apply (meson le_Suc_eq set_take_subset_set_take subsetD verit_comp_simplify1(2)) 
 
-    have ** :
-      \<open>(padding @ take (Suc i) xs) ! (length padding)
-        = xs ! 0\<close>
-      if \<open>i < length xs\<close> for xs padding i
-      using that
-      sorry
-
-    show ?case
-      using Suc.IH[of \<open>padding @ [x]\<close>] assms
-      apply (simp del: upt_Suc)
-      apply (subst *)
-      apply (simp del: upt_Suc)
-      apply simp
-      apply auto
-      apply (subst **) defer 1
-      apply (subst **) defer 1
-      sorry
-  qed
+    sorry
 qed
 
 lemma eager_step_1_inv:
