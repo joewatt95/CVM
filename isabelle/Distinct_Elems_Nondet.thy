@@ -51,7 +51,7 @@ lemma eager_step_1_inv:
     \<open>eager_state_inv (take i xs) coin_flips state\<close>
   shows
     \<open>eager_state_inv
-      (take (Suc i) xs)
+      (take (i + 1) xs)
       coin_flips
       (run_reader (eager_step_1 xs i state) coin_flips)\<close>
 
@@ -94,8 +94,7 @@ lemma eager_step_inv:
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
       (run_reader (eager_step xs i state) \<phi>)"
-  sorry
-  (* by (metis eager_step_1_inv eager_step_2_inv eager_step_split i inv run_reader_simps(3)) *)
+  by (metis eager_step_1_inv eager_step_2_inv eager_step_split i inv run_reader_simps(3))
 
 lemma eager_algorithm_inv:
   shows "eager_state_inv xs \<phi>
