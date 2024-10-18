@@ -528,33 +528,8 @@ next
     unfolding run_steps_no_fail_def foldM_pmf_snoc step by simp
 qed
 
-(*
-lemma
-  \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
-proof (induction xs rule: rev_induct)
-  case Nil
-  show ?case by simp
-next
-  case (snoc x xs)
-
-  have [simp] : \<open>lazy_step (xs @ [x]) (length xs) = step_no_fail x\<close>
-    for x :: 'a and xs
-    unfolding lazy_step_def step_no_fail_def by (metis nth_append_length)
-
-  show ?case
-    apply (intro ext)
-    apply (simp add: foldM_pmf_snoc del: foldM.simps)
-    apply (intro bind_pmf_cong)
-    apply simp_all
-
-    thm snoc
-
-    sorry
-
-qed *)
-
-lemma lazy_algorithm_eq_aux :
-  \<open>foldM_pmf (lazy_step xs) [0 ..< length xs] = foldM_pmf step_no_fail xs\<close>
+lemma lazy_algorithm_eq :
+  \<open>lazy_algorithm xs = run_steps_no_fail initial_state xs\<close>
 proof -
   (* As with proving things about `List.enumerate`, we need to introduce an
     arbitrary offset to the list of indices `[0 ..< length xs]` passed as input
@@ -574,7 +549,8 @@ proof -
       [length padding ..< length padding + length xs]
     = foldM_pmf step_no_fail xs\<close>
     (is \<open>\<And> padding. ?thesis padding\<close>)
-    using that[of \<open>[]\<close>] by auto
+    using that[of \<open>[]\<close>]
+    by (auto simp add: lazy_algorithm_def run_steps_no_fail_def)
 
   show \<open>?thesis padding\<close> for padding
   proof (induction xs arbitrary: padding)
@@ -596,10 +572,6 @@ proof -
       using Cons.IH[of \<open>padding @ [x]\<close>] by (auto cong: bind_pmf_cong)
   qed
 qed
-
-lemma lazy_algorithm_eq:
-  shows "lazy_algorithm xs = run_steps_no_fail initial_state xs"
-  by (simp add: lazy_algorithm_def lazy_algorithm_eq_aux run_steps_no_fail_def)
 
 end
 
