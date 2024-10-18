@@ -94,7 +94,8 @@ lemma eager_step_inv:
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
       (run_reader (eager_step xs i state) \<phi>)"
-  by (metis eager_step_1_inv eager_step_2_inv eager_step_split i inv run_reader_simps(3))
+  sorry
+  (* by (metis eager_step_1_inv eager_step_2_inv eager_step_split i inv run_reader_simps(3)) *)
 
 lemma eager_algorithm_inv:
   shows "eager_state_inv xs \<phi>
@@ -190,6 +191,40 @@ proof -
     using assms(1) find_last_correct_1(2) by fastforce
   finally show ?thesis .
 qed
+
+lemma bla_eq_binomial:
+  shows "
+    (map_pmf (\<lambda>f. card {y \<in> X. \<forall>k'<K. f y k'})
+     (prod_pmf X
+       (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))) =
+    binomial_pmf (card X) (1 / 2 ^ (K::nat))"
+  sorry
+
+(* for some reason not shown in the libraries already *)
+lemma expectation_binomial_pmf:
+  shows"
+    measure_pmf.expectation
+    (binomial_pmf (card X) (1 / 2 ^ (K::nat))) (\<lambda>x. x) =
+    (card X) * (1 / 2 ^ (K::nat))"
+  sorry
+
+lemma estimation_error_1_sided:
+  assumes "finite X"
+  shows
+    "measure_pmf.prob
+    (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
+    {t. t \<ge> n} \<le> foo"
+  sorry
+
+lemma estimation_error_2_sided:
+  assumes "finite X"
+  assumes "\<epsilon> > 0"
+  shows
+    "measure_pmf.prob
+    (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
+    {t. real t \<notin> {(1 - \<epsilon>)*F0..F0*(1 + \<epsilon>)}} \<le> bar"
+  sorry
+
 
 end
 
