@@ -9,12 +9,6 @@ imports
 
 begin
 
-lemma find_last_before_self_eq:
-  assumes "i < length xs"
-  shows "find_last_before i (xs ! i) xs = i"
-  unfolding find_last_before_def find_last_def Let_def
-  using assms by auto
-
 (* After processing the list xs, the chi is the set of
      distinct elements x in xs where the last time
      we flipped coins for x, the first k elements were heads. *)
@@ -42,8 +36,54 @@ definition eager_state_inv ::
       {x \<in> set xs.
         \<forall> k' < k. coins (k', the (greatest_index xs x))})\<close> *)
 
-thm find_last_correct_1
-thm find_last_correct_2
+lemma
+  assumes
+    \<open>i < length xs\<close>
+    \<open>x \<noteq> xs ! i\<close>
+    \<open>x \<in> set (take i xs)\<close>
+  shows \<open>find_last x (take i xs) = find_last_before i x xs\<close>
+proof -
+  show ?thesis when \<open>\<And> padding.
+    filter
+      (\<lambda> j. take (length padding + i) (padding @ xs) ! j = x)
+      [length padding ..< length padding + i]
+    = filter
+        (\<lambda> j. take (Suc <| length padding + i) (padding @ xs) ! j = x)
+        [length padding ..< length padding + i]\<close>
+    (is \<open>\<And> padding. ?thesis padding\<close>)
+    using that[of \<open>[]\<close>] assms
+    by (auto simp add:
+      find_last_def find_last_before_def filter_empty_conv Let_def)
+
+  show \<open>?thesis padding\<close> for padding
+  proof (induction i arbitrary: padding)
+    case 0
+    then show ?case by simp
+  next
+    case (Suc i)
+
+    have * : \<open>[a ..< Suc (a + b)] = a # [Suc a ..< Suc a + b]\<close>
+      for a b :: nat by (simp add: upt_rec)
+
+    have ** :
+      \<open>(padding @ take (Suc i) xs) ! (length padding)
+        = xs ! 0\<close>
+      if \<open>i < length xs\<close> for xs padding i
+      using that
+      sorry
+
+    show ?case
+      using Suc.IH[of \<open>padding @ [x]\<close>] assms
+      apply (simp del: upt_Suc)
+      apply (subst *)
+      apply (simp del: upt_Suc)
+      apply simp
+      apply auto
+      apply (subst **) defer 1
+      apply (subst **) defer 1
+      sorry
+  qed
+qed
 
 lemma eager_step_1_inv:
   assumes
@@ -64,12 +104,31 @@ lemma eager_step_1_inv:
     by (smt (verit, del_insts) append_eq_conv_conj in_set_conv_decomp in_set_takeD insertE mem_Collect_eq member_remove take_Suc_conv_app_nth)
 
   subgoal for x k'
-    apply (simp add: run_reader_simps)
-    sorry
+    apply (cases \<open>x = xs ! i\<close>)
+    apply (auto simp add:
+      run_reader_simps
+      find_last_before_def[simplified, symmetric] find_last_before_self_eq)
+    apply (smt (verit, ccfv_threshold) member_remove)
 
-  subgoal for x
-    sorry
+    subgoal premises prems
+    proof -
+      have
+        \<open>x \<in> set (take i xs)\<close>
+        by (smt (verit, ccfv_threshold) insertE mem_Collect_eq member_remove prems(3) prems(5))
+
+      moreover have
+        \<open>coin_flips (k', find_last x (take i xs))\<close>
+        by (smt (verit, best) mem_Collect_eq mem_simps(1) member_remove prems(3) prems(4) prems(5))
+
+      ultimately show ?thesis
+        using prems
+        apply (auto simp add: find_last_before_def find_last_def Let_def)
+        sorry
+    qed
   done
+
+  sorry
+
 
   (* using assms
   unfolding eager_step_1_def eager_state_inv_def nondet_alg_aux_def

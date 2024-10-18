@@ -197,4 +197,10 @@ next
   thus ?thesis by simp
 qed
 
+lemma find_last_before_self_eq:
+  assumes "i < length xs"
+  shows "find_last_before i (xs ! i) xs = i"
+  unfolding find_last_before_def find_last_def Let_def
+  using assms by auto
+
 end
