@@ -33,31 +33,49 @@ definition eager_state_inv ::
   "eager_state_inv xs \<phi> state \<equiv>
     (state_chi state = nondet_alg_aux (state_k state) xs \<phi>)"
 
-lemma
-  assumes
-    \<open>index < length xs\<close>
-    \<open>eager_state_inv (take index xs) coins state\<close>
-  shows
-    \<open>eager_state_inv (take (index + 1) xs) coins
-      (run_reader (eager_step_1 xs index state) coins)\<close>
-proof -
-  show ?thesis
-    apply (auto simp add: eager_step_1_def run_reader_simps)
-    sorry
-qed
+(* definition inv where
+  \<open>inv xs coins state \<equiv> (
+    let
+      chi = state_chi state;
+      k = state_k state
+    in chi =
+      {x \<in> set xs.
+        \<forall> k' < k. coins (k', the (greatest_index xs x))})\<close> *)
+
+thm find_last_correct_1
+thm find_last_correct_2
 
 lemma eager_step_1_inv:
-  assumes i:"i < length xs"
-  assumes inv: "eager_state_inv (take i xs) \<phi> state"
-  shows "
-    eager_state_inv (take (i+1) xs) \<phi>
-      (run_reader (eager_step_1 xs i state) \<phi>)"
+  assumes
+    \<open>i < length xs\<close>
+    \<open>eager_state_inv (take i xs) coin_flips state\<close>
+  shows
+    \<open>eager_state_inv
+      (take (Suc i) xs)
+      coin_flips
+      (run_reader (eager_step_1 xs i state) coin_flips)\<close>
+
   using assms
+  apply (auto simp add:
+    eager_step_1_def eager_state_inv_def nondet_alg_aux_def)
+
+  subgoal for x
+    apply (simp add: run_reader_simps)
+    by (smt (verit, del_insts) append_eq_conv_conj in_set_conv_decomp in_set_takeD insertE mem_Collect_eq member_remove take_Suc_conv_app_nth)
+
+  subgoal for x k'
+    apply (simp add: run_reader_simps)
+    sorry
+
+  subgoal for x
+    sorry
+  done
+
+  (* using assms
   unfolding eager_step_1_def eager_state_inv_def nondet_alg_aux_def
   apply (auto simp add: in_set_conv_nth run_reader_simps Let_def)
   apply (metis find_last_before_def find_last_before_self_eq semiring_norm(174))
-  apply (meson less_SucI nth_take)
-  sorry
+  apply (meson less_SucI nth_take) *)
 
 lemma eager_step_2_inv:
   assumes i:"i < length xs"

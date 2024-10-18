@@ -41,4 +41,8 @@ lemma map_bind_rd:
   "map_rd g (bind_rd m f) = bind_rd m (\<lambda>x. map_rd g (f x))"
   by (intro reader_monad_eqI) (simp add:run_reader_simps)
 
+lemma map_comp_rd :
+  \<open>map_rd g (map_rd f m) = map_rd (g <<< f) m\<close>
+  by (simp add: ext reader_monad.expand run_reader_simps(4))
+
 end

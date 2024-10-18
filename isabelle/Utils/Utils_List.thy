@@ -1,7 +1,9 @@
 theory Utils_List
 
 imports
+  "HOL-Probability.SPMF"
   CVM.Utils_Function
+  CVM.Utils_Option
 
 begin
 
@@ -16,22 +18,114 @@ lemma least_index_le_length :
   shows \<open>index < length xs\<close>
   by (metis (mono_tags, lifting) assms in_set_conv_nth least_index_def linorder_less_linear not_less_Least option.discI option.inject order_less_trans)
 
-definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
-  \<open>greatest_index xs \<equiv> (xs |> rev |> least_index)\<close>
-
-lemma greatest_index_le_length :
-  assumes \<open>greatest_index xs x = Some index\<close>
-  shows \<open>index < length xs\<close>
+lemma least_index_take_mono :
+  fixes xs x i j
+  assumes \<open>i \<le> j\<close>
+  defines
+    \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
+  shows \<open>ord_option (\<le>) (least_index_up_to i) (least_index_up_to j)\<close>
   using assms
-  by (metis greatest_index_def least_index_le_length length_rev)
+  apply (simp add: least_index_def)
+  by (smt (verit, best) LeastI2 in_set_conv_nth length_take linorder_not_less min_less_iff_conj not_less_Least nth_take order.trans) 
 
-lemma greatest_index_altdef :
+lemma least_index_eq_of_index_le :
+  fixes xs x i j
+  assumes \<open>i \<le> j\<close> \<open>x \<in> set (take i xs)\<close> 
+  defines
+    \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
+  shows \<open>least_index_up_to i = least_index_up_to j\<close>
+proof -
+  have \<open>ord_option (\<le>) (least_index_up_to i) (least_index_up_to j)\<close>
+    by (simp add: assms(1) least_index_take_mono least_index_up_to_def) 
+
+  then show ?thesis
+    using assms
+    apply (simp add: least_index_def)
+    by (smt (verit) LeastI in_set_conv_nth length_take linorder_less_linear linorder_not_less min_less_iff_conj not_less_Least nth_take ord_option_simps(3) order.strict_trans2) 
+qed
+
+lemma least_index_eq_of_Suc_index :
+  fixes xs x i
+  assumes \<open>x \<in> set (take i xs)\<close> 
+  defines
+    \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
+  shows \<open>least_index_up_to (Suc i) = least_index_up_to i\<close>
+  by (metis assms least_index_eq_of_index_le lessI less_imp_le_nat) 
+
+definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
   \<open>greatest_index xs x = (
     if x \<in> set xs
-    then Some <| LEAST index. xs ! (length xs - Suc index) = x
+    then Some <| GREATEST index. xs ! index = x
     else None)\<close>
-  apply (simp add: greatest_index_def least_index_def)
-  by (smt (verit, ccfv_threshold) rev_nth LeastI_ex in_set_conv_nth length_rev linorder_less_linear not_less_Least order_le_less_trans order_less_trans set_rev)
+
+(* lemma greatest_index_take_mono :
+  fixes xs x i j
+  assumes \<open>i \<le> j\<close> \<open>j < length xs\<close>
+  defines
+    \<open>greatest_index_up_to index \<equiv> greatest_index (take index xs) x\<close>
+  shows
+    \<open>ord_option (\<le>) (greatest_index_up_to i) (greatest_index_up_to j)\<close>
+    (is \<open>_ _ ?L ?R\<close>)
+  using assms
+  apply (auto simp add: greatest_index_def)
+
+  prefer 2
+  apply (meson set_take_subset_set_take subsetD)
+
+  sorry *)
+
+(* lemma
+  \<open>(GREATEST index. (xs @ [x]) ! index = x) = length xs\<close>
+  apply (rule GreatestI2_order[where x = \<open>length xs\<close>])
+
+  subgoal by simp
+
+  subgoal premises prems for index
+    proof (rule classical)
+      assume \<open>\<not> index \<le> length xs\<close>
+
+      then have \<open>index > length xs\<close> by simp
+
+      then have False
+        using prems
+        sorry
+
+      then show ?thesis by blast
+    qed
+
+  sorry *)
+
+(* lemma greatest_index_altdef :
+  \<open>greatest_index xs x = (
+    xs
+      |> rev
+      |> (flip least_index x)
+      |> map_option (\<lambda> least_index. length xs - Suc least_index))\<close>
+proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case
+    by (auto simp add: greatest_index_def least_index_def)
+next
+  case (snoc y xs)
+
+  then show ?case
+    apply (auto simp add: least_index_def greatest_index_def)
+    sorry
+qed *)
+
+(* lemma
+  assumes \<open>i < length xs\<close>
+  shows \<open>greatest_index (take (Suc i) xs) (xs ! i) = Some i\<close>
+
+  using assms
+  apply (auto simp add: greatest_index_def)
+
+  prefer 2
+  apply (simp add: take_Suc_conv_app_nth)
+  
+  sledgehammer
+
+  sorry *)
 
 definition find_last :: "'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "find_last x xs = (
