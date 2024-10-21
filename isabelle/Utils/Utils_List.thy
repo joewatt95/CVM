@@ -123,12 +123,14 @@ lemma find_last_eq_of :
     \<open>x \<notin> set (nths xs {i + 1 ..< length xs})\<close>
   shows \<open>find_last x xs = i\<close>
 proof -
+  note [simp] = set_nths
+  note assms = assms[simplified]
+
   have \<open>\<not> find_last x xs < i\<close>
-    using assms find_last_correct_1(3) nth_mem by (fastforce simp add: set_nths)
+    using assms find_last_correct_1(3) nth_mem by fastforce
 
   moreover have \<open>\<not> find_last x xs > i\<close>
     using assms
-    apply (simp add: set_nths)
     by (metis Suc_leI find_last_correct_1(1) find_last_correct_1(2) nth_mem)
 
   ultimately show ?thesis using nat_neq_iff by blast
@@ -165,25 +167,25 @@ lemma find_last_before_eq_find_last_of :
   shows
     \<open>find_last_before i x xs = find_last x (take i xs)\<close> (is \<open>?last_index = _\<close>)
 proof -
+  note [simp] = in_set_take_conv_nth find_last_before_def set_nths
+
   have \<open>?last_index < i\<close>
-    by (metis assms in_set_take_conv_nth Nat.add_0_right Suc_eq_plus1 find_last_before_bound find_last_before_def find_last_correct_1(1) find_last_correct_2 le_antisym lessI less_imp_le_nat linorder_neqE_nat nat_add_left_cancel_less not_add_less1 nth_take)
+    using assms
+    by (simp, metis Nat.add_0_right Suc_eq_plus1 find_last_before_bound find_last_before_def find_last_correct_1(1) find_last_correct_2 le_antisym lessI less_imp_le_nat linorder_neqE_nat nat_add_left_cancel_less not_add_less1 nth_take)
 
   moreover have
     \<open>xs ! ?last_index = x\<close>
-    using calculation
-    apply (simp add: set_nths find_last_before_def)
-    by (smt (verit) assms find_last_correct_1(1) in_set_take_conv_nth le_antisym le_refl nat_less_le nat_neq_iff not_less_eq nth_mem nth_take take_all)
+    using calculation assms
+    by (simp, metis find_last_correct_1(1) in_set_takeD in_set_take_conv_nth less_Suc_eq_le linorder_not_less nat_less_le nth_take take_all)
 
   moreover have
     \<open>x \<noteq> xs ! j\<close>
     if \<open>find_last_before i x xs + 1 \<le> j\<close> \<open>j < i\<close> for j
     using assms that find_last_correct_1(3)[of _ \<open>take (i + 1) xs\<close>]
-    apply (simp add: set_nths find_last_before_def)
-    by (metis Suc_le_eq butlast_take diff_Suc_1 in_set_butlastD le_imp_less_Suc less_or_eq_imp_le nth_take)
+    by (simp, metis Suc_le_eq butlast_take diff_Suc_1 in_set_butlastD le_imp_less_Suc less_or_eq_imp_le nth_take)
 
   ultimately show ?thesis
-    using assms
-    by (fastforce intro: find_last_eq_of[symmetric] simp add: set_nths)
+    using assms by (fastforce intro: find_last_eq_of[symmetric])
 qed
 
 end
