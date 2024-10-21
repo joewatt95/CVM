@@ -27,6 +27,8 @@ definition eager_state_inv ::
   "eager_state_inv xs \<phi> state \<equiv>
     (state_chi state = nondet_alg_aux (state_k state) xs \<phi>)"
 
+(* TODO: Clean this up because currently, it is very brute-forcey and hence
+  slow to check. *)
 lemma eager_step_1_inv:
   assumes
     \<open>i < length xs\<close>
