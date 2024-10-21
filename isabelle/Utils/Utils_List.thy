@@ -163,14 +163,13 @@ lemma find_last_before_eq_find_last_of :
     \<open>x \<noteq> xs ! i\<close>
     \<open>x \<in> set (take i xs)\<close>
   shows
-    \<open>find_last_before i x xs = find_last x (take i xs)\<close>
-    (is \<open>?i' = _ _ ?xs'\<close>)
+    \<open>find_last_before i x xs = find_last x (take i xs)\<close> (is \<open>?last_index = _\<close>)
 proof -
-  have \<open>?i' < i\<close>
+  have \<open>?last_index < i\<close>
     by (metis assms in_set_take_conv_nth Nat.add_0_right Suc_eq_plus1 find_last_before_bound find_last_before_def find_last_correct_1(1) find_last_correct_2 le_antisym lessI less_imp_le_nat linorder_neqE_nat nat_add_left_cancel_less not_add_less1 nth_take)
 
   moreover have
-    \<open>xs ! ?i' = x\<close>
+    \<open>xs ! ?last_index = x\<close>
     using calculation
     apply (simp add: set_nths find_last_before_def)
     by (smt (verit) assms find_last_correct_1(1) in_set_take_conv_nth le_antisym le_refl nat_less_le nat_neq_iff not_less_eq nth_mem nth_take take_all)
@@ -178,15 +177,13 @@ proof -
   moreover have
     \<open>x \<noteq> xs ! j\<close>
     if \<open>find_last_before i x xs + 1 \<le> j\<close> \<open>j < i\<close> for j
-    using assms that find_last_correct_1(3)[of _ \<open>take (Suc i) xs\<close>]
+    using assms that find_last_correct_1(3)[of _ \<open>take (i + 1) xs\<close>]
     apply (simp add: set_nths find_last_before_def)
     by (metis Suc_le_eq butlast_take diff_Suc_1 in_set_butlastD le_imp_less_Suc less_or_eq_imp_le nth_take)
- 
+
   ultimately show ?thesis
     using assms
-    by (fastforce
-      intro: find_last_eq_of[symmetric]
-      simp add: set_nths)
+    by (fastforce intro: find_last_eq_of[symmetric] simp add: set_nths)
 qed
 
 end
