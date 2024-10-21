@@ -36,33 +36,11 @@ lemma eager_step_1_inv:
       (take (i + 1) xs)
       coin_flips
       (run_reader (eager_step_1 xs i state) coin_flips)\<close>
-
   using assms
   apply (auto simp add:
-    eager_step_1_def eager_state_inv_def nondet_alg_aux_def)
-
-  subgoal for x
-    apply (simp add: run_reader_simps)
-    by (smt (verit, del_insts) append_eq_conv_conj in_set_conv_decomp in_set_takeD insertE mem_Collect_eq member_remove take_Suc_conv_app_nth)
-
-  subgoal for x k'
-    apply (cases \<open>x = xs ! i\<close>)
-    apply (auto simp add:
-      run_reader_simps
-      find_last_before_def[simplified, symmetric] find_last_before_self_eq)
-    apply (smt (verit, ccfv_threshold) member_remove)
-    by (smt (verit, best) find_last_before_eq_find_last_of insertE mem_Collect_eq member_remove)
-
-  subgoal for x
-    apply (cases \<open>x = xs ! i\<close>)
-    apply (auto simp add:
-      run_reader_simps
-      find_last_before_def[simplified, symmetric] find_last_before_self_eq)
-    apply (metis (no_types, lifting) Suc_less_eq2 find_last_correct_1(1) find_last_correct_1(2) in_set_takeD in_set_take_conv_nth less_antisym)
-    apply (smt (verit, best) Suc_less_eq2 find_last_before_eq_find_last_of find_last_correct_1(1) find_last_correct_1(2) in_set_takeD in_set_take_conv_nth less_antisym)
-    apply (metis (no_types, opaque_lifting) in_set_conv_nth in_set_take_conv_nth le_refl linorder_neqE_nat not_less_eq take_all_iff)
-    by (smt (verit, ccfv_SIG) Suc_less_eq2 find_last_before_eq_find_last_of find_last_correct_1(1) find_last_correct_1(2) in_set_takeD in_set_take_conv_nth less_antisym)
-  done
+    eager_step_1_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
+    take_Suc_conv_app_nth)
+  by (metis Suc_eq_plus1 find_last_before_def find_last_before_eq_find_last_of find_last_before_self_eq take_Suc_conv_app_nth)+
 
 lemma eager_step_2_inv:
   assumes i:"i < length xs"

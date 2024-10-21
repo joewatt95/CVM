@@ -52,16 +52,16 @@ lemma least_index_eq_of_Suc_index :
   shows \<open>least_index_up_to (Suc i) = least_index_up_to i\<close>
   by (metis assms least_index_eq_of_index_le lessI less_imp_le_nat) 
 
-definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
+(* definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
   \<open>greatest_index xs x = (
     if x \<in> set xs
     then Some <| GREATEST index. xs ! index = x
-    else None)\<close>
+    else None)\<close> *)
 
-lemma in_set_take_conv_nth :
+(* lemma in_set_take_conv_nth :
   assumes \<open>i < length xs\<close>
   shows \<open>x \<in> set (take i xs) \<longleftrightarrow> (\<exists> j < i. xs ! j = x)\<close>
-  by (auto simp add: assms in_set_conv_nth)
+  by (auto simp add: assms in_set_conv_nth) *)
 
 definition find_last :: "'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "find_last x xs = (
@@ -173,8 +173,7 @@ lemma find_last_before_eq_find_last_of :
     \<open>i < length xs\<close>
     \<open>x \<noteq> xs ! i\<close>
     \<open>x \<in> set (take i xs)\<close>
-  shows
-    \<open>find_last_before i x xs = find_last x (take i xs)\<close> (is \<open>?last_index = _\<close>)
+  shows \<open>find_last_before i x xs = find_last x (take i xs)\<close>
   using assms
   apply (simp add: find_last_before_def find_last_altdef)
   by (smt (verit, ccfv_SIG) Collect_cong least_index_def least_index_eq_of_Suc_index less_Suc_eq nth_take option.discI)
