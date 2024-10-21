@@ -7,7 +7,7 @@ imports
 
 begin
 
-definition least_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
+(* definition least_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
   \<open>least_index xs x \<equiv>
     if x \<in> set xs
     then Some <| LEAST index. xs ! index = x
@@ -50,7 +50,7 @@ lemma least_index_eq_of_Suc_index :
   defines
     \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
   shows \<open>least_index_up_to (Suc i) = least_index_up_to i\<close>
-  by (metis assms least_index_eq_of_index_le lessI less_imp_le_nat) 
+  by (metis assms least_index_eq_of_index_le lessI less_imp_le_nat)  *)
 
 (* definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
   \<open>greatest_index xs x = (
@@ -176,6 +176,7 @@ lemma find_last_before_eq_find_last_of :
   shows \<open>find_last_before i x xs = find_last x (take i xs)\<close>
   using assms
   apply (simp add: find_last_before_def find_last_altdef)
-  by (smt (verit, ccfv_SIG) Collect_cong least_index_def least_index_eq_of_Suc_index less_Suc_eq nth_take option.discI)
+  by (smt (verit, best) Collect_cong in_set_conv_nth in_set_takeD length_take less_Suc_eq linorder_not_less min.absorb4 nth_take take_all)
+  (* by (smt (verit, ccfv_SIG) Collect_cong least_index_def least_index_eq_of_Suc_index less_Suc_eq nth_take option.discI) *)
 
 end
