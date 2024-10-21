@@ -51,32 +51,18 @@ lemma eager_step_1_inv:
       run_reader_simps
       find_last_before_def[simplified, symmetric] find_last_before_self_eq)
     apply (smt (verit, ccfv_threshold) member_remove)
+    by (smt (verit, best) find_last_before_eq_find_last_of insertE mem_Collect_eq member_remove)
 
-    subgoal premises prems
-    proof -
-      have
-        \<open>x \<in> set (take i xs)\<close>
-        by (smt (verit, ccfv_threshold) insertE mem_Collect_eq member_remove prems(3) prems(5))
-
-      moreover have
-        \<open>coin_flips (k', find_last x (take i xs))\<close>
-        by (smt (verit, best) mem_Collect_eq mem_simps(1) member_remove prems(3) prems(4) prems(5))
-
-      ultimately show ?thesis
-        using prems
-        apply (auto simp add: find_last_before_def find_last_def Let_def)
-        sorry
-    qed
+  subgoal for x
+    apply (cases \<open>x = xs ! i\<close>)
+    apply (auto simp add:
+      run_reader_simps
+      find_last_before_def[simplified, symmetric] find_last_before_self_eq)
+    apply (metis (no_types, lifting) Suc_less_eq2 find_last_correct_1(1) find_last_correct_1(2) in_set_takeD in_set_take_conv_nth less_antisym)
+    apply (smt (verit, best) Suc_less_eq2 find_last_before_eq_find_last_of find_last_correct_1(1) find_last_correct_1(2) in_set_takeD in_set_take_conv_nth less_antisym)
+    apply (metis (no_types, opaque_lifting) in_set_conv_nth in_set_take_conv_nth le_refl linorder_neqE_nat not_less_eq take_all_iff)
+    by (smt (verit, ccfv_SIG) Suc_less_eq2 find_last_before_eq_find_last_of find_last_correct_1(1) find_last_correct_1(2) in_set_takeD in_set_take_conv_nth less_antisym)
   done
-
-  sorry
-
-
-  (* using assms
-  unfolding eager_step_1_def eager_state_inv_def nondet_alg_aux_def
-  apply (auto simp add: in_set_conv_nth run_reader_simps Let_def)
-  apply (metis find_last_before_def find_last_before_self_eq semiring_norm(174))
-  apply (meson less_SucI nth_take) *)
 
 lemma eager_step_2_inv:
   assumes i:"i < length xs"
