@@ -58,74 +58,10 @@ definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat o
     then Some <| GREATEST index. xs ! index = x
     else None)\<close>
 
-(* lemma greatest_index_take_mono :
-  fixes xs x i j
-  assumes \<open>i \<le> j\<close> \<open>j < length xs\<close>
-  defines
-    \<open>greatest_index_up_to index \<equiv> greatest_index (take index xs) x\<close>
-  shows
-    \<open>ord_option (\<le>) (greatest_index_up_to i) (greatest_index_up_to j)\<close>
-    (is \<open>_ _ ?L ?R\<close>)
-  using assms
-  apply (auto simp add: greatest_index_def)
-
-  prefer 2
-  apply (meson set_take_subset_set_take subsetD)
-
-  sorry *)
-
-(* lemma
-  \<open>(GREATEST index. (xs @ [x]) ! index = x) = length xs\<close>
-  apply (rule GreatestI2_order[where x = \<open>length xs\<close>])
-
-  subgoal by simp
-
-  subgoal premises prems for index
-    proof (rule classical)
-      assume \<open>\<not> index \<le> length xs\<close>
-
-      then have \<open>index > length xs\<close> by simp
-
-      then have False
-        using prems
-        sorry
-
-      then show ?thesis by blast
-    qed
-
-  sorry *)
-
-(* lemma greatest_index_altdef :
-  \<open>greatest_index xs x = (
-    xs
-      |> rev
-      |> (flip least_index x)
-      |> map_option (\<lambda> least_index. length xs - Suc least_index))\<close>
-proof (induction xs rule: rev_induct)
-  case Nil
-  then show ?case
-    by (auto simp add: greatest_index_def least_index_def)
-next
-  case (snoc y xs)
-
-  then show ?case
-    apply (auto simp add: least_index_def greatest_index_def)
-    sorry
-qed *)
-
-(* lemma
+lemma in_set_take_conv_nth :
   assumes \<open>i < length xs\<close>
-  shows \<open>greatest_index (take (Suc i) xs) (xs ! i) = Some i\<close>
-
-  using assms
-  apply (auto simp add: greatest_index_def)
-
-  prefer 2
-  apply (simp add: take_Suc_conv_app_nth)
-  
-  sledgehammer
-
-  sorry *)
+  shows \<open>x \<in> set (take i xs) \<longleftrightarrow> (\<exists> j < i. xs ! j = x)\<close>
+  by (auto simp add: assms in_set_conv_nth)
 
 definition find_last :: "'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "find_last x xs = (
@@ -180,6 +116,24 @@ lemma find_last_inj:
   "inj_on (\<lambda>x. find_last x xs) (set xs)"
   by (intro inj_onI) (metis find_last_correct_1(1))
 
+lemma find_last_eq_of :
+  assumes
+    \<open>i < length xs\<close>
+    \<open>xs ! i = x\<close>
+    \<open>x \<notin> set (nths xs {i + 1 ..< length xs})\<close>
+  shows \<open>find_last x xs = i\<close>
+proof -
+  have \<open>\<not> find_last x xs < i\<close>
+    using assms find_last_correct_1(3) nth_mem by (fastforce simp add: set_nths)
+
+  moreover have \<open>\<not> find_last x xs > i\<close>
+    using assms
+    apply (simp add: set_nths)
+    by (metis Suc_leI find_last_correct_1(1) find_last_correct_1(2) nth_mem)
+
+  ultimately show ?thesis using nat_neq_iff by blast
+qed
+
 definition find_last_before :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "find_last_before k x xs = find_last x (take (k+1) xs)"
 
@@ -202,5 +156,39 @@ lemma find_last_before_self_eq:
   shows "find_last_before i (xs ! i) xs = i"
   unfolding find_last_before_def find_last_def Let_def
   using assms by auto
+
+lemma find_last_before_eq_find_last_of :
+  assumes
+    \<open>i < length xs\<close>
+    \<open>x \<noteq> xs ! i\<close>
+    \<open>x \<in> set (take i xs)\<close>
+  shows \<open>find_last_before i x xs = find_last x (take i xs)\<close>
+proof -
+  let ?xs' = \<open>take i xs\<close>
+  let ?i' = \<open>find_last_before i x xs\<close>
+
+  have \<open>?i' < i\<close>
+    by (metis assms in_set_take_conv_nth Nat.add_0_right Suc_eq_plus1 find_last_before_bound find_last_before_def find_last_correct_1(1) find_last_correct_2 le_antisym lessI less_imp_le_nat linorder_neqE_nat nat_add_left_cancel_less not_add_less1 nth_take)
+
+  moreover have
+    \<open>xs ! ?i' = x\<close>
+    using calculation
+    apply (simp add: set_nths find_last_before_def)
+    by (smt (verit) assms find_last_correct_1(1) in_set_take_conv_nth le_antisym le_refl nat_less_le nat_neq_iff not_less_eq nth_mem nth_take take_all)
+
+  moreover have
+    \<open>x \<noteq> xs ! j\<close>
+    if \<open>find_last_before i x xs + 1 \<le> j\<close> \<open>j < i\<close> for j
+    using assms that find_last_correct_1(3)[of x \<open>take (Suc i) xs\<close>]
+    apply (simp add: set_nths find_last_before_def)
+    by (metis Suc_le_eq butlast_take diff_Suc_1 in_set_butlastD le_imp_less_Suc less_or_eq_imp_le nth_take)
+ 
+  ultimately show ?thesis
+    using assms
+    by (fastforce
+      intro: find_last_eq_of[symmetric]
+      simp add: set_nths)
+qed
+
 
 end

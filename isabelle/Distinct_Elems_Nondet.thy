@@ -27,37 +27,6 @@ definition eager_state_inv ::
   "eager_state_inv xs \<phi> state \<equiv>
     (state_chi state = nondet_alg_aux (state_k state) xs \<phi>)"
 
-(* definition inv where
-  \<open>inv xs coins state \<equiv> (
-    let
-      chi = state_chi state;
-      k = state_k state
-    in chi =
-      {x \<in> set xs.
-        \<forall> k' < k. coins (k', the (greatest_index xs x))})\<close> *)
-
-lemma
-  assumes
-    \<open>i < length xs\<close>
-    \<open>x \<noteq> xs ! i\<close>
-    \<open>x \<in> set (take i xs)\<close>
-  shows \<open>greatest_index (take i xs) x = greatest_index (take (i + 1) xs) x\<close>
-proof -
-  have
-    \<open>take (Suc i) xs ! j = xs ! j\<close>
-    if \<open>j \<le> i\<close> \<open>i < length xs\<close> for i j xs
-    using that by simp
-
-  then show ?thesis
-    using assms
-    apply (auto simp add: greatest_index_def)
-
-    prefer 2
-    apply (meson le_Suc_eq set_take_subset_set_take subsetD verit_comp_simplify1(2)) 
-
-    sorry
-qed
-
 lemma eager_step_1_inv:
   assumes
     \<open>i < length xs\<close>
