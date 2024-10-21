@@ -136,8 +136,7 @@ proof -
 
     then have \<open>?last_index \<in> ?S\<close> by auto
 
-    moreover have
-      \<open>i \<le> ?last_index\<close> if \<open>i \<in> ?S\<close> for i
+    moreover have \<open>i \<le> ?last_index\<close> if \<open>i \<in> ?S\<close> for i
       using that find_last_correct_1(3) not_less_eq_eq by auto
 
     ultimately show ?thesis
