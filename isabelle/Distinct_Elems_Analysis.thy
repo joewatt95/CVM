@@ -16,27 +16,30 @@ context
   assumes eps_pos : \<open>\<epsilon> > 0\<close>
 begin
 
-definition eps_approxs_card :: "'a set \<Rightarrow> nat \<Rightarrow> bool" where
-  "eps_approxs_card X n \<equiv> real n \<approx>[\<epsilon>] card X"
+definition eps_approxs_card_of :: "'a list \<Rightarrow> nat \<Rightarrow> bool" where
+  "eps_approxs_card_of xs n \<equiv> real n \<approx>[\<epsilon>] card (set xs)"
 
 lemma estimate_distinct_error_bound:
   shows "
     \<P>(n in estimate_distinct xs.
-      n |> fail_or_satisfies (eps_approxs_card <| set xs))
+      n |> fail_or_satisfies (eps_approxs_card_of xs))
      \<le> real (length xs) / 2 ^ threshold + bar \<epsilon> thresh"
   (is "?L \<le> ?R")
 proof -
   
   have "?L \<le> real (length xs) / 2 ^ threshold
     + \<P>(n in estimate_distinct_no_fail xs.
-       n |> (eps_approxs_card <| set xs))"
+       n |> (eps_approxs_card_of xs))"
     by (intro prob_estimate_distinct_fail_or_satisfies_le)
 
   moreover have
-    "estimate_distinct_no_fail xs =
-    map_pmf compute_estimate (lazy_algorithm xs)"
-    sorry
-  show ?thesis
+    "estimate_distinct_no_fail xs
+    = map_pmf compute_estimate (lazy_algorithm xs)"
+    unfolding
+      estimate_distinct_no_fail_def run_steps_then_estimate_def run_steps_def
+      lazy_algorithm_eq ..
+
+  ultimately show ?thesis
     sorry
 qed
 

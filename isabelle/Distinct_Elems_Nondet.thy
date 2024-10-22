@@ -196,7 +196,6 @@ lemma estimation_error_2_sided:
     {t. real t \<notin> {(1 - \<epsilon>)*F0..F0*(1 + \<epsilon>)}} \<le> bar"
   sorry
 
-
 end
 
 end

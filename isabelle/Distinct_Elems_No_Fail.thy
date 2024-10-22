@@ -47,12 +47,8 @@ definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a sta
 
       return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr> }}\<close>
 
-(* definition run_steps_no_fail :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state pmf\<close> where
-  \<open>run_steps_no_fail \<equiv> flip (foldM_pmf step_no_fail)\<close> *)
-
 definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
-  \<open>estimate_distinct_no_fail \<equiv>
-    run_steps_then_estimate foldM_pmf map_pmf step_no_fail\<close>
+  \<open>estimate_distinct_no_fail \<equiv> run_steps_then_estimate_pmf step_no_fail\<close>
 
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
@@ -83,7 +79,7 @@ lemma spmf_bind_filter_chi_eq_map :
       let chi = Set.filter keep_in_chi chi;
 
       if card chi < threshold
-      then return_spmf <| ctx chi
+      then return_spmf <| \<kappa> chi
       else fail_spmf }
     = (
       \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
@@ -92,7 +88,7 @@ lemma spmf_bind_filter_chi_eq_map :
             \<lambda> keep_in_chi.
               if card chi = threshold \<and> keep_in_chi = (\<lambda> _ \<in> chi. True)
               then None
-              else Some (ctx {x \<in> chi. keep_in_chi x})))\<close>
+              else Some (\<kappa> {x \<in> chi. keep_in_chi x})))\<close>
 proof -
   have [simp] :
     \<open>(if b then return_spmf e else fail_spmf)
