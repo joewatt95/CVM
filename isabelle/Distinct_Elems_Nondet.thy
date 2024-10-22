@@ -117,11 +117,12 @@ lemma uncurry_prod_coin_pmf:
     map_pmf (\<lambda>\<omega>. \<lambda>x\<in>{..<m} \<times> {..<n}.
               \<omega> (snd x) (fst x))
       (prod_pmf {..<n} (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
-  apply (subst prod_pmf_swap)
-  subgoal by auto
-  subgoal by auto
-  apply (subst prod_pmf_uncurry)
-  by (auto intro!: map_pmf_cong simp add: map_pmf_comp o_def fun_eq_iff)
+    (is \<open>(prod_pmf (?m \<times> ?n) _) = _\<close>)
+  by (auto
+    intro: map_pmf_cong
+    simp add:
+      prod_pmf_swap[of ?m ?n] prod_pmf_uncurry[of ?n ?m]
+      map_pmf_comp fun_eq_iff)
 
 lemma map_pmf_nondet_alg_aux_eq:
   assumes "length xs \<le> n" "K \<le> m"
