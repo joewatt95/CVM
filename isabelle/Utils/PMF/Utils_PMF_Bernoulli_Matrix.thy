@@ -16,7 +16,7 @@ abbreviation
   \<open>fair_bernoulli_matrix m n \<equiv> bernoulli_matrix m n (1 / 2)\<close>
 
 lemma bernoulli_matrix_eq_uncurry_prod :
-  fixes m n :: nat
+  fixes m n
   defines
     [simp] : \<open>m' \<equiv> {..< m}\<close> and 
     [simp] : \<open>n' \<equiv> {..< n}\<close>
@@ -27,9 +27,8 @@ lemma bernoulli_matrix_eq_uncurry_prod :
   by (auto
     intro!: map_pmf_cong
     simp add:
-      bernoulli_matrix_def
+      bernoulli_matrix_def map_pmf_comp fun_eq_iff
       prod_pmf_swap[of m' n', simplified]
-      prod_pmf_uncurry[of n' m', simplified]
-      map_pmf_comp fun_eq_iff)
+      prod_pmf_uncurry[of n' m', simplified])
 
 end

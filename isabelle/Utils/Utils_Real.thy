@@ -5,7 +5,6 @@ imports
 
 begin
 
-abbreviation (input) log2 :: \<open>real \<Rightarrow> real\<close> where
-  \<open>log2 \<equiv> log 2\<close>
+abbreviation (input) \<open>log2 \<equiv> log 2\<close>
 
 end

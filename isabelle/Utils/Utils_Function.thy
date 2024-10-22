@@ -12,7 +12,7 @@ abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Righ
   (infixr \<open><|\<close> 0) where
   \<open>(<|) f \<equiv> f\<close>
 
-abbreviation (input) pipe :: \<open>'a \<Rightarrow>('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close>
+abbreviation (input) pipe :: \<open>'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close>
   (infixl \<open>|>\<close> 0) where
   \<open>(|>) \<equiv> flip (<|)\<close>
 

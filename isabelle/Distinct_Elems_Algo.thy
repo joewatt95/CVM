@@ -33,10 +33,9 @@ definition run_steps_then_estimate :: \<open>'d \<Rightarrow> 'g\<close> where
 
 end
 
-abbreviation run_steps_pmf where
-  \<open>run_steps_pmf \<equiv> run_steps foldM_pmf\<close>
+abbreviation \<open>run_steps_pmf \<equiv> run_steps foldM_pmf\<close>
 
-abbreviation run_steps_then_estimate_pmf where
+abbreviation
   \<open>run_steps_then_estimate_pmf \<equiv> run_steps_then_estimate foldM_pmf map_pmf\<close>
 
 locale with_threshold =
