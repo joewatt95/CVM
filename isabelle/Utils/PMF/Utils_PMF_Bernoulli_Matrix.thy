@@ -25,7 +25,7 @@ lemma bernoulli_matrix_eq_uncurry_prod :
       prod_pmf n' \<lblot>prod_pmf m' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
         |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> y x))\<close>
   by (auto
-    intro!: map_pmf_cong
+    intro: map_pmf_cong
     simp add:
       bernoulli_matrix_def map_pmf_comp fun_eq_iff
       prod_pmf_swap[of m' n', simplified]
