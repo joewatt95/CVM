@@ -5,6 +5,7 @@ imports
   CVM.Utils_Reader_Monad
   CVM.Utils_List
   CVM.Utils_PMF_Lazify
+  CVM.Utils_Approx_Algo
   CVM.Distinct_Elems_Eager
 
 begin
@@ -84,9 +85,9 @@ qed
 lemma rel_pmf_eager_algorithm_nondet_alg_aux:
   "rel_pmf (\<lambda>st Y. state_k st = K \<longrightarrow> state_chi st = Y)
     (map_pmf (run_reader (eager_algorithm xs))
-      (bernoulli_matrix n n <| 1/2))
+      (fair_bernoulli_matrix n n))
     (map_pmf (nondet_alg_aux K xs)
-      (bernoulli_matrix n n <| 1/2))"
+      (fair_bernoulli_matrix n n))"
   using eager_algorithm_inv
   by (fastforce
     intro: rel_pmf_reflI
@@ -96,10 +97,10 @@ lemma rel_pmf_eager_algorithm_nondet_alg_aux:
 lemma eager_algorithm_nondet_measureD:
   shows "
   measure_pmf.prob
-    (map_pmf (run_reader (eager_algorithm xs)) (bernoulli_matrix n n <| 1 / 2))
+    (map_pmf (run_reader (eager_algorithm xs)) (fair_bernoulli_matrix n n))
     {st. state_k st = K \<and> P (state_chi st)} \<le>
   measure_pmf.prob
-    (map_pmf (nondet_alg_aux K xs) (bernoulli_matrix n n <| 1 / 2))
+    (map_pmf (nondet_alg_aux K xs) (fair_bernoulli_matrix n n))
     {Y. P Y}" (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
 proof -
   have
@@ -131,7 +132,7 @@ proof -
     by (auto simp add: fun_eq_iff nondet_alg_aux_def dual_order.strict_trans1 find_last_correct_1(2))
 
   have "map_pmf (nondet_alg_aux K xs)
-    (bernoulli_matrix m n <| 1/2) =
+    (fair_bernoulli_matrix m n) =
     map_pmf
      (\<lambda> f. nondet_alg_aux K xs
             (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}.  f y x))
@@ -139,7 +140,7 @@ proof -
     unfolding bernoulli_matrix_eq_uncurry_prod map_pmf_comp by auto
 
   also have "... =
-    map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
+    map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < K. f y k'})
      (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
     unfolding 1 map_pmf_compose
     apply (clarsimp simp add: o_def)
@@ -173,14 +174,24 @@ lemma estimation_error_1_sided:
     {t. t \<ge> n} \<le> foo"
   sorry
 
+context
+  fixes \<epsilon> :: real
+  assumes eps_pos : \<open>\<epsilon> > 0\<close>
+begin
+
+definition beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
+  \<open>beyond_eps_range_of_card xs n \<equiv> real n >[\<epsilon>] card (set xs)\<close>
+
 lemma estimation_error_2_sided:
   assumes "finite X"
   assumes "\<epsilon> > 0"
   shows
     "measure_pmf.prob
     (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
-    {t. real t \<notin> {(1 - \<epsilon>)*F0..F0*(1 + \<epsilon>)}} \<le> bar"
+    {t. beyond_eps_range_of_card xs t} \<le> bar"
   sorry
+
+end
 
 end
 

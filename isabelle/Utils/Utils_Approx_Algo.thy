@@ -4,13 +4,13 @@ imports
   "HOL-Probability.Probability_Mass_Function"
 
 begin
-abbreviation eps_approxs
-  (\<open>_ \<approx>[ _ ] _\<close> [60, 60, 60] 60) where
-  \<open>\<omega> \<approx>[\<epsilon>] x \<equiv> \<bar>\<omega> - x\<bar> > \<epsilon> * x\<close>
+abbreviation beyond_eps_range_of
+  (\<open>_ >[ _ ] _\<close> [60, 60, 60] 60) where
+  \<open>\<omega> >[\<epsilon>] x \<equiv> \<bar>\<omega> - x\<bar> > \<epsilon> * x\<close>
 
 abbreviation eps_del_approxs
   (\<open>_ \<approx>[ _ , _ ] \<approx>>? _\<close> [60, 60, 60, 60] 60) where
-  \<open>f \<approx>[\<epsilon>, \<delta>]\<approx>>? x \<equiv> \<P>(\<omega> in measure_pmf f. \<omega> \<approx>[\<epsilon>] x) \<le> \<delta>\<close>
+  \<open>f \<approx>[\<epsilon>, \<delta>]\<approx>>? x \<equiv> \<P>(\<omega> in measure_pmf f. \<omega> >[\<epsilon>] x) \<le> \<delta>\<close>
 
 context
   fixes \<epsilon> \<delta> :: real
