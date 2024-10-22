@@ -167,15 +167,22 @@ lemma find_last_before_self_eq:
   unfolding find_last_before_def find_last_def Let_def
   using assms by auto
 
-lemma find_last_before_eq_find_last_of :
+lemma find_last_before_eq_find_last_iff :
   assumes
     \<open>i < length xs\<close>
-    \<open>x \<noteq> xs ! i\<close>
     \<open>x \<in> set (take i xs)\<close>
-  shows \<open>find_last_before i x xs = find_last x (take i xs)\<close>
-  using assms
-  apply (simp add: find_last_before_def find_last_altdef)
-  by (smt (verit, best) Collect_cong in_set_conv_nth in_set_takeD length_take less_Suc_eq linorder_not_less min.absorb4 nth_take take_all)
-  (* by (smt (verit, ccfv_SIG) Collect_cong least_index_def least_index_eq_of_Suc_index less_Suc_eq nth_take option.discI) *)
+  shows
+    \<open>find_last_before i x xs = find_last x (take i xs)
+      \<longleftrightarrow> x \<noteq> xs ! i\<close>
+    (is \<open>?LHS \<longleftrightarrow> ?RHS\<close>)
+proof -
+  have ?LHS if ?RHS
+    using assms that
+    apply (simp add: find_last_before_def find_last_altdef) 
+    by (smt (verit, ccfv_SIG) Collect_cong Suc_leI assms(1) assms(2) butlast_take diff_Suc_1 in_set_conv_nth length_take less_Suc_eq min.absorb4 min_less_iff_conj nth_append_length nth_butlast take_Suc_conv_app_nth)
+
+  then show ?thesis
+    by (metis assms(1) assms(2) find_last_before_self_eq find_last_correct_1(2) length_take less_irrefl_nat min.absorb4)
+qed
 
 end

@@ -27,9 +27,7 @@ definition eager_state_inv ::
   "eager_state_inv xs \<phi> state \<equiv>
     (state_chi state = nondet_alg_aux (state_k state) xs \<phi>)"
 
-(* TODO: Clean this up because currently, it is very brute-forcey and hence
-  slow to check. *)
-lemma eager_step_1_inv:
+lemma eager_step_1_inv :
   assumes
     \<open>i < length xs\<close>
     \<open>eager_state_inv (take i xs) coin_flips state\<close>
@@ -38,11 +36,13 @@ lemma eager_step_1_inv:
       (take (i + 1) xs)
       coin_flips
       (run_reader (eager_step_1 xs i state) coin_flips)\<close>
-  using assms
-  apply (auto simp add:
+  using
+    assms
+    find_last_before_self_eq[OF assms(1)]
+    find_last_before_eq_find_last_iff[OF assms(1)]
+  by (fastforce simp add:
     eager_step_1_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
-    take_Suc_conv_app_nth)
-  by (metis Suc_eq_plus1 find_last_before_def find_last_before_eq_find_last_of find_last_before_self_eq take_Suc_conv_app_nth)+
+    find_last_before_def take_Suc_conv_app_nth)
 
 lemma eager_step_2_inv:
   assumes i:"i < length xs"
