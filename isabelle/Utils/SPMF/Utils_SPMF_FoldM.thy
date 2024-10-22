@@ -31,12 +31,11 @@ qed
 
 lemma spmf_of_pmf_foldM_pmf_eq_foldM_spmf :
   \<open>spmf_of_pmf <<< foldM_pmf f xs = foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs\<close>
-  apply (induction xs)
-  by (simp_all add: spmf_of_pmf_bind)
+  apply (induction xs) by (simp_all add: spmf_of_pmf_bind)
 
 lemma pmf_foldM_spmf_nil :
   shows
-    \<open>spmf (foldM_spmf f [] acc) acc = 1\<close> and
+    \<open>spmf (foldM_spmf f [] acc) acc = 1\<close>
     \<open>acc \<noteq> acc' \<Longrightarrow> spmf (foldM_spmf f [] acc) acc' = 0\<close>
   by simp_all
 

@@ -71,17 +71,17 @@ definition relational_hoare_triple ::
 
 lemma skip [simp] :
   \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
-    \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
+  \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
   by (simp add: relational_hoare_triple_def) 
 
 lemma skip' [simp] :
   \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
-    \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
+  \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
 
 lemma seq :
   assumes
-    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
+    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
     \<open>\<turnstile> \<lbrace>S\<rbrace> \<langle>g | g'\<rangle> \<lbrace>T\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(f >=> g) | (f' >=> g')\<rangle> \<lbrace>T\<rbrace>\<close>
   using assms
@@ -91,7 +91,7 @@ lemma seq :
 
 lemma seq' :
   assumes
-    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close> and
+    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
     \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile> \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
   using assms
@@ -106,10 +106,10 @@ context
     offset :: nat
 begin
 
-abbreviation (input) foldM_enumerate' where
+abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_spmf_enumerate fn xs offset\<close>
 
-abbreviation (input) R' :: \<open>nat \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> bool\<close> where
+abbreviation (input)
   \<open>R' index val val' \<equiv> index < offset + length xs \<and> R index val val'\<close>
 
 lemma loop_enumerate :
@@ -121,13 +121,13 @@ proof (induction xs arbitrary: offset)
   case Nil
   then show ?case by (simp add: foldM_enumerate_def)
 next
-  case (Cons x xs)
+  case (Cons _ _)
   then show ?case
-    using Cons
     apply (simp add: foldM_enumerate_def)
-    apply (intro seq[where ?S = \<open>R <| offset + 1\<close>])
-    apply (simp_all add: relational_hoare_triple_def)
-    by (metis add_Suc)
+    by (fastforce
+      intro!: seq[where S = \<open>R <| Suc offset\<close>]
+      simp add: relational_hoare_triple_def add_Suc[symmetric]
+      simp del: add_Suc)
 qed
 
 lemma loop :

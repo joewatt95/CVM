@@ -23,7 +23,7 @@ abbreviation possibly_evals_to
 lemma bind_spmfE :
   assumes \<open>\<turnstile> f x \<bind> g \<Rightarrow>? z\<close>
   obtains y where
-    \<open>\<turnstile> f x \<Rightarrow>? y\<close> and 
+    \<open>\<turnstile> f x \<Rightarrow>? y\<close>
     \<open>\<turnstile> g y \<Rightarrow>? z\<close>
   using assms by (auto simp add: set_bind_spmf)
 
@@ -39,22 +39,22 @@ lemma hoare_tripleI :
 
 lemma hoare_tripleE :
   assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
-    \<open>P x\<close> and
+    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+    \<open>P x\<close>
     \<open>\<turnstile> f x \<Rightarrow>? y\<close>
   shows \<open>Q y\<close>
   by (metis assms hoare_triple_def)
 
 lemma precond_postcond :
   assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
+    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
     \<open>\<And> x. P' x \<Longrightarrow> P x\<close>
     \<open>\<And> x. Q x \<Longrightarrow> Q' x\<close>
   shows \<open>\<turnstile> \<lbrace>P'\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
   by (metis assms hoare_tripleI hoare_tripleE)
 
 lemma postcond_true :
-  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>True\<rblot>\<rbrace>\<close>
+  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>\<top>\<rblot>\<rbrace>\<close>
   by (simp add: hoare_tripleI)
 
 lemma fail [simp] :
@@ -75,28 +75,23 @@ lemma hoare_triple_altdef :
 
 lemma seq :
   assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close> and
+    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close>
     \<open>\<turnstile> \<lbrace>Q\<rbrace> g \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> f >=> g \<lbrace>R\<rbrace>\<close>
-  using assms
-  by (auto
-    intro!: hoare_tripleI
-    elim!: bind_spmfE hoare_tripleE)
+  using assms by (auto intro: hoare_tripleI dest: bind_spmfE hoare_tripleE)
 
 lemma seq' :
   assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> and
+    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile> \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
   using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq)
 
 lemma if_then_else :
   assumes
-    \<open>\<And> b. f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> g \<lbrace>Q\<rbrace>\<close> and
+    \<open>\<And> b. f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> g \<lbrace>Q\<rbrace>\<close>
     \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> h \<lbrace>Q\<rbrace>\<close>
-  shows
-    \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> b. if f b then g b else h b) \<lbrace>Q\<rbrace>\<close>
-
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> b. if f b then g b else h b) \<lbrace>Q\<rbrace>\<close>
   using assms by (simp add: hoare_triple_def)
 
 context
@@ -106,7 +101,7 @@ context
     offset :: nat
 begin
 
-abbreviation (input) P' :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> where
+abbreviation (input)
   \<open>P' index val \<equiv> index < offset + length xs \<and> P index val\<close>
 
 lemma loop_enumerate :
@@ -118,13 +113,13 @@ proof (induction xs arbitrary: offset)
   case Nil
   then show ?case by (simp add: foldM_enumerate_def)
 next
-  case (Cons x xs)
+  case (Cons _ _)
   then show ?case
-    using Cons
     apply (simp add: foldM_enumerate_def)
-    apply (intro seq[where ?Q = \<open>P <| offset + 1\<close>])
-    apply (simp_all add: hoare_triple_def)
-    by (metis add_Suc)
+    by (fastforce
+      intro!: seq[where Q = \<open>P <| Suc offset\<close>]
+      simp add: hoare_triple_def add_Suc[symmetric]
+      simp del: add_Suc)
 qed
 
 lemma loop :
@@ -132,7 +127,7 @@ lemma loop :
   shows \<open>\<turnstile> \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
   using assms
   by (auto
-   intro: loop_enumerate
+    intro: loop_enumerate
     simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
 
 end
@@ -182,15 +177,15 @@ next
   also have \<open>... \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
   proof -
     have \<open>\<turnstile>
-      \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?val'\<rblot>
+      \<lbrace>\<lblot>\<top>\<rblot>\<rbrace> \<lblot>?val'\<rblot>
       \<lbrace>(\<lambda> val'. prob_fail (foldM_spmf f xs val') \<le> length xs * p)\<rbrace>\<close>
       using assms Cons.IH \<open>P val\<close>
       by (smt (verit, ccfv_threshold) hoare_tripleE hoare_tripleI skip)
 
     then have
       \<open>(\<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>')
-        \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
-      apply (intro integral_mono_of_hoare_triple[where ?f = \<open>\<lblot>?val'\<rblot>\<close>])
+      \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+      apply (intro integral_mono_of_hoare_triple[where f = \<open>\<lblot>?val'\<rblot>\<close>])
       using assms integrable_prob_fail_foldM_spmf by auto
 
     moreover have \<open>prob_fail ?val' \<le> p\<close> using \<open>P val\<close> assms by simp
@@ -200,16 +195,11 @@ next
 
   also have \<open>... \<le> p + length xs * p\<close>
   proof -
-    have [intro] :
-      \<open>a * b \<le> b\<close> if \<open>0 \<le> a\<close> \<open>a \<le> 1\<close> \<open>b \<ge> 0\<close> for a b :: real
-      by (simp add: mult_left_le_one_le that) 
-
-    show \<open>?thesis\<close> when
-      \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
-      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def that)
-
-    show \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
+    have \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
       by (auto simp add: landau_omega.R_mult_right_mono mult_le_cancel_right2 weight_spmf_le_1)
+
+    then show ?thesis
+      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def)
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 
