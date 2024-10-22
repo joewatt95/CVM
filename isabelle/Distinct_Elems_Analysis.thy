@@ -26,7 +26,6 @@ lemma estimate_distinct_error_bound:
      \<le> real (length xs) / 2 ^ threshold + bar \<epsilon> thresh"
   (is "?L \<le> ?R")
 proof -
-  
   have "?L \<le> real (length xs) / 2 ^ threshold
     + \<P>(n in estimate_distinct_no_fail xs.
        n |> (eps_approxs_card_of xs))"
@@ -37,7 +36,7 @@ proof -
     = map_pmf compute_estimate (lazy_algorithm xs)"
     unfolding
       estimate_distinct_no_fail_def run_steps_then_estimate_def run_steps_def
-      lazy_algorithm_eq ..
+      lazy_algorithm_eq_run_step_no_fail ..
 
   ultimately show ?thesis
     sorry

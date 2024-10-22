@@ -45,8 +45,9 @@ definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rig
       }
     }"
 
-definition eager_algorithm :: "'a list \<Rightarrow> (coin_matrix, 'a state) reader_monad" where
-  "eager_algorithm xs = foldM_rd (eager_step xs) [0..<length xs] initial_state"
+definition eager_algorithm ::
+  "'a list \<Rightarrow> (coin_matrix, 'a state) reader_monad" where
+  "eager_algorithm xs \<equiv> run_steps foldM_rd (eager_step xs) [0..<length xs]"
 
 definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
   where "lazy_step xs i state = do {
@@ -69,7 +70,7 @@ definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Righ
   }"
 
 definition lazy_algorithm :: "'a list \<Rightarrow> 'a state pmf" where
-  "lazy_algorithm xs = foldM_pmf (lazy_step xs) [0..<length xs] initial_state"
+  "lazy_algorithm xs \<equiv> run_steps_pmf (lazy_step xs) [0..<length xs]"
 
 definition eager_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
   where "eager_step_1 xs i state = do {
@@ -120,8 +121,8 @@ proof -
   have a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" by simp
 
   show ?thesis
-    unfolding eager_algorithm_def a foldM_rd_snoc
-    by (intro foldM_cong  arg_cong2[where f="bind_rd"] eager_step_cong) auto
+    unfolding eager_algorithm_def a foldM_rd_snoc run_steps_def
+    by (intro foldM_cong arg_cong2[where f="bind_rd"] eager_step_cong) auto
 qed
 
 definition lazy_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
@@ -168,7 +169,7 @@ proof -
   have a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" by simp
 
   show ?thesis
-    unfolding lazy_algorithm_def a foldM_pmf_snoc
+    unfolding lazy_algorithm_def a foldM_pmf_snoc run_steps_def
     by (intro foldM_cong bind_pmf_cong refl lazy_step_cong) (auto simp:nth_append)
 qed
 
@@ -178,7 +179,7 @@ lemma state_k_bound:
   using assms
 proof (induction xs arbitrary:\<omega> rule:rev_induct)
   case Nil
-  then show ?case unfolding lazy_algorithm_def initial_state_def by simp
+  then show ?case unfolding lazy_algorithm_def run_steps_def initial_state_def by simp
 next
   case (snoc x xs)
   let ?n = "length xs"
@@ -202,7 +203,7 @@ lemma state_chi_bound:
   using assms
 proof (induction xs arbitrary:\<omega> rule:rev_induct)
   case Nil
-  then show ?case unfolding lazy_algorithm_def initial_state_def by simp
+  then show ?case unfolding lazy_algorithm_def run_steps_def initial_state_def by simp
 next
   case (snoc x xs)
   let ?n = "length xs"
@@ -439,7 +440,7 @@ lemma depends_on_algorithm:
    "depends_on (map_rd ((=) v) (eager_algorithm xs)) ({..<state_k v} \<times> {..<length xs})"
 proof (induction xs arbitrary:v rule:rev_induct)
   case Nil
-  then show ?case by (simp add:eager_algorithm_def depends_on_return map_rd_def depends_on_bind)
+  then show ?case by (simp add: eager_algorithm_def run_steps_def depends_on_return map_rd_def depends_on_bind)
 next
   case (snoc x xs)
   show ?case
@@ -479,7 +480,7 @@ lemma eager_lazy_conversion_aux:
   "length xs \<le> n \<Longrightarrow> sample (eager_algorithm xs) = lazy_algorithm xs"
 proof (induction xs rule:rev_induct)
   case Nil
-  then show ?case by (simp add:eager_algorithm_def lazify_return lazy_algorithm_def)
+  then show ?case by (simp add: eager_algorithm_def run_steps_def lazify_return lazy_algorithm_def)
 next
   case (snoc x xs)
 
@@ -528,7 +529,7 @@ next
     unfolding run_steps_def foldM_pmf_snoc step by simp
 qed
 
-lemma lazy_algorithm_eq :
+lemma lazy_algorithm_eq_run_step_no_fail :
   \<open>lazy_algorithm xs = run_steps_pmf step_no_fail xs\<close>
 proof -
   (* As with proving things about `List.enumerate`, we need to introduce an
@@ -558,8 +559,10 @@ proof -
   next
     case (Cons x xs)
 
+    note Cons.IH[of \<open>padding @ [x]\<close>]
+
     (* Think of `a` as `length xs` and `b` as `length padding` *)
-    have \<open>[a ..< a + (b + 1)] = a # [a + 1 ..< (a + 1) + b]\<close>
+    moreover have \<open>[a ..< a + (b + 1)] = a # [a + 1 ..< (a + 1) + b]\<close>
       for a b :: nat by (simp add: upt_rec)
 
     moreover have
@@ -567,8 +570,7 @@ proof -
       for x :: 'a and xs padding
       unfolding lazy_step_def step_no_fail_def nth_append_length ..
 
-    ultimately show ?case
-      using Cons.IH[of \<open>padding @ [x]\<close>] by (auto cong: bind_pmf_cong)
+    ultimately show ?case by (auto cong: bind_pmf_cong)
   qed
 qed
 
