@@ -12,6 +12,10 @@ definition fail_spmf :: \<open>'a spmf\<close> where
 definition prob_fail :: \<open>'a spmf \<Rightarrow> real\<close> where
   \<open>prob_fail \<equiv> flip pmf None\<close>
 
+lemma prob_fail_map_spmf_eq :
+  \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
+  by (simp add: prob_fail_def pmf_None_eq_weight_spmf)
+
 abbreviation fail_or_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
   \<open>fail_or_satisfies \<equiv> Option.case_option True\<close>
 

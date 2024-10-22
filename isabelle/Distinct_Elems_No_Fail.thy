@@ -167,16 +167,12 @@ proof -
       pmf_bind pmf_map measure_pmf_single vimage_def)
 qed
 
-lemma prob_fail_map_spmf:
-  \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
-  by (simp add: prob_fail_def pmf_None_eq_weight_spmf)
-
 lemma prob_fail_estimate_size_le :
   \<open>prob_fail (estimate_distinct xs) \<le> length xs / 2 ^ threshold\<close>
   using prob_fail_foldM_spmf_le[OF
     step_preserves_well_formedness
     prob_fail_step_le initial_state_well_formed]
-  by (fastforce simp add: estimate_distinct_def prob_fail_map_spmf run_steps_def)
+  by (fastforce simp add: estimate_distinct_def prob_fail_map_spmf_eq run_steps_def)
 
 lemma step_ord_spmf_eq :
   \<open>ord_spmf (=) (step x state) (spmf_of_pmf <| step_no_fail x state)\<close>
@@ -198,17 +194,12 @@ lemma estimate_distinct_ord_spmf_eq :
       map_spmf_of_pmf[symmetric] ord_spmf_map_spmf)
   by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold.step_ord_spmf_eq with_threshold_axioms) 
 
-(* Think of P as event that res is the wrong count *)
-lemma prob_estimate_distinct_le :
-  \<open>\<P>(res in measure_spmf <| estimate_distinct xs. P res)
-    \<le> \<P>(res in estimate_distinct_no_fail xs. P res)\<close>
-  using estimate_distinct_ord_spmf_eq prob_le_prob_of_ord_spmf_eq by fastforce
-
+(* Think of P as event that est is the wrong count *)
 lemma prob_estimate_distinct_fail_or_satisfies_le :
-  \<open>\<P>(state in estimate_distinct xs. state |> fail_or_satisfies P)
+  \<open>\<P>(est in estimate_distinct xs. est |> fail_or_satisfies P)
     \<le> real (length xs) / 2 ^ threshold
-      + \<P>(state in estimate_distinct_no_fail xs. P state)\<close>
-  by (smt (verit, best) Collect_cong prob_estimate_distinct_le prob_fail_estimate_size_le prob_fail_or_satisfies_le_prob_fail_plus_prob) 
+      + \<P>(est in estimate_distinct_no_fail xs. P est)\<close>
+  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_fail_estimate_size_le prob_fail_or_satisfies_le_prob_fail_plus_prob prob_le_prob_of_ord_spmf_eq)
 
 end
 
