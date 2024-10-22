@@ -116,32 +116,17 @@ lemma find_last_inj:
   "inj_on (\<lambda>x. find_last x xs) (set xs)"
   by (intro inj_onI) (metis find_last_correct_1(1))
 
-lemma find_last_altdef :
+lemma find_last_eq_Max :
   \<open>find_last x xs = (
     if x \<in> set xs
     then Max {i \<in> {0 ..< length xs}. xs ! i = x}
     else 0)\<close>
-  (is \<open>?last_index = (if _ then Max ?S else _)\<close>)
 proof -
-  show ?thesis when
-    \<open>x \<in> set xs \<Longrightarrow> ?thesis\<close>
-    by (simp add: find_last_correct_2 that)
+  have ?thesis if \<open>x \<in> set xs\<close> 
+    using that find_last_correct_1[of x xs]
+    by (auto intro: Max_eqI[symmetric] simp add: set_nths not_less_eq_eq)
 
-  show \<open>x \<in> set xs \<Longrightarrow> ?thesis\<close>
-  proof -
-    assume \<open>x \<in> set xs\<close>
-
-    note [simp] = set_nths \<open>x \<in> set xs\<close>
-    note find_last_correct_1 = find_last_correct_1[simplified, of x xs]
-
-    then have \<open>?last_index \<in> ?S\<close> by auto
-
-    moreover have \<open>i \<le> ?last_index\<close> if \<open>i \<in> ?S\<close> for i
-      using that find_last_correct_1(3) not_less_eq_eq by auto
-
-    ultimately show ?thesis
-      by (simp, metis (mono_tags, lifting) Max_eqI bounded_nat_set_is_finite mem_Collect_eq)
-  qed
+  then show ?thesis by (simp add: find_last_correct_2)
 qed
 
 definition find_last_before :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> nat"
@@ -178,7 +163,7 @@ lemma find_last_before_eq_find_last_iff :
 proof -
   have ?LHS if ?RHS
     using assms that
-    apply (simp add: find_last_before_def find_last_altdef) 
+    apply (simp add: find_last_before_def find_last_eq_Max) 
     by (smt (verit, ccfv_SIG) Collect_cong Suc_leI assms(1) assms(2) butlast_take diff_Suc_1 in_set_conv_nth length_take less_Suc_eq min.absorb4 min_less_iff_conj nth_append_length nth_butlast take_Suc_conv_app_nth)
 
   then show ?thesis
