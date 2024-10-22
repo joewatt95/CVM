@@ -118,45 +118,42 @@ lemma map_pmf_nondet_alg_aux_eq:
   assumes "length xs \<le> n" "K \<le> m"
   shows "
     map_pmf (nondet_alg_aux K xs)
-      (bernoulli_matrix m n <| 1/2) =
-    map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
-     (prod_pmf (set xs)
-       (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
+      (fair_bernoulli_matrix m n) =
+    map_pmf (\<lambda>f. {y \<in> set xs. \<forall> k' < K. f y k'})
+      (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
 proof -
   have 1: "(\<lambda>f. nondet_alg_aux K xs
-            (\<lambda>(x, y) \<in>{..<m} \<times> {..<n}. f y x)) =
-     (\<lambda>f. {y \<in> set xs. (\<forall>k' < K. f y k')})
+            (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. f y x)) =
+     (\<lambda> f. {y \<in> set xs. (\<forall>k' < K. f y k')})
         \<circ>
-     (\<lambda>f. \<lambda>i\<in>set xs. f (find_last i xs))"
+     (\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs))"
     using assms
     by (auto simp add: fun_eq_iff nondet_alg_aux_def dual_order.strict_trans1 find_last_correct_1(2))
 
   have "map_pmf (nondet_alg_aux K xs)
     (bernoulli_matrix m n <| 1/2) =
     map_pmf
-     (\<lambda>f. nondet_alg_aux K xs
-            (\<lambda> (x, y) \<in>{..<m} \<times> {..<n}.  f y x))
-     (prod_pmf {..<n}
-       (\<lambda>_. prod_pmf {..<m}
-              (\<lambda>_. coin_pmf)))"
+     (\<lambda> f. nondet_alg_aux K xs
+            (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}.  f y x))
+     (prod_pmf {..< n} \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
     unfolding bernoulli_matrix_eq_uncurry_prod map_pmf_comp by auto
+
   also have "... =
     map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
-     (prod_pmf (set xs)
-       (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
+     (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
     unfolding 1 map_pmf_compose
     apply (clarsimp simp add: o_def)
     apply (subst prod_pmf_reindex)
     apply (auto simp add: o_def find_last_inj)
     using assms(1) find_last_correct_1(2) by fastforce
+
   finally show ?thesis .
 qed
 
 lemma bla_eq_binomial:
   shows "
     (map_pmf (\<lambda>f. card {y \<in> X. \<forall>k'<K. f y k'})
-     (prod_pmf X
-       (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))) =
+     (prod_pmf X \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)) =
     binomial_pmf (card X) (1 / 2 ^ (K::nat))"
   sorry
 
@@ -164,7 +161,7 @@ lemma bla_eq_binomial:
 lemma expectation_binomial_pmf:
   shows"
     measure_pmf.expectation
-    (binomial_pmf (card X) (1 / 2 ^ (K::nat))) (\<lambda>x. x) =
+    (binomial_pmf (card X) (1 / 2 ^ (K::nat))) id =
     (card X) * (1 / 2 ^ (K::nat))"
   sorry
 

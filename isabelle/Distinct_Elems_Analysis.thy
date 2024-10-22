@@ -32,11 +32,17 @@ proof -
     by (intro prob_estimate_distinct_fail_or_satisfies_le)
 
   moreover have
-    "estimate_distinct_no_fail xs
-    = map_pmf compute_estimate (lazy_algorithm xs)"
-    unfolding
-      estimate_distinct_no_fail_def run_steps_then_estimate_def run_steps_def
-      lazy_algorithm_eq_run_step_no_fail ..
+    "estimate_distinct_no_fail xs = (
+      xs |> lazy_algorithm |> map_pmf compute_estimate)"
+    unfolding estimate_distinct_no_fail_eq_lazy_algo ..
+  
+  (* moreover have
+    "... = (
+      fair_bernoulli_matrix n n
+        |> map_pmf (
+            (run_reader <| eager_algorithm xs)
+              >>> compute_estimate))"
+    sorry *)
 
   ultimately show ?thesis
     sorry

@@ -575,6 +575,20 @@ proof -
   qed
 qed
 
+lemma estimate_distinct_no_fail_eq_lazy_algo :
+  \<open>estimate_distinct_no_fail = lazy_algorithm >>> map_pmf compute_estimate\<close>
+  by (metis estimate_distinct_no_fail_def run_steps_then_estimate_def lazy_algorithm_eq_run_step_no_fail)
+
+lemma estimate_distinct_no_fail_eq_eager_algo :
+  assumes \<open>length xs \<le> n\<close>
+  shows
+    \<open>estimate_distinct_no_fail xs = (
+      fair_bernoulli_matrix n n
+        |> map_pmf (
+            (run_reader <| eager_algorithm xs)
+              >>> compute_estimate))\<close>
+  by (metis assms eager_lazy_conversion estimate_distinct_no_fail_eq_lazy_algo map_pmf_comp)
+
 end
 
 end
