@@ -569,7 +569,6 @@ proof -
 
     moreover have
       \<open>lazy_step (padding @ x # xs) (length padding) = step_no_fail x\<close>
-      for x :: 'a and xs padding
       unfolding lazy_step_def step_no_fail_def nth_append_length ..
 
     ultimately show ?case by (auto cong: bind_pmf_cong)

@@ -38,8 +38,8 @@ lemma eager_step_1_inv :
       (run_reader (eager_step_1 xs i state) coin_matrix)\<close>
   using
     assms
-    find_last_before_self_eq[OF assms(1)]
-    find_last_before_eq_find_last_iff[OF assms(1)]
+    find_last_before_self_eq[OF \<open>i < length xs\<close>]
+    find_last_before_eq_find_last_iff[OF \<open>i < length xs\<close>]
   by (fastforce simp add:
     eager_step_1_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
     find_last_before_def take_Suc_conv_app_nth)
@@ -75,7 +75,7 @@ proof (induction xs rule:rev_induct)
   then show ?case
     by (auto simp add: eager_algorithm_def run_steps_def run_reader_simps eager_state_inv_def initial_state_def nondet_alg_aux_def)
 next
-  case (snoc x xs)
+  case (snoc _ _)
   then show ?case
     apply (simp add: eager_algorithm_snoc)
     by (metis (no_types, lifting) append_eq_conv_conj eager_step_inv length_append_singleton lessI list.sel(1) run_reader_simps(3) semiring_norm(174) take_hd_drop)
