@@ -30,12 +30,12 @@ definition eager_state_inv ::
 lemma eager_step_1_inv :
   assumes
     \<open>i < length xs\<close>
-    \<open>eager_state_inv (take i xs) coin_flips state\<close>
+    \<open>eager_state_inv (take i xs) coin_matrix state\<close>
   shows
     \<open>eager_state_inv
       (take (i + 1) xs)
-      coin_flips
-      (run_reader (eager_step_1 xs i state) coin_flips)\<close>
+      coin_matrix
+      (run_reader (eager_step_1 xs i state) coin_matrix)\<close>
   using
     assms
     find_last_before_self_eq[OF assms(1)]

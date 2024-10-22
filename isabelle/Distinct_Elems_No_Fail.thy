@@ -47,13 +47,12 @@ definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a sta
 
       return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr> }}\<close>
 
-definition run_steps_no_fail :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state pmf\<close> where
-  \<open>run_steps_no_fail \<equiv> flip (foldM_pmf step_no_fail)\<close>
+(* definition run_steps_no_fail :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state pmf\<close> where
+  \<open>run_steps_no_fail \<equiv> flip (foldM_pmf step_no_fail)\<close> *)
 
 definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_no_fail \<equiv>
-    run_steps_no_fail initial_state >>>
-      map_pmf get_estimate\<close>
+    run_steps_then_estimate foldM_pmf map_pmf step_no_fail\<close>
 
 definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
@@ -172,7 +171,9 @@ lemma prob_fail_estimate_size_le :
   using prob_fail_foldM_spmf_le[OF
     step_preserves_well_formedness
     prob_fail_step_le initial_state_well_formed]
-  by (fastforce simp add: estimate_distinct_def prob_fail_map_spmf_eq run_steps_def)
+  by (fastforce simp add:
+    estimate_distinct_def run_steps_then_estimate_def run_steps_def
+    prob_fail_map_spmf_eq)
 
 lemma step_ord_spmf_eq :
   \<open>ord_spmf (=) (step x state) (spmf_of_pmf <| step_no_fail x state)\<close>
@@ -189,8 +190,8 @@ lemma estimate_distinct_ord_spmf_eq :
   apply (simp
     del: map_spmf_of_pmf
     add:
-      estimate_distinct_def run_steps_def
-      estimate_distinct_no_fail_def run_steps_no_fail_def
+      estimate_distinct_def estimate_distinct_no_fail_def
+      run_steps_then_estimate_def run_steps_def
       map_spmf_of_pmf[symmetric] ord_spmf_map_spmf)
   by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold.step_ord_spmf_eq with_threshold_axioms) 
 

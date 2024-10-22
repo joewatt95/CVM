@@ -12,10 +12,35 @@ record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
 
+definition initial_state :: \<open>'a state\<close> where
+  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
+
+definition compute_estimate :: \<open>'a state \<Rightarrow> nat\<close> where
+  \<open>compute_estimate state \<equiv> card (state_chi state) * 2 ^ (state_k state)\<close>
+
+context
+  fixes
+    foldM :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'd \<Rightarrow> 'e state \<Rightarrow> 'f\<close> and
+    map :: \<open>('e state \<Rightarrow> nat) \<Rightarrow> 'f \<Rightarrow> 'g\<close> and
+    step :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'c\<close>
+begin
+
+definition run_steps :: \<open>'e state \<Rightarrow> 'd \<Rightarrow> 'f\<close> where
+  \<open>run_steps \<equiv> flip (foldM step)\<close>
+
+definition run_steps_then_estimate :: \<open>'d \<Rightarrow> 'g\<close> where
+  \<open>run_steps_then_estimate \<equiv>
+    run_steps initial_state >>> map compute_estimate\<close>
+
+end
+
 locale with_threshold =
   fixes threshold :: nat
   assumes threshold_pos : \<open>threshold > 0\<close>
 begin
+
+text
+  \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step x state \<equiv> do {
@@ -41,22 +66,8 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
       then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
       else fail_spmf }}\<close>
 
-definition run_steps :: \<open>'a state \<Rightarrow> 'a list \<Rightarrow> 'a state spmf\<close> where
-  \<open>run_steps \<equiv> flip (foldM_spmf step)\<close>
-
-definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
-
-text
-  \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
-
-definition get_estimate :: "'a state \<Rightarrow> nat"
-  where "get_estimate state =  card (state_chi state) * 2 ^ (state_k state)"
-
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
-  \<open>estimate_distinct \<equiv>
-    run_steps initial_state >>>
-      map_spmf get_estimate\<close>
+  \<open>estimate_distinct \<equiv> run_steps_then_estimate foldM_spmf map_spmf step\<close>
 
 end
 
