@@ -1,9 +1,10 @@
 theory Distinct_Elems_Eager
 
 imports
+  CVM.Utils_List
   CVM.Utils_Reader_Monad
   CVM.Utils_PMF_Lazify
-  CVM.Utils_List
+  CVM.Utils_PMF_Bernoulli_Matrix
   CVM.Distinct_Elems_No_Fail
 
 begin
@@ -503,10 +504,11 @@ outside of this context.\<close>
 
 theorem eager_lazy_conversion:
   assumes "length xs \<le> n"
-  defines "sample_space \<equiv> (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf))"
-  shows "map_pmf (run_reader (eager_algorithm xs)) sample_space = lazy_algorithm xs"
+  shows
+    "map_pmf (run_reader (eager_algorithm xs)) (bernoulli_matrix n n <| 1/2)
+    = lazy_algorithm xs"
   using eager_lazy_conversion_aux[OF assms(1)]
-  unfolding sample_space_def sample_def space_def by auto
+  unfolding bernoulli_matrix_def sample_def space_def by auto
 
 end
 

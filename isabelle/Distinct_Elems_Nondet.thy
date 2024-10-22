@@ -84,20 +84,22 @@ qed
 lemma rel_pmf_eager_algorithm_nondet_alg_aux:
   "rel_pmf (\<lambda>st Y. state_k st = K \<longrightarrow> state_chi st = Y)
     (map_pmf (run_reader (eager_algorithm xs))
-      (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
+      (bernoulli_matrix n n <| 1/2))
     (map_pmf (nondet_alg_aux K xs)
-      (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))"
+      (bernoulli_matrix n n <| 1/2))"
   using eager_algorithm_inv
-  by (fastforce intro: rel_pmf_reflI simp add: pmf.rel_map eager_state_inv_def)
+  by (fastforce
+    intro: rel_pmf_reflI
+    simp add: bernoulli_matrix_def pmf.rel_map eager_state_inv_def)
 
 (* We may want to further rephrase the RHS *)
 lemma eager_algorithm_nondet_measureD:
   shows "
   measure_pmf.prob
-    (map_pmf (run_reader (eager_algorithm xs)) (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
+    (map_pmf (run_reader (eager_algorithm xs)) (bernoulli_matrix n n <| 1 / 2))
     {st. state_k st = K \<and> P (state_chi st)} \<le>
   measure_pmf.prob
-    (map_pmf (nondet_alg_aux K xs) (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
+    (map_pmf (nondet_alg_aux K xs) (bernoulli_matrix n n <| 1 / 2))
     {Y. P Y}" (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
 proof -
   have
@@ -112,29 +114,17 @@ proof -
   finally show ?thesis .
 qed
 
-lemma uncurry_prod_coin_pmf:
-  shows "(prod_pmf ({..<m::nat}\<times>{..<n::nat}) (\<lambda>_. coin_pmf)) =
-    map_pmf (\<lambda>\<omega>. \<lambda>x\<in>{..<m} \<times> {..<n}.
-              \<omega> (snd x) (fst x))
-      (prod_pmf {..<n} (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
-    (is \<open>(prod_pmf (?m \<times> ?n) _) = _\<close>)
-  by (auto
-    intro: map_pmf_cong
-    simp add:
-      prod_pmf_swap[of ?m ?n] prod_pmf_uncurry[of ?n ?m]
-      map_pmf_comp fun_eq_iff)
-
 lemma map_pmf_nondet_alg_aux_eq:
   assumes "length xs \<le> n" "K \<le> m"
   shows "
     map_pmf (nondet_alg_aux K xs)
-      (prod_pmf ({..<m}\<times>{..<n}) (\<lambda>_. coin_pmf)) =
+      (bernoulli_matrix m n <| 1/2) =
     map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
      (prod_pmf (set xs)
        (\<lambda>_. prod_pmf {..<m} (\<lambda>_. coin_pmf)))"
 proof -
   have 1: "(\<lambda>f. nondet_alg_aux K xs
-            (\<lambda>xa\<in>{..<m} \<times> {..<n}. f (snd xa) (fst xa))) =
+            (\<lambda>(x, y) \<in>{..<m} \<times> {..<n}. f y x)) =
      (\<lambda>f. {y \<in> set xs. (\<forall>k' < K. f y k')})
         \<circ>
      (\<lambda>f. \<lambda>i\<in>set xs. f (find_last i xs))"
@@ -142,15 +132,14 @@ proof -
     by (auto simp add: fun_eq_iff nondet_alg_aux_def dual_order.strict_trans1 find_last_correct_1(2))
 
   have "map_pmf (nondet_alg_aux K xs)
-     (prod_pmf ({..<m} \<times> {..<n})
-       (\<lambda>_. coin_pmf)) =
+    (bernoulli_matrix m n <| 1/2) =
     map_pmf
      (\<lambda>f. nondet_alg_aux K xs
-            (\<lambda>xa\<in>{..<m} \<times> {..<n}.  f (snd xa) (fst xa)))
+            (\<lambda> (x, y) \<in>{..<m} \<times> {..<n}.  f y x))
      (prod_pmf {..<n}
        (\<lambda>_. prod_pmf {..<m}
               (\<lambda>_. coin_pmf)))"
-    unfolding uncurry_prod_coin_pmf map_pmf_comp by auto
+    unfolding bernoulli_matrix_eq_uncurry_prod map_pmf_comp by auto
   also have "... =
     map_pmf (\<lambda>f. {y \<in> set xs. \<forall>k'<K. f y k'})
      (prod_pmf (set xs)

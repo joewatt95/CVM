@@ -23,8 +23,9 @@ session CVM = "Monad_Normalisation" +
     "Utils/Utils_Reader_Monad"
     "Utils/Utils_Real"
 
-    "Utils/PMF/Utils/Utils_PMF_Common"
-    "Utils/PMF/Utils/Utils_PMF_Lazify"
+    "Utils/PMF/Utils_PMF_Common"
+    "Utils/PMF/Utils_PMF_Bernoulli_Matrix"
+    "Utils/PMF/Utils_PMF_Lazify"
 
     "Utils/SPMF/Utils_SPMF_Common"
     "Utils/SPMF/Utils_SPMF_Rel"
