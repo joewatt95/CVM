@@ -153,7 +153,7 @@ lemma find_last_before_eq_find_last_iff :
     \<open>x \<in> set (take i xs)\<close>
   shows
     \<open>find_last_before i x xs = find_last x (take i xs)
-      \<longleftrightarrow> x \<noteq> xs ! i\<close>
+    \<longleftrightarrow> x \<noteq> xs ! i\<close>
     (is \<open>?LHS \<longleftrightarrow> ?RHS\<close>)
 proof -
   have ?LHS if ?RHS

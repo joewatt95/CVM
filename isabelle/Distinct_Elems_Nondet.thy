@@ -45,23 +45,27 @@ lemma eager_step_1_inv :
     find_last_before_def take_Suc_conv_app_nth)
 
 lemma eager_step_2_inv:
-  assumes i:"i < length xs"
-  assumes inv: "eager_state_inv (take (i+1) xs) \<phi> state"
+  assumes
+    "i < length xs"
+    "eager_state_inv (take (i+1) xs) \<phi> state"
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
       (run_reader (eager_step_2 xs i state) \<phi>)"
-  using inv
-  unfolding eager_step_2_def eager_state_inv_def nondet_alg_aux_def
-  apply (auto simp add: run_reader_simps Let_def find_last_before_def)
-  by (metis less_SucE)
+  using assms
+  by (auto
+    elim: less_SucE
+    simp add:
+      eager_step_2_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
+      find_last_before_def Let_def)
 
 lemma eager_step_inv:
-  assumes i:"i < length xs"
-  assumes inv: "eager_state_inv (take i xs) \<phi> state"
+  assumes
+    "i < length xs"
+    "eager_state_inv (take i xs) \<phi> state"
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
       (run_reader (eager_step xs i state) \<phi>)"
-  by (metis eager_step_1_inv eager_step_2_inv eager_step_split i inv run_reader_simps(3))
+  by (metis assms eager_step_1_inv eager_step_2_inv eager_step_split run_reader_simps(3))
 
 lemma eager_algorithm_inv:
   shows "eager_state_inv xs \<phi>
@@ -73,7 +77,7 @@ proof (induction xs rule:rev_induct)
 next
   case (snoc x xs)
   then show ?case
-    apply (auto simp add: eager_algorithm_snoc)
+    apply (simp add: eager_algorithm_snoc)
     by (metis (no_types, lifting) append_eq_conv_conj eager_step_inv length_append_singleton lessI list.sel(1) run_reader_simps(3) semiring_norm(174) take_hd_drop)
 qed
 
@@ -83,9 +87,8 @@ lemma rel_pmf_eager_algorithm_nondet_alg_aux:
       (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
     (map_pmf (nondet_alg_aux K xs)
       (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))"
-  unfolding pmf.rel_map
-  apply (intro rel_pmf_reflI)
-  by (meson eager_algorithm_inv eager_state_inv_def)
+  using eager_algorithm_inv
+  by (fastforce intro: rel_pmf_reflI simp add: pmf.rel_map eager_state_inv_def)
 
 (* We may want to further rephrase the RHS *)
 lemma eager_algorithm_nondet_measureD:
@@ -97,14 +100,15 @@ lemma eager_algorithm_nondet_measureD:
     (map_pmf (nondet_alg_aux K xs) (prod_pmf ({..<n}\<times>{..<n}) (\<lambda>_. coin_pmf)))
     {Y. P Y}" (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
 proof -
-  from rel_pmf_measureD[OF rel_pmf_eager_algorithm_nondet_alg_aux]
-  have "measure_pmf.prob ?p ?A \<le>
-    measure_pmf.prob ?q
-      {y. \<exists>x\<in>?A. state_k x = K \<longrightarrow> state_chi x = y}" .
+  have
+    "measure_pmf.prob ?p ?A
+      \<le> measure_pmf.prob ?q
+        {y. \<exists>x\<in>?A. state_k x = K \<longrightarrow> state_chi x = y}"
+    using rel_pmf_measureD[OF rel_pmf_eager_algorithm_nondet_alg_aux] .
+
   also have "... = measure_pmf.prob ?q {Y. P Y}"
-    apply (intro arg_cong[where f = "measure_pmf.prob ?q"])
-    apply clarsimp
-    by (metis simps(1) simps(2))
+    by (metis (mono_tags, lifting) mem_Collect_eq simps(1) simps(2))
+
   finally show ?thesis .
 qed
 
