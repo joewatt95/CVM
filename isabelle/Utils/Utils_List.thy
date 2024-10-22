@@ -58,10 +58,10 @@ lemma least_index_eq_of_Suc_index :
     then Some <| GREATEST index. xs ! index = x
     else None)\<close> *)
 
-(* lemma in_set_take_conv_nth :
+lemma in_set_take_conv_nth :
   assumes \<open>i < length xs\<close>
   shows \<open>x \<in> set (take i xs) \<longleftrightarrow> (\<exists> j < i. xs ! j = x)\<close>
-  by (auto simp add: assms in_set_conv_nth) *)
+  by (auto simp add: assms in_set_conv_nth)
 
 definition find_last :: "'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "find_last x xs = (
@@ -159,7 +159,7 @@ proof -
   have ?LHS if ?RHS
     using assms that
     apply (simp add: find_last_before_def find_last_eq_Max) 
-    by (smt (verit, ccfv_SIG) Collect_cong Suc_leI assms(1) assms(2) butlast_take diff_Suc_1 in_set_conv_nth length_take less_Suc_eq min.absorb4 min_less_iff_conj nth_append_length nth_butlast take_Suc_conv_app_nth)
+    by (smt (verit, ccfv_SIG) Collect_cong in_set_takeD in_set_take_conv_nth le_eq_less_or_eq less_Suc_eq nat_neq_iff nth_take take_all_iff)
 
   then show ?thesis
     by (metis assms(1) assms(2) find_last_before_self_eq find_last_correct_1(2) length_take less_irrefl_nat min.absorb4)
