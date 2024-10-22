@@ -121,13 +121,8 @@ lemma find_last_eq_Max :
     if x \<in> set xs
     then Max {i \<in> {0 ..< length xs}. xs ! i = x}
     else 0)\<close>
-proof -
-  have ?thesis if \<open>x \<in> set xs\<close> 
-    using that find_last_correct_1[of x xs]
-    by (auto intro: Max_eqI[symmetric] simp add: set_nths not_less_eq_eq)
-
-  then show ?thesis by (simp add: find_last_correct_2)
-qed
+  using find_last_correct_1[of x xs] find_last_correct_2[of x xs]
+  by (auto intro: Max_eqI[symmetric] simp add: set_nths not_less_eq_eq)
 
 definition find_last_before :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> nat"
   where "find_last_before k x xs = find_last x (take (k+1) xs)"
