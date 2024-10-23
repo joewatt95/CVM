@@ -180,13 +180,20 @@ next
     by (fastforce simp add: Pi_pmf_insert pair_pmf_def map_bind_pmf bind_map_pmf)
 qed
 
-lemma bernoulli_eq_map_Pi_pmf :
-  assumes \<open>0 < p\<close> \<open>p < 1\<close>
+lemma bernoulli_eq_map_Pi_pmf : 
+  assumes
+    \<open>0 < p\<close> \<open>p < 1\<close>
+    \<open>finite I\<close> \<open>{.. k} \<subseteq> I\<close>
   shows
     \<open>bernoulli_pmf (p ^ Suc k) = (
       \<lblot>bernoulli_pmf p\<rblot>
-        |> Pi_pmf {.. k} dflt
+        |> Pi_pmf I dflt
         |> map_pmf (Ball {.. k}))\<close>
-  by (metis assms(1) assms(2) atMost_atLeast0 bernoulli_eq_map_Pi_pmf_aux plus_nat.add_0)
+    (is \<open>?L = ?R k'\<close>)
+  using
+    assms
+    bernoulli_eq_map_Pi_pmf_aux[of p k 0 dflt]
+    Pi_pmf_subset[of \<open>I\<close> \<open>{.. k}\<close> dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
+  by (simp add: atMost_atLeast0 map_pmf_comp)
 
 end

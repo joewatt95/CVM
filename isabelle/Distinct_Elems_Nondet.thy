@@ -18,6 +18,9 @@ definition nondet_alg_aux ::
   "nondet_alg_aux k xs \<phi> =
     {x \<in> set xs. \<forall> k' < k. curry \<phi> k' (find_last x xs)}"
 
+definition nondet_alg :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> nat \<Rightarrow> bool) \<Rightarrow> nat\<close> where
+  \<open>nondet_alg k xs = nondet_alg_aux k xs >>> card\<close>
+
 context with_threshold
 begin
 
@@ -123,8 +126,8 @@ lemma map_pmf_nondet_alg_aux_eq:
   shows "
     map_pmf (nondet_alg_aux K xs)
       (fair_bernoulli_matrix m n) =
-    map_pmf (\<lambda> f. {y \<in> set xs. f y})
-     (prod_pmf (set xs) \<lblot> bernoulli_pmf ( 1 / (2 ^ K)) \<rblot>)"
+    map_pmf (\<lambda> P. {y \<in> set xs. P y})
+      (prod_pmf (set xs) \<lblot>bernoulli_pmf <| 1 / 2 ^ K\<rblot>)"
 proof -
   have 1: "(\<lambda>f. nondet_alg_aux K xs
             (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. f y x)) =
@@ -166,33 +169,35 @@ proof -
       then show ?thesis by simp
     next
       case (Suc K)
+      
+      moreover have
+        \<open>{.. K} \<subseteq> {..< m}\<close>
+        using assms(2) calculation(1) by fastforce
 
-      find_theorems "Pi_pmf" "(\<subseteq>)"
-      find_theorems "Pi_pmf" "(\<union>)"
-
-      then show ?thesis
-        using bernoulli_eq_map_Pi_pmf[of \<open>1 / 2\<close> K undefined] assms
-        apply (simp add: power_one_over)
-        apply (intro map_pmf_cong)
-        subgoal
-          apply (intro Pi_pmf_cong)
-          apply blast+
-          sorry
-        by blast
+      ultimately show ?thesis
+        using assms(2) bernoulli_eq_map_Pi_pmf[of \<open>1 / 2\<close> \<open>{..< m}\<close> K undefined]
+        unfolding Ball_def
+        by (auto simp add: power_one_over le_simps(2) map_pmf_comp)
     qed
 
   finally show ?thesis .
 qed
 
-lemma bla_eq_binomial:
-  assumes X: "finite X"
-  shows \<open>map_pmf (\<lambda> f. card {y \<in> X. f y})
-     (prod_pmf X \<lblot> bernoulli_pmf (1 / (2 ^ K)) \<rblot>)
-  = binomial_pmf (card X) (1 / 2 ^ (K::nat))\<close>
-  apply (subst binomial_pmf_altdef'[OF X, where dflt = "undefined"])
-    apply auto
+lemma map_pmf_nondet_alg_eq_binomial :
+  assumes \<open>length xs \<le> n\<close> \<open>K \<le> m\<close>
+  shows
+    \<open>map_pmf (nondet_alg K xs) (fair_bernoulli_matrix m n)
+    = binomial_pmf (card <| set xs) (1 / 2 ^ K)\<close>
+proof -
+  let ?go = \<open>\<lambda> f. map_pmf (f K xs) (fair_bernoulli_matrix m n)\<close>
 
-  sorry
+  have \<open>?go nondet_alg = map_pmf card (?go nondet_alg_aux)\<close>
+    by (simp add: nondet_alg_def map_pmf_comp)
+
+  then show ?thesis
+    using binomial_pmf_altdef'[of \<open>set xs\<close>]
+    by (simp add: assms map_pmf_nondet_alg_aux_eq map_pmf_comp)
+qed
 
 (* for some reason not shown in the libraries already *)
 lemma expectation_binomial_pmf:
