@@ -189,11 +189,10 @@ lemma bernoulli_eq_map_Pi_pmf :
       \<lblot>bernoulli_pmf p\<rblot>
         |> Pi_pmf I dflt
         |> map_pmf (Ball {.. k}))\<close>
-    (is \<open>?L = ?R k'\<close>)
   using
     assms
     bernoulli_eq_map_Pi_pmf_aux[of p k 0 dflt]
-    Pi_pmf_subset[of \<open>I\<close> \<open>{.. k}\<close> dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
+    Pi_pmf_subset[of I \<open>{.. k}\<close> dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
   by (simp add: atMost_atLeast0 map_pmf_comp)
 
 end
