@@ -16,7 +16,7 @@ begin
 definition nondet_alg_aux ::
   "nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set" where
   "nondet_alg_aux k xs \<phi> =
-    {y \<in> set xs. \<forall> k' < k. \<phi> (k', find_last y xs)}"
+    {x \<in> set xs. \<forall> k' < k. curry \<phi> k' (find_last x xs)}"
 
 context with_threshold
 begin
@@ -71,7 +71,7 @@ lemma eager_step_inv:
 lemma eager_algorithm_inv:
   shows "eager_state_inv xs \<phi>
       (run_eager_algorithm xs \<phi>)"
-proof (induction xs rule:rev_induct)
+proof (induction xs rule: rev_induct)
   case Nil
   then show ?case
     by (auto simp add: eager_algorithm_def run_steps_def run_reader_simps eager_state_inv_def initial_state_def nondet_alg_aux_def)
