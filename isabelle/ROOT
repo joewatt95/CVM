@@ -14,7 +14,9 @@ session CVM = "Monad_Normalisation" +
     "Distinct_Elems_Algo"
     "Distinct_Elems_No_Fail"
     "Distinct_Elems_Eager"
+    "Distinct_Elems_Lazy"
     "Distinct_Elems_Nondet"
+    "Distinct_Elems_Binomial"
 
     "Utils/Utils_Approx_Algo"
     "Utils/Utils_Function"

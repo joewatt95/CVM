@@ -64,7 +64,7 @@ lemma eager_step_inv:
     "i < length xs"
     "eager_state_inv (take i xs) \<phi> state"
   shows "
-    eager_state_inv (take (i+1) xs) \<phi>
+    eager_state_inv (take (i + 1) xs) \<phi>
       (run_reader (eager_step xs i state) \<phi>)"
   by (metis assms eager_step_1_inv eager_step_2_inv eager_step_split run_reader_simps(3))
 
@@ -123,12 +123,12 @@ lemma map_pmf_nondet_alg_aux_eq:
   shows "
     map_pmf (nondet_alg_aux K xs)
       (fair_bernoulli_matrix m n) =
-    map_pmf (\<lambda>f. {y \<in> set xs. \<forall> k' < K. f y k'})
+    map_pmf (\<lambda>f. {x \<in> set xs. \<forall> k' < K. f x k'})
       (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
 proof -
   have 1: "(\<lambda>f. nondet_alg_aux K xs
             (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. f y x)) =
-     (\<lambda> f. {y \<in> set xs. (\<forall>k' < K. f y k')})
+     (\<lambda> f. {x \<in> set xs. (\<forall>k' < K. f x k')})
         \<circ>
      (\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs))"
     using assms

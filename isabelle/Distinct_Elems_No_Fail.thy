@@ -192,7 +192,7 @@ lemma estimate_distinct_ord_spmf_eq :
   by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold.step_ord_spmf_eq with_threshold_axioms) 
 
 (* Think of P as event that est is the wrong count *)
-lemma prob_estimate_distinct_fail_or_satisfies_le :
+theorem prob_estimate_distinct_fail_or_satisfies_le :
   \<open>\<P>(est in estimate_distinct xs. est |> fail_or_satisfies P)
     \<le> real (length xs) / 2 ^ threshold
       + \<P>(est in estimate_distinct_no_fail xs. P est)\<close>
