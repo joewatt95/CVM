@@ -70,7 +70,7 @@ lemma eager_step_inv:
 
 lemma eager_algorithm_inv:
   shows "eager_state_inv xs \<phi>
-      (run_reader (eager_algorithm xs) \<phi>)"
+      (run_eager_algorithm xs \<phi>)"
 proof (induction xs rule:rev_induct)
   case Nil
   then show ?case
@@ -83,11 +83,14 @@ next
 qed
 
 lemma rel_pmf_eager_algorithm_nondet_alg_aux:
-  "rel_pmf (\<lambda>st Y. state_k st = K \<longrightarrow> state_chi st = Y)
-    (map_pmf (run_reader (eager_algorithm xs))
-      (fair_bernoulli_matrix n n))
-    (map_pmf (nondet_alg_aux K xs)
-      (fair_bernoulli_matrix n n))"
+  \<open>rel_pmf
+    (\<lambda> state X. state_k state = K \<longrightarrow> state_chi state = X)
+
+    (fair_bernoulli_matrix n n
+      |> map_pmf (run_eager_algorithm xs))
+
+    (fair_bernoulli_matrix n n
+      |> map_pmf (nondet_alg_aux K xs))\<close>
   using eager_algorithm_inv
   by (fastforce
     intro: rel_pmf_reflI
@@ -97,8 +100,8 @@ lemma rel_pmf_eager_algorithm_nondet_alg_aux:
 lemma eager_algorithm_nondet_measureD:
   shows "
   measure_pmf.prob
-    (map_pmf (run_reader (eager_algorithm xs)) (fair_bernoulli_matrix n n))
-    {st. state_k st = K \<and> P (state_chi st)} \<le>
+    (map_pmf (run_eager_algorithm xs) (fair_bernoulli_matrix n n))
+    {state. state_k state = K \<and> P (state_chi state)} \<le>
   measure_pmf.prob
     (map_pmf (nondet_alg_aux K xs) (fair_bernoulli_matrix n n))
     {Y. P Y}" (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
@@ -106,7 +109,7 @@ proof -
   have
     "measure_pmf.prob ?p ?A
       \<le> measure_pmf.prob ?q
-        {y. \<exists>x\<in>?A. state_k x = K \<longrightarrow> state_chi x = y}"
+        {y. \<exists> x \<in> ?A. state_k x = K \<longrightarrow> state_chi x = y}"
     using rel_pmf_measureD[OF rel_pmf_eager_algorithm_nondet_alg_aux] .
 
   also have "... = measure_pmf.prob ?q {Y. P Y}"
@@ -152,10 +155,9 @@ proof -
 qed
 
 lemma bla_eq_binomial:
-  shows "
-    (map_pmf (\<lambda>f. card {y \<in> X. \<forall>k'<K. f y k'})
-     (prod_pmf X \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)) =
-    binomial_pmf (card X) (1 / 2 ^ (K::nat))"
+  \<open>(map_pmf (\<lambda> f. card {y \<in> X. \<forall> k' < K. f y k'})
+     (prod_pmf X \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>))
+  = binomial_pmf (card X) (1 / 2 ^ (K::nat))\<close>
   sorry
 
 (* for some reason not shown in the libraries already *)

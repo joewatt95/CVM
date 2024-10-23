@@ -50,6 +50,8 @@ definition eager_algorithm ::
   "'a list \<Rightarrow> (coin_matrix, 'a state) reader_monad" where
   "eager_algorithm xs \<equiv> run_steps foldM_rd (eager_step xs) [0..<length xs]"
 
+abbreviation \<open>run_eager_algorithm \<equiv> run_reader <<< eager_algorithm\<close>
+
 definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
   where "lazy_step xs i state = do {
     let k = state_k state;
@@ -505,7 +507,7 @@ outside of this context.\<close>
 theorem eager_lazy_conversion:
   assumes "length xs \<le> n"
   shows
-    "map_pmf (run_reader (eager_algorithm xs)) (bernoulli_matrix n n <| 1/2)
+    "map_pmf (run_eager_algorithm xs) (bernoulli_matrix n n <| 1/2)
     = lazy_algorithm xs"
   using eager_lazy_conversion_aux[OF assms(1)]
   unfolding bernoulli_matrix_def sample_def space_def by auto
@@ -587,7 +589,7 @@ lemma estimate_distinct_no_fail_eq_eager_algo :
     \<open>estimate_distinct_no_fail xs = (
       fair_bernoulli_matrix n n
         |> map_pmf (
-            (run_reader <| eager_algorithm xs)
+            (run_eager_algorithm xs)
               >>> compute_estimate))\<close>
   by (metis assms eager_lazy_conversion estimate_distinct_no_fail_eq_lazy_algo map_pmf_comp)
 
