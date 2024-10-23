@@ -31,12 +31,12 @@ definition eager_state_inv ::
 lemma eager_step_1_inv :
   assumes
     \<open>i < length xs\<close>
-    \<open>eager_state_inv (take i xs) coin_matrix state\<close>
+    \<open>eager_state_inv (take i xs) \<phi> state\<close>
   shows
     \<open>eager_state_inv
       (take (i + 1) xs)
-      coin_matrix
-      (run_reader (eager_step_1 xs i state) coin_matrix)\<close>
+      \<phi>
+      (run_reader (eager_step_1 xs i state)  \<phi>)\<close>
   using
     assms
     find_last_before_self_eq[OF \<open>i < length xs\<close>]
@@ -123,8 +123,8 @@ lemma map_pmf_nondet_alg_aux_eq:
   shows "
     map_pmf (nondet_alg_aux K xs)
       (fair_bernoulli_matrix m n) =
-    map_pmf (\<lambda>f. {x \<in> set xs. \<forall> k' < K. f x k'})
-      (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
+    map_pmf (\<lambda> f. {y \<in> set xs. f y})
+     (prod_pmf (set xs) \<lblot> bernoulli_pmf ( 1 / (2 ^ K)) \<rblot>)"
 proof -
   have 1: "(\<lambda>f. nondet_alg_aux K xs
             (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. f y x)) =
@@ -151,13 +151,29 @@ proof -
     apply (auto simp add: o_def find_last_inj)
     using assms(1) find_last_correct_1(2) by fastforce
 
+  also have "... =
+    map_pmf (\<lambda> f. {y \<in> set xs. f y})
+     (prod_pmf (set xs) \<lblot> map_pmf (\<lambda>f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)"
+    apply (subst Pi_pmf_map'[where d' = undefined])
+    apply (auto simp add: map_pmf_comp)
+    sorry
+
+  also have "... =
+    map_pmf (\<lambda> f. {y \<in> set xs. f y})
+     (prod_pmf (set xs) \<lblot> bernoulli_pmf ( 1 / (2 ^ K)) \<rblot>)"
+    sorry
+
   finally show ?thesis .
 qed
 
 lemma bla_eq_binomial:
-  \<open>(map_pmf (\<lambda> f. card {y \<in> X. \<forall> k' < K. f y k'})
-     (prod_pmf X \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>))
+  assumes X: "finite X"
+  shows \<open>map_pmf (\<lambda> f. card {y \<in> X. f y})
+     (prod_pmf X \<lblot> bernoulli_pmf (1 / (2 ^ K)) \<rblot>)
   = binomial_pmf (card X) (1 / 2 ^ (K::nat))\<close>
+  apply (subst binomial_pmf_altdef'[OF X, where dflt = "undefined"])
+    apply auto
+
   sorry
 
 (* for some reason not shown in the libraries already *)
