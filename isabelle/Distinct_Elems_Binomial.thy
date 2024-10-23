@@ -1,7 +1,7 @@
 theory Distinct_Elems_Binomial
 
 imports
-  Distinct_Elems_Nondet
+  CVM.Distinct_Elems_Nondet
 
 begin
 

@@ -134,4 +134,50 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma bernoulli_biased_coin_eq_fair_coins :
+  assumes \<open>0 < p\<close> \<open>p < 1\<close> \<open>0 < p'\<close> \<open>p' < 1\<close>
+  shows
+    \<open>bernoulli_pmf (p * p') = do {
+      b \<leftarrow> bernoulli_pmf p;
+      b' \<leftarrow> bernoulli_pmf p';
+      return_pmf <| b \<and> b' }\<close>
+proof -
+  have \<open>p * p' < 1\<close>
+    by (smt (verit, ccfv_threshold) assms(1) assms(2) assms(4) mult_less_cancel_left2)
+
+  moreover have \<open>- (p * p') = (1 - p') * p - p\<close> by argo
+
+  ultimately show ?thesis
+    using assms
+    by (auto
+      intro: pmf_eqI
+      simp add:
+        bernoulli_pmf.rep_eq measure_pmf_single vimage_def
+        map_pmf_def[symmetric] pmf_bind pmf_map)
+qed
+
+lemma bernoulli_eq_map_Pi_pmf :
+  assumes \<open>0 < p\<close> \<open>p < 1\<close>
+  shows
+    \<open>bernoulli_pmf (p ^ Suc k) = (
+      \<lblot>bernoulli_pmf p\<rblot>
+        |> Pi_pmf {offset .. offset + k} dflt
+        |> map_pmf (Ball {offset .. offset + k}))\<close>
+proof (induction k arbitrary: offset)
+  case 0
+  then show ?case by (simp add: assms Pi_pmf_singleton map_pmf_comp)
+next
+  case (Suc k)
+
+  have
+    \<open>{offset .. Suc (offset + k)} = insert offset {Suc offset .. Suc offset + k}\<close>
+    for offset k by fastforce
+
+  then show ?case
+    using
+      assms power_Suc_less_one Suc.IH[of \<open>Suc offset\<close>]
+      bernoulli_biased_coin_eq_fair_coins[of p \<open>p ^ Suc k\<close>]
+    by (fastforce simp add: Pi_pmf_insert pair_pmf_def map_bind_pmf bind_map_pmf)
+qed
+
 end
