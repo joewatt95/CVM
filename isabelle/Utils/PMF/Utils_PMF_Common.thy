@@ -156,6 +156,15 @@ proof -
         map_pmf_def[symmetric] pmf_bind pmf_map)
 qed
 
+lemma
+  assumes \<open>0 < p\<close> \<open>p < 1\<close> \<open>card I = Suc k\<close>
+  shows
+    \<open>bernoulli_pmf (p ^ Suc k) = (
+      \<lblot>bernoulli_pmf p\<rblot>
+        |> Pi_pmf I dflt
+        |> map_pmf (Ball I))\<close>
+  sorry
+
 lemma bernoulli_eq_map_Pi_pmf_aux :
   assumes \<open>0 < p\<close> \<open>p < 1\<close>
   shows
