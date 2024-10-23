@@ -157,13 +157,21 @@ proof -
 qed
 
 lemma
-  assumes \<open>0 < p\<close> \<open>p < 1\<close> \<open>card I = Suc k\<close>
+  assumes \<open>0 < p\<close> \<open>p < 1\<close>
   shows
-    \<open>bernoulli_pmf (p ^ Suc k) = (
+    \<open>card I = Suc k \<Longrightarrow>
+    bernoulli_pmf (p ^ Suc k) = (
       \<lblot>bernoulli_pmf p\<rblot>
         |> Pi_pmf I dflt
         |> map_pmf (Ball I))\<close>
-  sorry
+proof (induction k arbitrary: I)
+  case 0
+  then show ?case
+    by (auto simp add: assms Pi_pmf_singleton card_1_singleton_iff map_pmf_comp)
+next
+  case (Suc k)
+  then show ?case sorry
+qed
 
 lemma bernoulli_eq_map_Pi_pmf_aux :
   assumes \<open>0 < p\<close> \<open>p < 1\<close>
