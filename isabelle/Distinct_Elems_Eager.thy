@@ -512,7 +512,9 @@ theorem eager_lazy_conversion:
 
 end
 
-text \<open>Convert between the algorithms\<close>
+text
+  \<open>Next, we connect the lazy and eager algorithms with the previous algorithm
+  that doesn't fail, ie estimate_distinct_no_fail.\<close>
 
 lemma lazy_algorithm_eq_snoc_version:
   \<open>lazy_algorithm xs = run_steps_pmf step_no_fail xs\<close>

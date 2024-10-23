@@ -154,15 +154,15 @@ lemma find_last_before_eq_find_last_iff :
   shows
     \<open>find_last_before i x xs = find_last x (take i xs)
     \<longleftrightarrow> x \<noteq> xs ! i\<close>
-    (is \<open>?LHS \<longleftrightarrow> ?RHS\<close>)
+    (is \<open>?L \<longleftrightarrow> ?R\<close>)
 proof -
-  have ?LHS if ?RHS
+  have ?L if ?R
     using assms that
     apply (simp add: find_last_before_def find_last_eq_Max) 
     by (smt (verit, ccfv_SIG) Collect_cong in_set_takeD in_set_take_conv_nth le_eq_less_or_eq less_Suc_eq nat_neq_iff nth_take take_all_iff)
 
   then show ?thesis
-    by (metis assms(1) assms(2) find_last_before_self_eq find_last_correct_1(2) length_take less_irrefl_nat min.absorb4)
+    by (metis assms find_last_before_self_eq find_last_correct_1(2) length_take less_irrefl_nat min.absorb4)
 qed
 
 end
