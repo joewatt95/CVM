@@ -167,7 +167,8 @@ proof -
     next
       case (Suc K)
 
-      thm bernoulli_eq_map_Pi_pmf
+      find_theorems "Pi_pmf" "(\<subseteq>)"
+      find_theorems "Pi_pmf" "(\<union>)"
 
       then show ?thesis
         using bernoulli_eq_map_Pi_pmf[of \<open>1 / 2\<close> K undefined] assms
