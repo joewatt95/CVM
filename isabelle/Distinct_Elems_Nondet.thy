@@ -153,15 +153,32 @@ proof -
 
   also have "... =
     map_pmf (\<lambda> f. {y \<in> set xs. f y})
-     (prod_pmf (set xs) \<lblot> map_pmf (\<lambda>f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)"
-    apply (subst Pi_pmf_map'[where d' = undefined])
-    apply (auto simp add: map_pmf_comp)
-    sorry
+     (prod_pmf (set xs) \<lblot>map_pmf (\<lambda>f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)"
+    by (auto
+      intro: map_pmf_cong
+      simp add: Pi_pmf_map'[where d' = undefined] map_pmf_comp)
 
   also have "... =
     map_pmf (\<lambda> f. {y \<in> set xs. f y})
-     (prod_pmf (set xs) \<lblot> bernoulli_pmf ( 1 / (2 ^ K)) \<rblot>)"
-    sorry
+     (prod_pmf (set xs) \<lblot>bernoulli_pmf (1 / 2 ^ K)\<rblot>)"
+    proof (cases K)
+      case 0
+      then show ?thesis by simp
+    next
+      case (Suc K)
+
+      thm bernoulli_eq_map_Pi_pmf
+
+      then show ?thesis
+        using bernoulli_eq_map_Pi_pmf[of \<open>1 / 2\<close> K undefined] assms
+        apply (simp add: power_one_over)
+        apply (intro map_pmf_cong)
+        subgoal
+          apply (intro Pi_pmf_cong)
+          apply blast+
+          sorry
+        by blast
+    qed
 
   finally show ?thesis .
 qed

@@ -156,7 +156,7 @@ proof -
         map_pmf_def[symmetric] pmf_bind pmf_map)
 qed
 
-lemma bernoulli_eq_map_Pi_pmf :
+lemma bernoulli_eq_map_Pi_pmf_aux :
   assumes \<open>0 < p\<close> \<open>p < 1\<close>
   shows
     \<open>bernoulli_pmf (p ^ Suc k) = (
@@ -179,5 +179,14 @@ next
       bernoulli_biased_coin_eq_fair_coins[of p \<open>p ^ Suc k\<close>]
     by (fastforce simp add: Pi_pmf_insert pair_pmf_def map_bind_pmf bind_map_pmf)
 qed
+
+lemma bernoulli_eq_map_Pi_pmf :
+  assumes \<open>0 < p\<close> \<open>p < 1\<close>
+  shows
+    \<open>bernoulli_pmf (p ^ Suc k) = (
+      \<lblot>bernoulli_pmf p\<rblot>
+        |> Pi_pmf {.. k} dflt
+        |> map_pmf (Ball {.. k}))\<close>
+  by (metis assms(1) assms(2) atMost_atLeast0 bernoulli_eq_map_Pi_pmf_aux plus_nat.add_0)
 
 end
