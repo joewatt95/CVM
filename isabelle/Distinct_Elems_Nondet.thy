@@ -1,6 +1,7 @@
 theory Distinct_Elems_Nondet
 
 imports
+  HOL.Fun
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
   CVM.Utils_Reader_Monad
   CVM.Utils_List
@@ -122,37 +123,46 @@ proof -
 qed
 
 lemma map_pmf_nondet_alg_aux_eq:
-  assumes "length xs \<le> n" "K \<le> m"
-  shows "
-    map_pmf (nondet_alg_aux K xs)
+  assumes \<open>length xs \<le> n\<close> \<open>K \<le> m\<close>
+  shows
+    \<open>map_pmf (nondet_alg_aux K xs)
       (fair_bernoulli_matrix m n) =
     map_pmf (\<lambda> P. {y \<in> set xs. P y})
-      (prod_pmf (set xs) \<lblot>bernoulli_pmf <| 1 / 2 ^ K\<rblot>)"
+      (prod_pmf (set xs) \<lblot>bernoulli_pmf <| 1 / 2 ^ K\<rblot>)\<close>
+    (is \<open>?L = ?R\<close>)
 proof -
-  have 1: "(\<lambda>f. nondet_alg_aux K xs
-            (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. f y x)) =
-     (\<lambda> f. {x \<in> set xs. (\<forall>k' < K. f x k')})
-        \<circ>
-     (\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs))"
-    using assms
-    by (auto simp add: fun_eq_iff nondet_alg_aux_def dual_order.strict_trans1 find_last_correct_1(2))
-
-  have "map_pmf (nondet_alg_aux K xs)
-    (fair_bernoulli_matrix m n) =
+  have "?L =
     map_pmf
-     (\<lambda> f. nondet_alg_aux K xs
-            (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}.  f y x))
+     (\<lambda> \<phi>. nondet_alg_aux K xs (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. \<phi> y x))
      (prod_pmf {..< n} \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
-    unfolding bernoulli_matrix_eq_uncurry_prod map_pmf_comp by auto
+    (is \<open>_ = map_pmf ?go _\<close>)
+    by (simp add: bernoulli_matrix_eq_uncurry_prod map_pmf_comp)
 
   also have "... =
     map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < K. f y k'})
      (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
-    unfolding 1 map_pmf_compose
-    apply (clarsimp simp add: o_def)
-    apply (subst prod_pmf_reindex)
-    apply (auto simp add: o_def find_last_inj)
-    using assms(1) find_last_correct_1(2) by fastforce
+    proof -
+      let ?nondet_alg_aux_step_1 =
+        \<open>\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs)\<close>
+
+      let ?nondet_alg_aux_step_2 =
+        \<open>\<lambda> f. {x \<in> set xs. \<forall>k' < K. f x k'}\<close>
+
+      have \<open>map_pmf ?go =
+        map_pmf ?nondet_alg_aux_step_2 \<circ> map_pmf ?nondet_alg_aux_step_1\<close>
+        using assms
+        by (auto
+          intro!: map_pmf_cong
+          simp add:
+            nondet_alg_aux_def map_pmf_compose[symmetric]
+            fun_eq_iff dual_order.strict_trans1 find_last_correct_1(2))
+
+      then show ?thesis
+        using assms find_last_inj
+        apply (simp add: map_pmf_compose)
+        apply (subst prod_pmf_reindex)
+        by (auto simp add: image_def find_last_eq_Max in_set_conv_nth)
+    qed
 
   also have "... =
     map_pmf (\<lambda> f. {y \<in> set xs. f y})
