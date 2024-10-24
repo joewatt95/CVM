@@ -194,10 +194,10 @@ text
   equivalent to the following probabilistic algorithm:
   1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality
      k + 1.
-  1. We construct a family of bernoulli distrubitons of probability p over J.
-  2. We then sample from the above product measure and check if it evaluates to
-     heads everywhere on I.\<close>
-lemma bernoulli_eq_map_Pi_pmf : 
+  2. We construct a bernoulli process with probability p, indexed by J.
+  3. We sample an outcome from the process and check if as a characteristic
+     function on J, it evaluates to \<top> on I.\<close>
+lemma bernoulli_eq_map_Pi_pmf :
   assumes
     \<open>0 < p\<close> \<open>p < 1\<close>
     \<open>card I = Suc k\<close> \<open>I \<subseteq> J\<close> \<open>finite J\<close>
