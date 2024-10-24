@@ -89,12 +89,8 @@ qed
 lemma rel_pmf_eager_algorithm_nondet_alg_aux:
   \<open>rel_pmf
     (\<lambda> state X. state_k state = K \<longrightarrow> state_chi state = X)
-
-    (fair_bernoulli_matrix n n
-      |> map_pmf (run_eager_algorithm xs))
-
-    (fair_bernoulli_matrix n n
-      |> map_pmf (nondet_alg_aux K xs))\<close>
+    (map_pmf (run_eager_algorithm xs) p)
+    (map_pmf (nondet_alg_aux K xs) p)\<close>
   using eager_algorithm_inv
   by (fastforce
     intro: rel_pmf_reflI
@@ -104,10 +100,10 @@ lemma rel_pmf_eager_algorithm_nondet_alg_aux:
 lemma eager_algorithm_nondet_measureD:
   shows "
   measure_pmf.prob
-    (map_pmf (run_eager_algorithm xs) (fair_bernoulli_matrix n n))
+    (map_pmf (run_eager_algorithm xs) p)
     {state. state_k state = K \<and> P (state_chi state)} \<le>
   measure_pmf.prob
-    (map_pmf (nondet_alg_aux K xs) (fair_bernoulli_matrix n n))
+    (map_pmf (nondet_alg_aux K xs) p)
     {Y. P Y}" (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
 proof -
   have
@@ -175,7 +171,7 @@ proof -
     map_pmf (\<lambda> f. {y \<in> set xs. f y})
      (prod_pmf (set xs) \<lblot>bernoulli_pmf (1 / 2 ^ K)\<rblot>)"
     using
-      assms(2)
+      assms(2)          
       bernoulli_eq_map_Pi_pmf[where I = \<open>{.. K - 1}\<close>, unfolded Ball_def]
     by (cases K; auto simp add:
       power_one_over le_simps(2) map_pmf_comp Iic_subset_Iio_iff)
@@ -202,9 +198,8 @@ qed
 (* for some reason not shown in the libraries already *)
 lemma expectation_binomial_pmf:
   shows"
-    measure_pmf.expectation
-    (binomial_pmf (card X) (1 / 2 ^ (K::nat))) id =
-    (card X) * (1 / 2 ^ (K::nat))"
+    measure_pmf.expectation (binomial_pmf n p) id =
+      n * p"
   sorry
 
 lemma estimation_error_1_sided:
@@ -231,6 +226,8 @@ lemma estimation_error_2_sided:
     (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
     {t. beyond_eps_range_of_card xs t} \<le> bar"
   sorry
+
+
 
 end
 
