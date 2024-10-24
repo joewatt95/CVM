@@ -221,22 +221,6 @@ proof -
     by (simp add: assms expectation_sum_Pi_pmf integrable_measure_pmf_finite)
 qed
 
-(* proof (induction n)
-  case 0
-  then show ?case
-    using assms by (simp add: binomial_pmf_0)
-next
-  case (Suc n)
-
-  (* have \<open>(1 + real n) * p = p + n * p\<close>
-    sledgehammer *)
-
-  show ?case
-    using assms
-    apply (auto simp add: distrib_right Suc.IH[symmetric] expectation_binomial_pmf')
-    sorry
-qed *)
-
 lemma estimation_error_1_sided:
   assumes "finite X"
   shows
