@@ -212,19 +212,13 @@ proof -
     \<lblot>map_pmf of_bool <| bernoulli_pmf p\<rblot>
       |> prod_pmf {..< n}
       |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
-  using assms
-  apply (subst binomial_pmf_altdef'[of \<open>{..< n}\<close>, where dflt = undefined])
-  apply simp_all
-  apply (subst Pi_pmf_map'[where d' = undefined])
-  apply simp_all
-  by (simp add: map_pmf_comp Collect_conj_eq lessThan_def)
+  by (simp add:
+    assms map_pmf_comp Collect_conj_eq lessThan_def
+    binomial_pmf_altdef'[of \<open>{..< n}\<close>, where dflt = undefined]
+    Pi_pmf_map'[where d' = undefined])
 
   then show ?thesis
-    using assms
-    apply simp_all
-    apply (subst expectation_sum_Pi_pmf)
-    apply simp_all
-    using finite integrable_measure_pmf_finite by blast
+    by (simp add: assms expectation_sum_Pi_pmf integrable_measure_pmf_finite)
 qed
 
 (* proof (induction n)
