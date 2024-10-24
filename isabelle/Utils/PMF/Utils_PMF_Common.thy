@@ -194,8 +194,8 @@ text
   equivalent to doing the following:
   1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality
      k + 1.
-  2. We construct a family of bernoulli distributions, indexed by J, and sample
-     from it.
+  2. We construct a family of bernoulli distributions of probability p,
+     indexed by J, and sample from it.
   3. Viewing the outcome as a characteristic function of J, we check if the
      subset it defines contains I, outputting \<top> iff that is the case.\<close>
 lemma bernoulli_eq_map_Pi_pmf :
