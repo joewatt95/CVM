@@ -1,7 +1,6 @@
 theory Distinct_Elems_Nondet
 
 imports
-  HOL.Fun
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
   CVM.Utils_Reader_Monad
   CVM.Utils_List
@@ -10,6 +9,18 @@ imports
   CVM.Distinct_Elems_Eager
 
 begin
+
+sledgehammer_params [
+  (* verbose *)
+  minimize = true,
+  preplay_timeout = 15,
+  timeout = 60,
+  max_facts = smart,
+  provers = "
+    cvc4 z3 verit
+    e vampire spass
+  "
+]
 
 (* After processing the list xs, the chi is the set of
      distinct elements x in xs where the last time
@@ -125,7 +136,7 @@ lemma map_pmf_nondet_alg_aux_eq:
       (fair_bernoulli_matrix m n) =
     map_pmf (\<lambda> P. {y \<in> set xs. P y})
       (prod_pmf (set xs) \<lblot>bernoulli_pmf <| 1 / 2 ^ K\<rblot>)\<close>
-    (is \<open>?L = ?R\<close>)
+    (is \<open>?L = _\<close>)
 proof -
   have "?L =
     map_pmf
@@ -138,14 +149,13 @@ proof -
     map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < K. f y k'})
      (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
     proof -
-      let ?nondet_alg_aux_step_1 =
+      let ?step_1 =
         \<open>\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs)\<close>
 
-      let ?nondet_alg_aux_step_2 =
+      let ?step_2 =
         \<open>\<lambda> f. {x \<in> set xs. \<forall>k' < K. f x k'}\<close>
 
-      have \<open>map_pmf ?go =
-        map_pmf ?nondet_alg_aux_step_2 \<circ> map_pmf ?nondet_alg_aux_step_1\<close>
+      have \<open>map_pmf ?go = map_pmf ?step_2 \<circ> map_pmf ?step_1\<close>
         using assms
         by (auto
           intro!: map_pmf_cong
@@ -161,22 +171,20 @@ proof -
     qed
 
   also have "... =
-    map_pmf (\<lambda> f. {y \<in> set xs. f y})
-     (prod_pmf (set xs) \<lblot>map_pmf (\<lambda>f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)"
+    map_pmf
+      (\<lambda> f. {y \<in> set xs. f y})
+      (prod_pmf (set xs)
+        \<lblot>map_pmf (\<lambda> f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)"
     by (auto
       intro: map_pmf_cong
       simp add: Pi_pmf_map'[where d' = undefined] map_pmf_comp)
 
-  also have "... =
-    map_pmf (\<lambda> f. {y \<in> set xs. f y})
-     (prod_pmf (set xs) \<lblot>bernoulli_pmf (1 / 2 ^ K)\<rblot>)"
+  finally show ?thesis
     using
       assms(2)          
       bernoulli_eq_map_Pi_pmf[where I = \<open>{.. K - 1}\<close>, unfolded Ball_def]
     by (cases K; auto simp add:
       power_one_over le_simps(2) map_pmf_comp Iic_subset_Iio_iff)
-
-  finally show ?thesis .
 qed
 
 lemma map_pmf_nondet_alg_eq_binomial :
@@ -197,10 +205,43 @@ qed
 
 (* for some reason not shown in the libraries already *)
 lemma expectation_binomial_pmf:
-  shows"
-    measure_pmf.expectation (binomial_pmf n p) id =
-      n * p"
-  sorry
+  assumes \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
+  shows \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
+proof -
+  have \<open>binomial_pmf n p = (
+    \<lblot>map_pmf of_bool <| bernoulli_pmf p\<rblot>
+      |> prod_pmf {..< n}
+      |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
+  using assms
+  apply (subst binomial_pmf_altdef'[of \<open>{..< n}\<close>, where dflt = undefined])
+  apply simp_all
+  apply (subst Pi_pmf_map'[where d' = undefined])
+  apply simp_all
+  by (simp add: map_pmf_comp Collect_conj_eq lessThan_def)
+
+  then show ?thesis
+    using assms
+    apply simp_all
+    apply (subst expectation_sum_Pi_pmf)
+    apply simp_all
+    using finite integrable_measure_pmf_finite by blast
+qed
+
+(* proof (induction n)
+  case 0
+  then show ?case
+    using assms by (simp add: binomial_pmf_0)
+next
+  case (Suc n)
+
+  (* have \<open>(1 + real n) * p = p + n * p\<close>
+    sledgehammer *)
+
+  show ?case
+    using assms
+    apply (auto simp add: distrib_right Suc.IH[symmetric] expectation_binomial_pmf')
+    sorry
+qed *)
 
 lemma estimation_error_1_sided:
   assumes "finite X"

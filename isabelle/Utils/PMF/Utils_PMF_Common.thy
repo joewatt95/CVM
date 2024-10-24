@@ -151,9 +151,7 @@ proof -
     using assms
     by (auto
       intro: pmf_eqI
-      simp add:
-        bernoulli_pmf.rep_eq measure_pmf_single vimage_def
-        map_pmf_def[symmetric] pmf_bind pmf_map)
+      simp add: bernoulli_pmf.rep_eq pmf_bind)
 qed
 
 lemma bernoulli_eq_map_Pi_pmf_aux : 
@@ -187,29 +185,28 @@ qed
 
 text
   \<open>This says that to simulate a coin flip with the probability of getting H as
-  p ^ (k + 1), we can flip \<ge> k + 1 coins with probability p of getting H, and
-  check if any k + 1 of them are H. 
+  p ^ k, we can flip \<ge> k coins with probability p of getting H, and check if
+  any k of them are H. 
 
-  More precisely, a bernoulli distribution with probability p ^ (k + 1) is
-  equivalent to doing the following:
-  1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality
-     k + 1.
-  2. We construct a family of bernoulli distributions of probability p,
+  More precisely, a bernoulli RV with probability p ^ k (k > 0) is equivalent
+  to doing the following:
+  1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality k.
+  2. We construct a family of IID bernoulli RVs of probability p,
      indexed by J, and sample from it.
   3. Viewing the outcome as a characteristic function of J, we check if the
      subset it defines contains I, outputting \<top> iff that is the case.\<close>
 lemma bernoulli_eq_map_Pi_pmf :
   assumes
     \<open>0 < p\<close> \<open>p < 1\<close>
-    \<open>card I = Suc k\<close> \<open>I \<subseteq> J\<close> \<open>finite J\<close>
+    \<open>card I > 0\<close> \<open>I \<subseteq> J\<close> \<open>finite J\<close>
   shows
-    \<open>bernoulli_pmf (p ^ Suc k) = (
+    \<open>bernoulli_pmf (p ^ card I) = (
       \<lblot>bernoulli_pmf p\<rblot>
         |> Pi_pmf J dflt
         |> map_pmf (Ball I))\<close>
   using
     assms
-    bernoulli_eq_map_Pi_pmf_aux[of p I k dflt]
+    bernoulli_eq_map_Pi_pmf_aux[of p I \<open>card I - 1\<close> dflt]
     Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
   by (auto simp add: map_pmf_comp)
 
