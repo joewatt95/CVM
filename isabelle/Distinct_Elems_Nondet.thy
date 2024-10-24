@@ -164,9 +164,11 @@ proof -
   also have "... =
     map_pmf (\<lambda> f. {y \<in> set xs. f y})
      (prod_pmf (set xs) \<lblot>bernoulli_pmf (1 / 2 ^ K)\<rblot>)"
-    using assms(2) bernoulli_eq_map_Pi_pmf[of \<open>1 / 2\<close> \<open>{..< m}\<close> \<open>K - 1\<close> undefined]
-    unfolding Ball_def
-    by (cases K; fastforce simp add: power_one_over le_simps(2) map_pmf_comp)
+    using
+      assms(2)
+      bernoulli_eq_map_Pi_pmf[where I = \<open>{.. K - 1}\<close>, unfolded Ball_def]
+    by (cases K; auto simp add:
+      power_one_over le_simps(2) map_pmf_comp Iic_subset_Iio_iff)
 
   finally show ?thesis .
 qed

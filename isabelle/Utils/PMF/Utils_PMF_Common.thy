@@ -156,7 +156,7 @@ proof -
         map_pmf_def[symmetric] pmf_bind pmf_map)
 qed
 
-lemma
+lemma bernoulli_eq_map_Pi_pmf_aux : 
   assumes \<open>0 < p\<close> \<open>p < 1\<close>
   shows
     \<open>card I = Suc k \<Longrightarrow>
@@ -170,46 +170,46 @@ proof (induction k arbitrary: I)
     by (auto simp add: assms Pi_pmf_singleton card_1_singleton_iff map_pmf_comp)
 next
   case (Suc k)
-  then show ?case sorry
+
+  then obtain x J where
+    \<open>finite J\<close> \<open>card J = Suc k\<close> \<open>I = insert x J\<close> \<open>x \<notin> J\<close>
+    by (metis card_Suc_eq_finite)
+
+  moreover note
+    Suc.IH[of J] assms power_Suc_less_one
+    bernoulli_biased_coin_eq_fair_coins[of p \<open>p ^ Suc k\<close>]
+
+  ultimately show ?case
+    by (fastforce
+      intro!: bind_pmf_cong
+      simp add: Pi_pmf_insert' map_bind_pmf bind_map_pmf)
 qed
 
-lemma bernoulli_eq_map_Pi_pmf_aux :
-  assumes \<open>0 < p\<close> \<open>p < 1\<close>
-  shows
-    \<open>bernoulli_pmf (p ^ Suc k) = (
-      \<lblot>bernoulli_pmf p\<rblot>
-        |> Pi_pmf {offset .. offset + k} dflt
-        |> map_pmf (Ball {offset .. offset + k}))\<close>
-proof (induction k arbitrary: offset)
-  case 0
-  then show ?case by (simp add: assms Pi_pmf_singleton map_pmf_comp)
-next
-  case (Suc k)
+text
+  \<open>This says that to simulate a coin flip with the probability of getting H as
+  p ^ (k + 1), we can flip \<ge> k + 1 coins with probability p of getting H, and
+  check if any k + 1 of them are H. 
 
-  have
-    \<open>{offset .. Suc (offset + k)} = insert offset {Suc offset .. Suc offset + k}\<close>
-    for offset k by fastforce
-
-  then show ?case
-    using
-      assms power_Suc_less_one Suc.IH[of \<open>Suc offset\<close>]
-      bernoulli_biased_coin_eq_fair_coins[of p \<open>p ^ Suc k\<close>]
-    by (fastforce simp add: Pi_pmf_insert pair_pmf_def map_bind_pmf bind_map_pmf)
-qed
-
+  More precisely, a bernoulli distribution with probability p ^ (k + 1) is
+  equivalent to the following probabilistic algorithm:
+  1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality
+     k + 1.
+  1. We construct a family of bernoulli distrubitons of probability p over J.
+  2. We then sample from the above product measure and check if it evaluates to
+     heads everywhere on I.\<close>
 lemma bernoulli_eq_map_Pi_pmf : 
   assumes
     \<open>0 < p\<close> \<open>p < 1\<close>
-    \<open>finite I\<close> \<open>{.. k} \<subseteq> I\<close>
+    \<open>card I = Suc k\<close> \<open>I \<subseteq> J\<close> \<open>finite J\<close>
   shows
     \<open>bernoulli_pmf (p ^ Suc k) = (
       \<lblot>bernoulli_pmf p\<rblot>
-        |> Pi_pmf I dflt
-        |> map_pmf (Ball {.. k}))\<close>
+        |> Pi_pmf J dflt
+        |> map_pmf (Ball I))\<close>
   using
     assms
-    bernoulli_eq_map_Pi_pmf_aux[of p k 0 dflt]
-    Pi_pmf_subset[of I \<open>{.. k}\<close> dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
-  by (simp add: atMost_atLeast0 map_pmf_comp)
+    bernoulli_eq_map_Pi_pmf_aux[of p I k dflt]
+    Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
+  by (auto simp add: map_pmf_comp)
 
 end
