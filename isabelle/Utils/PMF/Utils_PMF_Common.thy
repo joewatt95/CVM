@@ -191,12 +191,13 @@ text
   check if any k + 1 of them are H. 
 
   More precisely, a bernoulli distribution with probability p ^ (k + 1) is
-  equivalent to the following probabilistic algorithm:
+  equivalent to doing the following:
   1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality
      k + 1.
-  2. We construct a bernoulli process with probability p, indexed by J.
-  3. We sample an outcome from the process and check if as a characteristic
-     function on J, it evaluates to \<top> on I.\<close>
+  2. We construct a family of bernoulli distributions, indexed by J, and sample
+     from it.
+  3. Viewing the outcome as a characteristic function of J, we check if the
+     subset it defines contains I, outputting \<top> iff that is the case.\<close>
 lemma bernoulli_eq_map_Pi_pmf :
   assumes
     \<open>0 < p\<close> \<open>p < 1\<close>
