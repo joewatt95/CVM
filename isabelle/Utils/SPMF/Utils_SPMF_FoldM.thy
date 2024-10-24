@@ -34,10 +34,8 @@ lemma spmf_of_pmf_foldM_pmf_eq_foldM_spmf :
   apply (induction xs) by (simp_all add: spmf_of_pmf_bind)
 
 lemma pmf_foldM_spmf_nil :
-  shows
-    \<open>spmf (foldM_spmf f [] acc) acc = 1\<close>
-    \<open>acc \<noteq> acc' \<Longrightarrow> spmf (foldM_spmf f [] acc) acc' = 0\<close>
-  by simp_all
+  \<open>spmf (foldM_spmf f [] acc) acc' = of_bool (acc = acc')\<close>
+  by simp
 
 lemma pmf_foldM_spmf_cons :
   \<open>pmf (foldM_spmf f (x # xs) acc) a
@@ -54,13 +52,13 @@ lemma integrable_prob_fail_foldM_spmf :
     (measure_spmf <| f x acc) <|
     prob_fail <<< foldM_spmf f xs\<close>
   by (auto
-      intro: measure_spmf.integrable_const_bound[where ?B = 1]
-      simp add: prob_fail_def pmf_le_1)
+    intro: measure_spmf.integrable_const_bound[where B = 1]
+    simp add: prob_fail_def pmf_le_1)
 
 lemma foldM_spmf_lossless_of_always_lossless :
   assumes \<open>\<And> x acc. lossless_spmf <| f x acc\<close>
   shows \<open>lossless_spmf <| foldM_spmf f xs acc\<close>
   apply (induction xs arbitrary: acc)
-  using assms by auto
+  using assms by simp_all
 
 end
