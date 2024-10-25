@@ -26,7 +26,7 @@ session CVM = "Monad_Normalisation" +
     "Utils/Utils_Real"
 
     "Utils/PMF/Utils_PMF_Common"
-    "Utils/PMF/Utils_PMF_Bernoulli_Matrix"
+    "Utils/PMF/Utils_PMF_Bernoulli_Binomial"
     "Utils/PMF/Utils_PMF_Lazify"
 
     "Utils/SPMF/Utils_SPMF_Common"
