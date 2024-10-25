@@ -25,7 +25,10 @@ locale with_threshold_and_eps = with_threshold +
   assumes eps_pos : \<open>\<epsilon> > 0\<close>
 begin
 
-lemma estimation_error_1_sided:
+abbreviation beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
+  \<open>beyond_eps_range_of_card xs n \<equiv> real n >[\<epsilon>] card (set xs)\<close>
+
+lemma
   assumes "finite X"
   shows
     "measure_pmf.prob
@@ -33,10 +36,7 @@ lemma estimation_error_1_sided:
     {t. t \<ge> n} \<le> foo"
   sorry
 
-abbreviation beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
-  \<open>beyond_eps_range_of_card xs n \<equiv> real n >[\<epsilon>] card (set xs)\<close>
-
-lemma estimation_error_2_sided:
+lemma
   assumes "finite X"
   assumes "\<epsilon> > 0"
   shows
@@ -45,7 +45,10 @@ lemma estimation_error_2_sided:
     {t. beyond_eps_range_of_card xs t} \<le> bar"
   sorry
 
-lemma estimate_distinct_errror_bound_fail_2:
+thm binomial_distribution.prob_ge
+thm binomial_distribution.prob_abs_ge
+
+lemma estimate_distinct_error_bound_fail_2:
   shows "\<P>(st in
     (map_pmf
        (run_reader (eager_algorithm xs))
@@ -60,45 +63,61 @@ proof -
   \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
       state_k (run_reader (eager_algorithm xs) \<phi>) > L)"
     by auto
-  also have "... =
-    measure_pmf.prob (fair_bernoulli_matrix (length xs) (length xs))
-    {\<phi>. state_k (run_reader (eager_algorithm xs) \<phi>) > L}
-    " by auto
-  
+
   (* We exceed L iff we hit a state where k = L, |X| \<ge> threshold
     after running eager_step_1.
     TODO: can this me made cleaner with only eager_algorithm? *)
   also have "... =
-    measure_pmf.prob (fair_bernoulli_matrix (length xs) (length xs))
-    (\<Union>i\<in>{0..length xs}.
-      {\<phi>.
-      let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi> in
-      state_k st = L \<and> card (state_chi st) \<ge> threshold})"
-    apply (intro measure_pmf_cong)
-    apply auto
-    sorry
+    \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
+      \<exists> i < length xs. (
+        let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
+        in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
+    proof -
+      find_theorems "eager_state_inv"
+
+      have
+        \<open>eager_state_inv (take (i + 1) xs) \<phi> <|
+          run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>\<close>
+        if \<open>i < length xs\<close> for i \<phi>
+        by (metis eager_algorithm_inv eager_step_1_inv run_reader_simps(3) that) 
+
+      then show ?thesis
+        apply (intro measure_pmf_cong)
+        (* using eager_step_inv eager_step_1_inv *)
+        apply (auto simp add:
+          eager_state_inv_def nondet_alg_aux_def
+          bernoulli_matrix_def set_Pi_pmf)
+        sorry
+    qed
 
   (* union bound *)
-  also have "... \<le>
-    (\<Sum>i\<in>{0..length xs}.
-    measure_pmf.prob (fair_bernoulli_matrix (length xs) (length xs))
-      {\<phi>.
-      let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi> in
-      state_k st = L \<and> card (state_chi st) \<ge> threshold})
-    " sorry
-  also have "... =
-    (\<Sum>i\<in>{0..length xs}.
-    \<P>(X in
-      (map_pmf (nondet_alg_aux L (take i xs))
-         (fair_bernoulli_matrix (length xs) (length xs))).
-      card X \<ge> threshold))"
+  also have "... \<le> (
+    \<Sum> i < length xs.
+      \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
+        let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
+        in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
+    proof -
+      have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
+        for n P by blast
+      then show ?thesis
+        using measure_pmf.finite_measure_subadditive_finite by auto
+    qed
+
+  also have "... = (
+    \<Sum> i \<le> length xs.
+      \<P>(X in
+        (map_pmf (nondet_alg_aux L (take i xs))
+          (fair_bernoulli_matrix (length xs) (length xs))).
+        card X \<ge> threshold))"
     sorry
+
   (* use a single-sided Chernoff *)
   also have "... \<le> bar (length xs) L" sorry
+
   finally show ?thesis by auto
 qed
   
-lemma estimate_distinct_errror_bound_L_binom:
+lemma estimate_distinct_error_bound_L_binom:
   shows "
     \<P>(st in
      (map_pmf
