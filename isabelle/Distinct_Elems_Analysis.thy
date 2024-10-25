@@ -52,13 +52,39 @@ thm binomial_distribution.prob_abs_ge
 
 thm eager_algorithm_snoc
 
+(* eager_algorithm (?xs @ [?x])
+= eager_algorithm ?xs \<bind> eager_step (?xs @ [?x]) (length ?xs) *)
+
+lemma eager_algorithm_take_eq :
+  assumes \<open>i < length xs\<close>
+  shows
+    \<open>eager_algorithm (take (i + 1) xs) =
+      eager_algorithm (take i xs) \<bind> eager_step (take (i + 1) xs) i\<close>
+  using assms
+  by (simp add: take_Suc_conv_app_nth eager_algorithm_snoc)
+
+lemma aux :
+  \<open>state_k state \<le> state_k (run_reader (eager_step xs i state) \<phi>)\<close>
+  by (simp add:
+    eager_step_def eager_step_1_def eager_step_2_def
+    run_reader_simps Let_def)
+
 (* k increases monotonically across iterations. *)
-lemma
-  assumes \<open>i \<le> j\<close>
+lemma aux' :
+  assumes \<open>i < length xs\<close>
   shows
     \<open>state_k (run_eager_algorithm (take i xs) \<phi>)
-    \<le> state_k (run_eager_algorithm (take j xs) \<phi>)\<close>
-  sorry
+    \<le> state_k (run_eager_algorithm (take (i + 1) xs) \<phi>)\<close>
+  by (metis assms aux eager_algorithm_take_eq run_reader_simps(3))
+
+lemma
+  assumes \<open>i + j \<le> length xs\<close>
+  shows
+    \<open>state_k (run_eager_algorithm (take i xs) \<phi>)
+    \<le> state_k (run_eager_algorithm (take (i + j) xs) \<phi>)\<close>
+  apply (induction j)
+  apply simp
+  by (metis (no_types, opaque_lifting) One_nat_def add_Suc_right aux' leI le_simps(3) le_trans nat_le_linear semiring_norm(51) take_all_iff)
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)
@@ -115,8 +141,6 @@ proof -
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
         in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
     proof -
-      find_theorems "eager_state_inv"
-
       have
         \<open>eager_state_inv (take (i + 1) xs) \<phi> <|
           run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>\<close>
