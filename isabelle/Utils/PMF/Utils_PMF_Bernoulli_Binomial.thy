@@ -7,11 +7,10 @@ imports
 
 begin
 
-declare [[coercion \<open>of_bool :: bool \<Rightarrow> nat\<close>]]
-
-lemma bernoulli_pmf_of_bool [simp] :
-  \<open>bernoulli_pmf b = return_pmf b\<close>
-  by (simp add: bernoulli_pmf.rep_eq pmf_eqI)
+lemma bernoulli_pmf_0_1 [simp] :
+  \<open>bernoulli_pmf 0 = return_pmf False\<close>
+  \<open>bernoulli_pmf 1 = return_pmf True\<close>
+  by (simp_all add: bernoulli_pmf.rep_eq pmf_eqI)
 
 lemma binomial_pmf_one [simp] :
   \<open>binomial_pmf n 1 = return_pmf n\<close>
