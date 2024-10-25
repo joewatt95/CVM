@@ -203,24 +203,6 @@ proof -
     by (simp add: assms map_pmf_nondet_alg_aux_eq map_pmf_comp)
 qed
 
-(* for some reason not shown in the libraries already *)
-lemma expectation_binomial_pmf:
-  assumes \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
-  shows \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
-proof -
-  have \<open>binomial_pmf n p = (
-    \<lblot>map_pmf of_bool <| bernoulli_pmf p\<rblot>
-      |> prod_pmf {..< n}
-      |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
-  by (simp add:
-    assms map_pmf_comp Collect_conj_eq lessThan_def
-    binomial_pmf_altdef'[of \<open>{..< n}\<close>, where dflt = undefined]
-    Pi_pmf_map'[where d' = undefined])
-
-  then show ?thesis
-    by (simp add: assms expectation_sum_Pi_pmf integrable_measure_pmf_finite)
-qed
-
 lemma estimation_error_1_sided:
   assumes "finite X"
   shows

@@ -154,6 +154,11 @@ proof -
       simp add: bernoulli_pmf.rep_eq pmf_bind)
 qed
 
+lemma set_bernoulli_pmf_0_1_eq [simp] :
+  \<open>set_pmf (bernoulli_pmf 0) = {False}\<close>
+  \<open>set_pmf (bernoulli_pmf 1) = {True}\<close>
+  using set_pmf_iff by force+
+
 lemma bernoulli_eq_map_Pi_pmf_aux : 
   assumes \<open>0 < p\<close> \<open>p < 1\<close>
   shows
@@ -183,6 +188,42 @@ next
       simp add: Pi_pmf_insert' map_bind_pmf bind_map_pmf)
 qed
 
+(* proof -
+  assume \<open>card I = Suc k\<close> 
+
+  consider
+    (p_eq_0_or_1) \<open>p = 0 \<or> p = 1\<close> |
+    (p_betw_0_1) \<open>0 < p\<close> \<open>p < 1\<close> 
+    using assms by argo
+  
+  then show ?thesis
+  proof (cases)
+    case p_eq_0_or_1
+    then show ?thesis
+      unfolding Ball_def
+      using \<open>card I = Suc k\<close>
+      apply auto
+      apply (intro pmf_eqI)
+      apply (auto simp add:
+        bernoulli_pmf.rep_eq pmf_map vimage_def
+        measure_pmf_zero_iff measure_pmf.prob_eq_1)
+      apply (subst (asm) set_Pi_pmf)
+      using card.infinite apply force
+      unfolding comp_apply
+      apply simp_all
+      sorry
+  next
+    case p_betw_0_1
+    then show ?thesis sorry
+  qed
+qed *)
+
+find_theorems "0 ^ _ = 0"
+(* 
+lemma
+  shows "0 ^ x = 0"
+  sledgehammer *)
+
 text
   \<open>This says that to simulate a coin flip with the probability of getting H as
   p ^ k, we can flip \<ge> k coins with probability p of getting H, and check if
@@ -197,17 +238,72 @@ text
      subset it defines contains I, outputting \<top> iff that is the case.\<close>
 lemma bernoulli_eq_map_Pi_pmf :
   assumes
-    \<open>0 < p\<close> \<open>p < 1\<close>
+    \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
     \<open>card I > 0\<close> \<open>I \<subseteq> J\<close> \<open>finite J\<close>
   shows
     \<open>bernoulli_pmf (p ^ card I) = (
       \<lblot>bernoulli_pmf p\<rblot>
         |> Pi_pmf J dflt
         |> map_pmf (Ball I))\<close>
-  using
-    assms
-    bernoulli_eq_map_Pi_pmf_aux[of p I \<open>card I - 1\<close> dflt]
-    Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
-  by (auto simp add: map_pmf_comp)
+proof -
+  consider
+    (p_eq_0_or_1) \<open>p = 0 \<or> p = 1\<close> |
+    (p_betw_0_1) \<open>0 < p\<close> \<open>p < 1\<close> 
+    using assms by argo
+
+  then show ?thesis
+  proof (cases)
+    case p_eq_0_or_1
+    then show ?thesis
+      using assms
+      unfolding Ball_def
+      apply auto
+      apply (intro pmf_eqI)
+      apply (auto simp add:
+        bernoulli_pmf.rep_eq pmf_map vimage_def
+        measure_pmf_zero_iff measure_pmf.prob_eq_1 zero_power)
+      apply (subst (asm) set_Pi_pmf)
+      using card.infinite apply force
+      unfolding comp_apply
+      apply (simp_all add: PiE_dflt_def subset_eq) 
+      apply (intro AE_pmfI)
+      apply (subst (asm) set_Pi_pmf)
+      apply blast
+      unfolding comp_apply
+      apply simp
+      by (metis (no_types, lifting) PiE_dflt_def card_gt_0_iff equals0I mem_Collect_eq singletonD)
+  next
+    case (p_betw_0_1)
+    then show ?thesis
+      using
+        assms
+        bernoulli_eq_map_Pi_pmf_aux[of p I \<open>card I - 1\<close> dflt]
+        Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
+      by (auto simp add: map_pmf_comp)
+  qed
+qed
+
+context
+  fixes p :: real
+  assumes p : \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
+begin
+
+lemma binomial_pmf_eq_map_sum_of_bernoullis :
+  \<open>binomial_pmf n p = (
+    \<lblot>map_pmf of_bool <| bernoulli_pmf p\<rblot>
+      |> prod_pmf {..< n}
+      |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
+  by (simp add:
+    p map_pmf_comp Collect_conj_eq lessThan_def
+    binomial_pmf_altdef'[where A = \<open>{..< n}\<close>, where dflt = undefined]
+    Pi_pmf_map'[where d' = undefined])
+
+lemma expectation_binomial_pmf:
+  \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
+  by (simp add:
+    p binomial_pmf_eq_map_sum_of_bernoullis
+    expectation_sum_Pi_pmf integrable_measure_pmf_finite)
+
+end
 
 end
