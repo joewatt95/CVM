@@ -81,7 +81,7 @@ lemma eager_step_inv:
   shows "
     eager_state_inv (take (i + 1) xs) \<phi>
       (run_reader (eager_step xs i state) \<phi>)"
-  by (metis assms eager_step_1_inv eager_step_2_inv eager_step_split run_reader_simps(3))
+  by (metis assms eager_step_1_inv eager_step_2_inv eager_step_def run_reader_simps(3))
 
 lemma eager_algorithm_inv:
   shows "eager_state_inv xs \<phi>
@@ -109,128 +109,25 @@ lemma rel_pmf_eager_algorithm_nondet_alg_aux:
 
 (* We may want to further rephrase the RHS *)
 lemma eager_algorithm_nondet_measureD:
-  shows "
-  measure_pmf.prob
+  \<open>measure_pmf.prob
     (map_pmf (run_eager_algorithm xs) p)
-    {state. state_k state = K \<and> P (state_chi state)} \<le>
-  measure_pmf.prob
-    (map_pmf (nondet_alg_aux K xs) p)
-    {Y. P Y}" (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
+    {state. state_k state = K \<and> P (state_chi state)}
+  \<le> measure_pmf.prob
+      (map_pmf (nondet_alg_aux K xs) p)
+      {Y. P Y}\<close>
+  (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
 proof -
   have
-    "measure_pmf.prob ?p ?A
+    \<open>measure_pmf.prob ?p ?A
       \<le> measure_pmf.prob ?q
-        {y. \<exists> x \<in> ?A. state_k x = K \<longrightarrow> state_chi x = y}"
+        {y. \<exists> x \<in> ?A. state_k x = K \<longrightarrow> state_chi x = y}\<close>
     using rel_pmf_measureD[OF rel_pmf_eager_algorithm_nondet_alg_aux] .
 
-  also have "... = measure_pmf.prob ?q {Y. P Y}"
+  also have \<open>... = measure_pmf.prob ?q {Y. P Y}\<close>
     by (metis (mono_tags, lifting) mem_Collect_eq simps(1) simps(2))
 
   finally show ?thesis .
 qed
-
-lemma map_pmf_nondet_alg_aux_eq:
-  assumes \<open>length xs \<le> n\<close> \<open>K \<le> m\<close>
-  shows
-    \<open>map_pmf (nondet_alg_aux K xs)
-      (fair_bernoulli_matrix m n) =
-    map_pmf (\<lambda> P. {y \<in> set xs. P y})
-      (prod_pmf (set xs) \<lblot>bernoulli_pmf <| 1 / 2 ^ K\<rblot>)\<close>
-    (is \<open>?L = _\<close>)
-proof -
-  have "?L =
-    map_pmf
-     (\<lambda> \<phi>. nondet_alg_aux K xs (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. \<phi> y x))
-     (prod_pmf {..< n} \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
-    (is \<open>_ = map_pmf ?go _\<close>)
-    by (simp add: bernoulli_matrix_eq_uncurry_prod map_pmf_comp)
-
-  also have "... =
-    map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < K. f y k'})
-     (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)"
-    proof -
-      let ?step_1 =
-        \<open>\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs)\<close>
-
-      let ?step_2 =
-        \<open>\<lambda> f. {x \<in> set xs. \<forall>k' < K. f x k'}\<close>
-
-      have \<open>map_pmf ?go = map_pmf ?step_2 \<circ> map_pmf ?step_1\<close>
-        using assms
-        by (auto
-          intro!: map_pmf_cong
-          simp add:
-            nondet_alg_aux_def map_pmf_compose[symmetric]
-            fun_eq_iff dual_order.strict_trans1 find_last_correct_1(2))
-
-      then show ?thesis
-        using assms find_last_inj
-        apply (simp add: map_pmf_compose)
-        apply (subst prod_pmf_reindex)
-        by (auto simp add: image_def find_last_eq_Max in_set_conv_nth)
-    qed
-
-  also have "... =
-    map_pmf
-      (\<lambda> f. {y \<in> set xs. f y})
-      (prod_pmf (set xs)
-        \<lblot>map_pmf (\<lambda> f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)"
-    by (auto
-      intro: map_pmf_cong
-      simp add: Pi_pmf_map'[where d' = undefined] map_pmf_comp)
-
-  finally show ?thesis
-    using
-      assms(2)          
-      bernoulli_eq_map_Pi_pmf[where I = \<open>{.. K - 1}\<close>, unfolded Ball_def]
-    by (cases K; auto simp add:
-      power_one_over le_simps(2) map_pmf_comp Iic_subset_Iio_iff)
-qed
-
-lemma map_pmf_nondet_alg_eq_binomial :
-  assumes \<open>length xs \<le> n\<close> \<open>K \<le> m\<close>
-  shows
-    \<open>map_pmf (nondet_alg K xs) (fair_bernoulli_matrix m n)
-    = binomial_pmf (card <| set xs) (1 / 2 ^ K)\<close>
-proof -
-  let ?go = \<open>\<lambda> f. map_pmf (f K xs) (fair_bernoulli_matrix m n)\<close>
-
-  have \<open>?go nondet_alg = map_pmf card (?go nondet_alg_aux)\<close>
-    by (simp add: nondet_alg_def map_pmf_comp)
-
-  then show ?thesis
-    using binomial_pmf_altdef'[of \<open>set xs\<close>]
-    by (simp add: assms map_pmf_nondet_alg_aux_eq map_pmf_comp)
-qed
-
-lemma estimation_error_1_sided:
-  assumes "finite X"
-  shows
-    "measure_pmf.prob
-    (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
-    {t. t \<ge> n} \<le> foo"
-  sorry
-
-context
-  fixes \<epsilon> :: real
-  assumes eps_pos : \<open>\<epsilon> > 0\<close>
-begin
-
-definition beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
-  \<open>beyond_eps_range_of_card xs n \<equiv> real n >[\<epsilon>] card (set xs)\<close>
-
-lemma estimation_error_2_sided:
-  assumes "finite X"
-  assumes "\<epsilon> > 0"
-  shows
-    "measure_pmf.prob
-    (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
-    {t. beyond_eps_range_of_card xs t} \<le> bar"
-  sorry
-
-
-
-end
 
 end
 

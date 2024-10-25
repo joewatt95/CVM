@@ -10,18 +10,6 @@ imports
 
 begin
 
-sledgehammer_params [
-  (* verbose *)
-  minimize = true,
-  preplay_timeout = 15,
-  timeout = 60,
-  max_facts = smart,
-  provers = "
-    cvc4 z3 verit
-    e vampire spass
-  "
-]
-
 context with_threshold
 begin
 

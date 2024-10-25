@@ -11,29 +11,6 @@ begin
 context with_threshold
 begin
 
-definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
-  where "lazy_step xs i state = do {
-    let k = state_k state;
-    let chi = state_chi state;
-    insert_x_into_chi \<leftarrow> bernoulli_pmf (1/2^k);
-
-    let chi = (chi |>
-      if insert_x_into_chi
-      then insert (xs ! i)
-      else Set.remove (xs ! i));
-
-    if card chi < threshold then
-      return_pmf (state \<lparr>state_chi := chi\<rparr>)
-    else do {
-      keep_in_chi \<leftarrow> Pi_pmf chi undefined (\<lambda>_. bernoulli_pmf (1/2));
-      let chi = Set.filter keep_in_chi chi;
-      return_pmf (\<lparr>state_k = k+1, state_chi = chi\<rparr>)
-    }
-  }"
-
-definition lazy_algorithm :: "'a list \<Rightarrow> 'a state pmf" where
-  "lazy_algorithm xs \<equiv> run_steps_pmf (lazy_step xs) [0..<length xs]"
-
 definition lazy_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
   where "lazy_step_1 xs i state = do {
     let k = state_k state;
@@ -62,15 +39,17 @@ definition lazy_step_2 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Ri
     }
   }"
 
-lemma lazy_step_split:
-  "lazy_step xs i state = lazy_step_1 xs i state \<bind> lazy_step_2 xs i"
-  unfolding lazy_step_def lazy_step_1_def lazy_step_2_def Let_def bind_assoc_pmf bind_return_pmf
-  by (intro bind_pmf_cong) auto
+definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
+  where "lazy_step xs i state = lazy_step_1 xs i state \<bind> lazy_step_2 xs i"
+
+definition lazy_algorithm :: "'a list \<Rightarrow> 'a state pmf" where
+  "lazy_algorithm xs \<equiv> run_steps_pmf (lazy_step xs) [0..<length xs]"
 
 lemma lazy_step_cong:
   assumes "xs ! i = ys ! i"
   shows "lazy_step xs i = lazy_step ys i"
-  unfolding lazy_step_def using assms by (simp cong: if_cong)
+  unfolding lazy_step_def lazy_step_1_def lazy_step_2_def
+  using assms by (simp cong: if_cong)
 
 lemma lazy_algorithm_snoc:
   "lazy_algorithm (xs@[x]) = lazy_algorithm xs \<bind> lazy_step (xs@[x]) (length xs)"
@@ -97,7 +76,7 @@ next
     "\<omega>1 \<in> set_pmf (lazy_algorithm xs)"
     "\<omega>2 \<in> set_pmf (lazy_step_1 (xs@[x]) ?n \<omega>1)"
     "\<omega> \<in> set_pmf (lazy_step_2 (xs@[x]) ?n \<omega>2)"
-    using snoc  unfolding lazy_algorithm_snoc lazy_step_split by auto
+    using snoc  unfolding lazy_algorithm_snoc lazy_step_def by auto
 
   have "state_k \<omega>1 \<le> length xs" using snoc \<omega>(1) by simp
   hence "state_k \<omega>2 \<le> length xs" using \<omega>(2) unfolding lazy_step_1_def by auto
@@ -121,10 +100,11 @@ next
     "\<omega>1 \<in> set_pmf (lazy_algorithm xs)"
     "\<omega>2 \<in> set_pmf (lazy_step_1 (xs@[x]) ?n \<omega>1)"
     "\<omega> \<in> set_pmf (lazy_step_2 (xs@[x]) ?n \<omega>2)"
-    using snoc  unfolding lazy_algorithm_snoc lazy_step_split by auto
+    using snoc  unfolding lazy_algorithm_snoc lazy_step_def by auto
 
   have "state_chi \<omega>1 \<subseteq> set xs" using snoc \<omega>(1) by simp
-  moreover have "state_chi \<omega>2 \<subseteq> insert x (state_chi \<omega>1)" using \<omega>(2) unfolding lazy_step_1_def
+  moreover have "state_chi \<omega>2 \<subseteq> insert x (state_chi \<omega>1)"
+    using \<omega>(2) unfolding lazy_step_1_def
     by (auto simp add:nth_append cong:if_cong split:if_split_asm)
   ultimately have "state_chi \<omega>2 \<subseteq> set (xs@[x])" by auto
   hence "state_chi \<omega> \<subseteq> set (xs@[x])" using \<omega>(3) unfolding lazy_step_2_def
@@ -187,7 +167,11 @@ proof -
 
     moreover have
       \<open>lazy_step (padding @ x # xs) (length padding) = step_no_fail x\<close>
-      unfolding lazy_step_def step_no_fail_def nth_append_length ..
+      by (fastforce
+        intro: bind_pmf_cong
+        simp add:
+          lazy_step_def lazy_step_1_def lazy_step_2_def step_no_fail_def
+          map_bind_pmf bind_map_pmf map_pmf_def[symmetric] map_pmf_comp Let_def)
 
     ultimately show ?case by (auto cong: bind_pmf_cong)
   qed

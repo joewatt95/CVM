@@ -14,32 +14,6 @@ type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 context with_threshold
 begin
 
-definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
-  where "eager_step xs i state = do {
-      let k = state_k state;
-      let chi = state_chi state;
-      insert_x_into_chi \<leftarrow> map_rd (\<lambda>\<phi>. (\<forall>k'<k. \<phi> (k', i))) get_rd;
-
-      let chi = (chi |>
-        if insert_x_into_chi
-        then insert (xs ! i)
-        else Set.remove (xs ! i));
-
-      if card chi < threshold then
-        return_rd (state \<lparr>state_chi := chi\<rparr>)
-      else do {
-        keep_in_chi \<leftarrow> map_rd (\<lambda>\<phi>. \<lambda>x \<in> chi. \<phi> (k, find_last_before i x xs)) get_rd;
-        let chi = Set.filter keep_in_chi chi;
-        return_rd (\<lparr>state_k = k+1, state_chi = chi\<rparr>)
-      }
-    }"
-
-definition eager_algorithm ::
-  "'a list \<Rightarrow> (coin_matrix, 'a state) reader_monad" where
-  "eager_algorithm xs \<equiv> run_steps foldM_rd (eager_step xs) [0..<length xs]"
-
-abbreviation \<open>run_eager_algorithm \<equiv> run_reader <<< eager_algorithm\<close>
-
 definition eager_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
   where "eager_step_1 xs i state = do {
       let k = state_k state;
@@ -66,10 +40,15 @@ definition eager_step_2 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<R
       }
     }"
 
-lemma eager_step_split:
+definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
+  where
   "eager_step xs i state = eager_step_1 xs i state \<bind> eager_step_2 xs i"
-  unfolding eager_step_def eager_step_1_def eager_step_2_def
-  by (intro reader_monad_eqI) (simp add:Let_def run_reader_simps)
+
+definition eager_algorithm ::
+  "'a list \<Rightarrow> (coin_matrix, 'a state) reader_monad" where
+  "eager_algorithm xs \<equiv> run_steps foldM_rd (eager_step xs) [0..<length xs]"
+
+abbreviation \<open>run_eager_algorithm \<equiv> run_reader <<< eager_algorithm\<close>
 
 lemma eager_step_cong:
   assumes "i < length xs" "i < length ys"
@@ -80,7 +59,8 @@ proof -
   moreover have "find_last_before i x xs = find_last_before i x ys" for x
     unfolding find_last_before_def assms(3) by simp
   ultimately show ?thesis
-    unfolding eager_step_def by (simp add:Let_def cong:if_cong)
+    unfolding eager_step_def eager_step_1_def eager_step_2_def
+    by (simp add: Let_def cong: if_cong)
 qed
 
 lemma eager_algorithm_snoc:
@@ -258,13 +238,13 @@ proof -
   qed
 
   have "?L = sample (eager_step_1 (xs@[x]) l \<sigma>) \<bind> (\<lambda>\<sigma>'. sample (eager_step_2 (xs@[x]) l \<sigma>'))"
-    unfolding eager_step_split l_def by (intro lazify_bind independent_bind_step)
+    unfolding eager_step_def l_def by (intro lazify_bind independent_bind_step)
   also have "... = lazy_step_1 (xs@[x]) l \<sigma> \<bind> (\<lambda>\<sigma>'. sample (eager_step_2 (xs@[x]) l \<sigma>'))"
     unfolding step_1 by simp
   also have "... = lazy_step_1 (xs@[x]) l \<sigma> \<bind> lazy_step_2 (xs@[x]) l"
     by (intro bind_pmf_cong refl step_2)
       (auto simp add:lazy_step_1_def nth_append l_def cong:if_cong split:if_split_asm)
-  also have "... = ?R" unfolding lazy_step_split by simp
+  also have "... = ?R" unfolding lazy_step_def by simp
   finally show ?thesis by simp
 qed
 
@@ -277,7 +257,7 @@ proof -
     using that unfolding l_def by (simp add:eager_step_1_def sample_def)
       (auto simp add:run_reader_simps)
 
-  thus ?thesis unfolding eager_step_split l_def
+  thus ?thesis unfolding eager_step_def l_def
     by (intro depends_on_bind depends_on_mono[OF depends_on_step1]
         depends_on_mono[OF depends_on_step2]) auto
 qed
@@ -287,7 +267,7 @@ lemma depends_on_step:
   defines "l \<equiv> length xs"
   shows "depends_on (map_rd ((=) v) (eager_step (xs @ [x]) l \<sigma>)) ({state_k \<sigma>..<state_k v}\<times>{..<l+1} \<union> {..<state_k \<sigma>}\<times>{l})"
 proof -
-  show ?thesis unfolding l_def eager_step_split
+  show ?thesis unfolding l_def eager_step_def
   proof (intro depends_on_bind_eq conjI)
     fix w
     assume a:"w \<in> set_pmf (sample (eager_step_1 (xs @ [x]) (length xs) \<sigma>))"
@@ -321,7 +301,7 @@ next
     assume "v \<in> set_pmf (sample (eager_step (xs @ [x]) (length xs) w))"
 
     hence a: "state_k w \<le> state_k v"
-      unfolding sample_def by (auto simp:Let_def run_reader_simps eager_step_def)
+      unfolding sample_def by (auto simp:Let_def run_reader_simps eager_step_def eager_step_1_def eager_step_2_def)
 
     show "depends_on (map_rd ((=) w) (eager_algorithm xs)) ({..<state_k v} \<times> {..<length (xs @ [x])})"
       using a by (intro depends_on_mono[OF snoc]) auto
