@@ -188,42 +188,6 @@ next
       simp add: Pi_pmf_insert' map_bind_pmf bind_map_pmf)
 qed
 
-(* proof -
-  assume \<open>card I = Suc k\<close> 
-
-  consider
-    (p_eq_0_or_1) \<open>p = 0 \<or> p = 1\<close> |
-    (p_betw_0_1) \<open>0 < p\<close> \<open>p < 1\<close> 
-    using assms by argo
-  
-  then show ?thesis
-  proof (cases)
-    case p_eq_0_or_1
-    then show ?thesis
-      unfolding Ball_def
-      using \<open>card I = Suc k\<close>
-      apply auto
-      apply (intro pmf_eqI)
-      apply (auto simp add:
-        bernoulli_pmf.rep_eq pmf_map vimage_def
-        measure_pmf_zero_iff measure_pmf.prob_eq_1)
-      apply (subst (asm) set_Pi_pmf)
-      using card.infinite apply force
-      unfolding comp_apply
-      apply simp_all
-      sorry
-  next
-    case p_betw_0_1
-    then show ?thesis sorry
-  qed
-qed *)
-
-find_theorems "0 ^ _ = 0"
-(* 
-lemma
-  shows "0 ^ x = 0"
-  sledgehammer *)
-
 text
   \<open>This says that to simulate a coin flip with the probability of getting H as
   p ^ k, we can flip \<ge> k coins with probability p of getting H, and check if
