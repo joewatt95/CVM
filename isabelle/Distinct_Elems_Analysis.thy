@@ -48,6 +48,48 @@ lemma
 thm binomial_distribution.prob_ge
 thm binomial_distribution.prob_abs_ge
 
+(* Ideas on part of the proof for the big K (ie > L) part. *)
+
+thm eager_algorithm_snoc
+
+(* k increases monotonically across iterations. *)
+lemma
+  assumes \<open>i \<le> j\<close>
+  shows
+    \<open>state_k (run_eager_algorithm (take i xs) \<phi>)
+    \<le> state_k (run_eager_algorithm (take j xs) \<phi>)\<close>
+  sorry
+
+(* k is incremented iff we flip H for the new element and hit the threshold upon
+inserting it. *)
+lemma
+  fixes \<phi> xs
+  defines
+    \<open>state i \<equiv>
+      flip run_reader \<phi> (do {
+        state \<leftarrow> eager_algorithm <| take i xs;
+        eager_step_1 xs i state })\<close>
+  shows
+    \<open>state_k (state <| i + 1) = state_k (state i)
+    \<longleftrightarrow> (
+      card (state_chi (state i)) + 1 = threshold \<and>
+      (\<forall> k' < state_k (state i). curry \<phi> k' i) \<and>
+      card (state_chi <| state <| i + 1) = threshold)\<close>
+  sorry
+
+lemma
+  assumes \<open>state_k (run_eager_algorithm xs \<phi>) > L\<close>
+  defines
+    \<open>state i \<equiv>
+      flip run_reader \<phi> (do {
+        state \<leftarrow> eager_algorithm <| take i xs;
+        eager_step_1 xs i state })\<close>
+  obtains i where
+    \<open>state_k (state i) = L\<close>
+    \<open>card (state_chi <| state i) = threshold\<close>
+   (* See personal (Joe), written notes for sketch of the proof here. *)
+  sorry
+
 lemma estimate_distinct_error_bound_fail_2:
   shows "\<P>(st in
     (map_pmf
@@ -98,9 +140,9 @@ proof -
         in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
     proof -
       have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
-        for n P by blast
+        for n and P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> by blast
       then show ?thesis
-        using measure_pmf.finite_measure_subadditive_finite by auto
+        by (auto intro: measure_pmf.finite_measure_subadditive_finite)
     qed
 
   also have "... = (
