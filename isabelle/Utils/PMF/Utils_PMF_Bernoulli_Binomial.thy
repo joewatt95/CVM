@@ -93,15 +93,16 @@ lemma bernoulli_eq_map_Pi_pmf :
     Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
   by (fastforce simp add: map_pmf_comp)
 
-abbreviation \<open>coerced_bernoulli_pmf \<equiv> bernoulli_pmf >>> map_pmf of_bool\<close>
-
 lemma binomial_pmf_eq_map_sum_of_bernoullis :
-  \<open>binomial_pmf n p = (
-    \<lblot>coerced_bernoulli_pmf p\<rblot>
-      |> prod_pmf {..< n}
-      |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
+  defines
+    \<open>bernoulli_nat_pmf \<equiv> bernoulli_pmf >>> map_pmf of_bool\<close>
+  shows
+    \<open>binomial_pmf n p = (
+      \<lblot>bernoulli_nat_pmf p\<rblot>
+        |> prod_pmf {..< n}
+        |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
   by (simp add:
-    p_betw_0_1 map_pmf_comp Collect_conj_eq lessThan_def
+    assms p_betw_0_1 map_pmf_comp Collect_conj_eq lessThan_def
     binomial_pmf_altdef'[where A = \<open>{..< n}\<close>, where dflt = undefined]
     Pi_pmf_map'[where d' = undefined])
 
