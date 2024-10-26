@@ -102,12 +102,8 @@ lemma
       card (state_chi (state i)) + 1 = threshold \<and>
       (\<forall> k' < state_k (state i). curry \<phi> k' i) \<and>
       card (state_chi <| state <| i + 1) = threshold)\<close>
-  using assms
-  apply (simp add: eager_algorithm_take_eq)
-  apply (auto simp add:
-    eager_algorithm_def run_steps_def
-    eager_step_def eager_step_1_def eager_step_2_def
-    run_reader_simps Let_def remove_def Set.filter_def)
+  using assms aux'
+  apply (auto simp add: eager_algorithm_take_eq)
   sorry
 
 lemma
