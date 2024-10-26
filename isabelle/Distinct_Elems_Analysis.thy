@@ -58,8 +58,8 @@ thm eager_algorithm_snoc
 lemma eager_algorithm_take_eq :
   assumes \<open>i < length xs\<close>
   shows
-    \<open>eager_algorithm (take (i + 1) xs) =
-      eager_algorithm (take i xs) \<bind> eager_step (take (i + 1) xs) i\<close>
+    \<open>eager_algorithm (take (Suc i) xs) =
+      eager_algorithm (take i xs) \<bind> eager_step (take (Suc i) xs) i\<close>
   using assms
   by (simp add: take_Suc_conv_app_nth eager_algorithm_snoc)
 
@@ -74,7 +74,7 @@ lemma aux' :
   assumes \<open>i < length xs\<close>
   shows
     \<open>state_k (run_eager_algorithm (take i xs) \<phi>)
-    \<le> state_k (run_eager_algorithm (take (i + 1) xs) \<phi>)\<close>
+    \<le> state_k (run_eager_algorithm (take (Suc i) xs) \<phi>)\<close>
   by (metis assms aux eager_algorithm_take_eq run_reader_simps(3))
 
 lemma
@@ -84,23 +84,30 @@ lemma
     \<le> state_k (run_eager_algorithm (take (i + j) xs) \<phi>)\<close>
   apply (induction j)
   apply simp
-  by (metis (no_types, opaque_lifting) One_nat_def add_Suc_right aux' leI le_simps(3) le_trans nat_le_linear semiring_norm(51) take_all_iff)
+  by (metis (no_types, opaque_lifting) add_Suc_right aux' leI le_simps(3) le_trans nat_le_linear take_all_iff)
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)
+
+thm eager_algorithm_snoc
+
 lemma
   fixes \<phi> xs
   defines
-    \<open>state i \<equiv>
-      flip run_reader \<phi> (do {
-        state \<leftarrow> eager_algorithm <| take i xs;
-        eager_step_1 xs i state })\<close>
+    \<open>state i \<equiv> run_eager_algorithm (take i xs) \<phi>\<close>
+  assumes \<open>i < length xs\<close>
   shows
-    \<open>state_k (state <| i + 1) = state_k (state i)
+    \<open>state_k (state <| i + 1) > state_k (state i)
     \<longleftrightarrow> (
       card (state_chi (state i)) + 1 = threshold \<and>
       (\<forall> k' < state_k (state i). curry \<phi> k' i) \<and>
       card (state_chi <| state <| i + 1) = threshold)\<close>
+  using assms
+  apply (simp add: eager_algorithm_take_eq)
+  apply (auto simp add:
+    eager_algorithm_def run_steps_def
+    eager_step_def eager_step_1_def eager_step_2_def
+    run_reader_simps Let_def remove_def Set.filter_def)
   sorry
 
 lemma
