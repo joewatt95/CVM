@@ -75,7 +75,7 @@ lemma aux' :
   shows
     \<open>state_k (run_eager_algorithm (take i xs) \<phi>)
     \<le> state_k (run_eager_algorithm (take (Suc i) xs) \<phi>)\<close>
-  by (metis assms aux eager_algorithm_take_eq run_reader_simps(3))
+    by (simp add: assms aux eager_algorithm_take_eq run_reader_simps(3))
 
 lemma
   assumes \<open>i + j \<le> length xs\<close>
@@ -84,7 +84,7 @@ lemma
     \<le> state_k (run_eager_algorithm (take (i + j) xs) \<phi>)\<close>
   apply (induction j)
   apply simp
-  by (metis (no_types, opaque_lifting) add_Suc_right aux' leI le_simps(3) le_trans nat_le_linear take_all_iff)
+  by (metis (no_types, opaque_lifting) Suc_le_lessD add_Suc_right aux' dual_order.trans nle_le not_less_eq_eq take_all)
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)
