@@ -1,4 +1,4 @@
-theory Utils_SPMF_Rel
+theory Utils_SPMF_Relational
 
 imports
   CVM.Utils_SPMF_FoldM
@@ -113,7 +113,7 @@ abbreviation (input)
   \<open>R' index val val' \<equiv> index < offset + length xs \<and> R index val val'\<close>
 
 lemma loop_enumerate :
-  \<open>(\<And> index x x'. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x')\<rangle> \<lbrace>R (index + 1)\<rbrace>)
+  \<open>(\<And> index x. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrace>R (Suc index)\<rbrace>)
     \<Longrightarrow> \<turnstile> \<lbrace>R offset\<rbrace>
         \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
         \<lbrace>R (offset + length xs)\<rbrace>\<close>
@@ -131,7 +131,7 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x x'. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f x | f' x'\<rangle> \<lbrace>R (index + 1)\<rbrace>\<close>
+  assumes \<open>\<And> index x. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
   shows
     \<open>\<turnstile> \<lbrace>R offset\<rbrace>
       \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
@@ -144,7 +144,7 @@ lemma loop :
 end
 
 lemma loop_unindexed :
-  assumes \<open>\<And> x x'. \<turnstile> \<lbrace>R\<rbrace> \<langle>f x | f' x'\<rangle> \<lbrace>R\<rbrace>\<close>
+  assumes \<open>\<And> x. \<turnstile> \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)

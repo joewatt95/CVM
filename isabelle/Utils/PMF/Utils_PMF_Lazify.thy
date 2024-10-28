@@ -3,7 +3,7 @@ theory Utils_PMF_Lazify
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
   Finite_Fields.Finite_Fields_More_PMF
-  CVM.Utils_Reader_Monad
+  CVM.Utils_Reader_Monad_Basic
 
 begin
 

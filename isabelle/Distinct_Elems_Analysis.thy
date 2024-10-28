@@ -6,6 +6,8 @@ imports
   CVM.Distinct_Elems_No_Fail
   CVM.Distinct_Elems_Eager
   CVM.Distinct_Elems_Nondet
+  CVM.Utils_Reader_Monad_Hoare
+  CVM.Utils_Reader_Monad_Relational
 begin
 
 sledgehammer_params [
@@ -86,24 +88,89 @@ lemma
   apply simp
   by (metis (no_types, opaque_lifting) Suc_le_lessD add_Suc_right aux' dual_order.trans nle_le not_less_eq_eq take_all)
 
-(* k is incremented iff we flip H for the new element and hit the threshold upon
-inserting it. *)
+definition
+  \<open>well_formed_state_eager _ state \<equiv>
+    finite (state_chi state)\<close>
 
-thm eager_algorithm_snoc
+lemma initial_state_well_formed :
+  \<open>well_formed_state_eager \<phi> initial_state\<close>
+  by (simp add: initial_state_def well_formed_state_eager_def) 
+
+lemma eager_step_preserves_well_formedness :
+  fixes i xs
+  defines \<open>P f \<equiv>
+    \<turnstile> \<lbrace>well_formed_state_eager\<rbrace> f xs i \<lbrace>well_formed_state_eager\<rbrace>\<close>
+  shows
+    \<open>P eager_step_1\<close>
+    \<open>P eager_step\<close>
+  unfolding assms eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
+  by (fastforce
+    intro:
+      Utils_Reader_Monad_Hoare.seq'[where Q = well_formed_state_eager]
+      Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>] if_then_else postcond_true
+    simp add: well_formed_state_eager_def remove_def)+
 
 lemma
-  fixes \<phi> xs
+  fixes xs
   defines
-    \<open>state i \<equiv> run_eager_algorithm (take i xs) \<phi>\<close>
+    \<open>R i \<phi> state \<phi>' state' \<equiv>
+      well_formed_state_eager \<phi> state \<and>
+      \<phi> = \<phi>' \<and> state = state'\<close> and
+
+    \<open>S i \<phi> state \<phi>' state' \<equiv>
+      card (state_chi state') = Suc (card <| state_chi state)
+      \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' i) \<and>
+          (state_chi state' = insert (xs ! i) (state_chi state)) \<and>
+          xs ! i \<notin> state_chi state\<close> and
+
+    \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
   assumes \<open>i < length xs\<close>
+  shows \<open>\<turnstile>
+    \<lbrace>R 0\<rbrace>
+    \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle>
+    \<lbrace>S i\<rbrace>\<close>
+  apply (subst bind_return_rd[symmetric])
+  apply (rule Utils_Reader_Monad_Relational.seq'[where S = \<open>R i\<close>])
+
+  unfolding assms eager_step_1_def Let_def Set.remove_def
+
+  apply (smt (verit, best)
+    Utils_Reader_Monad_Hoare.loop_unindexed
+    eager_step_preserves_well_formedness(2)
+    Utils_Reader_Monad_Hoare.hoare_tripleE
+    Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
+
+  apply (auto simp add: map_rd_def[symmetric] map_bind_rd map_comp_rd)
+
+  subgoal premises prems for _ x \<phi>' state
+    unfolding map_rd_def
+    using prems card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
+    by (fastforce
+      intro: Utils_Reader_Monad_Hoare.seq'[where Q =
+        \<open>\<lambda> \<phi>'' state'. \<phi>' = \<phi>'' \<and> \<phi>' = state' \<and> well_formed_state_eager \<phi>' state\<close>]
+      simp add:
+        Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def
+        well_formed_state_eager_def insert_absorb)
+  done
+
+(* k is incremented iff we flip H for the new element and hit the threshold upon
+inserting it. *)
+lemma
+  fixes \<phi> xs
+  defines \<open>state i \<equiv> run_eager_algorithm (take i xs) \<phi>\<close>
   shows
-    \<open>state_k (state <| i + 1) > state_k (state i)
+    \<open>i < length xs \<Longrightarrow>
+    state_k (state <| i + 1) > state_k (state i)
     \<longleftrightarrow> (
-      card (state_chi (state i)) + 1 = threshold \<and>
-      (\<forall> k' < state_k (state i). curry \<phi> k' i) \<and>
-      card (state_chi <| state <| i + 1) = threshold)\<close>
+      Suc (card <| state_chi <| state i) = threshold \<and>
+      (\<forall> k' < state_k (state i). curry \<phi> k' i))\<close>
   using assms aux'
-  apply (auto simp add: eager_algorithm_take_eq)
+  unfolding
+    eager_algorithm_take_eq
+    eager_algorithm_def
+    eager_step_def eager_step_1_def eager_step_2_def Let_def
+    run_reader_simps Set.filter_def remove_def
+  apply (auto split: if_splits)
   sorry
 
 lemma

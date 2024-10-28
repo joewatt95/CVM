@@ -2,7 +2,6 @@ theory Distinct_Elems_Eager
 
 imports
   CVM.Utils_List
-  CVM.Utils_Reader_Monad
   CVM.Utils_PMF_Lazify
   CVM.Utils_PMF_Bernoulli_Binomial
   CVM.Distinct_Elems_Lazy

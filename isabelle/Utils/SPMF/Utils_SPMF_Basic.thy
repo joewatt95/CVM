@@ -1,4 +1,4 @@
-theory Utils_SPMF_Common
+theory Utils_SPMF_Basic
 
 imports
   "HOL-Probability.SPMF"

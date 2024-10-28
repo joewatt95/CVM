@@ -7,6 +7,7 @@ session CVM = "Monad_Normalisation" +
 
   directories
     "Utils"
+    "Utils/Reader_Monad"
     "Utils/PMF"
     "Utils/SPMF"
 
@@ -22,17 +23,20 @@ session CVM = "Monad_Normalisation" +
     "Utils/Utils_Function"
     "Utils/Utils_List"
     "Utils/Utils_Option"
-    "Utils/Utils_Reader_Monad"
     "Utils/Utils_Real"
 
-    "Utils/PMF/Utils_PMF_Common"
+    "Utils/Reader_Monad/Utils_Reader_Monad_Basic"
+    "Utils/Reader_Monad/Utils_Reader_Monad_Hoare"
+    "Utils/Reader_Monad/Utils_Reader_Monad_Relational"
+
+    "Utils/PMF/Utils_PMF_Basic"
     "Utils/PMF/Utils_PMF_Bernoulli_Binomial"
     "Utils/PMF/Utils_PMF_Lazify"
 
-    "Utils/SPMF/Utils_SPMF_Common"
-    "Utils/SPMF/Utils_SPMF_Rel"
+    "Utils/SPMF/Utils_SPMF_Basic"
     "Utils/SPMF/Utils_SPMF_FoldM"
     "Utils/SPMF/Utils_SPMF_Hoare"
+    "Utils/SPMF/Utils_SPMF_Relational"
 
   document_files
     "root.tex"

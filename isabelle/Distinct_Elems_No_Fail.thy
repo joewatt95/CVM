@@ -3,9 +3,7 @@ theory Distinct_Elems_No_Fail
 
 imports
   CVM.Distinct_Elems_Algo
-  CVM.Utils_PMF_Common
-  CVM.Utils_SPMF_FoldM
-  CVM.Utils_SPMF_Rel
+  CVM.Utils_SPMF_Relational
   CVM.Utils_SPMF_Hoare
 
 begin

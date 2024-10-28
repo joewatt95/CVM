@@ -1,8 +1,8 @@
 theory Utils_SPMF_FoldM
 
 imports
-  CVM.Utils_PMF_Common
-  CVM.Utils_SPMF_Common
+  CVM.Utils_PMF_Basic
+  CVM.Utils_SPMF_Basic
 
 begin
 
@@ -10,7 +10,7 @@ abbreviation foldM_spmf
   :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
   \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
 
-abbreviation foldM_spmf_enumerate where
+abbreviation
   \<open>foldM_spmf_enumerate \<equiv> foldM_enumerate bind_spmf return_spmf\<close>
 
 lemma foldM_spmf_eq_foldM_pmf_case :

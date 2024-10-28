@@ -3,7 +3,7 @@ theory Utils_PMF_Bernoulli_Binomial
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
   Finite_Fields.Finite_Fields_More_PMF
-  CVM.Utils_PMF_Common
+  CVM.Utils_PMF_Basic
 
 begin
 

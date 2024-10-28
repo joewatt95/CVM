@@ -1,4 +1,4 @@
-theory Utils_PMF_Common
+theory Utils_PMF_Basic
 
 imports
   "Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF"

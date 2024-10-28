@@ -3,7 +3,7 @@ theory Distinct_Elems_Algo
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-  CVM.Utils_PMF_Common
+  CVM.Utils_PMF_Basic
   CVM.Utils_SPMF_FoldM
 
 begin

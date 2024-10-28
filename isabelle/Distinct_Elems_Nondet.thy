@@ -2,9 +2,6 @@ theory Distinct_Elems_Nondet
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-  CVM.Utils_Reader_Monad
-  CVM.Utils_List
-  CVM.Utils_PMF_Lazify
   CVM.Utils_Approx_Algo
   CVM.Distinct_Elems_Eager
 

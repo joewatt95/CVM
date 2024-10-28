@@ -49,12 +49,12 @@ lemma precond_postcond :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
     \<open>\<And> x. P' x \<Longrightarrow> P x\<close>
-    \<open>\<And> x. Q x \<Longrightarrow> Q' x\<close>
+    \<open>\<And> y. Q y \<Longrightarrow> Q' y\<close>
   shows \<open>\<turnstile> \<lbrace>P'\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
   by (metis assms hoare_tripleI hoare_tripleE)
 
 lemma postcond_true :
-  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>\<top>\<rblot>\<rbrace>\<close>
+  \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>True\<rblot>\<rbrace>\<close>
   by (simp add: hoare_tripleI)
 
 lemma fail [simp] :
@@ -73,6 +73,13 @@ lemma hoare_triple_altdef :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<longleftrightarrow> \<turnstile> \<lbrace>P\<rbrace> f \<lbrace>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile> f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrace>\<close>
   by (smt (verit, ccfv_SIG) hoare_tripleE hoare_tripleI)
 
+lemma if_then_else :
+  assumes
+    \<open>\<And> b. f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> g \<lbrace>Q\<rbrace>\<close>
+    \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> h \<lbrace>Q\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> b. if f b then g b else h b) \<lbrace>Q\<rbrace>\<close>
+  using assms by (simp add: hoare_triple_def)
+
 lemma seq :
   assumes
     \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close>
@@ -87,13 +94,6 @@ lemma seq' :
   shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
   using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq)
 
-lemma if_then_else :
-  assumes
-    \<open>\<And> b. f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> g \<lbrace>Q\<rbrace>\<close>
-    \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> h \<lbrace>Q\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> b. if f b then g b else h b) \<lbrace>Q\<rbrace>\<close>
-  using assms by (simp add: hoare_triple_def)
-
 context
   fixes
     P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> and
@@ -105,7 +105,7 @@ abbreviation (input)
   \<open>P' index val \<equiv> index < offset + length xs \<and> P index val\<close>
 
 lemma loop_enumerate :
-  \<open>(\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f (index, x) \<lbrace>P (index + 1)\<rbrace>)
+  \<open>(\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f (index, x) \<lbrace>P (Suc index)\<rbrace>)
     \<Longrightarrow> \<turnstile> \<lbrace>P offset\<rbrace>
           foldM_spmf_enumerate f xs offset
           \<lbrace>P (offset + length xs)\<rbrace>\<close>
@@ -123,7 +123,7 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f x \<lbrace>P (index + 1)\<rbrace>\<close>
+  assumes \<open>\<And> index x. \<turnstile> \<lbrace>P' index\<rbrace> f x \<lbrace>P (Suc index)\<rbrace>\<close>
   shows \<open>\<turnstile> \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
   using assms
   by (auto
