@@ -97,18 +97,13 @@ lemma initial_state_well_formed :
   by (simp add: initial_state_def well_formed_state_eager_def) 
 
 lemma eager_step_preserves_well_formedness :
-  fixes i xs
-  defines \<open>P f \<equiv>
-    \<turnstile> \<lbrace>well_formed_state_eager\<rbrace> f xs i \<lbrace>well_formed_state_eager\<rbrace>\<close>
-  shows
-    \<open>P eager_step_1\<close>
-    \<open>P eager_step\<close>
-  unfolding assms eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
+  \<open>\<turnstile> \<lbrace>well_formed_state_eager\<rbrace> eager_step xs i \<lbrace>well_formed_state_eager\<rbrace>\<close>
+  unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
   by (fastforce
     intro:
       Utils_Reader_Monad_Hoare.seq'[where Q = well_formed_state_eager]
       Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>] if_then_else postcond_true
-    simp add: well_formed_state_eager_def remove_def)+
+    simp add: well_formed_state_eager_def remove_def)
 
 lemma
   fixes xs
@@ -118,6 +113,7 @@ lemma
       \<phi> = \<phi>' \<and> state = state'\<close> and
 
     \<open>S i \<phi> state \<phi>' state' \<equiv>
+      well_formed_state_eager \<phi> state \<and> \<phi> = \<phi>' \<and>
       card (state_chi state') = Suc (card <| state_chi state)
       \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' i) \<and>
           (state_chi state' = insert (xs ! i) (state_chi state)) \<and>
@@ -136,7 +132,7 @@ lemma
 
   apply (smt (verit, best)
     Utils_Reader_Monad_Hoare.loop_unindexed
-    eager_step_preserves_well_formedness(2)
+    eager_step_preserves_well_formedness
     Utils_Reader_Monad_Hoare.hoare_tripleE
     Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
 
