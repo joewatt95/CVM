@@ -88,32 +88,29 @@ lemma
   apply simp
   by (metis (no_types, opaque_lifting) Suc_le_lessD add_Suc_right aux' dual_order.trans nle_le not_less_eq_eq take_all)
 
-definition
-  \<open>well_formed_state_eager _ state \<equiv>
-    finite (state_chi state)\<close>
+abbreviation \<open>finite_state_chi _ state \<equiv> finite (state_chi state)\<close>
 
 lemma initial_state_well_formed :
-  \<open>well_formed_state_eager \<phi> initial_state\<close>
-  by (simp add: initial_state_def well_formed_state_eager_def) 
+  \<open>finite_state_chi \<phi> initial_state\<close>
+  by (simp add: initial_state_def) 
 
 lemma eager_step_preserves_well_formedness :
-  \<open>\<turnstile> \<lbrace>well_formed_state_eager\<rbrace> eager_step xs i \<lbrace>well_formed_state_eager\<rbrace>\<close>
+  \<open>\<turnstile> \<lbrace>finite_state_chi\<rbrace> eager_step xs i \<lbrace>finite_state_chi\<rbrace>\<close>
   unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
   by (fastforce
     intro:
-      Utils_Reader_Monad_Hoare.seq'[where Q = well_formed_state_eager]
+      Utils_Reader_Monad_Hoare.seq'[where Q = finite_state_chi]
       Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>] if_then_else postcond_true
-    simp add: well_formed_state_eager_def remove_def)
+    simp add: remove_def)
 
 lemma
   fixes xs
   defines
     \<open>R i \<phi> state \<phi>' state' \<equiv>
-      well_formed_state_eager \<phi> state \<and>
-      \<phi> = \<phi>' \<and> state = state'\<close> and
+      finite_state_chi \<phi> state \<and> \<phi> = \<phi>' \<and> state = state'\<close> and
 
     \<open>S i \<phi> state \<phi>' state' \<equiv>
-      well_formed_state_eager \<phi> state \<and> \<phi> = \<phi>' \<and>
+      \<phi> = \<phi>' \<and> finite_state_chi \<phi> state \<and> finite_state_chi \<phi> state' \<and>
       card (state_chi state') = Suc (card <| state_chi state)
       \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' i) \<and>
           (state_chi state' = insert (xs ! i) (state_chi state)) \<and>
@@ -121,33 +118,31 @@ lemma
 
     \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
   assumes \<open>i < length xs\<close>
-  shows \<open>\<turnstile>
-    \<lbrace>R 0\<rbrace>
-    \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle>
-    \<lbrace>S i\<rbrace>\<close>
-  apply (subst bind_return_rd[symmetric])
-  apply (rule Utils_Reader_Monad_Relational.seq'[where S = \<open>R i\<close>])
+  shows \<open>\<turnstile> \<lbrace>R 0\<rbrace> \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle> \<lbrace>S i\<rbrace>\<close>
+proof -
+  have \<open>\<turnstile> \<lbrace>R 0\<rbrace> \<langle>ith_state i | ith_state i\<rangle> \<lbrace>R i\<rbrace>\<close>
+    using assms
+    by (smt (verit, best)
+      Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_well_formedness
+      Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
 
-  unfolding assms eager_step_1_def Let_def Set.remove_def
-
-  apply (smt (verit, best)
-    Utils_Reader_Monad_Hoare.loop_unindexed
-    eager_step_preserves_well_formedness
-    Utils_Reader_Monad_Hoare.hoare_tripleE
-    Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
-
-  apply (auto simp add: map_rd_def[symmetric] map_bind_rd map_comp_rd)
-
-  subgoal premises prems for _ x \<phi>' state
+  moreover have
+    \<open>\<turnstile> \<lbrace>R i \<phi> state\<rbrace> eager_step_1 xs i \<lbrace>S i \<phi> state\<rbrace>\<close> for \<phi> state 
+    unfolding
+      assms eager_step_1_def Let_def Set.remove_def
+      map_rd_def[symmetric] map_bind_rd map_comp_rd
     unfolding map_rd_def
-    using prems card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
+    using card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
     by (fastforce
-      intro: Utils_Reader_Monad_Hoare.seq'[where Q =
-        \<open>\<lambda> \<phi>'' state'. \<phi>' = \<phi>'' \<and> \<phi>' = state' \<and> well_formed_state_eager \<phi>' state\<close>]
-      simp add:
-        Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def
-        well_formed_state_eager_def insert_absorb)
-  done
+      intro: Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lambda> \<phi>' state'. \<phi> = \<phi>' \<and> \<phi> = state'\<close>]
+      simp add: Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
+
+  ultimately show ?thesis
+    apply (subst bind_return_rd[symmetric])
+    by (fastforce
+      intro: seq'[where S = \<open>R i\<close>]
+      simp add: Utils_Reader_Monad_Hoare.hoare_triple_def Utils_Reader_Monad_Relational.relational_hoare_triple_def assms(1) rel_rd_def run_reader_simps(1))
+qed
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)

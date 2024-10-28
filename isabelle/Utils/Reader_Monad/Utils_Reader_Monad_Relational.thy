@@ -23,10 +23,10 @@ lemma relational_hoare_iff_hoare [simp] :
   by (smt (verit, best) hoare_triple_def rel_rd_def relational_hoare_triple_def)
 
 lemma skip_left [simp] :
-  \<open>(\<turnstile> \<lbrace>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<and> R' \<phi> x \<phi>' x')\<rbrace>
+  \<open>(\<turnstile> \<lbrace>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x')\<rbrace>
     \<langle>return_rd | f\<rangle>
     \<lbrace>(\<lambda> \<phi> x \<phi>' x'. S \<phi> x \<phi>' x')\<rbrace>)
-  \<longleftrightarrow> (\<forall> \<phi> x. R \<phi> x \<longrightarrow> \<turnstile> \<lbrace>R' \<phi> x\<rbrace> f \<lbrace>S \<phi> x\<rbrace>)\<close>
+  \<longleftrightarrow> (\<forall> \<phi> x. \<turnstile> \<lbrace>R \<phi> x\<rbrace> f \<lbrace>S \<phi> x\<rbrace>)\<close>
   by (smt (verit) hoare_triple_def rel_rd_def relational_hoare_triple_def run_reader_simps(1))
 
 lemma skip [simp] :
