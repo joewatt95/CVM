@@ -63,7 +63,7 @@ lemma initial_state_well_formed :
   \<open>finite_state_chi \<phi> initial_state\<close>
   by (simp add: initial_state_def) 
 
-lemma eager_step_preserves_well_formedness :
+lemma eager_step_preserves_finiteness :
   \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step xs i \<lbrakk>finite_state_chi\<rbrakk>\<close>
   unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
   by (fastforce
@@ -85,7 +85,7 @@ lemma ith_state_preserves_same_states :
   \<open>\<turnstile>rd \<lbrakk>same_states\<rbrakk> \<langle>ith_state i | ith_state i\<rangle> \<lbrakk>same_states\<rbrakk>\<close>
   using i_lt_length_xs ith_state_def
   by (smt (verit, best)
-    Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_well_formedness
+    Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_finiteness
     Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
 
 lemma
@@ -112,8 +112,10 @@ proof -
     unfolding map_rd_def
     using card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
     by (fastforce
-      intro: Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lambda> \<phi>' state'. \<phi> = \<phi>' \<and> \<phi> = state'\<close>]
-      simp add: Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
+      intro: Utils_Reader_Monad_Hoare.seq'[
+        where Q = \<open>\<lambda> \<phi>' state'. \<phi> = \<phi>' \<and> \<phi> = state'\<close>]
+      simp add:
+        Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
 
   ultimately show ?thesis by (blast intro: skip_seq)
 qed
@@ -147,9 +149,9 @@ proof -
     by (auto intro!: Utils_Reader_Monad_Hoare.seq' if_then_else postcond_true)
 
   ultimately show ?thesis
-    apply (simp add: i_lt_length_xs ith_state_Suc_eq)
-    unfolding eager_step_def
-    by (blast intro: skip_seq Utils_Reader_Monad_Hoare.seq)
+    by (auto
+      intro!: skip_seq Utils_Reader_Monad_Hoare.seq
+      simp add: ith_state_Suc_eq[unfolded eager_step_def])
 qed
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
