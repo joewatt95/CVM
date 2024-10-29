@@ -49,6 +49,20 @@ lemma seq :
   shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f >=> g | f' >=> g'\<rangle> \<lbrakk>T\<rbrakk>\<close>
   using assms by (simp add: rel_rd_def relational_hoare_triple_def run_reader_simps(3))
 
+lemma skip_seq :
+  assumes
+    \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>S\<rbrakk>\<close>
+    \<open>\<And> \<phi> x. \<turnstile>rd \<lbrakk>S \<phi> x\<rbrakk> g \<lbrakk>T \<phi> x\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f >=> g\<rangle> \<lbrakk>T\<rbrakk>\<close>
+  by (smt (verit, best) assms(1,2) hoare_tripleE rel_rd_def relational_hoare_triple_def run_reader_simps(3))
+
+lemma seq_skip :
+  assumes
+    \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>S\<rbrakk>\<close>
+    \<open>\<And> \<phi>' x'. \<turnstile>rd \<lbrakk>(\<lambda> \<phi> x. S \<phi> x \<phi>' x')\<rbrakk> g \<lbrakk>(\<lambda> \<phi> x. T \<phi> x \<phi>' x')\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f >=> g | f\<rangle> \<lbrakk>T\<rbrakk>\<close>
+  by (smt (verit) assms(1,2) hoare_triple_def rel_rd_def relational_hoare_triple_def run_reader_simps(3))
+
 lemma seq' :
   assumes
     \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>

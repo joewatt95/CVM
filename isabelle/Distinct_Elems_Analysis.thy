@@ -51,13 +51,112 @@ thm binomial_distribution.prob_ge
 thm binomial_distribution.prob_abs_ge
 
 (* Ideas on part of the proof for the big K (ie > L) part. *)
+(* 
+lemma
+  assumes \<open>i + j \<le> length xs\<close>
+  shows
+    \<open>state_k (run_eager_algorithm (take i xs) \<phi>)
+    \<le> state_k (run_eager_algorithm (take (i + j) xs) \<phi>)\<close>
+  apply (induction j)
+  apply simp
+  by (metis (no_types, opaque_lifting) Suc_le_lessD add_Suc_right aux' dual_order.trans nle_le not_less_eq_eq take_all) *)
 
-thm eager_algorithm_snoc
+abbreviation \<open>finite_state_chi _ state \<equiv> finite (state_chi state)\<close>
 
-(* eager_algorithm (?xs @ [?x])
-= eager_algorithm ?xs \<bind> eager_step (?xs @ [?x]) (length ?xs) *)
+lemma initial_state_well_formed :
+  \<open>finite_state_chi \<phi> initial_state\<close>
+  by (simp add: initial_state_def) 
 
-lemma eager_algorithm_take_eq :
+lemma eager_step_preserves_well_formedness :
+  \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step_1 xs j \<lbrakk>finite_state_chi\<rbrakk>\<close>
+  \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step xs j \<lbrakk>finite_state_chi\<rbrakk>\<close>
+  unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
+  by (fastforce
+    intro:
+      Utils_Reader_Monad_Hoare.seq'[where Q = finite_state_chi]
+      Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>] if_then_else postcond_true
+    simp add: remove_def)+
+
+context
+  fixes
+    i :: nat and
+    xs :: \<open>'a list\<close>
+  assumes i_lt_length_xs : \<open>i < length xs\<close>
+begin
+
+abbreviation \<open>ith_state j \<equiv> foldM_rd (eager_step (take j xs)) [0 ..< j]\<close>
+
+abbreviation (input)
+  \<open>precond \<phi> state \<phi>' state' \<equiv>
+    finite_state_chi \<phi> state \<and> \<phi> = \<phi>' \<and> state = state'\<close>
+
+lemma ith_state_preserves_precond :
+  \<open>\<turnstile>rd \<lbrakk>precond\<rbrakk> \<langle>ith_state i | ith_state i\<rangle> \<lbrakk>precond\<rbrakk>\<close>
+  using i_lt_length_xs
+  by (smt (verit, best)
+    Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_well_formedness
+    Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
+
+lemma
+  defines
+    \<open>S j \<phi> state \<phi>' state' \<equiv>
+      \<phi> = \<phi>' \<and> finite_state_chi \<phi> state \<and> finite_state_chi \<phi> state' \<and>
+      card (state_chi state') = Suc (card <| state_chi state)
+      \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' j) \<and>
+          (state_chi state' = insert (xs ! j) (state_chi state)) \<and>
+          xs ! j \<notin> state_chi state\<close>
+  assumes \<open>i < length xs\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>precond\<rbrakk> \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle> \<lbrakk>S i\<rbrakk>\<close>
+proof -
+  note ith_state_preserves_precond
+
+  moreover have
+    \<open>\<turnstile>rd \<lbrakk>precond \<phi> state\<rbrakk> eager_step_1 xs i \<lbrakk>S i \<phi> state\<rbrakk>\<close> for \<phi> state 
+    unfolding
+      assms eager_step_1_def Let_def Set.remove_def
+      map_rd_def[symmetric] map_bind_rd map_comp_rd
+    unfolding map_rd_def
+    using card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
+    by (fastforce
+      intro: Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lambda> \<phi>' state'. \<phi> = \<phi>' \<and> \<phi> = state'\<close>]
+      simp add: Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
+
+  ultimately show ?thesis
+    by (blast intro: skip_seq[where S = \<open>precond\<close>])
+qed
+
+lemma ith_state_Suc_eq :
+  \<open>ith_state (Suc i) = (ith_state i >=> eager_step (take (Suc i) xs) i)\<close>
+  using i_lt_length_xs
+  apply (simp add: take_Suc_conv_app_nth)
+  unfolding foldM_rd_snoc
+  by (auto intro!: arg_cong2[where f = bind_rd] foldM_cong eager_step_cong)
+
+lemma
+  \<open>\<turnstile>rd
+    \<lbrakk>precond\<rbrakk>
+    \<langle>ith_state i | ith_state (Suc i)\<rangle>
+    \<lbrakk>(\<lambda> _ state _ state'. state_k state \<le> state_k state')\<rbrakk>\<close>
+proof -
+  have \<open>\<turnstile>rd
+    \<lbrakk>precond\<rbrakk>
+    \<langle>return_rd | eager_step_2 xs i\<rangle>
+    \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. \<phi> = \<phi>' \<and> state_k state \<le> state_k state')\<rbrakk>\<close>
+  sorry
+
+  then show ?thesis
+    apply (simp only: i_lt_length_xs ith_state_Suc_eq)
+    apply (intro skip_seq[where R = precond])
+    using ith_state_preserves_precond apply blast
+    unfolding
+      relational_hoare_triple_def hoare_triple_def rel_rd_def
+      eager_step_def eager_step_1_def Let_def
+      map_rd_def[symmetric] map_bind_rd map_comp_rd
+    apply (auto simp add: run_reader_simps)
+    sorry
+qed
+
+(* lemma eager_algorithm_take_eq :
   assumes \<open>i < length xs\<close>
   shows
     \<open>eager_algorithm (take (Suc i) xs) =
@@ -71,7 +170,6 @@ lemma aux :
     eager_step_def eager_step_1_def eager_step_2_def
     run_reader_simps Let_def)
 
-(* k increases monotonically across iterations. *)
 lemma aux' :
   assumes \<open>i < length xs\<close>
   shows
@@ -86,115 +184,42 @@ lemma
     \<le> state_k (run_eager_algorithm (take (i + j) xs) \<phi>)\<close>
   apply (induction j)
   apply simp
-  by (metis (no_types, opaque_lifting) Suc_le_lessD add_Suc_right aux' dual_order.trans nle_le not_less_eq_eq take_all)
-
-abbreviation \<open>finite_state_chi _ state \<equiv> finite (state_chi state)\<close>
-
-lemma initial_state_well_formed :
-  \<open>finite_state_chi \<phi> initial_state\<close>
-  by (simp add: initial_state_def) 
-
-lemma eager_step_preserves_well_formedness :
-  \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step xs i \<lbrakk>finite_state_chi\<rbrakk>\<close>
-  unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
-  by (fastforce
-    intro:
-      Utils_Reader_Monad_Hoare.seq'[where Q = finite_state_chi]
-      Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>] if_then_else postcond_true
-    simp add: remove_def)
-
-lemma
-  fixes xs
-  defines
-    \<open>R i \<phi> state \<phi>' state' \<equiv>
-      finite_state_chi \<phi> state \<and> \<phi> = \<phi>' \<and> state = state'\<close> and
-
-    \<open>S i \<phi> state \<phi>' state' \<equiv>
-      \<phi> = \<phi>' \<and> finite_state_chi \<phi> state \<and> finite_state_chi \<phi> state' \<and>
-      card (state_chi state') = Suc (card <| state_chi state)
-      \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' i) \<and>
-          (state_chi state' = insert (xs ! i) (state_chi state)) \<and>
-          xs ! i \<notin> state_chi state\<close> and
-
-    \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
-  assumes \<open>i < length xs\<close>
-  shows \<open>\<turnstile>rd \<lbrakk>R 0\<rbrakk> \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle> \<lbrakk>S i\<rbrakk>\<close>
-proof -
-  have \<open>\<turnstile>rd \<lbrakk>R 0\<rbrakk> \<langle>ith_state i | ith_state i\<rangle> \<lbrakk>R i\<rbrakk>\<close>
-    using assms
-    by (smt (verit, best)
-      Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_well_formedness
-      Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
-
-  moreover have
-    \<open>\<turnstile>rd \<lbrakk>R i \<phi> state\<rbrakk> eager_step_1 xs i \<lbrakk>S i \<phi> state\<rbrakk>\<close> for \<phi> state 
-    unfolding
-      assms eager_step_1_def Let_def Set.remove_def
-      map_rd_def[symmetric] map_bind_rd map_comp_rd
-    unfolding map_rd_def
-    using card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
-    by (fastforce
-      intro: Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lambda> \<phi>' state'. \<phi> = \<phi>' \<and> \<phi> = state'\<close>]
-      simp add: Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
-
-  ultimately show ?thesis
-    apply (subst bind_return_rd[symmetric])
-    by (fastforce
-      intro: seq'[where S = \<open>R i\<close>]
-      simp add: Utils_Reader_Monad_Hoare.hoare_triple_def Utils_Reader_Monad_Relational.relational_hoare_triple_def assms(1) rel_rd_def run_reader_simps(1))
-qed
+  by (metis (no_types, opaque_lifting) Suc_le_lessD add_Suc_right aux' dual_order.trans nle_le not_less_eq_eq take_all) *)
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)
 
 lemma
-  fixes xs
-  defines
-    \<open>R i \<phi> state \<phi>' state' \<equiv>
-      finite_state_chi \<phi> state \<and> \<phi> = \<phi>' \<and> state = state'\<close> and
-
-    \<open>S i \<phi> state \<phi>' state' \<equiv>
-      \<phi> = \<phi>' \<and> finite_state_chi \<phi> state \<and> finite_state_chi \<phi> state' \<and>
-      card (state_chi state') = Suc (card <| state_chi state)
-      \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' i) \<and>
-          (state_chi state' = insert (xs ! i) (state_chi state)) \<and>
-          xs ! i \<notin> state_chi state\<close> and
-
-    \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
-  assumes \<open>i < length xs\<close>
-  shows \<open>\<turnstile>rd \<lbrakk>R 0\<rbrakk> \<langle>ith_state i | ith_state (Suc i)\<rangle> \<lbrakk>S i\<rbrakk>\<close>
-  sorry
-
-lemma
-  fixes \<phi> xs
-  defines \<open>state i \<equiv> run_eager_algorithm (take i xs) \<phi>\<close>
+  fixes \<phi>
+  defines \<open>state j \<equiv> run_eager_algorithm (take j xs) \<phi>\<close>
   shows
     \<open>i < length xs \<Longrightarrow>
-    state_k (state <| i + 1) > state_k (state i)
+    state_k (state <| Suc i) > state_k (state i)
     \<longleftrightarrow> (
       Suc (card <| state_chi <| state i) = threshold \<and>
       (\<forall> k' < state_k (state i). curry \<phi> k' i))\<close>
-  using assms aux'
+  (* using assms aux'
   unfolding
     eager_algorithm_take_eq
     eager_algorithm_def
     eager_step_def eager_step_1_def eager_step_2_def Let_def
     run_reader_simps Set.filter_def remove_def
-  apply (auto split: if_splits)
+  apply (auto split: if_splits) *)
   sorry
 
 lemma
   assumes \<open>state_k (run_eager_algorithm xs \<phi>) > L\<close>
   defines
-    \<open>state i \<equiv>
+    \<open>state j \<equiv>
       flip run_reader \<phi> (do {
-        state \<leftarrow> eager_algorithm <| take i xs;
-        eager_step_1 xs i state })\<close>
-  obtains i where
-    \<open>state_k (state i) = L\<close>
-    \<open>card (state_chi <| state i) = threshold\<close>
-   (* See personal (Joe), written notes for sketch of the proof here. *)
+        state \<leftarrow> eager_algorithm <| take j xs;
+        eager_step_1 xs j state })\<close>
+  obtains j where
+    \<open>state_k (state j) = L\<close>
+    \<open>card (state_chi <| state j) = threshold\<close>
   sorry
+
+end
 
 lemma estimate_distinct_error_bound_fail_2:
   shows "\<P>(st in
