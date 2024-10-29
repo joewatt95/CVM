@@ -95,7 +95,7 @@ lemma initial_state_well_formed :
   by (simp add: initial_state_def) 
 
 lemma eager_step_preserves_well_formedness :
-  \<open>\<turnstile> \<lbrace>finite_state_chi\<rbrace> eager_step xs i \<lbrace>finite_state_chi\<rbrace>\<close>
+  \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step xs i \<lbrakk>finite_state_chi\<rbrakk>\<close>
   unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
   by (fastforce
     intro:
@@ -118,16 +118,16 @@ lemma
 
     \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
   assumes \<open>i < length xs\<close>
-  shows \<open>\<turnstile> \<lbrace>R 0\<rbrace> \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle> \<lbrace>S i\<rbrace>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>R 0\<rbrakk> \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle> \<lbrakk>S i\<rbrakk>\<close>
 proof -
-  have \<open>\<turnstile> \<lbrace>R 0\<rbrace> \<langle>ith_state i | ith_state i\<rangle> \<lbrace>R i\<rbrace>\<close>
+  have \<open>\<turnstile>rd \<lbrakk>R 0\<rbrakk> \<langle>ith_state i | ith_state i\<rangle> \<lbrakk>R i\<rbrakk>\<close>
     using assms
     by (smt (verit, best)
       Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_well_formedness
       Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
 
   moreover have
-    \<open>\<turnstile> \<lbrace>R i \<phi> state\<rbrace> eager_step_1 xs i \<lbrace>S i \<phi> state\<rbrace>\<close> for \<phi> state 
+    \<open>\<turnstile>rd \<lbrakk>R i \<phi> state\<rbrakk> eager_step_1 xs i \<lbrakk>S i \<phi> state\<rbrakk>\<close> for \<phi> state 
     unfolding
       assms eager_step_1_def Let_def Set.remove_def
       map_rd_def[symmetric] map_bind_rd map_comp_rd
@@ -146,6 +146,25 @@ qed
 
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)
+
+lemma
+  fixes xs
+  defines
+    \<open>R i \<phi> state \<phi>' state' \<equiv>
+      finite_state_chi \<phi> state \<and> \<phi> = \<phi>' \<and> state = state'\<close> and
+
+    \<open>S i \<phi> state \<phi>' state' \<equiv>
+      \<phi> = \<phi>' \<and> finite_state_chi \<phi> state \<and> finite_state_chi \<phi> state' \<and>
+      card (state_chi state') = Suc (card <| state_chi state)
+      \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' i) \<and>
+          (state_chi state' = insert (xs ! i) (state_chi state)) \<and>
+          xs ! i \<notin> state_chi state\<close> and
+
+    \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
+  assumes \<open>i < length xs\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>R 0\<rbrakk> \<langle>ith_state i | ith_state (Suc i)\<rangle> \<lbrakk>S i\<rbrakk>\<close>
+  sorry
+
 lemma
   fixes \<phi> xs
   defines \<open>state i \<equiv> run_eager_algorithm (take i xs) \<phi>\<close>
