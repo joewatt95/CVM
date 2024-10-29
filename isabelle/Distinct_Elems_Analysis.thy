@@ -226,7 +226,7 @@ proof -
     proof -
       have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
         for n and P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> by blast
-      then show ?thesis
+      show ?thesis
         by (auto intro: measure_pmf.finite_measure_subadditive_finite)
     qed
 
@@ -282,7 +282,7 @@ proof -
     foo (card (set xs)) L" sorry
   finally show "?thesis" .
 qed
-  
+
 lemma estimate_distinct_error_bound:
   assumes "(L::nat) = undefined"
   shows "
