@@ -1,3 +1,4 @@
+(* Adaptation of relational hoare logic to reader monad. *)
 theory Utils_Reader_Monad_Relational
 
 imports
