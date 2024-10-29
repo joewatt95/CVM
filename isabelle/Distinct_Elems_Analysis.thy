@@ -121,9 +121,9 @@ qed
 lemma ith_state_Suc_eq :
   \<open>ith_state (Suc i) = (ith_state i >=> eager_step (take (Suc i) xs) i)\<close>
   using i_lt_length_xs
-  apply (simp add: ith_state_def take_Suc_conv_app_nth)
-  unfolding foldM_rd_snoc
-  by (auto intro!: arg_cong2[where f = bind_rd] foldM_cong eager_step_cong)
+  by (fastforce
+    intro: arg_cong2[where f = bind_rd] foldM_cong eager_step_cong
+    simp add: ith_state_def foldM_rd_snoc take_Suc_conv_app_nth)
 
 lemma
   \<open>\<turnstile>rd
