@@ -29,6 +29,13 @@ lemma relational_hoare_iff_hoare [simp] :
   \<longleftrightarrow> (\<turnstile>rd \<lbrakk>R\<rbrakk> f \<lbrakk>S\<rbrakk>)\<close>
   by (smt (verit, best) hoare_triple_def rel_rd_def relational_hoare_triple_def)
 
+lemma precond_strengthen :
+  assumes
+    \<open>\<And> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<Longrightarrow> R' \<phi> x \<phi>' x'\<close>
+    \<open>\<turnstile>rd \<lbrakk>R'\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  by (metis assms(1,2) relational_hoare_triple_def)
+
 lemma skip [simp] :
   \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>return_rd | return_rd\<rangle> \<lbrakk>S\<rbrakk>
   \<longleftrightarrow> (\<forall> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<longrightarrow> S \<phi> x \<phi>' x')\<close>

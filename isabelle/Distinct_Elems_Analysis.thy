@@ -139,13 +139,12 @@ proof -
   ultimately show ?thesis by (rule skip_seq)
 qed
 
-lemma
-  defines
-    \<open>S \<phi> state \<phi>' state' \<equiv> (
-      let k = state_k state; k' = state_k state'
-      in k' = k \<or> k' = Suc k)\<close>
-  shows \<open>\<turnstile>rd
-    \<lbrakk>same_states\<rbrakk> \<langle>ith_state i | ith_state (Suc i)\<rangle> \<lbrakk>S\<rbrakk>\<close>
+lemma ith_state_k_increases_by_at_most_one : 
+  \<open>\<turnstile>rd
+    \<lbrakk>same_states\<rbrakk>
+    \<langle>ith_state i | ith_state (Suc i)\<rangle>
+    \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. state_k state' \<le> Suc (state_k state))\<rbrakk>\<close>
+  (is \<open>\<turnstile>rd \<lbrakk>_\<rbrakk> \<langle>_ | _\<rangle> \<lbrakk>?S\<rbrakk>\<close>)
 proof -
   note ith_state_preserves_same_states
 
@@ -157,9 +156,9 @@ proof -
     \<open>\<turnstile>rd
       \<lbrakk>(\<lambda> _ state'. state_k state = state_k state')\<rbrakk>
       eager_step_2 xs i
-      \<lbrakk>S \<phi> state\<rbrakk>\<close>
+      \<lbrakk>?S \<phi> state\<rbrakk>\<close>
     for \<phi> state i and xs :: \<open>'a list\<close>
-    unfolding eager_step_1_def eager_step_2_def Let_def map_rd_def assms
+    unfolding eager_step_1_def eager_step_2_def Let_def map_rd_def
     by (auto intro!: Utils_Reader_Monad_Hoare.seq' if_then_else postcond_true)
 
   ultimately show ?thesis
@@ -167,21 +166,6 @@ proof -
       intro!: skip_seq Utils_Reader_Monad_Hoare.seq
       simp add: ith_state_Suc_eq[unfolded eager_step_def])
 qed
-
-(* lemma
-  fixes c :: real
-  assumes
-    \<open>\<And> k. f (Suc k) = f k \<or> f (Suc k) = Suc (f k)\<close>
-    \<open>m \<le> n\<close> \<open>f m < c\<close> \<open>f n > c\<close>
-  obtains k where
-    \<open>m < k\<close> \<open>k < n\<close> \<open>f k = c\<close>
-proof -
-  let ?k = \<open>Suc <| Max {k. f k < c}\<close>
-
-  have \<open>m < n\<close> using assms order.asym by fastforce
-
-  then show ?thesis sorry
-qed *)
 
 end
 
@@ -207,35 +191,47 @@ lemma
           card chi' = Suc (card chi) \<and>
           card chi' = threshold))\<rbrakk>\<close>
 proof -
-  let ?j = \<open>Min {j. ?P j (>)}\<close>
-  let ?i = \<open>if l = 0 then 0 else ?j - 1\<close>
+  let ?j = \<open>Min {j. j \<le> length xs \<and> ?P j (>)}\<close>
+  let ?i = \<open>?j - 1\<close>
 
-  have \<open>{j. ?P j (>)} \<noteq> {}\<close> using assms by blast
+  have \<open>?P ?j (>)\<close>
+    by (metis (no_types, lifting) Collect_empty_eq Min_in assms finite_nat_set_iff_bounded_le less_or_eq_imp_le mem_Collect_eq)
 
-  have \<open>?j > 0\<close> if \<open>l > 0\<close>
-  proof (rule ccontr)
-    assume \<open>\<not> ?j > 0\<close>
+  moreover have \<open>?j = (LEAST j. ?P j (>))\<close>
+    apply (subst Least_Min[symmetric])
+    using assms
+    apply auto
+    by (metis (mono_tags, lifting) LeastI_ex nle_le wellorder_Least_lemma(2))
 
-    then have \<open>?j = 0\<close> by blast
+  moreover have \<open>?i < ?j\<close>
+    using calculation
+    by (metis (mono_tags, lifting) Utils_Reader_Monad_Hoare.skip bot_nat_0.not_eq_extremum diff_less initial_state_def ith_state_zero_eq less_zeroE simps(1) zero_less_one)
 
-    then have \<open>?P 0 (>)\<close> sorry
-    find_theorems "?P (Min _)"
-
-    show False sorry
-  qed
-
-  have \<open>?P ?i (=)\<close>
+  moreover have \<open>?i < length xs\<close>
+    by (metis (no_types, lifting) assms calculation(2,3) less_imp_diff_less linorder_neqE_nat not_less_Least)
+  
+  moreover have \<open>\<not> ?P ?i (<)\<close>
   proof -
-    have False if \<open>?P ?i (<)\<close>
-      using that
-      sorry
+    note 
+      ith_state_k_increases_by_at_most_one initial_state_well_formed
+      calculation(3,4)
 
-    moreover have False if \<open>?P ?i (>)\<close>
-      sorry
+    then have \<open>\<turnstile>rd
+      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'.
+        \<phi> = coin_matrix \<and> \<phi> = \<phi>' \<and>
+        state = initial_state \<and> state = state')\<rbrakk>
+      \<langle>ith_state ?i | ith_state ?j\<rangle>
+      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. state_k state' \<le> Suc (state_k state))\<rbrakk>\<close>
+      by (fastforce intro: precond_strengthen[where R' = same_states])
 
-    ultimately show ?thesis
-      by (metis (mono_tags, lifting) Utils_Reader_Monad_Hoare.hoare_triple_def nat_neq_iff)
+    then show ?thesis
+      using \<open>?P ?j (>)\<close>
+      by (auto simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def)
   qed
+
+  moreover have \<open>?P ?i (=)\<close>
+    using calculation not_less_Least not_less_iff_gr_or_eq
+    by (auto simp add: Utils_Reader_Monad_Hoare.hoare_triple_def)
 
   show ?thesis sorry
 qed
