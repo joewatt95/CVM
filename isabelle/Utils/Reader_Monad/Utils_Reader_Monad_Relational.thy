@@ -11,13 +11,19 @@ definition
   \<open>rel_rd R \<phi> m \<phi>' m' \<equiv>
     R \<phi> (run_reader m \<phi>) \<phi>' (run_reader m' \<phi>')\<close>
 
+lemma rd_rel_eq :
+  \<open>rel_rd (\<lambda> _ m _ m'. m = m') \<phi> m \<phi>' m'
+  \<longleftrightarrow> run_reader m \<phi> = run_reader m' \<phi>'\<close>
+  by (simp add: rel_rd_def)
+
 definition relational_hoare_triple
   (\<open>\<turnstile>rd \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>) \<equiv>
     \<forall> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<longrightarrow> rel_rd S \<phi> (f x) \<phi>' (f' x')\<close>
 
 lemma relational_hoare_iff_hoare [simp] :
-  \<open>(\<turnstile>rd \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<and> R \<phi>' x')\<rbrakk>
+  \<open>(\<turnstile>rd
+    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<and> R \<phi>' x')\<rbrakk>
     \<langle>f | f\<rangle>
     \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. S \<phi> x \<and> S \<phi>' x')\<rbrakk>)
   \<longleftrightarrow> (\<turnstile>rd \<lbrakk>R\<rbrakk> f \<lbrakk>S\<rbrakk>)\<close>

@@ -18,7 +18,7 @@ sledgehammer_params [
   max_facts = smart,
   provers = "
     cvc4 z3 verit
-    e vampire spass
+    e vampire spass zipperposition
   "
 ]
 
@@ -65,21 +65,40 @@ lemma initial_state_well_formed :
 
 lemma eager_step_preserves_finiteness :
   \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step xs i \<lbrakk>finite_state_chi\<rbrakk>\<close>
-  unfolding eager_step_def eager_step_1_def eager_step_2_def Let_def map_rd_def
-  by (fastforce
-    intro:
-      Utils_Reader_Monad_Hoare.seq'[where Q = finite_state_chi]
-      Utils_Reader_Monad_Hoare.seq'[where Q = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>] if_then_else postcond_true
-    simp add: remove_def)
+  (is \<open>?thesis' eager_step\<close>)
+proof -
+  have \<open>?thesis' eager_step_1\<close> \<open>?thesis' eager_step_2\<close>
+  unfolding eager_step_1_def eager_step_2_def
+  by (auto
+    intro!: Utils_Reader_Monad_Hoare.seq' if_then_else postcond_true
+    simp add: Set.remove_def Let_def map_rd_def)
+
+  then show ?thesis
+    unfolding eager_step_def by (rule Utils_Reader_Monad_Hoare.seq)
+qed
+
+context
+  fixes xs :: \<open>'a list\<close>
+begin
+
+definition \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
+
+lemma ith_state_zero_eq :
+  \<open>ith_state 0 = return_rd\<close>
+  by (auto simp add: ith_state_def)
 
 context
   fixes
-    i :: nat and
-    xs :: \<open>'a list\<close>
+    i :: nat
   assumes i_lt_length_xs : \<open>i < length xs\<close>
 begin
 
-definition \<open>ith_state j \<equiv> foldM_rd (eager_step (take j xs)) [0 ..< j]\<close>
+lemma ith_state_Suc_eq :
+  \<open>ith_state (Suc i) = (ith_state i >=> eager_step (take (Suc i) xs) i)\<close>
+  using i_lt_length_xs
+  by (fastforce
+    intro: arg_cong2[where f = bind_rd] foldM_cong eager_step_cong
+    simp add: ith_state_def foldM_rd_snoc take_Suc_conv_app_nth)
 
 lemma ith_state_preserves_same_states :
   \<open>\<turnstile>rd \<lbrakk>same_states\<rbrakk> \<langle>ith_state i | ith_state i\<rangle> \<lbrakk>same_states\<rbrakk>\<close>
@@ -117,21 +136,16 @@ proof -
       simp add:
         Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
 
-  ultimately show ?thesis by (blast intro: skip_seq)
+  ultimately show ?thesis by (rule skip_seq)
 qed
 
-lemma ith_state_Suc_eq :
-  \<open>ith_state (Suc i) = (ith_state i >=> eager_step (take (Suc i) xs) i)\<close>
-  using i_lt_length_xs
-  by (fastforce
-    intro: arg_cong2[where f = bind_rd] foldM_cong eager_step_cong
-    simp add: ith_state_def foldM_rd_snoc take_Suc_conv_app_nth)
-
 lemma
-  \<open>\<turnstile>rd
-    \<lbrakk>same_states\<rbrakk>
-    \<langle>ith_state i | ith_state (Suc i)\<rangle>
-    \<lbrakk>(\<lambda> _ state _ state'. state_k state \<le> state_k state')\<rbrakk>\<close>
+  defines
+    \<open>S \<phi> state \<phi>' state' \<equiv> (
+      let k = state_k state; k' = state_k state'
+      in k' = k \<or> k' = Suc k)\<close>
+  shows \<open>\<turnstile>rd
+    \<lbrakk>same_states\<rbrakk> \<langle>ith_state i | ith_state (Suc i)\<rangle> \<lbrakk>S\<rbrakk>\<close>
 proof -
   note ith_state_preserves_same_states
 
@@ -143,9 +157,9 @@ proof -
     \<open>\<turnstile>rd
       \<lbrakk>(\<lambda> _ state'. state_k state = state_k state')\<rbrakk>
       eager_step_2 xs i
-      \<lbrakk>(\<lambda> _ state'. state_k state \<le> state_k state')\<rbrakk>\<close>
+      \<lbrakk>S \<phi> state\<rbrakk>\<close>
     for \<phi> state i and xs :: \<open>'a list\<close>
-    unfolding eager_step_1_def eager_step_2_def Let_def map_rd_def
+    unfolding eager_step_1_def eager_step_2_def Let_def map_rd_def assms
     by (auto intro!: Utils_Reader_Monad_Hoare.seq' if_then_else postcond_true)
 
   ultimately show ?thesis
@@ -154,10 +168,84 @@ proof -
       simp add: ith_state_Suc_eq[unfolded eager_step_def])
 qed
 
+(* lemma
+  fixes c :: real
+  assumes
+    \<open>\<And> k. f (Suc k) = f k \<or> f (Suc k) = Suc (f k)\<close>
+    \<open>m \<le> n\<close> \<open>f m < c\<close> \<open>f n > c\<close>
+  obtains k where
+    \<open>m < k\<close> \<open>k < n\<close> \<open>f k = c\<close>
+proof -
+  let ?k = \<open>Suc <| Max {k. f k < c}\<close>
+
+  have \<open>m < n\<close> using assms order.asym by fastforce
+
+  then show ?thesis sorry
+qed *)
+
+end
+
+lemma
+  fixes l coin_matrix
+  assumes
+    \<open>\<turnstile>rd
+      \<lbrakk>(\<lambda> \<phi> state. \<phi> = coin_matrix \<and> state = initial_state)\<rbrakk>
+      ith_state (length xs)
+      \<lbrakk>(\<lambda> \<phi> state. state_k state > l)\<rbrakk>\<close>
+    (is \<open>?P (length xs) (>)\<close>)
+  obtains i where
+    \<open>i < length xs\<close>
+    \<open>\<turnstile>rd
+      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'.
+        \<phi> = coin_matrix \<and> \<phi> = \<phi>' \<and> state = initial_state \<and> state = state')\<rbrakk>
+      \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle>
+      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. (
+        let
+          k = state_k state; k' = state_k state';
+          chi = state_chi state; chi' = state_chi state'
+        in k = k' \<and> k = l \<and>
+          card chi' = Suc (card chi) \<and>
+          card chi' = threshold))\<rbrakk>\<close>
+proof -
+  let ?j = \<open>Min {j. ?P j (>)}\<close>
+  let ?i = \<open>if l = 0 then 0 else ?j - 1\<close>
+
+  have \<open>{j. ?P j (>)} \<noteq> {}\<close> using assms by blast
+
+  have \<open>?j > 0\<close> if \<open>l > 0\<close>
+  proof (rule ccontr)
+    assume \<open>\<not> ?j > 0\<close>
+
+    then have \<open>?j = 0\<close> by blast
+
+    then have \<open>?P 0 (>)\<close> sorry
+    find_theorems "?P (Min _)"
+
+    show False sorry
+  qed
+
+  have \<open>?P ?i (=)\<close>
+  proof -
+    have False if \<open>?P ?i (<)\<close>
+      using that
+      sorry
+
+    moreover have False if \<open>?P ?i (>)\<close>
+      sorry
+
+    ultimately show ?thesis
+      by (metis (mono_tags, lifting) Utils_Reader_Monad_Hoare.hoare_triple_def nat_neq_iff)
+  qed
+
+  show ?thesis sorry
+qed
+
+end
+
 (* k is incremented iff we flip H for the new element and hit the threshold upon
 inserting it. *)
 
-lemma
+(* lemma
   fixes \<phi>
   defines \<open>state j \<equiv> run_eager_algorithm (take j xs) \<phi>\<close>
   shows
@@ -173,9 +261,9 @@ lemma
     eager_step_def eager_step_1_def eager_step_2_def Let_def
     run_reader_simps Set.filter_def remove_def
   apply (auto split: if_splits) *)
-  sorry
+  sorry *)
 
-lemma
+(* lemma
   assumes \<open>state_k (run_eager_algorithm xs \<phi>) > L\<close>
   defines
     \<open>state j \<equiv>
@@ -185,9 +273,7 @@ lemma
   obtains j where
     \<open>state_k (state j) = L\<close>
     \<open>card (state_chi <| state j) = threshold\<close>
-  sorry
-
-end
+  sorry *)
 
 lemma estimate_distinct_error_bound_fail_2:
   shows "\<P>(st in
@@ -334,7 +420,5 @@ proof -
   ultimately show ?thesis
     sorry
 qed
-
-end
 
 end
