@@ -45,13 +45,23 @@ lemma hoare_tripleE :
   shows \<open>Q y\<close>
   by (metis assms hoare_triple_def)
 
-lemma precond_postcond :
+lemma precond_strengthen :
   assumes
-    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-    \<open>\<And> x. P' x \<Longrightarrow> P x\<close>
-    \<open>\<And> y. Q y \<Longrightarrow> Q' y\<close>
-  shows \<open>\<turnstile> \<lbrace>P'\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
-  by (metis assms hoare_tripleI hoare_tripleE)
+    \<open>\<And> x. P x \<Longrightarrow> P' x\<close>
+    \<open>\<turnstile> \<lbrace>P'\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
+
+lemma precond_false :
+  \<open>\<turnstile> \<lbrace>\<lblot>False\<rblot>\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+  by (simp add: hoare_tripleI)
+
+lemma postcond_weaken :
+  assumes
+    \<open>\<And> x. Q' x \<Longrightarrow> Q x\<close>
+    \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
 
 lemma postcond_true :
   \<open>\<turnstile> \<lbrace>P\<rbrace> f \<lbrace>\<lblot>True\<rblot>\<rbrace>\<close>

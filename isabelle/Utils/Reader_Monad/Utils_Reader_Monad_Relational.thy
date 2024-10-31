@@ -36,6 +36,21 @@ lemma precond_strengthen :
   shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (metis assms(1,2) relational_hoare_triple_def)
 
+lemma precond_false :
+  \<open>\<turnstile>rd \<lbrakk>\<lblot>\<lblot>\<lblot>\<lblot>False\<rblot>\<rblot>\<rblot>\<rblot>\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  by (simp add: relational_hoare_triple_def)
+
+lemma postcond_weaken :
+  assumes
+    \<open>\<And> \<phi> x \<phi>' x'. S' \<phi> x \<phi>' x' \<Longrightarrow> S \<phi> x \<phi>' x'\<close>
+    \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S'\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  by (metis (mono_tags, opaque_lifting) assms(1,2) rel_rd_def relational_hoare_triple_def)
+
+lemma postcond_true :
+  \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>\<lblot>\<lblot>\<lblot>\<lblot>True\<rblot>\<rblot>\<rblot>\<rblot>\<rbrakk>\<close>
+  by (simp add: rel_rd_def relational_hoare_triple_def)
+
 lemma skip [simp] :
   \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>return_rd | return_rd\<rangle> \<lbrakk>S\<rbrakk>
   \<longleftrightarrow> (\<forall> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<longrightarrow> S \<phi> x \<phi>' x')\<close>

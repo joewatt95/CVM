@@ -70,7 +70,8 @@ proof -
   have \<open>?thesis' eager_step_1\<close> \<open>?thesis' eager_step_2\<close>
   unfolding eager_step_1_def eager_step_2_def
   by (auto
-    intro!: Utils_Reader_Monad_Hoare.seq' if_then_else postcond_true
+    intro!:
+      Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.if_then_else Utils_Reader_Monad_Hoare.postcond_true
     simp add: Set.remove_def Let_def map_rd_def)
 
   then show ?thesis
@@ -159,7 +160,7 @@ proof -
       \<lbrakk>?S \<phi> state\<rbrakk>\<close>
     for \<phi> state i and xs :: \<open>'a list\<close>
     unfolding eager_step_1_def eager_step_2_def Let_def map_rd_def
-    by (auto intro!: Utils_Reader_Monad_Hoare.seq' if_then_else postcond_true)
+    by (auto intro!: Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.if_then_else Utils_Reader_Monad_Hoare.postcond_true)
 
   ultimately show ?thesis
     by (auto

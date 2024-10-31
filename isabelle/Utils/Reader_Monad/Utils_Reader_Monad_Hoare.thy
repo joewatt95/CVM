@@ -27,13 +27,23 @@ lemma hoare_tripleE :
   shows \<open>Q \<phi> (run_reader (f x) \<phi>)\<close>
   by (metis assms hoare_triple_def)
 
-lemma precond_postcond :
+lemma precond_strengthen :
   assumes
-    \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-    \<open>\<And> \<phi> x. P' \<phi> x \<Longrightarrow> P \<phi> x\<close>
-    \<open>\<And> \<phi> y. Q \<phi> y \<Longrightarrow> Q' \<phi> y\<close>
-  shows \<open>\<turnstile>rd \<lbrakk>P'\<rbrakk> f \<lbrakk>Q'\<rbrakk>\<close>
-  by (metis assms hoare_tripleI hoare_tripleE)
+    \<open>\<And> \<phi> x. P \<phi> x \<Longrightarrow> P' \<phi> x\<close>
+    \<open>\<turnstile>rd \<lbrakk>P'\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
+  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
+
+lemma precond_false :
+  \<open>\<turnstile>rd \<lbrakk>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
+  by (simp add: hoare_tripleI)
+
+lemma postcond_weaken :
+  assumes
+    \<open>\<And> \<phi> x. Q' \<phi> x \<Longrightarrow> Q \<phi> x\<close>
+    \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q'\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
+  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
 
 lemma postcond_true :
   \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrakk>\<close>

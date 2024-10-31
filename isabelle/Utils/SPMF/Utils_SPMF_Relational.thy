@@ -69,6 +69,24 @@ definition relational_hoare_triple ::
   (\<open>\<turnstile> \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> \<forall> x x'. R x x' \<longrightarrow> rel_spmf S (f x) (f' x')\<close>
 
+lemma precond_strengthen :
+  assumes
+    \<open>\<And> x x'. R x x' \<Longrightarrow> R' x x'\<close>
+    \<open>\<turnstile> \<lbrace>R'\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+  by (metis assms(1,2) relational_hoare_triple_def)
+
+lemma precond_false :
+  \<open>\<turnstile> \<lbrace>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+  by (simp add: relational_hoare_triple_def)
+
+lemma postcond_weaken :
+  assumes
+    \<open>\<And> x x'. S' x x' \<Longrightarrow> S x x'\<close>
+    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S'\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+  by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def)
+
 lemma skip [simp] :
   \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
