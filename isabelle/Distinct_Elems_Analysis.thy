@@ -64,18 +64,19 @@ lemma initial_state_well_formed :
   by (simp add: initial_state_def) 
 
 lemma eager_step_preserves_finiteness :
-  \<open>\<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> eager_step xs i \<lbrakk>finite_state_chi\<rbrakk>\<close>
-  (is \<open>?thesis' eager_step\<close>)
+  fixes xs i
+  defines [simp] : \<open>P f \<equiv> \<turnstile>rd \<lbrakk>finite_state_chi\<rbrakk> f xs i \<lbrakk>finite_state_chi\<rbrakk> \<close>
+  shows \<open>P eager_step_1\<close> \<open>P eager_step_2\<close> \<open>P eager_step\<close>
 proof -
-  have \<open>?thesis' eager_step_1\<close> \<open>?thesis' eager_step_2\<close>
-  unfolding eager_step_1_def eager_step_2_def
-  by (auto
-    intro!:
-      Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.if_then_else Utils_Reader_Monad_Hoare.postcond_true
-    simp add: Set.remove_def Let_def map_rd_def)
+  show \<open>P eager_step_1\<close> \<open>P eager_step_2\<close>
+    unfolding eager_step_1_def eager_step_2_def
+    by (auto
+      intro!:
+        Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.if_then_else Utils_Reader_Monad_Hoare.postcond_true
+      simp add: Set.remove_def Let_def map_rd_def)
 
-  then show ?thesis
-    unfolding eager_step_def by (rule Utils_Reader_Monad_Hoare.seq)
+  then show \<open>P eager_step\<close>
+    unfolding eager_step_def by (auto intro: Utils_Reader_Monad_Hoare.seq)
 qed
 
 context
@@ -83,6 +84,9 @@ context
 begin
 
 definition \<open>ith_state i \<equiv> foldM_rd (eager_step (take i xs)) [0 ..< i]\<close>
+
+definition
+  \<open>ith_state_then_step_1 i \<equiv> ith_state i >=> eager_step_1 (take (Suc i) xs) i\<close>
 
 lemma ith_state_zero_eq :
   \<open>ith_state 0 = return_rd\<close>
@@ -102,42 +106,25 @@ lemma ith_state_Suc_eq :
     simp add: ith_state_def foldM_rd_snoc take_Suc_conv_app_nth)
 
 lemma ith_state_preserves_same_states :
-  \<open>\<turnstile>rd \<lbrakk>same_states\<rbrakk> \<langle>ith_state i | ith_state i\<rangle> \<lbrakk>same_states\<rbrakk>\<close>
-  using i_lt_length_xs ith_state_def
-  by (smt (verit, best)
-    Utils_Reader_Monad_Hoare.loop_unindexed eager_step_preserves_finiteness
-    Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def rel_rd_def)
-
-lemma
   defines
-    \<open>S j \<phi> state \<phi>' state' \<equiv>
-      \<phi> = \<phi>' \<and> finite_state_chi \<phi> state \<and> finite_state_chi \<phi> state' \<and>
-      card (state_chi state') = Suc (card <| state_chi state)
-      \<longleftrightarrow> (\<forall> k' < state_k state. curry \<phi> k' j) \<and>
-          (state_chi state' = insert (xs ! j) (state_chi state)) \<and>
-          xs ! j \<notin> state_chi state\<close>
-  assumes \<open>i < length xs\<close>
-  shows \<open>\<turnstile>rd
-    \<lbrakk>same_states\<rbrakk>
-    \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle>
-    \<lbrakk>S i\<rbrakk>\<close>
+    [simp] : \<open>P f \<equiv> \<turnstile>rd \<lbrakk>same_states\<rbrakk> \<langle>f i | f i\<rangle> \<lbrakk>same_states\<rbrakk>\<close> and
+    [simp] : \<open>eager_step' g j \<equiv> g (take (Suc j) xs) j\<close>
+  shows
+    \<open>P (eager_step' eager_step_1)\<close>
+    \<open>P (eager_step' eager_step_2)\<close>
+    \<open>P (eager_step' eager_step)\<close>
+    \<open>P ith_state\<close>
 proof -
-  note ith_state_preserves_same_states
+  show
+    \<open>P (eager_step' eager_step_1)\<close>
+    \<open>P (eager_step' eager_step_2)\<close>
+    by (simp, smt (verit, best) Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def eager_step_preserves_finiteness rel_rd_def)+
 
-  moreover have
-    \<open>\<turnstile>rd \<lbrakk>same_states \<phi> state\<rbrakk> eager_step_1 xs i \<lbrakk>S i \<phi> state\<rbrakk>\<close> for \<phi> state 
-    unfolding
-      assms eager_step_1_def Let_def Set.remove_def
-      map_rd_def[symmetric] map_bind_rd map_comp_rd
-    unfolding map_rd_def
-    using card_Diff1_le[of \<open>state_chi state\<close> \<open>xs ! i\<close>]
-    by (fastforce
-      intro: Utils_Reader_Monad_Hoare.seq'[
-        where Q = \<open>\<lambda> \<phi>' state'. \<phi> = \<phi>' \<and> \<phi> = state'\<close>]
-      simp add:
-        Utils_Reader_Monad_Hoare.hoare_triple_def get_rd_def insert_absorb)
+  then show \<open>P (eager_step' eager_step)\<close>
+    unfolding eager_step_def by (auto intro: seq')
 
-  ultimately show ?thesis by (rule skip_seq)
+  then show \<open>P ith_state\<close>
+    by (simp, smt (verit, ccfv_threshold) ith_state_def loop_unindexed Utils_Reader_Monad_Hoare.hoare_triple_def Utils_Reader_Monad_Relational.relational_hoare_triple_def eager_step_preserves_finiteness(3) rel_rd_def)
 qed
 
 lemma ith_state_k_increases_by_at_most_one : 
@@ -168,6 +155,23 @@ proof -
       simp add: ith_state_Suc_eq[unfolded eager_step_def])
 qed
 
+lemma threshold_exceeded_of_k_gt :
+  \<open>\<turnstile>rd
+    \<lbrakk>same_states\<rbrakk>
+    \<langle>ith_state_then_step_1 i | ith_state (Suc i)\<rangle>
+    \<lbrakk>(\<lambda> \<phi> state \<phi>' state'.
+      state_k state' > state_k state \<longrightarrow>
+      card (state_chi state) \<ge> threshold)\<rbrakk>\<close>
+    using i_lt_length_xs
+    by (auto
+      intro!:
+        seq ith_state_preserves_same_states skip_seq if_then_else
+        Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.postcond_true
+      simp add:
+        ith_state_then_step_1_def
+        ith_state_Suc_eq[unfolded eager_step_def eager_step_2_def]
+        Let_def map_rd_def)
+
 end
 
 lemma
@@ -178,99 +182,106 @@ lemma
       ith_state (length xs)
       \<lbrakk>(\<lambda> \<phi> state. state_k state > l)\<rbrakk>\<close>
     (is \<open>?P (length xs) (>)\<close>)
-  obtains i where
-    \<open>i < length xs\<close>
-    \<open>\<turnstile>rd
-      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'.
-        \<phi> = coin_matrix \<and> \<phi> = \<phi>' \<and> state = initial_state \<and> state = state')\<rbrakk>
-      \<langle>ith_state i | ith_state i >=> eager_step_1 xs i\<rangle>
-      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. (
-        let
-          k = state_k state; k' = state_k state';
-          chi = state_chi state; chi' = state_chi state'
-        in k = k' \<and> k = l \<and>
-          card chi' = Suc (card chi) \<and>
-          card chi' = threshold))\<rbrakk>\<close>
-proof -
-  let ?j = \<open>Min {j. j \<le> length xs \<and> ?P j (>)}\<close>
-  let ?i = \<open>?j - 1\<close>
+  shows
+    \<open>\<exists> i < length xs. \<turnstile>rd
+      \<lbrakk>(\<lambda> \<phi> state. \<phi> = coin_matrix \<and> state = initial_state)\<rbrakk>
+      ith_state_then_step_1 i
+      \<lbrakk>(\<lambda> \<phi> state. state_k state = l \<and> card (state_chi state) \<ge> threshold)\<rbrakk>\<close>
+    (is \<open>\<exists> i. ?Q i\<close>)
+proof (rule exI)
+  text
+    \<open>`?P` is a predicate such that `?P i R` holds iff
+    after running the algorithm for `i` iterations, `R k_i l`.\<close>
 
-  have \<open>?P ?j (>)\<close>
-    by (metis (no_types, lifting) Collect_empty_eq Min_in assms finite_nat_set_iff_bounded_le less_or_eq_imp_le mem_Collect_eq)
+  define j i where
+    j_def : \<open>j \<equiv> Min {j. j \<le> length xs \<and> ?P j (>)}\<close> and
+    i_def : \<open>i \<equiv> j - 1\<close>
 
-  moreover have \<open>?j = (LEAST j. ?P j (>))\<close>
+  let ?are_initial_state = \<open>\<lambda> \<phi> state \<phi>' state'.
+    \<phi> = coin_matrix \<and> \<phi> = \<phi>' \<and>
+    state = initial_state \<and> state = state'\<close>
+
+  text
+    \<open>First, we make some basic observations about `i` and `j`, most importantly
+    that:
+    - `j` is a well defined minimum, so that `?P j (>)`.
+       In other words, `j` is the smallest n such that after running the algorithm
+       for j iterations, `k_n > l`.
+    - `i < j`\<close>
+
+  have \<open>?P j (>)\<close>
+    by (metis (no_types, lifting) j_def Collect_empty_eq Min_in assms(1) finite_nat_set_iff_bounded_le less_or_eq_imp_le mem_Collect_eq)
+
+  moreover have \<open>j = (LEAST j. ?P j (>))\<close>
+    unfolding j_def
     apply (subst Least_Min[symmetric])
-    using assms
-    apply auto
-    by (metis (mono_tags, lifting) LeastI_ex nle_le wellorder_Least_lemma(2))
+    using assms apply simp
+    using assms apply blast
+    by (smt (verit, best) Least_le assms le_antisym wellorder_Least_lemma(1))
 
-  moreover have \<open>?i < ?j\<close>
-    using calculation
-    by (metis (mono_tags, lifting) Utils_Reader_Monad_Hoare.skip bot_nat_0.not_eq_extremum diff_less initial_state_def ith_state_zero_eq less_zeroE simps(1) zero_less_one)
-
-  moreover have \<open>?i < length xs\<close>
-    by (metis (no_types, lifting) assms calculation(2,3) less_imp_diff_less linorder_neqE_nat not_less_Least)
+  ultimately have \<open>i < j\<close>
+    by (metis (mono_tags, lifting) i_def Utils_Reader_Monad_Hoare.skip bot_nat_0.not_eq_extremum diff_less initial_state_def ith_state_zero_eq less_zeroE simps(1) zero_less_one)
   
-  moreover have \<open>\<not> ?P ?i (<)\<close>
-  proof -
-    note 
-      ith_state_k_increases_by_at_most_one initial_state_well_formed
-      calculation(3,4)
+  then have [simp] : \<open>j = Suc i\<close> using i_def by linarith
 
-    then have \<open>\<turnstile>rd
-      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'.
-        \<phi> = coin_matrix \<and> \<phi> = \<phi>' \<and>
-        state = initial_state \<and> state = state')\<rbrakk>
-      \<langle>ith_state ?i | ith_state ?j\<rangle>
+  text
+    \<open>Next we show that this is the `i` that we want, ie that:
+    1. `i < length xs`
+    2. After iteration `i`, `k_i = l`
+    3. After iteration `i` and then step 1 of iteration `j = i + 1`,
+       `|X_j| >= threshold`.\<close>
+
+  have \<open>i < length xs\<close>
+    using \<open>i < j\<close> \<open>j = (LEAST j. ?P j (>))\<close> assms wellorder_Least_lemma(2) by fastforce
+
+  moreover have \<open>?P i (=)\<close>
+  proof -
+    have \<open>\<turnstile>rd
+      \<lbrakk>?are_initial_state\<rbrakk>
+      \<langle>ith_state i | ith_state j\<rangle>
       \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. state_k state' \<le> Suc (state_k state))\<rbrakk>\<close>
+      using \<open>i < length xs\<close> ith_state_k_increases_by_at_most_one initial_state_well_formed
       by (fastforce intro: precond_strengthen[where R' = same_states])
 
-    then show ?thesis
-      using \<open>?P ?j (>)\<close>
-      by (auto simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def)
+    moreover note
+      \<open>j = (LEAST j. ?P j (>))\<close> \<open>?P j (>)\<close> 
+
+    ultimately show ?thesis
+      apply (simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def)
+      by (metis (no_types, lifting) \<open>i < j\<close> \<open>j = Suc i\<close> less_antisym not_less_Least order_trans_rules(22))
   qed
 
-  moreover have \<open>?P ?i (=)\<close>
-    using calculation not_less_Least not_less_iff_gr_or_eq
-    by (auto simp add: Utils_Reader_Monad_Hoare.hoare_triple_def)
+  moreover have \<open>\<turnstile>rd
+    \<lbrakk>(\<lambda> \<phi> state. \<phi> = coin_matrix \<and> state = initial_state)\<rbrakk>
+    ith_state_then_step_1 i
+    \<lbrakk>(\<lambda> \<phi> state. card (state_chi state) \<ge> threshold)\<rbrakk>\<close>
+  proof -
+    note threshold_exceeded_of_k_gt[OF \<open>i < length xs\<close>]
 
-  show ?thesis sorry
+    moreover have \<open>\<turnstile>rd
+      \<lbrakk>?are_initial_state\<rbrakk>
+      \<langle>ith_state_then_step_1 i | ith_state j\<rangle>
+      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. state_k state' > state_k state)\<rbrakk>\<close>
+      using \<open>?P i (=)\<close> \<open>?P j (>)\<close>
+      by (auto simp add: ith_state_then_step_1_def eager_step_1_def Let_def relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
+
+    ultimately have \<open>\<turnstile>rd
+      \<lbrakk>?are_initial_state\<rbrakk>
+      \<langle>ith_state_then_step_1 i | ith_state j\<rangle>
+      \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. card (state_chi state) \<ge> threshold)\<rbrakk>\<close>
+      using initial_state_well_formed
+      by (auto simp add: relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
+
+    then show ?thesis 
+      by (simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def)
+    qed
+
+  ultimately show \<open>?Q i\<close>
+    unfolding eager_step_1_def ith_state_then_step_1_def Let_def
+    by (auto simp add: relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
 qed
 
 end
-
-(* k is incremented iff we flip H for the new element and hit the threshold upon
-inserting it. *)
-
-(* lemma
-  fixes \<phi>
-  defines \<open>state j \<equiv> run_eager_algorithm (take j xs) \<phi>\<close>
-  shows
-    \<open>i < length xs \<Longrightarrow>
-    state_k (state <| Suc i) > state_k (state i)
-    \<longleftrightarrow> (
-      Suc (card <| state_chi <| state i) = threshold \<and>
-      (\<forall> k' < state_k (state i). curry \<phi> k' i))\<close>
-  (* using assms aux'
-  unfolding
-    eager_algorithm_take_eq
-    eager_algorithm_def
-    eager_step_def eager_step_1_def eager_step_2_def Let_def
-    run_reader_simps Set.filter_def remove_def
-  apply (auto split: if_splits) *)
-  sorry *)
-
-(* lemma
-  assumes \<open>state_k (run_eager_algorithm xs \<phi>) > L\<close>
-  defines
-    \<open>state j \<equiv>
-      flip run_reader \<phi> (do {
-        state \<leftarrow> eager_algorithm <| take j xs;
-        eager_step_1 xs j state })\<close>
-  obtains j where
-    \<open>state_k (state j) = L\<close>
-    \<open>card (state_chi <| state j) = threshold\<close>
-  sorry *)
 
 lemma estimate_distinct_error_bound_fail_2:
   shows "\<P>(st in
@@ -296,21 +307,7 @@ proof -
       \<exists> i < length xs. (
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
         in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
-    proof -
-      have
-        \<open>eager_state_inv (take (i + 1) xs) \<phi> <|
-          run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>\<close>
-        if \<open>i < length xs\<close> for i \<phi>
-        by (metis eager_algorithm_inv eager_step_1_inv run_reader_simps(3) that) 
-
-      then show ?thesis
-        apply (intro measure_pmf_cong)
-        (* using eager_step_inv eager_step_1_inv *)
-        apply (auto simp add:
-          eager_state_inv_def nondet_alg_aux_def
-          bernoulli_matrix_def set_Pi_pmf)
-        sorry
-    qed
+    sorry
 
   (* union bound *)
   also have "... \<le> (

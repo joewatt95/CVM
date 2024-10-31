@@ -22,12 +22,24 @@ definition relational_hoare_triple
     \<forall> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<longrightarrow> rel_rd S \<phi> (f x) \<phi>' (f' x')\<close>
 
 lemma relational_hoare_iff_hoare [simp] :
-  \<open>(\<turnstile>rd
+  \<open>\<turnstile>rd
     \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<and> R \<phi>' x')\<rbrakk>
     \<langle>f | f\<rangle>
-    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. S \<phi> x \<and> S \<phi>' x')\<rbrakk>)
-  \<longleftrightarrow> (\<turnstile>rd \<lbrakk>R\<rbrakk> f \<lbrakk>S\<rbrakk>)\<close>
-  by (smt (verit, best) hoare_triple_def rel_rd_def relational_hoare_triple_def)
+    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. S \<phi> x \<and> S \<phi>' x')\<rbrakk>
+  \<longleftrightarrow> \<turnstile>rd \<lbrakk>R\<rbrakk> f \<lbrakk>S\<rbrakk>\<close>
+
+  \<open>\<turnstile>rd
+    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. P \<phi> x)\<rbrakk>
+    \<langle>f | g\<rangle>
+    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. Q \<phi> x)\<rbrakk>
+  \<longleftrightarrow> \<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
+
+  \<open>\<turnstile>rd
+    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. P \<phi>' x')\<rbrakk>
+    \<langle>f | g\<rangle>
+    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. Q \<phi>' x')\<rbrakk>
+  \<longleftrightarrow> \<turnstile>rd \<lbrakk>P\<rbrakk> g \<lbrakk>Q\<rbrakk>\<close>
+  by (auto simp add: relational_hoare_triple_def rel_rd_def hoare_triple_def)
 
 lemma precond_strengthen :
   assumes

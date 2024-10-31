@@ -63,10 +63,10 @@ lemma skip' [simp] :
 
 lemma if_then_else :
   assumes
-    \<open>\<And> b. f b \<Longrightarrow> \<turnstile>rd \<lbrakk>P\<rbrakk> g \<lbrakk>Q\<rbrakk>\<close>
-    \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile>rd \<lbrakk>P\<rbrakk> h \<lbrakk>Q\<rbrakk>\<close>
-  shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> (\<lambda> b. if f b then g b else h b) \<lbrakk>Q\<rbrakk>\<close>
-  using assms by (simp add: hoare_triple_def)
+    \<open>\<And> x. f x \<Longrightarrow> \<turnstile>rd \<lbrakk>(\<lambda> \<phi> x'. x = x' \<and> P \<phi> x)\<rbrakk> g \<lbrakk>Q\<rbrakk>\<close>
+    \<open>\<And> x. \<not> f x \<Longrightarrow> \<turnstile>rd \<lbrakk>(\<lambda> \<phi> x'. x = x' \<and> P \<phi> x)\<rbrakk> h \<lbrakk>Q\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> (\<lambda> x. if f x then g x else h x) \<lbrakk>Q\<rbrakk>\<close>
+  by (smt (verit, best) assms(1,2) hoare_tripleE hoare_tripleI)
 
 lemma seq :
   assumes

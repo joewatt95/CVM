@@ -47,6 +47,10 @@ lemma bind_return_rd :
   \<open>return_rd >=> f = f\<close>
   by (simp_all add: bind_rd_def return_rd_def)
 
+lemma bind_assoc_rd :
+  \<open>f >=> (g >=> h) = (f >=> g >=> h)\<close>
+  by (simp add: bind_rd_def)
+
 lemma reader_monad_eqI:
   assumes "\<And>\<phi>. run_reader m \<phi> = run_reader n \<phi>"
   shows "m = n"

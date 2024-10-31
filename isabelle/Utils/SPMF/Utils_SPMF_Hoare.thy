@@ -85,9 +85,9 @@ lemma hoare_triple_altdef :
 
 lemma if_then_else :
   assumes
-    \<open>\<And> b. f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> g \<lbrace>Q\<rbrace>\<close>
-    \<open>\<And> b. \<not> f b \<Longrightarrow> \<turnstile> \<lbrace>P\<rbrace> h \<lbrace>Q\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> b. if f b then g b else h b) \<lbrace>Q\<rbrace>\<close>
+    \<open>\<And> x. f x \<Longrightarrow> \<turnstile> \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> g \<lbrace>Q\<rbrace>\<close>
+    \<open>\<And> x. \<not> f x \<Longrightarrow> \<turnstile> \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> h \<lbrace>Q\<rbrace>\<close>
+  shows \<open>\<turnstile> \<lbrace>P\<rbrace> (\<lambda> x. if f x then g x else h x) \<lbrace>Q\<rbrace>\<close>
   using assms by (simp add: hoare_triple_def)
 
 lemma seq :
