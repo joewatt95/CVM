@@ -52,14 +52,20 @@ abbreviation \<open>run_eager_algorithm \<equiv> run_reader <<< eager_algorithm\
 lemma eager_step_cong:
   assumes "i < length xs" "i < length ys"
   assumes "take (i+1) xs = take (i+1) ys"
-  shows "eager_step xs i = eager_step ys i"
+  shows
+    "eager_step_1 xs i = eager_step_1 ys i"
+    "eager_step_2 xs i = eager_step_2 ys i"
+    "eager_step xs i = eager_step ys i"
 proof -
   have "xs ! i = ys ! i" by (metis less_add_one nth_take assms(3))
   moreover have "find_last_before i x xs = find_last_before i x ys" for x
     unfolding find_last_before_def assms(3) by simp
-  ultimately show ?thesis
+  ultimately show
+    "eager_step_1 xs i = eager_step_1 ys i"
+    "eager_step_2 xs i = eager_step_2 ys i"
+    "eager_step xs i = eager_step ys i"
     unfolding eager_step_def eager_step_1_def eager_step_2_def
-    by (simp add: Let_def cong: if_cong)
+    by (auto simp add: Let_def cong: if_cong)
 qed
 
 lemma eager_algorithm_snoc:

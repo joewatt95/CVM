@@ -10,18 +10,6 @@ imports
   CVM.Utils_Reader_Monad_Relational
 begin
 
-sledgehammer_params [
-  (* verbose *)
-  minimize = true,
-  preplay_timeout = 15,
-  timeout = 60,
-  max_facts = smart,
-  provers = "
-    cvc4 z3 verit
-    e vampire spass zipperposition
-  "
-]
-
 locale with_threshold_and_eps = with_threshold +
   fixes \<epsilon> :: real
   assumes eps_pos : \<open>\<epsilon> > 0\<close>
@@ -283,6 +271,49 @@ qed
 
 end
 
+lemma contrapos_state_k_lt_L:
+  assumes "\<And>i. i < length xs \<Longrightarrow>
+  (
+    let st =
+      run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi> in
+    \<not>(state_k st = L \<and> card (state_chi st) \<ge> threshold)
+  )"
+  shows "state_k (run_reader (eager_algorithm xs) \<phi>) \<le> L"
+  using assms
+proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case
+    by (auto simp add: eager_algorithm_def eager_step_def run_steps_def run_reader_simps initial_state_def)
+next
+  case ih:(snoc x xs)
+  define stx where "stx \<equiv> run_reader (eager_algorithm xs) \<phi>"
+  have *:"i < length xs \<Longrightarrow>
+    eager_step_1 (xs @ [x]) i = eager_step_1 xs i" for i
+    by (auto intro!: eager_step_cong)
+  have 1: "state_k stx \<le> L"
+    unfolding stx_def
+    apply (intro ih(1))
+    subgoal for i
+      using ih(2)[of i] unfolding Let_def
+      using * by auto
+    done
+
+  define sty where "sty \<equiv> run_reader (eager_step_1 (xs @ [x]) (length xs) stx) \<phi>"
+  have stky: "state_k sty = state_k stx"
+    unfolding sty_def
+    by (auto simp add: eager_step_1_def run_reader_simps)
+
+  from ih(2)[of "length xs"]
+  have "\<not>(state_k sty = L \<and> card (state_chi sty) \<ge> threshold)"
+    by (auto simp add: run_reader_simps stx_def[symmetric] sty_def[symmetric])
+  
+  then have "state_k sty < L \<or> state_k sty = L \<and> card (state_chi sty) < threshold"
+    by (metis "1" antisym_conv1 not_le_imp_less stky)
+
+  thus ?case
+  by (auto simp add: eager_algorithm_snoc run_reader_simps stx_def[symmetric] eager_step_def sty_def[symmetric] eager_step_2_def Let_def)
+qed
+
 lemma estimate_distinct_error_bound_fail_2:
   shows "\<P>(st in
     (map_pmf
@@ -302,12 +333,13 @@ proof -
   (* We exceed L iff we hit a state where k = L, |X| \<ge> threshold
     after running eager_step_1.
     TODO: can this me made cleaner with only eager_algorithm? *)
-  also have "... =
+  also have "... \<le>
     \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
       \<exists> i < length xs. (
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
         in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
-    sorry
+    apply (intro pmf_mono)
+    by (smt (verit, best) contrapos_state_k_lt_L mem_Collect_eq verit_comp_simplify1(3))
 
   (* union bound *)
   also have "... \<le> (
