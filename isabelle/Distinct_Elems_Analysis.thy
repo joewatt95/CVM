@@ -354,7 +354,7 @@ proof -
         by (auto intro: measure_pmf.finite_measure_subadditive_finite)
     qed
 
-  also have "... = (
+  also have "... \<le> (
     \<Sum> i < length xs.
       \<P>(X in
         (map_pmf (nondet_alg_aux L (take (i+1) xs))
