@@ -193,8 +193,8 @@ proof (rule exI)
     after running the algorithm for `i` iterations, `R k_i l`.\<close>
 
   define j i where
-    j_def : \<open>j \<equiv> Min {j. j \<le> length xs \<and> ?P j (>)}\<close> and
-    i_def : \<open>i \<equiv> j - 1\<close>
+    \<open>j \<equiv> Min {j. j \<le> length xs \<and> ?P j (>)}\<close> and
+    \<open>i \<equiv> j - 1\<close>
 
   let ?are_initial_state = \<open>\<lambda> \<phi> state \<phi>' state'.
     \<phi> = coin_matrix \<and> \<phi> = \<phi>' \<and>
