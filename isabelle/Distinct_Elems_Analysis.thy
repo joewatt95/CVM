@@ -346,7 +346,6 @@ proof -
       \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
         in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
-    (is \<open>_ \<le> (\<Sum> i < _. ?p i)\<close>)
     proof -
       have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
         for n and P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> by blast
@@ -360,7 +359,6 @@ proof -
         (map_pmf (nondet_alg_aux L (take (i+1) xs))
           (fair_bernoulli_matrix (length xs) (length xs))).
         card X \<ge> threshold))"
-    (is \<open>_ \<le> (\<Sum> i < _. ?q i)\<close>)
     apply (rule sum_mono)
     apply simp
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
