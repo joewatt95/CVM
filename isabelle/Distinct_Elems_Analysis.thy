@@ -355,9 +355,9 @@ proof -
     qed
 
   also have "... = (
-    \<Sum> i \<le> length xs.
+    \<Sum> i < length xs.
       \<P>(X in
-        (map_pmf (nondet_alg_aux L (take i xs))
+        (map_pmf (nondet_alg_aux L (take (i+1) xs))
           (fair_bernoulli_matrix (length xs) (length xs))).
         card X \<ge> threshold))"
     sorry
