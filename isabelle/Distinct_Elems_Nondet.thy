@@ -82,76 +82,15 @@ next
     by (metis (no_types, lifting) append_eq_conv_conj eager_step_inv length_append_singleton lessI list.sel(1) run_reader_simps(3) semiring_norm(174) take_hd_drop)
 qed
 
-(* lemma rel_pmf_eager_algorithm_nondet_alg_aux:
-  \<open>rel_pmf
-    (\<lambda> state X. state_k state = K \<longrightarrow> state_chi state = X)
-    (map_pmf (run_eager_algorithm xs) p)
-    (map_pmf (nondet_alg_aux K xs) p)\<close>
-  using eager_algorithm_inv
-  by (fastforce
-    intro: rel_pmf_reflI
-    simp add: bernoulli_matrix_def pmf.rel_map eager_state_inv_def) *)
-
-context
-  fixes f xs
-  assumes
-    eager_state_inv_f : \<open>\<And> \<phi>. eager_state_inv xs \<phi> (run_reader (f xs) \<phi>)\<close>
-begin
-
-lemma rel_pmf_nondet_alg_aux :
-  \<open>rel_pmf
-    (\<lambda> state X. state_k state = K \<longrightarrow> state_chi state = X)
-    (map_pmf (run_reader <| f xs) p)
-    (map_pmf (nondet_alg_aux K xs) p)\<close>
-  using eager_state_inv_f
-  by (fastforce
-    intro: rel_pmf_reflI
-    simp add: bernoulli_matrix_def pmf.rel_map eager_state_inv_def)
-
 (* We may want to further rephrase the RHS *)
 lemma nondet_measureD :
-  \<open>measure_pmf.prob
-    (map_pmf (run_reader <| f xs) p)
-    {state. state_k state = K \<and> P (state_chi state)}
-  \<le> measure_pmf.prob
-      (map_pmf (nondet_alg_aux K xs) p)
-      {Y. P Y}\<close>
-  (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
-proof -
-  have
-    \<open>measure_pmf.prob ?p ?A
-      \<le> measure_pmf.prob ?q
-        {y. \<exists> x \<in> ?A. state_k x = K \<longrightarrow> state_chi x = y}\<close>
-    using rel_pmf_measureD rel_pmf_nondet_alg_aux by blast
-
-  also have \<open>... = measure_pmf.prob ?q {Y. P Y}\<close>
-    by (metis (mono_tags, lifting) mem_Collect_eq simps(1) simps(2))
-
-  finally show ?thesis .
-qed
-
-(* lemma eager_algorithm_nondet_measureD:
-  \<open>measure_pmf.prob
-    (map_pmf (run_eager_algorithm xs) p)
-    {state. state_k state = K \<and> P (state_chi state)}
-  \<le> measure_pmf.prob
-      (map_pmf (nondet_alg_aux K xs) p)
-      {Y. P Y}\<close>
-  (is "measure_pmf.prob ?p ?A \<le> measure_pmf.prob ?q ?B")
-proof -
-  have
-    \<open>measure_pmf.prob ?p ?A
-      \<le> measure_pmf.prob ?q
-        {y. \<exists> x \<in> ?A. state_k x = K \<longrightarrow> state_chi x = y}\<close>
-    sorry
-
-  also have \<open>... = measure_pmf.prob ?q {Y. P Y}\<close>
-    by (metis (mono_tags, lifting) mem_Collect_eq simps(1) simps(2))
-
-  finally show ?thesis .
-qed *)
-
-end
+  assumes \<open>\<And> \<phi>. eager_state_inv xs \<phi> (run_reader (f xs) \<phi>)\<close>
+  shows
+    \<open>\<P>(state in map_pmf (run_reader <| f xs) p.
+      state_k state = k \<and> P (state_chi state))
+    \<le> \<P>(chi in map_pmf (nondet_alg_aux k xs) p. P chi)\<close>
+  apply simp 
+  by (metis (mono_tags, lifting) assms eager_state_inv_def mem_Collect_eq pmf_mono)
 
 end
 

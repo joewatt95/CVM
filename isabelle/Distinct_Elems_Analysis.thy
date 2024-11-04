@@ -40,7 +40,7 @@ lemma
 thm binomial_distribution.prob_ge
 thm binomial_distribution.prob_abs_ge
 
-(* Ideas on part of the proof for the big K (ie > L) part. *)
+(* Ideas on part of the proof for the big K (ie > l) part. *)
 
 abbreviation
   \<open>finite_state_chi _ state \<equiv> finite (state_chi state)\<close>
@@ -271,14 +271,14 @@ proof (rule exI)
     by (auto simp add: relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
 qed
 
-lemma contrapos_state_k_lt_L:
+lemma contrapos_state_k_lt_l:
   assumes "\<And>i. i < length xs \<Longrightarrow>
   (
     let st =
       run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi> in
-    \<not>(state_k st = L \<and> card (state_chi st) \<ge> threshold)
+    \<not>(state_k st = l \<and> card (state_chi st) \<ge> threshold)
   )"
-  shows "state_k (run_reader (eager_algorithm xs) \<phi>) \<le> L"
+  shows "state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l"
   using assms
 proof (induction xs rule: rev_induct)
   case Nil
@@ -290,7 +290,7 @@ next
   have *:"i < length xs \<Longrightarrow>
     eager_step_1 (xs @ [x]) i = eager_step_1 xs i" for i
     by (auto intro!: eager_step_cong)
-  have 1: "state_k stx \<le> L"
+  have 1: "state_k stx \<le> l"
     unfolding stx_def
     apply (intro ih(1))
     subgoal for i
@@ -304,10 +304,10 @@ next
     by (auto simp add: eager_step_1_def run_reader_simps)
 
   from ih(2)[of "length xs"]
-  have "\<not>(state_k sty = L \<and> card (state_chi sty) \<ge> threshold)"
+  have "\<not>(state_k sty = l \<and> card (state_chi sty) \<ge> threshold)"
     by (auto simp add: run_reader_simps stx_def[symmetric] sty_def[symmetric])
   
-  then have "state_k sty < L \<or> state_k sty = L \<and> card (state_chi sty) < threshold"
+  then have "state_k sty < l \<or> state_k sty = l \<and> card (state_chi sty) < threshold"
     by (metis "1" antisym_conv1 not_le_imp_less stky)
 
   thus ?case
@@ -319,10 +319,10 @@ end
 context
   fixes
     xs :: \<open>'a list\<close> and
-    L :: nat
+    l :: nat
   assumes
-    \<open>L \<le> length xs\<close>
-    \<open>2 ^ L * threshold \<ge> 2 * (card <| set xs)\<close>
+    \<open>l \<le> length xs\<close>
+    \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
 begin
 
 abbreviation
@@ -332,52 +332,52 @@ abbreviation
       (fair_bernoulli_matrix (length xs) (length xs))\<close>
 
 (* definition
-  \<open>nondet_alg_aux_pmf \<equiv> run_alg_pmf (nondet_alg_aux L)\<close> *)
+  \<open>nondet_alg_aux_pmf \<equiv> run_alg_pmf (nondet_alg_aux l)\<close> *)
 
 lemma estimate_distinct_error_bound_fail_2:
   \<open>\<P>(state in
     run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
-    state_k state > L)
-  \<le> (length xs :: real) * exp (-2 / (2 ^ L)\<^sup>2)\<close>
+    state_k state > l)
+  \<le> (length xs :: real) * exp (-2 / (2 ^ l)\<^sup>2)\<close>
   (is \<open>?L \<le> _ * ?exp\<close>)
 proof -
   wlog \<open>xs \<noteq> []\<close>
     using hypothesis negation
     by (simp add: eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
 
-  (* We exceed L iff we hit a state where k = L, |X| \<ge> threshold
+  (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
     after running eager_step_1.
     TODO: can this me made cleaner with only eager_algorithm? *)
-  have "?L \<le>
+  have \<open>?L \<le>
     \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
       \<exists> i < length xs. (
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
-        in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
-    by (simp, smt (verit, best) pmf_mono contrapos_state_k_lt_L mem_Collect_eq verit_comp_simplify1(3))
+        in state_k st = l \<and> card (state_chi st) \<ge> threshold))\<close>
+    by (simp, smt (verit, best) pmf_mono contrapos_state_k_lt_l mem_Collect_eq verit_comp_simplify1(3))
 
   (* union bound *)
-  also have "\<dots> \<le> (
+  also have \<open>\<dots> \<le> (
     \<Sum> i < length xs.
       \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
-        in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
+        in state_k st = l \<and> card (state_chi st) \<ge> threshold))\<close>
     proof -
       have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
         for n and P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> by blast
       show ?thesis by (auto intro: measure_pmf.finite_measure_subadditive_finite)
     qed
 
-  also have "\<dots> \<le> (
+  also have \<open>\<dots> \<le> (
     \<Sum> i < length xs.
-      \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg L <<< take (Suc i).
-        estimate \<ge> threshold))"
+      \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg l <<< take (Suc i).
+        estimate \<ge> threshold))\<close>
     apply (rule sum_mono, simp add: nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
   also have "\<dots> \<le> length xs * ?exp"
   proof -
     define p :: real and n \<mu> \<alpha> where
-      [simp] : \<open>p \<equiv> 1 / 2 ^ L\<close> and
+      [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
       \<open>n \<equiv> \<lambda> i. card (set <| take (Suc i) xs)\<close> and
       [simp] : \<open>\<mu> \<equiv> \<lambda> i. n i * p\<close> and
       \<open>\<alpha> \<equiv> \<lambda> i. threshold / \<mu> i\<close>
@@ -388,7 +388,7 @@ proof -
       using that
       by (auto
         intro: real_sum_nat_ivl_bounded2[where k = 0, simplified]
-        simp add: n_def \<open>L \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
+        simp add: n_def \<open>l \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
 
     show \<open>?thesis i\<close> for i
     proof -
@@ -396,7 +396,7 @@ proof -
         by (metis List.finite_set One_nat_def Zero_neq_Suc \<open>xs \<noteq> []\<close> bot_nat_0.not_eq_extremum card_0_eq n_def not_less_eq set_empty take_eq_Nil verit_comp_simplify1(3))
 
       moreover have \<open>\<alpha> i \<ge> 2\<close>
-        using \<open>n i \<ge> 1\<close> \<open>2 ^ L * threshold \<ge> 2 * (card <| set xs)\<close>
+        using \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
         apply (simp add: \<alpha>_def n_def field_simps)
         by (smt (verit, del_insts) Groups.mult_ac(2) Num.of_nat_simps(2,5) One_nat_def arith_special(3) card_set_take_le_card_set distrib_right mult_numeral_1_right numeral_1_eq_Suc_0 of_nat_add of_nat_mono of_nat_power)
 
@@ -415,18 +415,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma estimate_distinct_error_bound_L_binom:
+lemma estimate_distinct_error_bound_l_binom:
   shows "
     \<P>(st in
      (map_pmf
        (run_reader (eager_algorithm xs))
        (fair_bernoulli_matrix (length xs) (length xs))).
-    state_k st \<le> L \<and>
+    state_k st \<le> l \<and>
       beyond_eps_range_of_card xs (compute_estimate st))
-    \<le> foo (card (set xs)) L" (is "?L \<le> ?R")
+    \<le> foo (card (set xs)) l" (is "?l \<le> ?R")
 proof -
-  (* Splits the error event for k=0, k=1,...,k=L *)
-  have "?L \<le>
+  (* Splits the error event for k=0, k=1,...,k=l *)
+  have "?l \<le>
     sum 
     (\<lambda>q.
     \<P>(st in
@@ -435,7 +435,7 @@ proof -
        (fair_bernoulli_matrix (length xs) (length xs))).
       state_k st = q \<and>
       beyond_eps_range_of_card xs (compute_estimate st)))
-   {0..L}" sorry
+   {0..l}" sorry
   (* Now we go into nondeterministic *)
   also have "... \<le>
     sum 
@@ -444,23 +444,23 @@ proof -
       (map_pmf (nondet_alg_aux q xs)
          (fair_bernoulli_matrix (length xs) (length xs))).
       beyond_eps_range_of_card xs (card X * 2 ^ q)))
-   {0..L}"
+   {0..l}"
     sorry
   (* Go into Binomial then use Chernoff *)
   also have "... \<le>
-    sum (\<lambda>q. f (card (set xs)) q) {0..L}" sorry
+    sum (\<lambda>q. f (card (set xs)) q) {0..l}" sorry
   also have "... \<le>
-    foo (card (set xs)) L" sorry
+    foo (card (set xs)) l" sorry
   finally show "?thesis" .
 qed
 
 lemma estimate_distinct_error_bound:
-  assumes "(L::nat) = undefined"
+  assumes "(l::nat) = undefined"
   shows "
     \<P>(n in estimate_distinct xs.
       n |> fail_or_satisfies (beyond_eps_range_of_card xs))
      \<le> real (length xs) / 2 ^ threshold + bar \<epsilon> thresh"
-  (is "?L \<le> ?R")
+  (is "?l \<le> ?R")
 proof -
   have *: "estimate_distinct_no_fail xs =
      map_pmf compute_estimate
@@ -471,7 +471,7 @@ proof -
     apply (subst eager_lazy_conversion)
     by auto
 
-  have "?L \<le> real (length xs) / 2 ^ threshold
+  have "?l \<le> real (length xs) / 2 ^ threshold
     + \<P>(n in estimate_distinct_no_fail xs.
        n |> (beyond_eps_range_of_card xs))"
     by (intro prob_estimate_distinct_fail_or_satisfies_le)
@@ -484,9 +484,9 @@ proof -
     by auto
   moreover have "... \<le>
     real (length xs) / 2 ^ threshold
-      + \<P>(st in ?E. state_k st > L)
+      + \<P>(st in ?E. state_k st > l)
       + \<P>(st in ?E. 
-        state_k st \<le> L \<and>
+        state_k st \<le> l \<and>
           beyond_eps_range_of_card xs (compute_estimate st))"
     by (auto intro!: pmf_add)
  
