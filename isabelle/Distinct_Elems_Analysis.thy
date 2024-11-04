@@ -392,16 +392,15 @@ proof -
         using hypothesis negation
         by (simp add: n_def binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
 
-      then have \<open>n i \<ge> 1\<close>
-        by (metis List.finite_set One_nat_def Zero_neq_Suc bot_nat_0.not_eq_extremum card_0_eq n_def not_less_eq set_empty take_eq_Nil verit_comp_simplify1(3))
+      then have \<open>n i \<ge> 1\<close> by (simp add: leI n_def)
 
-      moreover have \<open>\<alpha> i \<ge> 2\<close>
-        using \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
-        apply (simp add: \<alpha>_def n_def field_simps)
-        by (smt (verit, del_insts) Groups.mult_ac(2) Num.of_nat_simps(2,5) One_nat_def arith_special(3) card_set_take_le_card_set distrib_right mult_numeral_1_right numeral_1_eq_Suc_0 of_nat_add of_nat_mono of_nat_power)
-
-      moreover have \<open>threshold = \<mu> i + (\<alpha> i - 1) * \<mu> i\<close> (is \<open>_ = _ + ?\<epsilon>\<close>)
-        using \<open>n i \<ge> 1\<close> by (simp add: \<alpha>_def field_simps)
+      moreover have
+        \<open>\<alpha> i \<ge> 2\<close> \<open>threshold = \<mu> i + (\<alpha> i - 1) * \<mu> i\<close> (is \<open>_ = _ + ?\<epsilon>\<close>)
+        using
+          \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
+          card_set_take_le_card_set[of \<open>Suc i\<close> xs]
+          of_nat_mono[of \<open>2 * card (set (take (Suc i) xs))\<close> \<open>threshold * 2 ^ l\<close>]
+        by (auto simp add: \<alpha>_def n_def field_simps)
 
       ultimately show ?thesis
         using binomial_distribution.prob_ge[of p \<open>n i\<close> ?\<epsilon>]
