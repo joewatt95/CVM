@@ -2,10 +2,12 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
+  Wlog.Wlog
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
   CVM.Distinct_Elems_Eager
-  CVM.Distinct_Elems_Nondet
+  CVM.Distinct_Elems_Binomial
+  CVM.Utils_Real
   CVM.Utils_Reader_Monad_Hoare
   CVM.Utils_Reader_Monad_Relational
 begin
@@ -269,8 +271,6 @@ proof (rule exI)
     by (auto simp add: relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
 qed
 
-end
-
 lemma contrapos_state_k_lt_L:
   assumes "\<And>i. i < length xs \<Longrightarrow>
   (
@@ -314,31 +314,46 @@ next
   by (auto simp add: eager_algorithm_snoc run_reader_simps stx_def[symmetric] eager_step_def sty_def[symmetric] eager_step_2_def Let_def)
 qed
 
+end
+
+context
+  fixes
+    xs :: \<open>'a list\<close> and
+    L :: nat
+  assumes
+    \<open>L \<le> length xs\<close>
+    \<open>2 ^ L * threshold \<ge> 2 * (card <| set xs)\<close>
+begin
+
+abbreviation
+  \<open>run_with_bernoulli_matrix f \<equiv>
+    map_pmf
+      (f xs)
+      (fair_bernoulli_matrix (length xs) (length xs))\<close>
+
+(* definition
+  \<open>nondet_alg_aux_pmf \<equiv> run_alg_pmf (nondet_alg_aux L)\<close> *)
+
 lemma estimate_distinct_error_bound_fail_2:
-  shows "\<P>(st in
-    (map_pmf
-       (run_reader (eager_algorithm xs))
-       (fair_bernoulli_matrix (length xs) (length xs))).
-    state_k st > L) \<le> bar (length xs) L"
+  \<open>\<P>(state in
+    run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
+    state_k state > L)
+  \<le> (length xs :: real) * exp (-2 * 1 / (2 ^ L)\<^sup>2)\<close>
+  (is \<open>?L \<le> _ * ?exp\<close>)
 proof -
-  have "\<P>(st in
-    (map_pmf
-       (run_reader (eager_algorithm xs))
-       (fair_bernoulli_matrix (length xs) (length xs))).
-    state_k st > L) =
-  \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
-      state_k (run_reader (eager_algorithm xs) \<phi>) > L)"
-    by auto
+  wlog \<open>xs \<noteq> []\<close>
+    using hypothesis negation
+    by (simp add: eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
 
   (* We exceed L iff we hit a state where k = L, |X| \<ge> threshold
     after running eager_step_1.
     TODO: can this me made cleaner with only eager_algorithm? *)
-  also have "... \<le>
+  have "?L \<le>
     \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
       \<exists> i < length xs. (
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
         in state_k st = L \<and> card (state_chi st) \<ge> threshold))"
-    by (smt (verit, best) pmf_mono contrapos_state_k_lt_L mem_Collect_eq verit_comp_simplify1(3))
+    by (simp, smt (verit, best) pmf_mono contrapos_state_k_lt_L mem_Collect_eq verit_comp_simplify1(3))
 
   (* union bound *)
   also have "... \<le> (
@@ -349,26 +364,59 @@ proof -
     proof -
       have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
         for n and P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> by blast
-      show ?thesis
-        by (auto intro: measure_pmf.finite_measure_subadditive_finite)
+      show ?thesis by (auto intro: measure_pmf.finite_measure_subadditive_finite)
     qed
 
   also have "... \<le> (
     \<Sum> i < length xs.
-      \<P>(X in
-        (map_pmf (nondet_alg_aux L (take (i+1) xs))
-          (fair_bernoulli_matrix (length xs) (length xs))).
-        card X \<ge> threshold))"
-    apply (rule sum_mono)
-    apply simp
+      \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg L <<< take (Suc i).
+        estimate \<ge> threshold))"
+    apply (rule sum_mono, simp add: nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
-  (* use a single-sided Chernoff *)
-  also have "... \<le> bar (length xs) L" sorry
+  also have "... \<le> real (length xs) * ?exp"
+  proof -
+    define p :: real and n \<mu> \<alpha> where
+      [simp] : \<open>p \<equiv> 1 / 2 ^ L\<close> and
+      \<open>n \<equiv> \<lambda> i. card (set <| take (Suc i) xs)\<close> and
+      [simp] : \<open>\<mu> \<equiv> \<lambda> i. n i * p\<close> and
+      \<open>\<alpha> \<equiv> \<lambda> i. threshold / \<mu> i\<close>
 
-  finally show ?thesis by auto
+    let ?prob = \<open>\<lambda> i.
+      \<P>(estimate in binomial_pmf (n i) p. real estimate \<ge> threshold)\<close>
+
+    show ?thesis when
+      \<open>\<And> i. i < length xs \<Longrightarrow> ?prob i \<le> ?exp\<close> (is \<open>\<And> i. _ \<Longrightarrow> ?thesis i\<close>)
+      using that
+      by (auto
+        intro: real_sum_nat_ivl_bounded2[where k = 0, simplified]
+        simp add: n_def \<open>L \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
+
+    show \<open>?thesis i\<close> if \<open>i < length xs\<close> for i
+    proof -
+      have \<open>n i \<ge> 1\<close>
+        by (metis List.finite_set One_nat_def Zero_neq_Suc \<open>xs \<noteq> []\<close> bot_nat_0.not_eq_extremum card_0_eq n_def not_less_eq set_empty take_eq_Nil verit_comp_simplify1(3))
+
+      moreover have \<open>\<alpha> i \<ge> 2\<close>
+        using \<open>n i \<ge> 1\<close> \<open>2 ^ L * threshold \<ge> 2 * (card <| set xs)\<close>
+        apply (simp add: \<alpha>_def n_def field_simps)
+        by (smt (verit, del_insts) Groups.mult_ac(2) Num.of_nat_simps(2,5) One_nat_def arith_special(3) card_set_take_le_card_set distrib_right mult_numeral_1_right numeral_1_eq_Suc_0 of_nat_add of_nat_mono of_nat_power)
+
+      moreover have \<open>threshold = \<mu> i + (\<alpha> i - 1) * \<mu> i\<close> (is \<open>_ = _ + ?\<epsilon>\<close>)
+        using \<open>n i \<ge> 1\<close> by (simp add: \<alpha>_def field_simps)
+
+      ultimately show ?thesis
+        using binomial_distribution.prob_ge[of p \<open>n i\<close> ?\<epsilon>]
+        by (auto
+          intro: order.trans
+          simp add:
+            binomial_distribution_def divide_le_eq power2_eq_square mult_ge1_I)
+    qed
+  qed
+
+  finally show ?thesis .
 qed
-  
+
 lemma estimate_distinct_error_bound_L_binom:
   shows "
     \<P>(st in
@@ -447,5 +495,7 @@ proof -
   ultimately show ?thesis
     sorry
 qed
+
+end
 
 end

@@ -7,6 +7,10 @@ imports
 
 begin
 
+lemma card_set_take_le_card_set :
+  \<open>card (set (take i xs)) \<le> card (set xs)\<close>
+  by (simp add: card_mono set_take_subset)
+
 (* definition least_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
   \<open>least_index xs x \<equiv>
     if x \<in> set xs

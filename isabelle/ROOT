@@ -1,9 +1,10 @@
-session CVM = "Monad_Normalisation" +
+session CVM = "HOL-Probability" +
   options [timeout = 300]
 
   sessions
     "Universal_Hash_Families"
     "Finite_Fields"
+    "Wlog"
 
   directories
     "Utils"

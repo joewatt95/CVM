@@ -67,12 +67,12 @@ proof -
 qed
 
 theorem map_pmf_nondet_alg_eq_binomial :
-  assumes \<open>length xs \<le> n\<close> \<open>K \<le> m\<close>
+  assumes \<open>length xs \<le> n\<close> \<open>k \<le> m\<close>
   shows
-    \<open>map_pmf (nondet_alg K xs) (fair_bernoulli_matrix m n) =
-    binomial_pmf (card <| set xs) (1 / 2 ^ K)\<close>
+    \<open>map_pmf (nondet_alg k xs) (fair_bernoulli_matrix m n) =
+    binomial_pmf (card <| set xs) (1 / 2 ^ k)\<close>
 proof -
-  let ?go = \<open>\<lambda> f. map_pmf (f K xs) (fair_bernoulli_matrix m n)\<close>
+  let ?go = \<open>\<lambda> f. map_pmf (f k xs) (fair_bernoulli_matrix m n)\<close>
 
   have \<open>?go nondet_alg = map_pmf card (?go nondet_alg_aux)\<close>
     by (simp add: nondet_alg_def map_pmf_comp)
