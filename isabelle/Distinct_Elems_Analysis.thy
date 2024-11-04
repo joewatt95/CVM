@@ -341,10 +341,6 @@ lemma estimate_distinct_error_bound_fail_2:
   \<le> (length xs :: real) * exp (-2 / (2 ^ l)\<^sup>2)\<close>
   (is \<open>?L \<le> _ * ?exp\<close>)
 proof -
-  wlog \<open>xs \<noteq> []\<close>
-    using hypothesis negation
-    by (simp add: eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
-
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
     after running eager_step_1.
     TODO: can this me made cleaner with only eager_algorithm? *)
@@ -392,8 +388,12 @@ proof -
 
     show \<open>?thesis i\<close> for i
     proof -
-      have \<open>n i \<ge> 1\<close>
-        by (metis List.finite_set One_nat_def Zero_neq_Suc \<open>xs \<noteq> []\<close> bot_nat_0.not_eq_extremum card_0_eq n_def not_less_eq set_empty take_eq_Nil verit_comp_simplify1(3))
+      wlog \<open>xs \<noteq> []\<close>
+        using hypothesis negation
+        by (simp add: n_def binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
+
+      then have \<open>n i \<ge> 1\<close>
+        by (metis List.finite_set One_nat_def Zero_neq_Suc bot_nat_0.not_eq_extremum card_0_eq n_def not_less_eq set_empty take_eq_Nil verit_comp_simplify1(3))
 
       moreover have \<open>\<alpha> i \<ge> 2\<close>
         using \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
