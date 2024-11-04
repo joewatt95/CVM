@@ -12,6 +12,7 @@ https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
 *)
 
 imports
+  Wlog.Wlog
   CVM.Utils_SPMF_FoldM
 
 begin
@@ -184,7 +185,7 @@ next
     = prob_fail ?val' + \<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>'\<close>
     by (simp add: prob_fail_def pmf_bind_spmf_None)
 
-  also have \<open>... \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+  also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
   proof -
     have \<open>\<turnstile>
       \<lbrace>\<lblot>\<top>\<rblot>\<rbrace> \<lblot>?val'\<rblot>
@@ -203,13 +204,14 @@ next
     ultimately show ?thesis by simp
   qed
 
-  also have \<open>... \<le> p + length xs * p\<close>
+  also have \<open>\<dots> \<le> p + length xs * p\<close>
   proof -
-    have \<open>p \<ge> 0 \<Longrightarrow> ?thesis\<close>
-      by (auto simp add: landau_omega.R_mult_right_mono mult_le_cancel_right2 weight_spmf_le_1)
+    wlog \<open>p \<ge> 0\<close>
+      using hypothesis negation
+      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def)
 
     then show ?thesis
-      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def)
+      by (simp add: mult.commute mult_left_le weight_spmf_le_1) 
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 

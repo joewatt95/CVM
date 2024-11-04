@@ -338,7 +338,7 @@ lemma estimate_distinct_error_bound_fail_2:
   \<open>\<P>(state in
     run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
     state_k state > L)
-  \<le> (length xs :: real) * exp (-2 * 1 / (2 ^ L)\<^sup>2)\<close>
+  \<le> (length xs :: real) * exp (-2 / (2 ^ L)\<^sup>2)\<close>
   (is \<open>?L \<le> _ * ?exp\<close>)
 proof -
   wlog \<open>xs \<noteq> []\<close>
@@ -356,7 +356,7 @@ proof -
     by (simp, smt (verit, best) pmf_mono contrapos_state_k_lt_L mem_Collect_eq verit_comp_simplify1(3))
 
   (* union bound *)
-  also have "... \<le> (
+  also have "\<dots> \<le> (
     \<Sum> i < length xs.
       \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
         let st = run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i) \<phi>
@@ -367,14 +367,14 @@ proof -
       show ?thesis by (auto intro: measure_pmf.finite_measure_subadditive_finite)
     qed
 
-  also have "... \<le> (
+  also have "\<dots> \<le> (
     \<Sum> i < length xs.
       \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg L <<< take (Suc i).
         estimate \<ge> threshold))"
     apply (rule sum_mono, simp add: nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
-  also have "... \<le> real (length xs) * ?exp"
+  also have "\<dots> \<le> length xs * ?exp"
   proof -
     define p :: real and n \<mu> \<alpha> where
       [simp] : \<open>p \<equiv> 1 / 2 ^ L\<close> and
@@ -382,17 +382,15 @@ proof -
       [simp] : \<open>\<mu> \<equiv> \<lambda> i. n i * p\<close> and
       \<open>\<alpha> \<equiv> \<lambda> i. threshold / \<mu> i\<close>
 
-    let ?prob = \<open>\<lambda> i.
-      \<P>(estimate in binomial_pmf (n i) p. real estimate \<ge> threshold)\<close>
-
-    show ?thesis when
-      \<open>\<And> i. i < length xs \<Longrightarrow> ?prob i \<le> ?exp\<close> (is \<open>\<And> i. _ \<Longrightarrow> ?thesis i\<close>)
+    show ?thesis when \<open>\<And> i.
+      \<P>(estimate in binomial_pmf (n i) p. real estimate \<ge> threshold) \<le> ?exp\<close>
+      (is \<open>\<And> i. ?thesis i\<close>)
       using that
       by (auto
         intro: real_sum_nat_ivl_bounded2[where k = 0, simplified]
         simp add: n_def \<open>L \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
 
-    show \<open>?thesis i\<close> if \<open>i < length xs\<close> for i
+    show \<open>?thesis i\<close> for i
     proof -
       have \<open>n i \<ge> 1\<close>
         by (metis List.finite_set One_nat_def Zero_neq_Suc \<open>xs \<noteq> []\<close> bot_nat_0.not_eq_extremum card_0_eq n_def not_less_eq set_empty take_eq_Nil verit_comp_simplify1(3))

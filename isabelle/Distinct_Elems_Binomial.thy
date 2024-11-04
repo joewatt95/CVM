@@ -25,10 +25,9 @@ proof -
       (is \<open>_ = map_pmf ?go _\<close>)
     by (simp add: bernoulli_matrix_eq_uncurry_prod map_pmf_comp)
 
-  also have
-    \<open>... =
-      map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < K. f y k'})
-      (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
+  also have \<open>\<dots> =
+    map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < K. f y k'})
+    (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
     proof -
       have
         \<open>map_pmf ?go =
@@ -48,12 +47,11 @@ proof -
         by (auto simp add: image_def find_last_eq_Max in_set_conv_nth)
     qed
 
-  also have
-    \<open>... =
-      map_pmf
-        (\<lambda> f. {y \<in> set xs. f y})
-        (prod_pmf (set xs)
-          \<lblot>map_pmf (\<lambda> f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)\<close>
+  also have \<open>\<dots> =
+    map_pmf
+      (\<lambda> f. {y \<in> set xs. f y})
+      (prod_pmf (set xs)
+        \<lblot>map_pmf (\<lambda> f. \<forall> k' < K. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)\<close>
     by (auto
       intro: map_pmf_cong
       simp add: Pi_pmf_map'[where d' = undefined] map_pmf_comp)
