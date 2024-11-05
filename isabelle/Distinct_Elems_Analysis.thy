@@ -322,6 +322,8 @@ context
     l :: nat
   assumes
     \<open>l \<le> length xs\<close>
+
+    (* This says that l \<ge> log2 (2F_0 / threshold) *)
     \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
 begin
 
@@ -338,7 +340,7 @@ lemma estimate_distinct_error_bound_fail_2:
   \<open>\<P>(state in
     run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
     state_k state > l)
-  \<le> (length xs :: real) * exp (-2 / (2 ^ l)\<^sup>2)\<close>
+  \<le> real (length xs) * exp (-2 / (2 ^ l)\<^sup>2)\<close>
   (is \<open>?L \<le> _ * ?exp\<close>)
 proof -
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
