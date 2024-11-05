@@ -4,6 +4,7 @@ session CVM = "HOL-Probability" +
   sessions
     "Universal_Hash_Families"
     "Finite_Fields"
+    "Concentration_Inequalities"
 
   directories
     "Utils"
@@ -24,6 +25,7 @@ session CVM = "HOL-Probability" +
     "Utils/Utils_List"
     "Utils/Utils_Option"
     "Utils/Utils_Real"
+    "Utils/Utils_Concentration_Inequalities"
 
     "Utils/Reader_Monad/Utils_Reader_Monad_Basic"
     "Utils/Reader_Monad/Utils_Reader_Monad_Hoare"
