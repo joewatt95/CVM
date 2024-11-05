@@ -12,7 +12,6 @@ imports
   Concentration_Inequalities.Bennett_Inequality
 begin
 
-                    
 context binomial_distribution
 begin
 

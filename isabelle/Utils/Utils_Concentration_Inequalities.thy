@@ -45,6 +45,39 @@ proof -
     by (fastforce intro!: indep_vars_compose)
 qed
 
+(* TODO: Specialise bernstein results to Pi_pmf and then prove this one for Pi_pmf *)
+lemma bernstein_inequality_abs_ge :
+  assumes bnd: "\<And>i. i \<in> I \<Longrightarrow> AE x in M. \<bar>X i x\<bar> \<le> B"
+  shows \<open>\<P>(x in M. \<bar>go X x\<bar> \<ge> t) \<le> 2 * exp'\<close> (is \<open>?L \<le> _\<close>)
+proof -
+  have
+    \<open>\<P>(x in M. go X x \<le> -t) \<le> exp'\<close>
+    using bnd bernstein_inequality_le by fastforce
+
+  moreover have
+    \<open>\<P>(x in M. go X x \<ge> t) \<le> exp'\<close>
+    using 
+      bernstein_inequality[OF I, where X = X, where t = t, where B = B]
+      ind intsq bnd B t
+    by fastforce
+
+  moreover have [simp] :
+    \<open>(\<bar>go X x\<bar> \<ge> t) \<longleftrightarrow> (go X x \<le> -t \<or> go X x \<ge> t)\<close> for x by auto
+
+  moreover have [simp] :
+    \<open>{x \<in> space M. P x \<or> Q x} = {x \<in> space M. P x} \<union> {x \<in> space M. Q x}\<close>
+    for P Q by auto
+
+  find_theorems "events"
+
+  find_theorems "2 * _"
+
+  ultimately show ?thesis
+    apply auto
+    apply (subst Num.semiring_numeral_class.mult_2)
+    sorry 
+qed
+
 end
 
 end
