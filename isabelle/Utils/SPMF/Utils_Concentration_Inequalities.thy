@@ -42,7 +42,7 @@ proof -
     using
       bernstein_inequality[OF I, where X = ?Y, where t = t, where B = B]
       ind intsq bnd B t
-      by (fastforce intro!: indep_vars_compose)
+    by (fastforce intro!: indep_vars_compose)
 qed
 
 end
