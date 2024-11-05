@@ -2,7 +2,6 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
-  Wlog.Wlog
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
   CVM.Distinct_Elems_Eager
@@ -10,7 +9,22 @@ imports
   CVM.Utils_Real
   CVM.Utils_Reader_Monad_Hoare
   CVM.Utils_Reader_Monad_Relational
+  Concentration_Inequalities.Bennett_Inequality
 begin
+
+                    
+context binomial_distribution
+begin
+
+lemma binomial_multiplicative_chernoff_ge:
+  fixes \<delta> :: real
+  assumes \<delta>: "\<delta> \<ge> 0"
+  assumes n: "n > 0"
+  shows
+    "measure_pmf.prob (binomial_pmf n p) {x. x \<ge> n * p * (1 + \<delta>)} \<le>
+        exp (-\<delta>\<^sup>2 * n * p / ( 2 + \<delta> ))"
+  sorry
+end
 
 locale with_threshold_and_eps = with_threshold +
   fixes \<epsilon> :: real
@@ -19,26 +33,6 @@ begin
 
 abbreviation beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
   \<open>beyond_eps_range_of_card xs n \<equiv> real n >[\<epsilon>] card (set xs)\<close>
-
-lemma
-  assumes "finite X"
-  shows
-    "measure_pmf.prob
-    (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
-    {t. t \<ge> n} \<le> foo"
-  sorry
-
-lemma
-  assumes "finite X"
-  assumes "\<epsilon> > 0"
-  shows
-    "measure_pmf.prob
-    (binomial_pmf (card X) (1 / 2 ^ (K::nat)))
-    {t. beyond_eps_range_of_card xs t} \<le> bar"
-  sorry
-
-thm binomial_distribution.prob_ge
-thm binomial_distribution.prob_abs_ge
 
 (* Ideas on part of the proof for the big K (ie > l) part. *)
 
@@ -389,11 +383,12 @@ proof -
         simp add: n_def \<open>l \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
 
     show \<open>?thesis i\<close> for i
-    proof -
-      wlog \<open>xs \<noteq> []\<close>
-        using hypothesis negation
+    proof (cases "xs = []")
+      case True
+      then show ?thesis
         by (simp add: n_def binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
-
+    next
+      case False
       then have \<open>n i \<ge> 1\<close> by (simp add: leI n_def)
 
       moreover have
@@ -406,10 +401,10 @@ proof -
 
       ultimately show ?thesis
         using binomial_distribution.prob_ge[of p \<open>n i\<close> ?\<epsilon>]
-        by (auto
+        apply (auto
           intro: order.trans
           simp add:
-            binomial_distribution_def divide_le_eq power2_eq_square mult_ge1_I)
+            binomial_distribution_def divide_le_eq power2_eq_square)
     qed
   qed
 

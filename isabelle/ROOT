@@ -4,7 +4,6 @@ session CVM = "HOL-Probability" +
   sessions
     "Universal_Hash_Families"
     "Finite_Fields"
-    "Wlog"
 
   directories
     "Utils"

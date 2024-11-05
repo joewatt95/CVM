@@ -12,7 +12,6 @@ https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
 *)
 
 imports
-  Wlog.Wlog
   CVM.Utils_SPMF_FoldM
 
 begin
@@ -179,6 +178,8 @@ next
 
   let ?val' = \<open>f x val\<close>
   let ?\<mu>' = \<open>measure_spmf ?val'\<close>
+  have pge: "p \<ge> 0"
+    by (metis assms(2) local.Cons(2) order_trans pmf_nonneg prob_fail_def)
 
   have
     \<open>prob_fail (foldM_spmf f (x # xs) val)
@@ -203,15 +204,12 @@ next
 
     ultimately show ?thesis by simp
   qed
-
   also have \<open>\<dots> \<le> p + length xs * p\<close>
   proof -
-    wlog \<open>p \<ge> 0\<close>
-      using hypothesis negation
-      by (metis Cons.prems assms(2) dual_order.trans pmf_nonneg prob_fail_def)
-
-    then show ?thesis
-      by (simp add: mult.commute mult_left_le weight_spmf_le_1) 
+    show ?thesis
+      using pge
+      apply simp
+      by (metis mult.commute mult_left_le mult_left_mono of_nat_0_le_iff weight_spmf_le_1) 
   qed
 
   finally show ?case by (simp add: distrib_left mult.commute) 
