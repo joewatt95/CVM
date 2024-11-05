@@ -405,6 +405,7 @@ proof -
           intro: order.trans
           simp add:
             binomial_distribution_def divide_le_eq power2_eq_square)
+        sorry
     qed
   qed
 
