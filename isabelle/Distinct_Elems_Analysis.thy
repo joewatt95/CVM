@@ -303,8 +303,8 @@ context
   assumes
     \<open>l \<le> length xs\<close>
 
-    (* This says that l \<ge> log2 (2F_0 / threshold) *)
-    \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
+    (* This says that l \<ge> log2 (4F_0 / threshold) *)
+    \<open>2 ^ l * threshold \<ge> 4 * (card <| set xs)\<close>
 begin
 
 abbreviation
@@ -320,8 +320,8 @@ lemma estimate_distinct_error_bound_fail_2:
   \<open>\<P>(state in
     run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
     state_k state > l)
-  \<le> real (length xs) * exp (-2 / (2 ^ l)\<^sup>2)\<close>
-  (is \<open>?L \<le> _ * ?exp\<close>)
+  \<le> real (length xs) * exp (- real threshold / 6)\<close>
+  (is \<open>?L \<le> _ * exp ?exponent\<close>)
 proof -
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
     after running eager_step_1.
@@ -352,7 +352,7 @@ proof -
     apply (rule sum_mono, simp add: nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
-  also have "\<dots> \<le> length xs * ?exp"
+  also have "\<dots> \<le> length xs * exp ?exponent"
   proof -
     define p :: real and n \<mu> \<alpha> where
       [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
@@ -361,7 +361,8 @@ proof -
       \<open>\<alpha> \<equiv> \<lambda> i. threshold / \<mu> i\<close>
 
     show ?thesis when \<open>\<And> i.
-      \<P>(estimate in binomial_pmf (n i) p. real estimate \<ge> threshold) \<le> ?exp\<close>
+      \<P>(estimate in binomial_pmf (n i) p. real estimate \<ge> threshold)
+      \<le> exp ?exponent\<close>
       (is \<open>\<And> i. ?thesis i\<close>)
       using that
       by (auto
@@ -378,21 +379,33 @@ proof -
       then have \<open>n i \<ge> 1\<close> by (simp add: leI n_def)
 
       moreover have
-        \<open>\<alpha> i \<ge> 2\<close> \<open>threshold = \<mu> i + (\<alpha> i - 1) * \<mu> i\<close> (is \<open>_ = _ + ?\<epsilon>\<close>)
+        \<open>\<alpha> i \<ge> 4\<close> and [simp] : \<open>threshold = \<alpha> i * \<mu> i\<close>
         using
-          \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 2 * (card <| set xs)\<close>
+          \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 4 * (card <| set xs)\<close>
           card_set_take_le_card_set[of \<open>Suc i\<close> xs]
-          of_nat_mono[of \<open>2 * card (set (take (Suc i) xs))\<close> \<open>threshold * 2 ^ l\<close>]
+          of_nat_le_iff[of "4 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
         by (auto simp add: \<alpha>_def n_def field_simps)
 
+      moreover have
+        \<open>- (real (n i) * (\<alpha> i - 1)\<^sup>2 / (2 ^ l * (2 + (2 * \<alpha> i - 2) / 3)))
+        \<le> ?exponent\<close>
+        using \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 4\<close>
+        apply (auto simp add: field_split_simps power2_eq_square)
+        apply (smt (verit, ccfv_SIG) mult_ge1_I one_le_power) 
+        subgoal premises prems
+        proof -
+          have \<open>\<alpha> i * real (n i) * 2 ^ l * 40 \<le> \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
+            using prems by simp
+
+          then show ?thesis
+            by (metis Multiseries_Expansion.intyness_simps(2,3,6) more_arith_simps(11) of_nat_0_le_iff zero_compare_simps(3))
+        qed
+        by (smt (verit, del_insts) one_le_power zero_compare_simps(4))
+
       ultimately show ?thesis
-        thm binomial_distribution.chernoff_prob_ge
-        using binomial_distribution.chernoff_prob_ge[of p \<open>n i\<close> ?\<epsilon>]
-        (* apply (auto
-          intro: order.trans
-          simp add:
-            binomial_distribution_def divide_le_eq power2_eq_square) *)
-        sorry
+        using binomial_distribution.chernoff_prob_ge[of p \<open>n i\<close> \<open>\<alpha> i - 1\<close>]
+        apply (simp add: binomial_distribution_def)
+        by (smt (verit, best) Collect_cong exp_le_cancel_iff mult.commute) 
     qed
   qed
 
