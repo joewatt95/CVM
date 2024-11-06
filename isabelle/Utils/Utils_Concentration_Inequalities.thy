@@ -116,7 +116,7 @@ proof -
       where t = \<open>n * p * \<delta>\<close>, where B = 1]
 
   moreover have
-    \<open>measure_pmf.expectation Pi_bernoulli_pmf (\<lambda> P. P i) = p\<close>
+    \<open>measure_pmf.expectation Pi_bernoulli_pmf (flip (<|) i) = p\<close>
     \<open>measure_pmf.expectation Pi_bernoulli_pmf (\<lambda> P. (real <| P i)\<^sup>2) = p\<close>
     if \<open>i < n\<close> for i
     using p that by (
@@ -130,7 +130,7 @@ proof -
       simp add: restrict_dfl_def)
 
   moreover have
-    \<open>integrable Pi_bernoulli_pmf (\<lambda>x. real ((x i)\<^sup>2))\<close>
+    \<open>integrable Pi_bernoulli_pmf <| \<lambda> x. real ((x i)\<^sup>2)\<close>
     if \<open>i < n\<close> for i
     using that
     by (auto
