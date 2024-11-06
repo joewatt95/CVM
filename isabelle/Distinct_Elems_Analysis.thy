@@ -389,18 +389,25 @@ proof -
       moreover have
         \<open>- (real (n i) * (\<alpha> i - 1)\<^sup>2 / (2 ^ l * (2 + (2 * \<alpha> i - 2) / 3)))
         \<le> ?exponent\<close>
-        using \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 4\<close>
-        apply (auto simp add: field_split_simps power2_eq_square)
-        apply (smt (verit, ccfv_SIG) mult_ge1_I one_le_power) 
-        subgoal premises prems
-        proof -
-          have \<open>\<alpha> i * real (n i) * 2 ^ l * 40 \<le> \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
-            using prems by simp
+      proof -
+        have \<open>4 * 2 ^ l + \<alpha> i * 2 * 2 ^ l > 0\<close>
+          by (smt (verit, ccfv_threshold) calculation(2) mult_sign_intros(1) two_realpow_ge_one)
 
-          then show ?thesis
-            by (metis Multiseries_Expansion.intyness_simps(2,3,6) more_arith_simps(11) of_nat_0_le_iff zero_compare_simps(3))
-        qed
-        by (smt (verit, del_insts) one_le_power zero_compare_simps(4))
+        moreover have
+          \<open> \<alpha> i * real (n i) * 2 ^ l * 40
+          \<le> real (n i) * 2 ^ l * 18 + \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
+          proof -
+            have \<open>\<alpha> i * real (n i) * 2 ^ l * 40 \<le> \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
+              using calculation \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 4\<close> by simp
+
+            then show ?thesis
+              by (metis Multiseries_Expansion.intyness_simps(2,3,6) more_arith_simps(11) of_nat_0_le_iff zero_compare_simps(3))
+          qed
+
+        ultimately show ?thesis
+          using \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 4\<close>
+          by (auto simp add: field_split_simps power2_eq_square)
+      qed
 
       ultimately show ?thesis
         using binomial_distribution.chernoff_prob_ge[of p \<open>n i\<close> \<open>\<alpha> i - 1\<close>]
