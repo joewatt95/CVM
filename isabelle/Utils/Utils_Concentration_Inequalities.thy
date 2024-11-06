@@ -34,7 +34,8 @@ proof -
 
   have \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. ?Y i x \<le> B\<close> using bnd by fastforce 
 
-  moreover have \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
+  moreover have
+    \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
     apply simp
     by (metis (mono_tags, lifting) minus_diff_eq more_arith_simps(1) sum.cong sum_negf)
 
@@ -51,7 +52,8 @@ lemma bernstein_inequality_abs_ge :
 proof -
   have
     \<open>{x \<in> space M. \<bar>sum_mean_deviation X x\<bar> \<ge> t} =
-      {x \<in> space M. sum_mean_deviation X x \<le> -t} \<union> {x \<in> space M. sum_mean_deviation X x \<ge> t}\<close> by auto
+      {x \<in> space M. sum_mean_deviation X x \<le> -t} \<union>
+      {x \<in> space M. sum_mean_deviation X x \<ge> t}\<close> by auto
 
   moreover have \<open>\<P>(x in M. sum_mean_deviation X x \<le> -t) \<le> exp_bound\<close>
     using bnd bernstein_inequality_le by fastforce
