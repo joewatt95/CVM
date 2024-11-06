@@ -9,21 +9,8 @@ imports
   CVM.Utils_Real
   CVM.Utils_Reader_Monad_Hoare
   CVM.Utils_Reader_Monad_Relational
-  Concentration_Inequalities.Bennett_Inequality
+  CVM.Utils_Concentration_Inequalities
 begin
-
-context binomial_distribution
-begin
-
-lemma binomial_multiplicative_chernoff_ge:
-  fixes \<delta> :: real
-  assumes \<delta>: "\<delta> \<ge> 0"
-  assumes n: "n > 0"
-  shows
-    "measure_pmf.prob (binomial_pmf n p) {x. x \<ge> n * p * (1 + \<delta>)} \<le>
-        exp (-\<delta>\<^sup>2 * n * p / ( 2 + \<delta> ))"
-  sorry
-end
 
 locale with_threshold_and_eps = with_threshold +
   fixes \<epsilon> :: real
@@ -399,11 +386,12 @@ proof -
         by (auto simp add: \<alpha>_def n_def field_simps)
 
       ultimately show ?thesis
-        using binomial_distribution.prob_ge[of p \<open>n i\<close> ?\<epsilon>]
-        apply (auto
+        thm binomial_distribution.chernoff_prob_ge
+        using binomial_distribution.chernoff_prob_ge[of p \<open>n i\<close> ?\<epsilon>]
+        (* apply (auto
           intro: order.trans
           simp add:
-            binomial_distribution_def divide_le_eq power2_eq_square)
+            binomial_distribution_def divide_le_eq power2_eq_square) *)
         sorry
     qed
   qed

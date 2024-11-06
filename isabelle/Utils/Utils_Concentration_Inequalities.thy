@@ -189,7 +189,7 @@ proof -
     by fastforce
 
   ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_le \<le> ?R_le\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
-    using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close> by (auto simp add: field_simps)
+    using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close> by (simp_all add: field_simps)
 qed
 
 end
