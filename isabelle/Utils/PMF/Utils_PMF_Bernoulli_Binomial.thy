@@ -17,7 +17,8 @@ lemma binomial_pmf_one [simp] :
   by (metis set_pmf_binomial_1 set_pmf_subset_singleton subset_iff_psubset_eq)
 
 context
-  fixes p :: real
+  fixes
+    p :: real
   assumes p_betw_0_1 : \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
 begin
 
@@ -92,23 +93,32 @@ lemma bernoulli_eq_map_Pi_pmf :
     Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
   by (fastforce simp add: map_pmf_comp)
 
+end
+
+context binomial_distribution
+begin
+
+abbreviation
+ \<open>bernoulli_nat_pmf \<equiv> bernoulli_pmf >>> map_pmf of_bool\<close>
+
+abbreviation Pi_bernoulli_nat_pmf :: \<open>(nat \<Rightarrow> nat) pmf\<close> where
+  \<open>Pi_bernoulli_nat_pmf \<equiv> Pi_pmf {..< n} 0 \<lblot>map_pmf of_bool <| bernoulli_pmf p\<rblot>\<close>
+
 lemma binomial_pmf_eq_map_sum_of_bernoullis :
-  defines
-    \<open>bernoulli_nat_pmf \<equiv> bernoulli_pmf >>> map_pmf of_bool\<close>
-  shows
-    \<open>binomial_pmf n p = (
-      \<lblot>bernoulli_nat_pmf p\<rblot>
-        |> Pi_pmf {..< n} dflt
-        |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
+  \<open>binomial_pmf n p = (
+    Pi_bernoulli_nat_pmf
+      |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
+  using p
   by (simp add:
-    assms p_betw_0_1 map_pmf_comp Collect_conj_eq lessThan_def
+    map_pmf_comp Collect_conj_eq lessThan_def
     binomial_pmf_altdef'[where A = \<open>{..< n}\<close>, where dflt = undefined]
     Pi_pmf_map'[where d' = undefined])
 
-lemma expectation_binomial_pmf:
+lemma expectation_binomial_pmf :
   \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
+  using p
   by (simp add:
-    p_betw_0_1 binomial_pmf_eq_map_sum_of_bernoullis[where dflt = undefined] 
+    binomial_pmf_eq_map_sum_of_bernoullis
     expectation_sum_Pi_pmf integrable_measure_pmf_finite)
 
 end
