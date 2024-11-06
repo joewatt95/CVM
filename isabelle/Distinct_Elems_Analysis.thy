@@ -303,8 +303,8 @@ context
   assumes
     \<open>l \<le> length xs\<close>
 
-    (* This says that l \<ge> log2 (4F_0 / threshold) *)
-    \<open>2 ^ l * threshold \<ge> 4 * (card <| set xs)\<close>
+    (* This says that l \<ge> log2 (3F_0 / threshold) *)
+    \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
 begin
 
 abbreviation
@@ -379,11 +379,11 @@ proof -
       then have \<open>n i \<ge> 1\<close> by (simp add: leI n_def)
 
       moreover have
-        \<open>\<alpha> i \<ge> 4\<close> and [simp] : \<open>threshold = \<alpha> i * \<mu> i\<close>
+        \<open>\<alpha> i \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> i * \<mu> i\<close>
         using
-          \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 4 * (card <| set xs)\<close>
+          \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
           card_set_take_le_card_set[of \<open>Suc i\<close> xs]
-          of_nat_le_iff[of "4 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
+          of_nat_le_iff[of "3 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
         by (auto simp add: \<alpha>_def n_def field_simps)
 
       moreover have
@@ -398,14 +398,14 @@ proof -
           \<le> real (n i) * 2 ^ l * 18 + \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
           proof -
             have \<open>\<alpha> i * real (n i) * 2 ^ l * 40 \<le> \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
-              using calculation \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 4\<close> by simp
+              using calculation \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 3\<close> by simp
 
             then show ?thesis
               by (metis Multiseries_Expansion.intyness_simps(2,3,6) more_arith_simps(11) of_nat_0_le_iff zero_compare_simps(3))
           qed
 
         ultimately show ?thesis
-          using \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 4\<close>
+          using \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 3\<close>
           by (auto simp add: field_split_simps power2_eq_square)
       qed
 
