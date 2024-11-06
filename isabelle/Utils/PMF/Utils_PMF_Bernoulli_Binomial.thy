@@ -98,7 +98,7 @@ lemma binomial_pmf_eq_map_sum_of_bernoullis :
   shows
     \<open>binomial_pmf n p = (
       \<lblot>bernoulli_nat_pmf p\<rblot>
-        |> prod_pmf {..< n}
+        |> Pi_pmf {..< n} dflt
         |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
   by (simp add:
     assms p_betw_0_1 map_pmf_comp Collect_conj_eq lessThan_def
@@ -108,7 +108,7 @@ lemma binomial_pmf_eq_map_sum_of_bernoullis :
 lemma expectation_binomial_pmf:
   \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
   by (simp add:
-    p_betw_0_1 binomial_pmf_eq_map_sum_of_bernoullis 
+    p_betw_0_1 binomial_pmf_eq_map_sum_of_bernoullis[where dflt = undefined] 
     expectation_sum_Pi_pmf integrable_measure_pmf_finite)
 
 end
