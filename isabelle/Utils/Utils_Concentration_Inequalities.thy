@@ -29,14 +29,15 @@ lemma bernstein_inequality_le :
   assumes bnd: "\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<ge> - B"
   shows \<open>\<P>(x in M. go X x \<le> - t) \<le> exp'\<close>
 proof -
-  let ?Y = \<open>\<lambda> i. (-) (0) \<circ> X i\<close>
+  let ?Y = \<open>\<lambda> i. uminus \<circ> X i\<close>
 
   note [simp] = comp_def
 
   have \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. ?Y i x \<le> B\<close> using bnd by fastforce 
 
   moreover have \<open>(go X x \<le> -t) \<longleftrightarrow> (go ?Y x \<ge> t)\<close> for x
-    by (simp, metis (mono_tags, lifting) minus_diff_eq more_arith_simps(1) sum.cong sum_negf)
+    apply simp
+    by (metis (mono_tags, lifting) minus_diff_eq more_arith_simps(1) sum.cong sum_negf)
 
   ultimately show ?thesis
     using
@@ -53,10 +54,10 @@ proof -
     \<open>{x \<in> space M. \<bar>go X x\<bar> \<ge> t} =
       {x \<in> space M. go X x \<le> -t} \<union> {x \<in> space M. go X x \<ge> t}\<close> by auto
 
-  moreover have \<open>\<P>(x in M. go X x \<le> -t) \<le> exp'\<close> (is \<open>?L' \<le> _\<close>)
+  moreover have \<open>\<P>(x in M. go X x \<le> -t) \<le> exp'\<close>
     using bnd bernstein_inequality_le by fastforce
 
-  moreover have \<open>\<P>(x in M. go X x \<ge> t) \<le> exp'\<close> (is \<open>?L'' \<le> _\<close>)
+  moreover have \<open>\<P>(x in M. go X x \<ge> t) \<le> exp'\<close>
     using 
       bernstein_inequality[OF I, where X = X, where t = t, where B = B]
       ind intsq bnd B t
