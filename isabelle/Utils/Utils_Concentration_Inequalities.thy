@@ -179,9 +179,6 @@ proof -
     by (simp_all add:
       binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
-  thm 
-    Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
- 
   moreover note
     Pi_bernoulli_nat_pmf.bernstein_inequality_ge[of ?t ?B]
     Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
