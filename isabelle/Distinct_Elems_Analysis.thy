@@ -427,7 +427,7 @@ qed
 
 lemma estimate_distinct_error_bound_l_binom:
   shows
-    \<open>\<P>(state in run_with_bernoulli_matrix (length xs) <| run_reader <<< eager_algorithm.
+    \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
     \<le> foo (card (set xs)) l\<close> (is \<open>?L (\<le>) l \<le> ?R\<close>)
@@ -448,7 +448,7 @@ proof -
   (* Now we go into nondeterministic *)
   also have \<open>\<dots> \<le> (
     \<Sum> k \<le> l.
-      \<P>(estimate in run_with_bernoulli_matrix (length xs) <| nondet_alg k.
+      \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg k.
         real estimate >[\<epsilon>] card (set xs)))\<close>
     apply (rule sum_mono, simp add: nondet_alg_def compute_estimate_def)
     apply (rule pmf_mono)

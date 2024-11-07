@@ -133,6 +133,14 @@ context
   assumes \<open>n > 0\<close> and \<open>\<delta> \<ge> 0\<close>
 begin
 
+find_theorems "_ > _"
+
+lemma
+  assumes \<open>\<And> x :: real. x > 0 \<Longrightarrow> f x \<le> g x\<close>
+  shows \<open>f 0 \<le> g 0\<close>
+  using assms
+  sorry
+
 text
   \<open>Stronger form of the multiplicative Chernoff bound for the
   Binomial distribution, derived from the Bennet-Bernstein inequality.\<close>
@@ -141,7 +149,8 @@ lemma
     \<open>\<P>(x in binomial_pmf n p. real x \<ge> real n * p * (1 + \<delta>))
     \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
     (is \<open>?L_ge \<le> ?R_ge\<close>) and
-  (* TODO: How to prove stronger version without the 2 * \<delta> / 3 term? *)
+  (* TODO: Prove stronger version without the 2 * \<delta> / 3 term.
+  Idea is to show that it holds for all B > 0, and then take limit at 0. *)
   chernoff_prob_le :
     \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
     \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
