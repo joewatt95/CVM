@@ -433,7 +433,7 @@ lemma estimate_distinct_error_bound_l_binom:
     \<le> foo (card (set xs)) l\<close> (is \<open>?L (\<le>) l \<le> ?R\<close>)
 proof -
   (* Splits the error event for k=0, k=1,...,k=l *)
-  have \<open>?L (\<le>) l \<le> (\<Sum> i \<le> l. ?L (=) i)\<close>
+  have \<open>?L (\<le>) l \<le> (\<Sum> k \<le> l. ?L (=) k)\<close>
   proof -
     have [simp] :
       \<open>{x. f x \<le> l \<and> P x} = (
