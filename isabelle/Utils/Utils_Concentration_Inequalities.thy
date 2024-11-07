@@ -87,15 +87,6 @@ end
 context binomial_distribution
 begin
 
-lemma expectation_Pi_bernoulli_nat_pmf_slice :
-  assumes \<open>i < n\<close>
-  shows
-    \<open>measure_pmf.expectation Pi_bernoulli_nat_pmf (\<lambda> P. real (P i)) = p\<close>
-    \<open>measure_pmf.expectation Pi_bernoulli_nat_pmf (\<lambda> P. (real <| P i)\<^sup>2) = p\<close>
-  using p assms by (
-    subst expectation_Pi_pmf_slice,
-    auto intro: integrable_measure_pmf_finite)+
-
 lemma integrable_Pi_bernoulli_nat_pmf_square :
   assumes \<open>i < n\<close>
   shows \<open>integrable Pi_bernoulli_nat_pmf <| \<lambda> P. real ((P i)\<^sup>2)\<close>
@@ -116,16 +107,30 @@ lemmas benett_bernstein_inequality_assms =
   integrable_Pi_bernoulli_nat_pmf_square
   indep_vars_Pi_bernoulli_nat_pmf
 
+lemma expectation_Pi_bernoulli_nat_pmf_slice [simp] :
+  assumes \<open>i < n\<close>
+  shows
+    \<open>measure_pmf.expectation Pi_bernoulli_nat_pmf (\<lambda> P. real (P i)) = p\<close>
+    \<open>measure_pmf.expectation Pi_bernoulli_nat_pmf (\<lambda> P. (real <| P i)\<^sup>2) = p\<close>
+  using p assms by (
+    subst expectation_Pi_pmf_slice,
+    auto intro: integrable_measure_pmf_finite)+
+
 lemma
+  assumes \<open>B > 0\<close>
   defines [simp] : \<open>Q f \<equiv> AE P in Pi_bernoulli_nat_pmf. f P\<close>
   shows
     AE_Pi_bernoulli_nat_pmf_0_1 :
       \<open>Q (\<lambda> P. P i = 0 \<or> P i = 1)\<close> (is ?thesis_0) and
-    AE_Pi_bernoulli_nat_pmf_bounded :
-      \<open>Q (\<lambda> P. \<bar>real <| P i\<bar> \<le> 1)\<close> (is ?thesis_1)
+    AE_Pi_bernoulli_nat_pmf_abs_bounded :
+      \<open>Q (\<lambda> P. \<bar>real <| P i\<bar> \<le> 1)\<close> (is ?thesis_1) and
+    AE_Pi_bernoulli_nat_pmf_bounded_from_below :
+      \<open>Q (\<lambda> P. real (P i) \<ge> -B)\<close> (is ?thesis_2)
 proof -
-  show ?thesis_0 by (fastforce intro: AE_pmfI simp add: set_Pi_pmf PiE_dflt_def)
+  show ?thesis_0
+    by (fastforce intro: AE_pmfI simp add: set_Pi_pmf PiE_dflt_def)
   then show ?thesis_1 by fastforce
+  show ?thesis_2 using assms by simp
 qed
 
 context
@@ -133,35 +138,29 @@ context
   assumes \<open>n > 0\<close> and \<open>\<delta> \<ge> 0\<close>
 begin
 
-find_theorems "_ > _"
-
-lemma
-  assumes \<open>\<And> x :: real. x > 0 \<Longrightarrow> f x \<le> g x\<close>
-  shows \<open>f 0 \<le> g 0\<close>
-  using assms
-  sorry
-
 text
   \<open>Stronger form of the multiplicative Chernoff bound for the
   Binomial distribution, derived from the Bennet-Bernstein inequality.\<close>
 lemma
-  chernoff_prob_ge :
-    \<open>\<P>(x in binomial_pmf n p. real x \<ge> real n * p * (1 + \<delta>))
-    \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
-    (is \<open>?L_ge \<le> ?R_ge\<close>) and
-  (* TODO: Prove stronger version without the 2 * \<delta> / 3 term.
-  Idea is to show that it holds for all B > 0, and then take limit at 0. *)
-  chernoff_prob_le :
-    \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
-    \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
-    (is \<open>?L_le \<le> ?R_le\<close>) and
-  chernoff_abs_ge :
-    \<open>\<P>(x in binomial_pmf n p. \<bar>real x - real n * p\<bar> \<ge> real n * p * \<delta>)
-    \<le> 2 * exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
-    (is \<open>?L_abs_ge \<le> ?R_abs_ge\<close>)
+  assumes \<open>B > 0\<close>
+  shows
+    chernoff_prob_ge :
+      \<open>\<P>(x in binomial_pmf n p. real x \<ge> real n * p * (1 + \<delta>))
+      \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
+      (is \<open>?L_ge \<le> ?R_ge\<close>) and
+    (* TODO: Prove stronger version without the 2 * \<delta> / 3 term.
+    Idea is to show that it holds for all B > 0, and then take limit at 0. *)
+    chernoff_prob_le :
+      \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
+      \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))\<close>
+      (is \<open>?L_le \<le> ?R_le\<close>) and
+    chernoff_abs_ge :
+      \<open>\<P>(x in binomial_pmf n p. \<bar>real x - real n * p\<bar> \<ge> real n * p * \<delta>)
+      \<le> 2 * exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
+      (is \<open>?L_abs_ge \<le> ?R_abs_ge\<close>)
 proof -
   let ?t = \<open>real n * p * \<delta>\<close>
-  let ?B = 1 
+  let ?B = 1
 
   interpret Pi_bernoulli_nat_pmf :
     benett_bernstein Pi_bernoulli_nat_pmf \<open>\<lambda> i P. real (P i)\<close> \<open>{..< n}\<close> 
@@ -179,26 +178,32 @@ proof -
     using p
     by (simp_all add:
       binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
-  
+
+  thm 
+    Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
+ 
   moreover note
     Pi_bernoulli_nat_pmf.bernstein_inequality_ge[of ?t ?B]
-    Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t ?B]
+    Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
     Pi_bernoulli_nat_pmf.bernstein_inequality_abs_ge[of ?t ?B]
-    expectation_Pi_bernoulli_nat_pmf_slice
-    AE_Pi_bernoulli_nat_pmf_0_1
-    AE_Pi_bernoulli_nat_pmf_bounded
-
+    AE_Pi_bernoulli_nat_pmf_abs_bounded
 
   moreover have
-    \<open>- (3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + \<delta> * (p * (real n * 2))))
-    = - real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3)\<close>
+    \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + \<delta> * (p * (real n * 2)))
+    = real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3)\<close>
     using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
     apply (simp add: field_split_simps power2_eq_square)
     by (smt (verit, best) landau_o.R_mult_left_mono mult_cancel_left mult_sign_intros(1) nat_le_real_less not_less of_nat_0)
 
-  ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_le \<le> ?R_le\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
+  moreover have
+    \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + B * (\<delta> * (p * (real n * 2))))
+    = p * (real n * (3 * \<delta>\<^sup>2)) / (6 + B * (\<delta> * 2))\<close>
     using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
-    by (auto simp add: field_simps)
+    apply (simp add: field_split_simps power2_eq_square)
+    by (smt (verit, ccfv_threshold) assms less_irrefl of_nat_0_le_iff of_nat_eq_0_iff zero_compare_simps(8))
+
+  ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_le \<le> ?R_le\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
+    using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close> \<open>B > 0\<close> by (simp_all add: field_simps)
 qed
 
 end
