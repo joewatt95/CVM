@@ -298,13 +298,8 @@ end
 
 context
   fixes
-    xs :: \<open>'a list\<close> and
-    l :: nat
-  assumes
-    \<open>l \<le> length xs\<close>
+    xs :: \<open>'a list\<close>
 
-    (* This says that l \<ge> log2 (3F_0 / threshold) *)
-    \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
 begin
 
 abbreviation
@@ -317,11 +312,16 @@ abbreviation
   \<open>nondet_alg_aux_pmf \<equiv> run_alg_pmf (nondet_alg_aux l)\<close> *)
 
 lemma estimate_distinct_error_bound_fail_2:
-  \<open>\<P>(state in
-    run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
-    state_k state > l)
-  \<le> real (length xs) * exp (- real threshold / 6)\<close>
-  (is \<open>?L \<le> _ * exp ?exponent\<close>)
+  assumes
+    \<open>l \<le> length xs\<close>
+    (* This says that l \<ge> log2 (3F_0 / threshold) *)
+    \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
+  shows
+    \<open>\<P>(state in
+      run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
+      state_k state > l)
+    \<le> real (length xs) * exp (- real threshold / 6)\<close>
+    (is \<open>?L \<le> _ * exp ?exponent\<close>)
 proof -
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
     after running eager_step_1.

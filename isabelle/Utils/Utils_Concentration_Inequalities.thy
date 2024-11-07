@@ -31,13 +31,11 @@ lemma bernstein_inequality_le :
 proof -
   let ?Y = \<open>\<lambda> i. uminus \<circ> X i\<close>
 
-  note [simp] = comp_def
-
   have \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. ?Y i x \<le> B\<close> using bnd by fastforce 
 
   moreover have
     \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
-    apply simp
+    apply (simp add: comp_def)
     by (metis (mono_tags, lifting) minus_diff_eq more_arith_simps(1) sum.cong sum_negf)
 
   ultimately show ?thesis
@@ -107,13 +105,12 @@ lemma indep_vars_Pi_bernoulli_nat_pmf :
 
 lemma AE_Pi_bernoulli_nat_pmf_bounded :
   \<open>AE P in Pi_bernoulli_nat_pmf. \<bar>real <| P i\<bar> \<le> 1\<close>
-proof (rule AE_pmfI)
-  fix P assume \<open>P \<in> set_pmf Pi_bernoulli_nat_pmf\<close>
-
-  then have \<open>P i = 0 \<or> P i = 1\<close>
-    by (fastforce simp add: set_Pi_pmf PiE_dflt_def)
-
-  then show \<open>\<bar>real <| P i\<bar> \<le> 1\<close> by auto
+  (is \<open>?P (\<lambda> P. \<bar>real <| P i\<bar> \<le> 1)\<close>)
+proof -
+  have \<open>?P (\<lambda> P. P i = 0 \<or> P i = 1)\<close>
+    by (fastforce intro: AE_pmfI simp add: set_Pi_pmf PiE_dflt_def)
+  
+  then show ?thesis by fastforce
 qed
 
 lemmas benett_bernstein_inequality_assms =
@@ -144,20 +141,16 @@ lemma
       \<le> 2 * exp exponent\<close>
       (is \<open>?L_abs_ge \<le> ?R_abs_ge\<close>)
 proof -
+  let ?prob = \<open>\<lambda> R.
+    \<P>(P in Pi_bernoulli_nat_pmf. R (\<Sum> i < n. real (P i) - p) (real n * p * \<delta>))\<close>
+
   have
-    \<open>?L_ge =
-      \<P>(P in Pi_bernoulli_nat_pmf.
-        (\<Sum> i < n. real (P i) - p) \<ge> real n * p * \<delta>)\<close>
-    \<open>?L_le =
-      \<P>(P in Pi_bernoulli_nat_pmf.
-        (\<Sum> i < n. real (P i) - p) \<le> - real n * p * \<delta>)\<close>
-    \<open>?L_abs_ge =
-      \<P>(P in Pi_bernoulli_nat_pmf.
-        \<bar>\<Sum> i < n. real (P i) - p\<bar> \<ge> real n * p * \<delta>)\<close>
+    \<open>?L_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<ge> np\<delta>)\<close>
+    \<open>?L_le = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<le> -np\<delta>)\<close>
+    \<open>?L_abs_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. \<bar>sum_mean_deviation\<bar> \<ge> np\<delta>)\<close>
     using p
     by (simp_all add:
-      binomial_pmf_eq_map_sum_of_bernoullis
-      sum_subtractf field_simps)
+      binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
   moreover note
     measure_pmf.bernstein_inequality[
@@ -185,8 +178,7 @@ proof -
     = exponent\<close>
     using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
     apply (simp add: field_split_simps power2_eq_square)
-    using arithmetic_simps(63)[of "of_nat n"] add_mono_thms_linordered_field(3)[of "p * (real n * 6) + \<delta> * (p * (real n * 2))" "p * (real n * 6)" "0" "\<delta> * (p * (real n * 2))"]
-    by fastforce
+    by (smt (verit, best) landau_o.R_mult_left_mono mult_cancel_left mult_sign_intros(1) nat_le_real_less not_less of_nat_0)
 
   ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_le \<le> ?R_le\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
     using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close> by (simp_all add: field_simps)
