@@ -449,13 +449,12 @@ proof -
   also have \<open>\<dots> \<le> (
     \<Sum> k \<le> l.
       \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg k.
-        real estimate >[\<epsilon>] card (set xs)))\<close>
-    apply (rule sum_mono, simp add: nondet_alg_def compute_estimate_def)
-    apply (rule pmf_mono)
-
-    using eager_algorithm_inv[unfolded eager_state_inv_def]
-
-    sorry
+        2 ^ k * real estimate >[\<epsilon>] card (set xs)))\<close>
+    by (auto
+      intro: sum_mono pmf_mono
+      simp add:
+        nondet_alg_def compute_estimate_def algebra_simps
+        eager_algorithm_inv[unfolded eager_state_inv_def])
 
   (* Go into Binomial then use Chernoff *)
   also have "... \<le>
