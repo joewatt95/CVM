@@ -4,6 +4,7 @@ imports
   CVM.Utils_List
   CVM.Utils_PMF_Lazify
   CVM.Utils_PMF_Bernoulli_Binomial
+  CVM.Utils_Reader_Monad_Hoare
   CVM.Distinct_Elems_Lazy
 
 begin
@@ -44,8 +45,8 @@ definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rig
   "eager_step xs i state = eager_step_1 xs i state \<bind> eager_step_2 xs i"
 
 definition eager_algorithm ::
-  "'a list \<Rightarrow> (coin_matrix, 'a state) reader_monad" where
-  "eager_algorithm xs \<equiv> run_steps foldM_rd (eager_step xs) [0..<length xs]"
+  "'a list \<Rightarrow> (nat \<times> nat \<Rightarrow> bool, 'a state) reader_monad" where
+  "eager_algorithm \<equiv> run_steps_from_state foldM_rd eager_step initial_state"
 
 abbreviation \<open>run_eager_algorithm \<equiv> run_reader <<< eager_algorithm\<close>
 
@@ -74,7 +75,7 @@ proof -
   have a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" by simp
 
   show ?thesis
-    unfolding eager_algorithm_def a foldM_rd_snoc run_steps_def
+    unfolding eager_algorithm_def run_steps_from_state_def a foldM_rd_snoc
     by (intro foldM_cong arg_cong2[where f="bind_rd"] eager_step_cong) auto
 qed
 
@@ -295,7 +296,7 @@ lemma depends_on_algorithm:
    "depends_on (map_rd ((=) v) (eager_algorithm xs)) ({..<state_k v} \<times> {..<length xs})"
 proof (induction xs arbitrary:v rule:rev_induct)
   case Nil
-  then show ?case by (simp add: eager_algorithm_def run_steps_def depends_on_return map_rd_def depends_on_bind)
+  then show ?case by (simp add: eager_algorithm_def run_steps_from_state_def depends_on_return map_rd_def depends_on_bind)
 next
   case (snoc x xs)
   show ?case
@@ -335,7 +336,7 @@ lemma eager_lazy_conversion_aux:
   "length xs \<le> n \<Longrightarrow> sample (eager_algorithm xs) = lazy_algorithm xs"
 proof (induction xs rule:rev_induct)
   case Nil
-  then show ?case by (simp add: eager_algorithm_def run_steps_def lazify_return lazy_algorithm_def)
+  then show ?case by (simp add: eager_algorithm_def lazy_algorithm_def run_steps_from_state_def lazify_return)
 next
   case (snoc x xs)
 
@@ -351,6 +352,52 @@ next
   also have "... = lazy_algorithm (xs@[x])"
     unfolding lazy_algorithm_snoc by simp
   finally show ?case by simp
+qed
+
+find_theorems "state_k" "(\<le>)"
+
+term run_steps_from_state
+
+find_theorems "length [_ ..< _]"
+
+find_theorems "_ - 0"
+
+lemma
+  fixes xs
+  defines [simp] : \<open>state_k_bounded i \<phi> state \<equiv> state_k state \<le> i\<close>
+  shows 
+    initial_state_k_bounded :
+      \<open>state_k_bounded i \<phi> initial_state\<close> (is ?thesis_0) and
+    run_eager_steps_k_bounded : \<open>\<turnstile>rd
+      \<lbrakk>state_k_bounded 0\<rbrakk>
+      (\<lambda> state. run_steps_from_state foldM_rd eager_step state xs)
+      \<lbrakk>state_k_bounded (length xs)\<rbrakk>\<close>
+      (is ?thesis_1) and
+    eager_algorithm_k_bounded :
+      \<open>state_k (run_eager_algorithm xs \<phi>) \<le> length xs\<close> (is ?thesis_2)
+proof -
+  show ?thesis_0 by (simp add: initial_state_def)
+
+  moreover show ?thesis_1
+    unfolding
+      run_steps_from_state_def eager_step_def eager_step_1_def Let_def
+      eager_step_2_def map_rd_def
+
+    apply (rule Utils_Reader_Monad_Hoare.loop[
+      where offset = 0, where xs = \<open>[0 ..< length xs]\<close>,
+      unfolded length_upt, simplified])
+
+    subgoal for index
+      apply (rule Utils_Reader_Monad_Hoare.seq'[where Q = \<open>state_k_bounded index\<close>])
+      by (auto
+        intro!:
+          Utils_Reader_Monad_Hoare.seq'
+          Utils_Reader_Monad_Hoare.if_then_else
+          Utils_Reader_Monad_Hoare.postcond_true)
+    done
+
+  ultimately show ?thesis_2
+    by (simp add: Utils_Reader_Monad_Hoare.hoare_triple_def eager_algorithm_def initial_state_def)
 qed
 
 text \<open>Version of the above with the definitions from the locale unfolded. This theorem can be used

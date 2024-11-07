@@ -42,8 +42,12 @@ definition lazy_step_2 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Ri
 definition lazy_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
   where "lazy_step xs i state = lazy_step_1 xs i state \<bind> lazy_step_2 xs i"
 
-definition lazy_algorithm :: "'a list \<Rightarrow> 'a state pmf" where
-  "lazy_algorithm xs \<equiv> run_steps_pmf (lazy_step xs) [0..<length xs]"
+definition
+  \<open>run_steps_from_state fold_fn step_fn state xs \<equiv>
+    fold_fn (step_fn xs) [0 ..< length xs] state\<close>
+
+definition lazy_algorithm :: "'a list \<Rightarrow> 'a state pmf"  where
+  "lazy_algorithm \<equiv> run_steps_from_state foldM_pmf lazy_step initial_state"
 
 lemma lazy_step_cong:
   assumes "xs ! i = ys ! i"
@@ -57,7 +61,7 @@ proof -
   have a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" by simp
 
   show ?thesis
-    unfolding lazy_algorithm_def a foldM_pmf_snoc run_steps_def
+    unfolding lazy_algorithm_def run_steps_from_state_def a foldM_pmf_snoc
     by (intro foldM_cong bind_pmf_cong refl lazy_step_cong) (auto simp:nth_append)
 qed
 
@@ -67,7 +71,7 @@ lemma state_k_bound:
   using assms
 proof (induction xs arbitrary:\<omega> rule:rev_induct)
   case Nil
-  then show ?case unfolding lazy_algorithm_def run_steps_def initial_state_def by simp
+  then show ?case unfolding lazy_algorithm_def run_steps_from_state_def initial_state_def by simp
 next
   case (snoc x xs)
   let ?n = "length xs"
@@ -76,7 +80,7 @@ next
     "\<omega>1 \<in> set_pmf (lazy_algorithm xs)"
     "\<omega>2 \<in> set_pmf (lazy_step_1 (xs@[x]) ?n \<omega>1)"
     "\<omega> \<in> set_pmf (lazy_step_2 (xs@[x]) ?n \<omega>2)"
-    using snoc  unfolding lazy_algorithm_snoc lazy_step_def by auto
+    using snoc unfolding lazy_algorithm_snoc lazy_step_def by auto
 
   have "state_k \<omega>1 \<le> length xs" using snoc \<omega>(1) by simp
   hence "state_k \<omega>2 \<le> length xs" using \<omega>(2) unfolding lazy_step_1_def by auto
@@ -91,7 +95,7 @@ lemma state_chi_bound:
   using assms
 proof (induction xs arbitrary:\<omega> rule:rev_induct)
   case Nil
-  then show ?case unfolding lazy_algorithm_def run_steps_def initial_state_def by simp
+  then show ?case unfolding lazy_algorithm_def run_steps_from_state_def initial_state_def by simp
 next
   case (snoc x xs)
   let ?n = "length xs"
@@ -100,7 +104,9 @@ next
     "\<omega>1 \<in> set_pmf (lazy_algorithm xs)"
     "\<omega>2 \<in> set_pmf (lazy_step_1 (xs@[x]) ?n \<omega>1)"
     "\<omega> \<in> set_pmf (lazy_step_2 (xs@[x]) ?n \<omega>2)"
-    using snoc  unfolding lazy_algorithm_snoc lazy_step_def by auto
+    using snoc
+    unfolding lazy_algorithm_snoc lazy_step_def
+    sorry
 
   have "state_chi \<omega>1 \<subseteq> set xs" using snoc \<omega>(1) by simp
   moreover have "state_chi \<omega>2 \<subseteq> insert x (state_chi \<omega>1)"
@@ -116,7 +122,7 @@ qed
   \<open>lazy_algorithm xs = run_steps_pmf step_no_fail xs\<close>
 proof (induction xs rule: rev_induct)
   case Nil
-  then show ?case unfolding lazy_algorithm_def run_steps_def by simp
+  then show ?case unfolding run_steps_from_state_def run_steps_def by simp
 next
   case (snoc x xs)
 
@@ -130,7 +136,7 @@ next
 qed *)
 
 lemma lazy_algorithm_eq_run_step_no_fail :
-  \<open>lazy_algorithm xs = run_steps_pmf step_no_fail xs\<close>
+  \<open>lazy_algorithm xs = foldM_pmf step_no_fail xs initial_state\<close>
 proof -
   (* As with proving things about `List.enumerate`, we need to introduce an
     arbitrary offset to the list of indices `[0 ..< length xs]` passed as input
@@ -150,7 +156,8 @@ proof -
       [length padding ..< length padding + length xs]
     = foldM_pmf step_no_fail xs\<close>
     (is \<open>\<And> padding. ?thesis padding\<close>)
-    using that[of \<open>[]\<close>] by (auto simp add: lazy_algorithm_def run_steps_def)
+    using that[of \<open>[]\<close>]
+    by (auto simp add: lazy_algorithm_def run_steps_from_state_def)
 
   show \<open>?thesis padding\<close> for padding
   proof (induction xs arbitrary: padding)

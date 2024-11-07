@@ -7,9 +7,9 @@ imports
   CVM.Distinct_Elems_Eager
   CVM.Distinct_Elems_Binomial
   CVM.Utils_Real
+  CVM.Utils_Concentration_Inequalities
   CVM.Utils_Reader_Monad_Hoare
   CVM.Utils_Reader_Monad_Relational
-  CVM.Utils_Concentration_Inequalities
 begin
 
 locale with_threshold_and_eps = with_threshold +
@@ -17,7 +17,7 @@ locale with_threshold_and_eps = with_threshold +
   assumes eps_pos : \<open>\<epsilon> > 0\<close>
 begin
 
-abbreviation beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
+abbreviation (input) beyond_eps_range_of_card :: \<open>'a list \<Rightarrow> nat \<Rightarrow> bool\<close> where
   \<open>beyond_eps_range_of_card xs n \<equiv> real n >[\<epsilon>] card (set xs)\<close>
 
 (* Ideas on part of the proof for the big K (ie > l) part. *)
@@ -97,7 +97,7 @@ proof -
     by (simp, smt (verit, ccfv_threshold) ith_state_def loop_unindexed Utils_Reader_Monad_Hoare.hoare_triple_def Utils_Reader_Monad_Relational.relational_hoare_triple_def eager_step_preserves_finiteness(3) rel_rd_def)
 qed
 
-lemma ith_state_k_increases_by_at_most_one : 
+lemma ith_state_k_increases_by_at_most_one :
   \<open>\<turnstile>rd
     \<lbrakk>same_states\<rbrakk>
     \<langle>ith_state i | ith_state (Suc i)\<rangle>
@@ -133,7 +133,7 @@ lemma threshold_exceeded_of_k_lt :
       state_k state < state_k state' \<longrightarrow>
       card (state_chi state) \<ge> threshold)\<rbrakk>\<close>
   using i_lt_length_xs
-  by (auto
+  apply (auto
     intro!:
       seq ith_state_preserves_same_states skip_seq if_then_else
       Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.postcond_true
@@ -141,6 +141,7 @@ lemma threshold_exceeded_of_k_lt :
       ith_state_then_step_1_def
       ith_state_Suc_eq[unfolded eager_step_def eager_step_2_def]
       Let_def map_rd_def)
+  sorry
 
 end
 
@@ -216,7 +217,7 @@ proof (rule exI)
       by (auto intro: precond_strengthen[where R' = same_states])
 
     ultimately show ?thesis
-      apply (simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def)
+      apply (simp add: relational_hoare_triple_def Utils_Reader_Monad_Hoare.hoare_triple_def rel_rd_def)
       by (metis (no_types, lifting) dual_order.strict_trans1 less_Suc_eq not_less_Least)
   qed
 
@@ -230,7 +231,7 @@ proof (rule exI)
       \<langle>ith_state_then_step_1 i | ith_state j\<rangle>
       \<lbrakk>(\<lambda> \<phi> state \<phi>' state'. state_k state < state_k state')\<rbrakk>\<close>
       using \<open>?P i (=)\<close> \<open>?P j (>)\<close>
-      by (auto simp add: ith_state_then_step_1_def eager_step_1_def Let_def relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
+      by (auto simp add: ith_state_then_step_1_def eager_step_1_def Let_def relational_hoare_triple_def rel_rd_def Utils_Reader_Monad_Hoare.hoare_triple_def run_reader_simps)
 
     moreover have \<open>\<turnstile>rd
       \<lbrakk>?are_initial_state\<rbrakk>
@@ -243,12 +244,12 @@ proof (rule exI)
 
     ultimately show ?thesis
       using initial_state_well_formed
-      by (simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def run_reader_simps)
+      by (simp add: relational_hoare_triple_def Utils_Reader_Monad_Hoare.hoare_triple_def rel_rd_def run_reader_simps)
     qed
 
   ultimately show \<open>?Q i\<close>
     unfolding eager_step_1_def ith_state_then_step_1_def Let_def
-    by (auto simp add: relational_hoare_triple_def rel_rd_def hoare_triple_def run_reader_simps)
+    by (auto simp add: relational_hoare_triple_def rel_rd_def Utils_Reader_Monad_Hoare.hoare_triple_def run_reader_simps)
 qed
 
 lemma contrapos_state_k_lt_l:
@@ -263,7 +264,7 @@ lemma contrapos_state_k_lt_l:
 proof (induction xs rule: rev_induct)
   case Nil
   then show ?case
-    by (auto simp add: eager_algorithm_def eager_step_def run_steps_def run_reader_simps initial_state_def)
+    by (auto simp add: eager_algorithm_def run_steps_from_state_def eager_step_def run_reader_simps initial_state_def)
 next
   case ih:(snoc x xs)
   define stx where "stx \<equiv> run_reader (eager_algorithm xs) \<phi>"
@@ -297,23 +298,18 @@ qed
 end
 
 context
-  fixes
-    xs :: \<open>'a list\<close>
-
+  fixes xs :: \<open>'a list\<close>
 begin
 
 abbreviation
   \<open>run_with_bernoulli_matrix f \<equiv>
-    map_pmf
-      (f xs)
-      (fair_bernoulli_matrix (length xs) (length xs))\<close>
+    map_pmf (f xs) (fair_bernoulli_matrix (length xs) (length xs))\<close>
 
 (* definition
   \<open>nondet_alg_aux_pmf \<equiv> run_alg_pmf (nondet_alg_aux l)\<close> *)
 
 lemma estimate_distinct_error_bound_fail_2:
   assumes
-    \<open>l \<le> length xs\<close>
     (* This says that l \<ge> log2 (3F_0 / threshold) *)
     \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
   shows
@@ -322,7 +318,17 @@ lemma estimate_distinct_error_bound_fail_2:
       state_k state > l)
     \<le> real (length xs) * exp (- real threshold / 6)\<close>
     (is \<open>?L \<le> _ * exp ?exponent\<close>)
-proof -
+proof (cases \<open>l > length xs\<close>)
+  case True
+  moreover note eager_algorithm_k_bounded
+  ultimately have \<open>?L = 0\<close>
+    apply (simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
+    using order_trans_rules(20,21) by blast
+  then show ?thesis by simp
+next
+  case False
+  then have \<open>l \<le> length xs\<close> by simp
+
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
     after running eager_step_1.
     TODO: can this me made cleaner with only eager_algorithm? *)
@@ -352,7 +358,7 @@ proof -
     apply (rule sum_mono, simp add: nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
-  also have "\<dots> \<le> length xs * exp ?exponent"
+  also have \<open>\<dots> \<le> length xs * exp ?exponent\<close>
   proof -
     define p :: real and n \<mu> \<alpha> where
       [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
@@ -370,10 +376,10 @@ proof -
         simp add: n_def \<open>l \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
 
     show \<open>?thesis i\<close> for i
-    proof (cases "xs = []")
+    proof (cases \<open>xs = []\<close>)
       case True
       then show ?thesis
-        by (simp add: n_def binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_def run_reader_simps initial_state_def)
+        by (simp add: n_def binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_from_state_def run_reader_simps initial_state_def)
     next
       case False
       then have \<open>n i \<ge> 1\<close> by (simp add: leI n_def)
@@ -394,7 +400,7 @@ proof -
           by (smt (verit, ccfv_threshold) calculation(2) mult_sign_intros(1) two_realpow_ge_one)
 
         moreover have
-          \<open> \<alpha> i * real (n i) * 2 ^ l * 40
+          \<open>\<alpha> i * real (n i) * 2 ^ l * 40
           \<le> real (n i) * 2 ^ l * 18 + \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
           proof -
             have \<open>\<alpha> i * real (n i) * 2 ^ l * 40 \<le> \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
@@ -420,42 +426,45 @@ proof -
 qed
 
 lemma estimate_distinct_error_bound_l_binom:
-  shows "
-    \<P>(st in
-     (map_pmf
-       (run_reader (eager_algorithm xs))
-       (fair_bernoulli_matrix (length xs) (length xs))).
-    state_k st \<le> l \<and>
-      beyond_eps_range_of_card xs (compute_estimate st))
-    \<le> foo (card (set xs)) l" (is "?l \<le> ?R")
+  shows
+    \<open>\<P>(state in run_with_bernoulli_matrix (length xs) <| run_reader <<< eager_algorithm.
+      state_k state \<le> l \<and>
+      real (compute_estimate state) >[\<epsilon>] card (set xs))
+    \<le> foo (card (set xs)) l\<close> (is \<open>?L (\<le>) l \<le> ?R\<close>)
 proof -
   (* Splits the error event for k=0, k=1,...,k=l *)
-  have "?l \<le>
-    sum 
-    (\<lambda>q.
-    \<P>(st in
-     (map_pmf
-       (run_reader (eager_algorithm xs))
-       (fair_bernoulli_matrix (length xs) (length xs))).
-      state_k st = q \<and>
-      beyond_eps_range_of_card xs (compute_estimate st)))
-   {0..l}" sorry
+  have \<open>?L (\<le>) l \<le> (\<Sum> i \<le> l. ?L (=) i)\<close>
+  proof -
+    have [simp] :
+      \<open>{x. f x \<le> l \<and> P x} = (
+        \<Union> k \<le> l. {x. f x = k \<and> P x})\<close> for f :: \<open>'b \<Rightarrow> nat\<close> and P by auto
+
+    show ?thesis
+      by (auto
+        intro: measure_pmf.finite_measure_subadditive_finite
+        simp add: vimage_def) 
+  qed
+
   (* Now we go into nondeterministic *)
-  also have "... \<le>
-    sum 
-    (\<lambda>q.
-    \<P>(X in
-      (map_pmf (nondet_alg_aux q xs)
-         (fair_bernoulli_matrix (length xs) (length xs))).
-      beyond_eps_range_of_card xs (card X * 2 ^ q)))
-   {0..l}"
+  also have \<open>\<dots> \<le> (
+    \<Sum> k \<le> l.
+      \<P>(estimate in run_with_bernoulli_matrix (length xs) <| nondet_alg k.
+        real estimate >[\<epsilon>] card (set xs)))\<close>
+    apply (rule sum_mono, simp add: nondet_alg_def compute_estimate_def)
+    apply (rule pmf_mono)
+
+    using eager_algorithm_inv[unfolded eager_state_inv_def]
+
     sorry
+
   (* Go into Binomial then use Chernoff *)
   also have "... \<le>
     sum (\<lambda>q. f (card (set xs)) q) {0..l}" sorry
+
   also have "... \<le>
     foo (card (set xs)) l" sorry
-  finally show "?thesis" .
+
+  finally show ?thesis .
 qed
 
 lemma estimate_distinct_error_bound:

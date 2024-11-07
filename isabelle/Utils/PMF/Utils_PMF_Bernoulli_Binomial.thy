@@ -95,14 +95,14 @@ lemma bernoulli_eq_map_Pi_pmf :
 
 end
 
+abbreviation bernoulli_nat_pmf :: \<open>real \<Rightarrow> nat pmf\<close> where
+ \<open>bernoulli_nat_pmf \<equiv> bernoulli_pmf >>> map_pmf of_bool\<close>
+
 context binomial_distribution
 begin
 
-abbreviation
- \<open>bernoulli_nat_pmf \<equiv> bernoulli_pmf >>> map_pmf of_bool\<close>
-
 abbreviation Pi_bernoulli_nat_pmf :: \<open>(nat \<Rightarrow> nat) pmf\<close> where
-  \<open>Pi_bernoulli_nat_pmf \<equiv> Pi_pmf {..< n} 0 \<lblot>map_pmf of_bool <| bernoulli_pmf p\<rblot>\<close>
+  \<open>Pi_bernoulli_nat_pmf \<equiv> Pi_pmf {..< n} 0 \<lblot>bernoulli_nat_pmf p\<rblot>\<close>
 
 lemma binomial_pmf_eq_map_sum_of_bernoullis :
   \<open>binomial_pmf n p = (

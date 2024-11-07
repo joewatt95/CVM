@@ -25,15 +25,11 @@ context
     step :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'c\<close>
 begin
 
-definition run_steps :: \<open>'d \<Rightarrow> 'f\<close>  where
-  \<open>run_steps \<equiv> flip (foldM step) initial_state\<close>
-
 definition run_steps_then_estimate :: \<open>'d \<Rightarrow> 'g\<close> where
-  \<open>run_steps_then_estimate \<equiv> run_steps >>> map compute_estimate\<close>
+  \<open>run_steps_then_estimate \<equiv>
+    flip (foldM step) initial_state >>> map compute_estimate\<close>
 
 end
-
-abbreviation \<open>run_steps_pmf \<equiv> run_steps foldM_pmf\<close>
 
 abbreviation
   \<open>run_steps_then_estimate_pmf \<equiv> run_steps_then_estimate foldM_pmf map_pmf\<close>

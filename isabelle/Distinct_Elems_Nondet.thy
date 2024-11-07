@@ -74,7 +74,7 @@ lemma eager_algorithm_inv:
 proof (induction xs rule: rev_induct)
   case Nil
   then show ?case
-    by (auto simp add: eager_algorithm_def run_steps_def run_reader_simps eager_state_inv_def initial_state_def nondet_alg_aux_def)
+    by (auto simp add: eager_algorithm_def run_steps_from_state_def run_reader_simps eager_state_inv_def initial_state_def nondet_alg_aux_def)
 next
   case (snoc _ _)
   then show ?case
