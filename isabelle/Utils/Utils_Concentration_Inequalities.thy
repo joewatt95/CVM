@@ -197,7 +197,7 @@ proof -
       tendsto_add_const_iff[of "2" "\<lambda> R. 2 * R * \<delta> / 3" "0" "at 0"]
       linear_lim_0[of "(*) 2"] tendsto_mult_left_zero[of "(*) 2" "at 0" \<delta>]
       tendsto_divide_zero[of "\<lambda> R. 2 * R * \<delta>" "at 0" "3"]
-    by (auto intro!: tendsto_intros)
+    by (intro tendsto_intros, auto)
 
   ultimately show \<open>?L_le \<le> ?R_le\<close>
     using
