@@ -112,7 +112,8 @@ lemma expectation_Pi_bernoulli_nat_pmf_slice [simp] :
   shows
     \<open>measure_pmf.expectation Pi_bernoulli_nat_pmf (\<lambda> P. real (P i)) = p\<close>
     \<open>measure_pmf.expectation Pi_bernoulli_nat_pmf (\<lambda> P. (real <| P i)\<^sup>2) = p\<close>
-  using p assms by (
+  using p assms
+  by (
     subst expectation_Pi_pmf_slice,
     auto intro: integrable_measure_pmf_finite)+
 
@@ -122,14 +123,11 @@ lemma
     AE_Pi_bernoulli_nat_pmf_0_1 :
       \<open>Q (\<lambda> P. P i = 0 \<or> P i = 1)\<close> (is ?thesis_0) and
     AE_Pi_bernoulli_nat_pmf_abs_bounded :
-      \<open>Q (\<lambda> P. \<bar>real <| P i\<bar> \<le> 1)\<close> (is ?thesis_1) and
-    AE_Pi_bernoulli_nat_pmf_bounded_from_below :
-      \<open>B > 0 \<Longrightarrow> Q (\<lambda> P. real (P i) \<ge> -B)\<close> (is \<open>_ \<Longrightarrow> ?thesis_2\<close>)
+      \<open>Q (\<lambda> P. \<bar>real <| P i\<bar> \<le> 1)\<close> (is ?thesis_1)
 proof -
   show ?thesis_0
     by (fastforce intro: AE_pmfI simp add: set_Pi_pmf PiE_dflt_def)
   then show ?thesis_1 by fastforce
-  show \<open>B > 0 \<Longrightarrow> ?thesis_2\<close> by simp
 qed
 
 text
