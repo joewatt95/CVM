@@ -138,6 +138,36 @@ context
   assumes \<open>n > 0\<close> and \<open>\<delta> \<ge> 0\<close>
 begin
 
+lemma aux :
+  fixes f g :: \<open>real \<Rightarrow> real\<close>
+  assumes
+    \<open>\<And> x. x > 0 \<Longrightarrow> f x \<le> g x\<close>
+    \<open>(f \<longlongrightarrow> lim_f) (at_right 0)\<close>
+    \<open>(g \<longlongrightarrow> lim_g) (at_right 0)\<close>
+  shows \<open>lim_f \<le> lim_g\<close>
+  using assms
+  by (auto
+    intro: tendsto_le[where f = g, where g = f, where F = \<open>at_right 0\<close>]
+    simp add: eventually_at_right_field gt_ex)
+
+lemma
+  fixes g :: \<open>real \<Rightarrow> real\<close>
+  assumes
+    \<open>\<And> x. x > 0 \<Longrightarrow> y \<le> g x\<close>
+    \<open>(g \<longlongrightarrow> lim_g) (at_right 0)\<close>
+  shows \<open>y \<le> lim_g\<close>
+  using assms aux by fastforce
+
+lemma
+  \<open>((\<lambda> B. exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)))
+    \<longlongrightarrow> exp (- real n * p * \<delta>\<^sup>2 / 2)) (at 0)\<close>
+proof -
+  have \<open>((\<lambda> B. 2 + 2 * B * \<delta> / 3) \<longlongrightarrow> 2) (at 0)\<close>
+  by (metis bounded_linear_mult_right group_cancel.rule0 linear_lim_0 tendsto_add_const_iff tendsto_divide_zero tendsto_mult_left_zero)
+  
+  then show ?thesis by (auto intro!: tendsto_intros)
+qed
+
 text
   \<open>Stronger form of the multiplicative Chernoff bound for the
   Binomial distribution, derived from the Bennet-Bernstein inequality.\<close>
