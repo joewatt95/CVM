@@ -117,7 +117,6 @@ lemma expectation_Pi_bernoulli_nat_pmf_slice [simp] :
     auto intro: integrable_measure_pmf_finite)+
 
 lemma
-  assumes \<open>B > 0\<close>
   defines [simp] : \<open>Q f \<equiv> AE P in Pi_bernoulli_nat_pmf. f P\<close>
   shows
     AE_Pi_bernoulli_nat_pmf_0_1 :
@@ -125,12 +124,12 @@ lemma
     AE_Pi_bernoulli_nat_pmf_abs_bounded :
       \<open>Q (\<lambda> P. \<bar>real <| P i\<bar> \<le> 1)\<close> (is ?thesis_1) and
     AE_Pi_bernoulli_nat_pmf_bounded_from_below :
-      \<open>Q (\<lambda> P. real (P i) \<ge> -B)\<close> (is ?thesis_2)
+      \<open>B > 0 \<Longrightarrow> Q (\<lambda> P. real (P i) \<ge> -B)\<close> (is \<open>_ \<Longrightarrow> ?thesis_2\<close>)
 proof -
   show ?thesis_0
     by (fastforce intro: AE_pmfI simp add: set_Pi_pmf PiE_dflt_def)
   then show ?thesis_1 by fastforce
-  show ?thesis_2 using assms by simp
+  show \<open>B > 0 \<Longrightarrow> ?thesis_2\<close> by simp
 qed
 
 text
@@ -155,9 +154,8 @@ lemma
 proof -
   interpret Pi_bernoulli_nat_pmf :
     benett_bernstein Pi_bernoulli_nat_pmf \<open>\<lambda> i P. real (P i)\<close> \<open>{..< n}\<close> 
-    apply unfold_locales
     using benett_bernstein_inequality_assms p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
-    by auto
+    by (unfold_locales, auto)
 
   let ?prob = \<open>\<lambda> R.
     \<P>(P in Pi_bernoulli_nat_pmf. R (\<Sum> i < n. real (P i) - p) (real n * p * \<delta>))\<close>
@@ -170,6 +168,22 @@ proof -
     using p
     by (simp_all add:
       binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
+
+  moreover note
+    Pi_bernoulli_nat_pmf.bernstein_inequality_ge[of ?t 1]
+    Pi_bernoulli_nat_pmf.bernstein_inequality_abs_ge[of ?t 1]
+    AE_Pi_bernoulli_nat_pmf_abs_bounded
+
+  moreover have
+    \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + \<delta> * (p * (real n * 2)))
+    = real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3)\<close>
+    using p assms 
+    apply (simp add: field_split_simps power2_eq_square)
+    by (smt (verit, best) landau_o.R_mult_left_mono mult_cancel_left mult_sign_intros(1) nat_le_real_less not_less of_nat_0)
+
+  ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
+    using p assms
+    by (simp_all add: field_simps)
 
   have
     \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + B * (\<delta> * (p * (real n * 2))))
@@ -186,8 +200,8 @@ proof -
     \<open>?L_le \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))\<close>
     (is \<open>_ \<le> ?R_le' B\<close>) if \<open>B > 0\<close> for B
     using
-      Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
-      lhs_eq that p assms
+      lhs_eq Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
+      that p assms
     by (simp add: field_simps)
 
   moreover have \<open>?R_le' \<midarrow>0\<rightarrow> ?R_le\<close>
@@ -205,25 +219,6 @@ proof -
     by (fastforce
       intro!: tendsto_lowerbound[of _ ?R_le \<open>at_right 0\<close>]
       simp add: filterlim_at_split)
-
-  note
-    lhs_eq
-    Pi_bernoulli_nat_pmf.bernstein_inequality_ge[of ?t 1]
-    Pi_bernoulli_nat_pmf.bernstein_inequality_abs_ge[of ?t 1]
-    AE_Pi_bernoulli_nat_pmf_abs_bounded
-
-  moreover have
-    \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + \<delta> * (p * (real n * 2)))
-    = real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3)\<close>
-    using p assms 
-    apply (simp add: field_split_simps power2_eq_square)
-    by (smt (verit, best) landau_o.R_mult_left_mono mult_cancel_left mult_sign_intros(1) nat_le_real_less not_less of_nat_0)
-
-  ultimately show
-    \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
-    using p assms 
-    apply (simp_all add: field_simps)
-    using rel_simps(51) by blast+
 qed
 
 end

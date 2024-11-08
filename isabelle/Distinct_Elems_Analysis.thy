@@ -484,17 +484,15 @@ next
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric])
 
   also have \<open>\<dots> \<le> (\<Sum> k \<le> l. ?R k)\<close>
-    proof -
-      have \<open>?L k \<le> ?R k\<close> for k
-        using binomial_distribution.chernoff_prob_abs_ge[
-          where n = \<open>card <| set xs\<close>,
-          where p = \<open>1 / 2 ^ k\<close>,
-          where \<delta> = \<epsilon>]
-        by (simp add:
-          binomial_distribution_def \<open>\<epsilon> \<ge> 0\<close> \<open>card (set xs) > 0\<close> field_simps)
+  proof -
+    have \<open>?L k \<le> ?R k\<close> for k
+      using binomial_distribution.chernoff_prob_abs_ge[
+        where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
+      by (simp add:
+        binomial_distribution_def \<open>\<epsilon> \<ge> 0\<close> \<open>card (set xs) > 0\<close> field_simps)
 
-      then show ?thesis by (auto intro: sum_mono)
-    qed
+    then show ?thesis by (auto intro: sum_mono)
+  qed
 
   finally show ?thesis .
 qed
