@@ -19,7 +19,7 @@ lemma binomial_pmf_one [simp] :
 context
   fixes
     p :: real
-  assumes p_betw_0_1 : \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
+  assumes \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
 begin
 
 lemma bernoulli_pmf_eq_bernoulli_pmfs :
@@ -33,7 +33,7 @@ proof -
   have \<open>- (p * p') = (1 - p') * p - p\<close> by argo
 
   then show ?thesis
-    using assms p_betw_0_1
+    using assms \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
     by (auto
       intro: pmf_eqI
       simp add: mult_le_one bernoulli_pmf.rep_eq pmf_bind)
@@ -49,7 +49,7 @@ proof (induction k arbitrary: I)
   case 0
   then show ?case
     by (auto simp add:
-      p_betw_0_1 Pi_pmf_singleton card_1_singleton_iff map_pmf_comp)
+      \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> Pi_pmf_singleton card_1_singleton_iff map_pmf_comp)
 next
   case (Suc k)
 
@@ -58,7 +58,7 @@ next
     by (metis card_Suc_eq_finite)
 
   moreover note
-    Suc.IH[of J] p_betw_0_1 power_le_one[of p]
+    Suc.IH[of J] \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> power_le_one[of p]
     bernoulli_pmf_eq_bernoulli_pmfs[of \<open>p ^ Suc k\<close>]
 
   ultimately show ?case
@@ -88,7 +88,7 @@ lemma bernoulli_eq_map_Pi_pmf :
         |> Pi_pmf J dflt
         |> map_pmf (Ball I))\<close>
   using
-    assms p_betw_0_1
+    assms \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
     bernoulli_eq_map_Pi_pmf_aux[of I \<open>card I - 1\<close> dflt]
     Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
   by (fastforce simp add: map_pmf_comp)

@@ -426,19 +426,33 @@ next
 qed
 
 lemma estimate_distinct_error_bound_l_binom:
+  assumes
+    \<open>\<epsilon> \<ge> 0\<close>
+    \<open>l \<le> length xs\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> foo (card (set xs)) l\<close> (is \<open>?L (\<le>) l \<le> ?R\<close>)
-proof -
+    \<le> (\<Sum> k \<le> l. 2 * exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3))))\<close>
+    (is \<open>?L (\<le>) l \<le> (\<Sum> k \<le> _. ?R k)\<close>)
+proof (cases \<open>xs = []\<close>)
+  case True
+  then show ?thesis
+    by (simp add:
+      compute_estimate_def eager_algorithm_def run_steps_from_state_def
+      initial_state_def run_reader_simps)
+next
+  case False
+  then have \<open>card (set xs) > 0\<close> using card_gt_0_iff by blast
+
+  let ?binom_mean = \<open>\<lambda> k. real (card <| set xs) / 2 ^ k\<close>
+
   (* Splits the error event for k=0, k=1,...,k=l *)
   have \<open>?L (\<le>) l \<le> (\<Sum> k \<le> l. ?L (=) k)\<close>
   proof -
     have [simp] :
       \<open>{x. f x \<le> l \<and> P x} = (
         \<Union> k \<le> l. {x. f x = k \<and> P x})\<close> for f :: \<open>'b \<Rightarrow> nat\<close> and P by auto
-
     show ?thesis
       by (auto
         intro: measure_pmf.finite_measure_subadditive_finite
@@ -449,19 +463,38 @@ proof -
   also have \<open>\<dots> \<le> (
     \<Sum> k \<le> l.
       \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg k.
-        2 ^ k * real estimate >[\<epsilon>] card (set xs)))\<close>
+        2 ^ k * real estimate >[\<epsilon>] real (card <| set xs)))\<close>
     by (auto
       intro: sum_mono pmf_mono
       simp add:
         nondet_alg_def compute_estimate_def algebra_simps
         eager_algorithm_inv[unfolded eager_state_inv_def])
 
-  (* Go into Binomial then use Chernoff *)
-  also have "... \<le>
-    sum (\<lambda>q. f (card (set xs)) q) {0..l}" sorry
+  also have \<open>\<dots> \<le> (
+    \<Sum> k \<le> l.
+      \<P>(estimate in binomial_pmf (card <| set xs) <| 1 / 2 ^ k.
+        \<bar>real estimate - ?binom_mean k\<bar> \<ge> \<epsilon> * ?binom_mean k))\<close>
+    (is \<open>_ \<le> (\<Sum> k \<le> _. ?L k)\<close>)
+    using assms
+    by (auto
+      intro!: sum_mono intro: pmf_mono
+      simp add:
+        field_simps
+        map_pmf_nondet_alg_eq_binomial[
+          where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric])
 
-  also have "... \<le>
-    foo (card (set xs)) l" sorry
+  also have \<open>\<dots> \<le> (\<Sum> k \<le> l. ?R k)\<close>
+    proof -
+      have \<open>?L k \<le> ?R k\<close> for k
+        using binomial_distribution.chernoff_prob_abs_ge[
+          where n = \<open>card <| set xs\<close>,
+          where p = \<open>1 / 2 ^ k\<close>,
+          where \<delta> = \<epsilon>]
+        by (simp add:
+          binomial_distribution_def \<open>\<epsilon> \<ge> 0\<close> \<open>card (set xs) > 0\<close> field_simps)
+
+      then show ?thesis by (auto intro: sum_mono)
+    qed
 
   finally show ?thesis .
 qed
