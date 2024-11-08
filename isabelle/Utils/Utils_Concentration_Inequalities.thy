@@ -138,52 +138,20 @@ context
   assumes \<open>n > 0\<close> and \<open>\<delta> \<ge> 0\<close>
 begin
 
-lemma aux :
-  fixes f g :: \<open>real \<Rightarrow> real\<close>
-  assumes
-    \<open>\<And> x. x > 0 \<Longrightarrow> f x \<le> g x\<close>
-    \<open>(f \<longlongrightarrow> lim_f) (at_right 0)\<close>
-    \<open>(g \<longlongrightarrow> lim_g) (at_right 0)\<close>
-  shows \<open>lim_f \<le> lim_g\<close>
-  using assms
-  by (auto
-    intro: tendsto_le[where f = g, where g = f, where F = \<open>at_right 0\<close>]
-    simp add: eventually_at_right_field gt_ex)
-
-lemma
-  fixes g :: \<open>real \<Rightarrow> real\<close>
-  assumes
-    \<open>\<And> x. x > 0 \<Longrightarrow> y \<le> g x\<close>
-    \<open>(g \<longlongrightarrow> lim_g) (at_right 0)\<close>
-  shows \<open>y \<le> lim_g\<close>
-  using assms aux by fastforce
-
-lemma
-  \<open>((\<lambda> B. exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)))
-    \<longlongrightarrow> exp (- real n * p * \<delta>\<^sup>2 / 2)) (at 0)\<close>
-proof -
-  have \<open>((\<lambda> B. 2 + 2 * B * \<delta> / 3) \<longlongrightarrow> 2) (at 0)\<close>
-  by (metis bounded_linear_mult_right group_cancel.rule0 linear_lim_0 tendsto_add_const_iff tendsto_divide_zero tendsto_mult_left_zero)
-  
-  then show ?thesis by (auto intro!: tendsto_intros)
-qed
-
 text
   \<open>Stronger form of the multiplicative Chernoff bound for the
   Binomial distribution, derived from the Bennet-Bernstein inequality.\<close>
 lemma
   assumes \<open>B > 0\<close>
   shows
+    chernoff_prob_le' :
+      \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
+      \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))\<close>
+      (is \<open>?L_le \<le> ?R_le\<close>) and
     chernoff_prob_ge :
       \<open>\<P>(x in binomial_pmf n p. real x \<ge> real n * p * (1 + \<delta>))
       \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
       (is \<open>?L_ge \<le> ?R_ge\<close>) and
-    (* TODO: Prove stronger version without the 2 * \<delta> / 3 term.
-    Idea is to show that it holds for all B > 0, and then take limit at 0. *)
-    chernoff_prob_le :
-      \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
-      \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))\<close>
-      (is \<open>?L_le \<le> ?R_le\<close>) and
     chernoff_abs_ge :
       \<open>\<P>(x in binomial_pmf n p. \<bar>real x - real n * p\<bar> \<ge> real n * p * \<delta>)
       \<le> 2 * exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
@@ -231,6 +199,29 @@ proof -
 
   ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_le \<le> ?R_le\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
     using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close> \<open>B > 0\<close> by (simp_all add: field_simps)
+qed
+
+lemma chernoff_prob_le :
+  \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
+  \<le> exp (- real n * p * \<delta>\<^sup>2 / 2)\<close> (is \<open>_ \<le> ?R\<close>)
+proof -
+  note chernoff_prob_le'
+
+  moreover have \<open>(\<lambda> B. exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))) \<midarrow>0\<rightarrow> ?R\<close>
+    using
+      bounded_linear_mult_right[of "2"]
+      tendsto_add_const_iff[of "2" "\<lambda> R. 2 * R * \<delta> / 3" "0" "at 0"]
+      linear_lim_0[of "(*) 2"] tendsto_mult_left_zero[of "(*) 2" "at 0" \<delta>]
+      tendsto_divide_zero[of "\<lambda> R. 2 * R * \<delta>" "at 0" "3"]
+    by (auto intro!: tendsto_intros)
+
+  ultimately show ?thesis
+    using
+      eventually_at_right_less[of "0"]
+      eventually_mono[of "(<) 0" "at_right 0" "\<lambda>uuc. measure_pmf.prob (binomial_pmf n p) {uuc. real uuc \<le> real n * p * (1 - \<delta>)} \<le> exp (- (real n * p * \<delta>\<^sup>2 / (2 + 2 * uuc * \<delta> / 3)))"]
+    by (fastforce
+      intro!: tendsto_lowerbound[of _ ?R \<open>at_right 0\<close>] tendsto_intros
+      simp add: filterlim_at_split)
 qed
 
 end
