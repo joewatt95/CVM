@@ -137,7 +137,7 @@ text
   Binomial distribution, derived from the Bennet-Bernstein inequality.\<close>
 
 lemma
-  assumes \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
+  assumes \<open>\<delta> \<ge> 0\<close>
   shows
     chernoff_prob_le :
       \<open>\<P>(x in binomial_pmf n p. real x \<le> real n * p * (1 - \<delta>))
@@ -154,7 +154,7 @@ lemma
 proof -
   interpret Pi_bernoulli_nat_pmf :
     benett_bernstein Pi_bernoulli_nat_pmf \<open>\<lambda> i P. real (P i)\<close> \<open>{..< n}\<close> 
-    using benett_bernstein_inequality_assms p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
+    using benett_bernstein_inequality_assms
     by (unfold_locales, auto)
 
   let ?prob = \<open>\<lambda> R.
@@ -165,7 +165,6 @@ proof -
     \<open>?L_le = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<le> -np\<delta>)\<close>
     \<open>?L_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<ge> np\<delta>)\<close>
     \<open>?L_abs_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. \<bar>sum_mean_deviation\<bar> \<ge> np\<delta>)\<close>
-    using p
     by (simp_all add:
       binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
@@ -177,31 +176,35 @@ proof -
   moreover have
     \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + \<delta> * (p * (real n * 2)))
     = real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3)\<close>
-    using p assms 
     apply (simp add: field_split_simps power2_eq_square)
-    by (smt (verit, best) landau_o.R_mult_left_mono mult_cancel_left mult_sign_intros(1) nat_le_real_less not_less of_nat_0)
+    by (metis of_nat_0_eq_iff[of n] Groups.mult_ac(3)[of "real n * (6 + \<delta> * 2)" "real n" "6 + \<delta> * 2"] Groups.mult_ac(3)[of p "real n" "real n * (6 + \<delta> * 2) * (6 + \<delta> * 2)"]
+      Groups.mult_ac(3)[of "real n * (6 + \<delta> * 2)" p "6 + \<delta> * 2"] Groups.mult_ac(3)[of "real n" "real n * (6 + \<delta> * 2)" "p * (6 + \<delta> * 2)"] Groups.mult_ac(3)[of \<delta> p "2"]
+      Groups.mult_ac(3)[of p "real n" "6"] Groups.mult_ac(3)[of "real n" \<delta> "p * 2"] Groups.mult_ac(3)[of "real n" p "2"] nat_distrib(2)[of p "6" "\<delta> * 2"]
+      nat_distrib(2)[of "real n" "p * 6" "\<delta> * (p * 2)"] mult_eq_0_iff[of "real n" "6 + \<delta> * 2"] mult_eq_0_iff[of "real n * (6 + \<delta> * 2)" "real n * (6 + \<delta> * 2)"]
+      mult_eq_0_iff[of p "real n * (real n * (6 + \<delta> * 2) * (6 + \<delta> * 2))"] mult_eq_0_iff[of "real n * (6 + \<delta> * 2)" "0"])
 
   ultimately show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
-    using p assms
-    by (simp_all add: field_simps)
+    using p assms by (simp_all add: field_simps)
 
   have
     \<open>3 * (\<delta>\<^sup>2 * (p\<^sup>2 * (real n)\<^sup>2)) / (p * (real n * 6) + B * (\<delta> * (p * (real n * 2))))
     = p * (real n * (3 * \<delta>\<^sup>2)) / (6 + B * (\<delta> * 2))\<close> for B
-    using p \<open>n > 0\<close> \<open>\<delta> \<ge> 0\<close>
     apply (simp add: field_split_simps power2_eq_square)
-    by (metis
-      dual_order.refl[of "0"] of_nat_0 not_less[of "0" n] mult.commute[of "6 + B * (\<delta> * 2)" p] mult.commute[of p "real n"]
-      mult.left_commute[of "6 + B * (\<delta> * 2)" "real n" p] mult.left_commute[of "real n" p "6 + B * (\<delta> * 2)"] mult.left_commute[of "real n" B "\<delta> * 2"]
-      mult.left_commute[of "real n" \<delta> "2"] mult.left_commute[of p B "\<delta> * (real n * 2)"] mult.left_commute[of p \<delta> "real n * 2"] nat_distrib(2)[of "real n" "6" "B * (\<delta> * 2)"]
-      nat_distrib(2)[of p "real n * 6" "B * (\<delta> * (real n * 2))"] of_nat_le_iff[of n "0"] mult_eq_0_iff[of p "real n"] mult_eq_0_iff[of "6 + B * (\<delta> * 2)" "real n * p"]) 
+    by (metis mult.commute[of "real n * p" "real n"] mult.commute[of "0" p] mult.commute[of "B * \<delta>" "real n"] mult.commute[of "B * \<delta>" p]
+      nat_distrib(2)[of "real n" "6" "B * (\<delta> * 2)"] nat_distrib(2)[of p "real n * 6" "B * (\<delta> * (real n * 2))"] of_nat_eq_0_iff[of n] mult_eq_0_iff[of "of_nat n" "of_nat n"]
+      mult_eq_0_iff[of "real n * real n" p] mult_eq_0_iff[of "real n * (p * real n)" "6 + B * (\<delta> * 2)"] mult_eq_0_iff[of "of_nat n" "0"] mult_eq_0_iff[of "0" p]
+      ab_semigroup_mult_class.mult_ac(1)[of "real n" "real n" p] ab_semigroup_mult_class.mult_ac(1)[of "real n" p "real n"]
+      ab_semigroup_mult_class.mult_ac(1)[of "real n" "p * real n" "6 + B * (\<delta> * 2)"] ab_semigroup_mult_class.mult_ac(1)[of p "real n" "6 + B * (\<delta> * 2)"]
+      ab_semigroup_mult_class.mult_ac(1)[of "real n" "B * \<delta>" "2"] ab_semigroup_mult_class.mult_ac(1)[of "B * \<delta>" "real n" "2"] ab_semigroup_mult_class.mult_ac(1)[of B \<delta> "2"]
+      ab_semigroup_mult_class.mult_ac(1)[of B \<delta> "p * (real n * 2)"] ab_semigroup_mult_class.mult_ac(1)[of p "B * \<delta>" "real n * 2"]
+      ab_semigroup_mult_class.mult_ac(1)[of "B * \<delta>" p "real n * 2"] ab_semigroup_mult_class.mult_ac(1)[of B \<delta> "real n * 2"])
 
   then have
     \<open>?L_le \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))\<close>
     (is \<open>_ \<le> ?R_le' B\<close>) if \<open>B > 0\<close> for B
     using
       lhs_eq Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
-      that p assms
+      that p \<open>\<delta> \<ge> 0\<close> 
     by (simp add: field_simps)
 
   moreover have \<open>?R_le' \<midarrow>0\<rightarrow> ?R_le\<close>

@@ -407,7 +407,9 @@ next
               using calculation \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 3\<close> by simp
 
             then show ?thesis
-              by (metis Multiseries_Expansion.intyness_simps(2,3,6) more_arith_simps(11) of_nat_0_le_iff zero_compare_simps(3))
+              by (meson semiring_norm(94)[of "num.Bit0 num.One"] semiring_norm(94)[of "num.Bit0 (num.Bit1 (num.Bit0 (num.Bit0 num.One)))"] of_nat_0_le_iff[of "n i"] zero_le_power[of "2" l]
+                mult_sign_intros(1)[of "of_nat (n i)" "2 ^ l"] mult_sign_intros(1)[of "of_nat (n i) * 2 ^ l" "18"]
+                zero_compare_simps(3)[of "real (n i) * 2 ^ l * 18" "\<alpha> i * real (n i) * 2 ^ l * 40" "\<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16"])
           qed
 
         ultimately show ?thesis
@@ -416,7 +418,7 @@ next
       qed
 
       ultimately show ?thesis
-        using binomial_distribution.chernoff_prob_ge[of p \<open>n i\<close> \<open>\<alpha> i - 1\<close>]
+        using binomial_distribution.chernoff_prob_ge[of p]
         apply (simp add: binomial_distribution_def)
         by (smt (verit, best) Collect_cong exp_le_cancel_iff mult.commute) 
     qed
@@ -435,16 +437,7 @@ lemma estimate_distinct_error_bound_l_binom:
       real (compute_estimate state) >[\<epsilon>] card (set xs))
     \<le> (\<Sum> k \<le> l. 2 * exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3))))\<close>
     (is \<open>?L (\<le>) l \<le> (\<Sum> k \<le> _. ?R k)\<close>)
-proof (cases \<open>xs = []\<close>)
-  case True
-  then show ?thesis
-    by (simp add:
-      compute_estimate_def eager_algorithm_def run_steps_from_state_def
-      initial_state_def run_reader_simps)
-next
-  case False
-  then have \<open>card (set xs) > 0\<close> using card_gt_0_iff by blast
-
+proof -
   let ?binom_mean = \<open>\<lambda> k. real (card <| set xs) / 2 ^ k\<close>
 
   (* Splits the error event for k=0, k=1,...,k=l *)
@@ -488,8 +481,7 @@ next
     have \<open>?L k \<le> ?R k\<close> for k
       using binomial_distribution.chernoff_prob_abs_ge[
         where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
-      by (simp add:
-        binomial_distribution_def \<open>\<epsilon> \<ge> 0\<close> \<open>card (set xs) > 0\<close> field_simps)
+      by (simp add: binomial_distribution_def \<open>\<epsilon> \<ge> 0\<close> field_simps)
 
     then show ?thesis by (auto intro: sum_mono)
   qed
