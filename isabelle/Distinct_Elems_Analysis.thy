@@ -10,6 +10,7 @@ imports
   CVM.Utils_Concentration_Inequalities
   CVM.Utils_Reader_Monad_Hoare
   CVM.Utils_Reader_Monad_Relational
+
 begin
 
 locale with_threshold_and_eps = with_threshold +
@@ -429,15 +430,36 @@ qed
 
 lemma estimate_distinct_error_bound_l_binom:
   assumes
-    \<open>\<epsilon> \<ge> 0\<close>
+    \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
+  defines
+    [simp] :
+      \<open>exp_term k \<equiv>
+        exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (\<Sum> k \<le> l. 2 * exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3))))\<close>
-    (is \<open>?L (\<le>) l \<le> (\<Sum> k \<le> _. ?R k)\<close>)
-proof -
+    \<le> (if xs = [] then 0 else 2 / (1 - exp_term l))\<close>
+    (is \<open>?L (\<le>) l \<le> (if _ then _ else ?R)\<close>)
+proof (cases xs)
+  case Nil
+  then show ?thesis
+    by (simp add: eager_algorithm_def run_steps_from_state_def run_reader_simps initial_state_def compute_estimate_def)
+next
+  case (Cons _ _)
+
+  then show ?thesis when
+    \<open>?L (\<le>) l \<le> ?R\<close> (is ?thesis) using that by simp
+
+  from Cons have \<open>exp_term k < 1\<close> for k
+    using \<open>\<epsilon> > 0\<close>
+    apply (simp add: field_split_simps)
+    by (metis List.finite_set numeral_neq_zero[of "num.Bit0 (num.Bit1 num.One)"] numeral_neq_zero[of "num.Bit0 num.One"] verit_comp_simplify(7)[of "num.Bit0 num.One"]
+      verit_comp_simplify(7)[of "num.Bit0 (num.Bit1 num.One)"] insertI1[of _ "set _"] finite_insert[of _ "set _"] card_gt_0_iff[of "insert _ (set _)"] empty_iff less_le[of "0" "2"] less_le[of "0" "6"]
+      less_le[of "0" "2 ^ k"] less_le[of "0" "6 * 2 ^ k"] power_not_zero[of "2" k] zero_le_power[of "2" k] mult_sign_intros(5)[of "2" "2 ^ k"] mult_sign_intros(5)[of "6" "2 ^ k"]
+      mult_sign_intros(5)[of \<epsilon> "2 * 2 ^ k"] add_strict_increasing2[of "6 * 2 ^ k" "0" "\<epsilon> * (2 * 2 ^ k)"] basic_trans_rules(20)[of "6 * 2 ^ k + \<epsilon> * (2 * 2 ^ k)" "0"])
+
   let ?binom_mean = \<open>\<lambda> k. real (card <| set xs) / 2 ^ k\<close>
 
   (* Splits the error event for k=0, k=1,...,k=l *)
@@ -476,17 +498,51 @@ proof -
         map_pmf_nondet_alg_eq_binomial[
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric])
 
-  also have \<open>\<dots> \<le> (\<Sum> k \<le> l. ?R k)\<close>
+  also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
   proof -
     have \<open>?L k \<le> ?R k\<close> for k
-      using binomial_distribution.chernoff_prob_abs_ge[
-        where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
-      by (simp add: binomial_distribution_def \<open>\<epsilon> \<ge> 0\<close> field_simps)
+      using
+        binomial_distribution.chernoff_prob_abs_ge[
+          where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
+        \<open>\<epsilon> > 0\<close> 
+      by (simp add: binomial_distribution_def field_simps)
 
     then show ?thesis by (auto intro: sum_mono)
   qed
 
-  finally show ?thesis .
+  also have
+    \<open>\<dots> = (\<Sum> k \<le> l. 2 * (exp_term l) ^ (2 ^ (l - k)))\<close>
+    (is \<open>_ = (\<Sum> k \<le> _. ?g k)\<close>)
+  proof -
+    show ?thesis when
+      \<open>\<And> k. k \<le> l \<Longrightarrow>
+      exp (- (real (card (set xs)) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))) =
+      exp (- (real (card (set xs)) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))) ^ 2 ^ (l - k)\<close>
+      (is \<open>\<And> k. _ \<Longrightarrow> ?thesis k\<close>)
+      apply (intro sum.cong)
+      apply blast
+      by (metis (no_types, lifting) assms(3) atMost_iff more_arith_simps(7) that times_divide_eq_right)
+
+    show \<open>?thesis k\<close> if \<open>k \<le> l\<close> for k
+      using \<open>\<epsilon> > 0\<close>
+      apply (simp add:
+        exp_of_nat_mult[symmetric] power_add[symmetric]
+        field_split_simps)
+      by (smt (verit, best) mult_pos_pos one_le_power ordered_cancel_comm_monoid_diff_class.add_diff_inverse that)
+  qed
+
+  also have \<open>\<dots> = 2 * (\<Sum> r \<in> (^) 2 ` {.. l}. exp_term l ^ r)\<close>
+    using sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
+    by (auto
+      intro: sum.reindex_bij_witness[of _ Discrete.log \<open>(^) 2\<close>]
+      simp add: sum_distrib_left)
+
+  also have \<open>\<dots> \<le> 2 * (1 / (1 - exp_term l))\<close>
+    using \<open>\<And> k. exp_term k < 1\<close>
+    apply (simp add: suminf_geometric[symmetric])
+    by (auto intro: sum_le_suminf)
+
+  finally show ?thesis by simp
 qed
 
 lemma estimate_distinct_error_bound:
