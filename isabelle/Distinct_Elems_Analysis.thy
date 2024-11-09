@@ -539,8 +539,7 @@ next
 
   also have \<open>\<dots> \<le> 2 * (1 / (1 - exp_term l))\<close>
     using \<open>\<And> k. exp_term k < 1\<close>
-    apply (simp add: suminf_geometric[symmetric])
-    by (auto intro: sum_le_suminf)
+    by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
 
   finally show ?thesis by simp
 qed
