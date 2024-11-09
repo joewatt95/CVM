@@ -440,7 +440,7 @@ lemma estimate_distinct_error_bound_l_binom:
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (if xs = [] then 0 else 2 / (1 - exp_term l))\<close>
+    \<le> (if xs = [] then 0 else 2 * exp_term l / (1 - exp_term l))\<close>
     (is \<open>?L (\<le>) l \<le> (if _ then _ else ?R)\<close>)
 proof (cases xs)
   case Nil
@@ -537,11 +537,43 @@ next
       intro: sum.reindex_bij_witness[of _ Discrete.log \<open>(^) 2\<close>]
       simp add: sum_distrib_left)
 
-  also have \<open>\<dots> \<le> 2 * (1 / (1 - exp_term l))\<close>
-    using \<open>\<And> k. exp_term k < 1\<close>
-    by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
+  also have \<open>\<dots> \<le> 2 * (\<Sum> r = 0 .. 2 ^ l. exp_term l ^ r)\<close>
+    by (auto intro: sum_mono2)
 
-  finally show ?thesis by simp
+  also have \<open>\<dots> \<le> 2 * (\<Sum> r \<in> {1 .. Suc (2 ^ l)}. exp_term l ^ r)\<close>
+    using
+      \<open>exp_term l < 1\<close> 
+      sum_gp_offset[
+        where x = \<open>exp_term l\<close>,
+        where m = 1,
+        where n = \<open>2 ^ l - 1\<close>]
+      sum.atLeast_Suc_atMost[
+        where m = \<open>0 :: nat\<close>, where n = \<open>2 ^ l\<close>,
+        where g = \<open>(^) <| exp_term l\<close>]
+    apply (simp del: exp_term_def add: field_simps)
+    sorry
+
+  also have \<open>\<dots> = 2 * (1 - exp_term l ^ Suc (2 ^ l)) / (1 - exp_term l)\<close>
+    using \<open>exp_term l < 1\<close>
+    sorry
+
+  also have \<open>\<dots> \<le> 2 * exp_term l / (1 - exp_term l)\<close>
+  proof -
+    have \<open>0 < exp_term l\<close> \<open>exp_term l < 1\<close> using \<open>exp_term l < 1\<close> by simp_all
+    then show ?thesis
+      apply (simp add: field_simps del: exp_term_def)
+      sorry
+  qed
+
+    (* using \<open>exp_term l < 1\<close>
+    apply (simp add:
+      exp_of_nat_mult[symmetric] power_add[symmetric] power2_eq_square
+      field_simps
+      del: exp_term_def)
+    sledgehammer[suggest_of, timeout = 100, preplay_timeout = 20]
+    sorry *)
+
+  finally show ?thesis sorry
 qed
 
 lemma estimate_distinct_error_bound:
