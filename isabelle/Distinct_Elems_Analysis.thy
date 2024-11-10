@@ -24,37 +24,7 @@ definition
   \<open>eager_algorithm_then_step_1 i xs \<equiv>
     run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i)\<close>
 
-lemma
-  \<open>state_k (run_reader (eager_algorithm xs) \<phi>) > l \<Longrightarrow>
-  \<exists> i < length xs.
-    state_k (eager_algorithm_then_step_1 i xs \<phi>) = l \<and>
-    card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) \<ge> threshold\<close>
-proof (induction xs rule: rev_induct)
-  case Nil
-  then show ?case 
-    by (simp add: eager_algorithm_def run_steps_from_state_def eager_step_def run_reader_simps initial_state_def)
-next
-  case (snoc x xs)
-
-  thm snoc
-
-  show ?case
-  proof (rule ccontr, simp add: not_le)
-    let ?state = \<open>\<lambda> i. eager_algorithm_then_step_1 i (xs @ [x]) \<phi>\<close>
-
-    assume \<open>\<forall> i.
-      state_k (?state i) = l \<longrightarrow>
-      i < Suc (length xs) \<longrightarrow>
-      card (state_chi <| ?state i) < threshold\<close>
-
-    (* then have
-      \<open>card (state_chi <| run_reader <| eager_algorithm (take i xs))\<close> *)
-
-    show False sorry
-  qed
-qed
-
-lemma contrapos_state_k_lt_l:
+(* lemma contrapos_state_k_lt_l:
   assumes "\<And> i. i < length xs \<Longrightarrow>
   (
     let st = eager_algorithm_then_step_1 i xs \<phi> in
@@ -94,6 +64,59 @@ next
 
   thus ?case
   by (auto simp add: eager_algorithm_snoc run_reader_simps stx_def[symmetric] eager_step_def sty_def[symmetric] eager_step_2_def Let_def)
+qed *)
+
+lemma exists_index_threshold_exceeded_of_k_exceeds :
+  \<open>state_k (run_reader (eager_algorithm xs) \<phi>) > l \<Longrightarrow>
+  \<exists> i < length xs.
+    state_k (eager_algorithm_then_step_1 i xs \<phi>) = l \<and>
+    card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) \<ge> threshold\<close>
+proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case 
+    by (simp add: eager_algorithm_def run_steps_from_state_def eager_step_def run_reader_simps initial_state_def)
+next
+  case (snoc x xs)
+  show ?case
+  proof (rule ccontr, simp add: not_le)
+    let ?state = \<open>\<lambda> i. eager_algorithm_then_step_1 i (xs @ [x]) \<phi>\<close>
+
+    assume assm : \<open>\<forall> i.
+      state_k (?state i) = l \<longrightarrow>
+      i < Suc (length xs) \<longrightarrow>
+      card (state_chi <| ?state i) < threshold\<close>
+
+    then have
+      \<open>card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) < threshold\<close>
+      if
+        \<open>i < length xs\<close>
+        \<open>state_k (eager_algorithm_then_step_1 i xs \<phi>) = l\<close>
+      for i
+      using that eager_step_cong[of i \<open>xs @ [x]\<close> xs]
+      apply (simp add: eager_algorithm_then_step_1_def)
+      by (metis take0 append_self_conv[of "take i xs" "[]"] less_SucI[of i "length xs"] diff_is_0_eq'[of i "length xs"] less_or_eq_imp_le[of i "length xs"])
+
+    then have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close>
+      using snoc.IH by fastforce
+
+    then have
+      \<open>state_k (eager_algorithm_then_step_1 (length xs) (xs @ [x]) \<phi>) = l\<close>
+      using snoc(2)
+      unfolding eager_algorithm_snoc
+      by (auto
+        simp add:
+          eager_algorithm_then_step_1_def
+          eager_step_def eager_step_1_def eager_step_2_def Let_def
+          run_reader_simps run_steps_from_state_def 
+        split: if_splits)
+
+    then show False
+      using assm snoc(2)
+      unfolding eager_algorithm_then_step_1_def eager_algorithm_snoc
+      by (fastforce simp add:
+        eager_algorithm_def run_steps_from_state_def
+        eager_step_def eager_step_1_def eager_step_2_def run_reader_simps)
+  qed
 qed
 
 context
@@ -131,9 +154,10 @@ next
   have \<open>?L \<le>
     \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
       \<exists> i < length xs. (
-        let st = eager_algorithm_then_step_1 i xs \<phi>
-        in state_k st = l \<and> card (state_chi st) \<ge> threshold))\<close>
-    by (simp, smt (verit, best) pmf_mono contrapos_state_k_lt_l mem_Collect_eq verit_comp_simplify1(3))
+        let state = eager_algorithm_then_step_1 i xs \<phi>
+        in state_k state = l \<and> card (state_chi state) \<ge> threshold))\<close>
+    using exists_index_threshold_exceeded_of_k_exceeds[of l xs]
+    by (auto intro: pmf_mono simp add: Let_def)
 
   (* union bound *)
   also have \<open>\<dots> \<le> (
@@ -151,7 +175,8 @@ next
     \<Sum> i < length xs.
       \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg l <<< take (Suc i).
         estimate \<ge> threshold))\<close>
-    apply (rule sum_mono, simp add: eager_algorithm_then_step_1_def nondet_alg_def)
+    apply (rule sum_mono)
+    apply (simp add: eager_algorithm_then_step_1_def nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
   also have \<open>\<dots> \<le> length xs * exp ?exponent\<close>
