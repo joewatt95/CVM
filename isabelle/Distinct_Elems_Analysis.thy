@@ -500,13 +500,14 @@ next
     fix k
     from
       binomial_distribution.chernoff_prob_abs_ge[
-        where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
+        where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>,
+        simplified binomial_distribution_def]
       \<open>\<epsilon> > 0\<close>
-    show \<open>?L k \<le> ?R k\<close> by (simp add: binomial_distribution_def field_simps)
+    show \<open>?L k \<le> ?R k\<close> by (simp add: field_simps)
   qed
 
   also have
-    \<open>\<dots> = (\<Sum> k \<le> l. 2 * (exp_term l) ^ (2 ^ (l - k)))\<close> (is \<open>_ = sum ?g _\<close>)
+    \<open>\<dots> = (\<Sum> k \<le> l. 2 * exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
     apply (rule Finite_Cartesian_Product.sum_cong_aux)
     apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
     by (smt (verit, ccfv_threshold) assms(1) mult_sign_intros(5) two_realpow_ge_one)
