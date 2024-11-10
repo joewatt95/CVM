@@ -73,8 +73,7 @@ lemma exists_index_threshold_exceeded_of_k_exceeds :
     card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) \<ge> threshold\<close>
 proof (induction xs rule: rev_induct)
   case Nil
-  then show ?case 
-    by (simp add: eager_algorithm_def run_steps_from_state_def eager_step_def run_reader_simps initial_state_def)
+  then show ?case by (simp add: eager_algo_simps eager_algorithm_def)
 next
   case (snoc x xs)
   show ?case
@@ -93,28 +92,17 @@ next
         \<open>state_k (eager_algorithm_then_step_1 i xs \<phi>) = l\<close>
       for i
       using that eager_step_cong[of i \<open>xs @ [x]\<close> xs]
-      apply (simp add: eager_algorithm_then_step_1_def)
-      by (metis take0 append_self_conv[of "take i xs" "[]"] less_SucI[of i "length xs"] diff_is_0_eq'[of i "length xs"] less_or_eq_imp_le[of i "length xs"])
+      apply (simp add: eager_algo_simps eager_algorithm_then_step_1_def)
+      by (smt (verit, best) diff_is_0_eq le_simps(2) less_SucI nth_append self_append_conv take_eq_Nil2)
 
-    then have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close>
-      using snoc.IH by fastforce
-
-    with snoc(2)
-    have \<open>state_k (eager_algorithm_then_step_1 (length xs) (xs @ [x]) \<phi>) = l\<close>
-      unfolding eager_algorithm_snoc
-      by (auto
-        simp add:
-          eager_algorithm_then_step_1_def
-          eager_step_def eager_step_1_def eager_step_2_def Let_def
-          run_reader_simps run_steps_from_state_def 
-        split: if_splits)
+    with snoc.IH
+    have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by fastforce
 
     with assm snoc(2)
     show False
-      unfolding eager_algorithm_then_step_1_def eager_algorithm_snoc
-      by (fastforce simp add:
-        eager_algorithm_def run_steps_from_state_def
-        eager_step_def eager_step_1_def eager_step_2_def run_reader_simps)
+      by (fastforce
+        simp add: eager_algo_simps eager_algorithm_then_step_1_def
+        split: if_splits)
   qed
 qed
 

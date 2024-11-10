@@ -79,6 +79,10 @@ proof -
     by (intro foldM_cong arg_cong2[where f="bind_rd"] eager_step_cong) auto
 qed
 
+lemmas eager_algo_simps =
+  eager_algorithm_snoc initial_state_def run_steps_from_state_def
+  eager_step_def eager_step_1_def eager_step_2_def Let_def run_reader_simps
+
 abbreviation "coin_pmf \<equiv> bernoulli_pmf (1/2)"
 
 context
