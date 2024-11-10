@@ -507,7 +507,7 @@ next
 
   also have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * (exp_term l) ^ (2 ^ (l - k)))\<close> (is \<open>_ = sum ?g _\<close>)
-    apply (intro Finite_Cartesian_Product.sum_cong_aux)
+    apply (rule Finite_Cartesian_Product.sum_cong_aux)
     apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
     by (smt (verit, ccfv_threshold) assms(1) mult_sign_intros(5) two_realpow_ge_one)
 
