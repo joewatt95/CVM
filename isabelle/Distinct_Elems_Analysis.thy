@@ -320,9 +320,10 @@ next
 
   also have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
-    apply (rule Finite_Cartesian_Product.sum_cong_aux)
+    apply (rule sum.cong, blast)
+    using \<open>\<epsilon> > 0\<close>
     apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
-    by (smt (verit, ccfv_threshold) assms(1) mult_sign_intros(5) two_realpow_ge_one)
+    by (smt (verit, best) mult_sign_intros(5) one_le_power)
 
   also have \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> (^) 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
     using
