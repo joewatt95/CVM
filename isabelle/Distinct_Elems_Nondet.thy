@@ -26,7 +26,7 @@ begin
 definition eager_state_inv ::
   "'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a state \<Rightarrow> bool" where
   "eager_state_inv xs \<phi> state \<equiv>
-    (state_chi state = nondet_alg_aux (state_k state) xs \<phi>)"
+    state_chi state = nondet_alg_aux (state_k state) xs \<phi>"
 
 lemma eager_step_1_inv :
   assumes
@@ -69,8 +69,7 @@ lemma eager_step_inv:
   by (metis assms eager_step_1_inv eager_step_2_inv eager_step_def run_reader_simps(3))
 
 lemma eager_algorithm_inv:
-  shows "eager_state_inv xs \<phi>
-      (run_eager_algorithm xs \<phi>)"
+  "eager_state_inv xs \<phi> (run_eager_algorithm xs \<phi>)"
 proof (induction xs rule: rev_induct)
   case Nil
   then show ?case

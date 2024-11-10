@@ -145,16 +145,18 @@ next
   thus ?thesis by simp
 qed
 
-lemma find_last_before_self_eq:
-  assumes "i < length xs"
-  shows "find_last_before i (xs ! i) xs = i"
+context
+  fixes i xs
+  assumes \<open>i < length xs\<close>
+begin
+
+lemma find_last_before_self_eq :
+  \<open>find_last_before i (xs ! i) xs = i\<close>
   unfolding find_last_before_def find_last_def Let_def
-  using assms by auto
+  using \<open>i < length xs\<close> by auto
 
 lemma find_last_before_eq_find_last_iff :
-  assumes
-    \<open>i < length xs\<close>
-    \<open>x \<in> set (take i xs)\<close>
+  assumes \<open>x \<in> set (take i xs)\<close>
   shows
     \<open>find_last_before i x xs = find_last x (take i xs)
     \<longleftrightarrow> x \<noteq> xs ! i\<close>
@@ -163,10 +165,12 @@ proof -
   have ?L if ?R
     using assms that
     apply (simp add: find_last_before_def find_last_eq_Max) 
-    by (smt (verit, ccfv_SIG) Collect_cong in_set_takeD in_set_take_conv_nth le_eq_less_or_eq less_Suc_eq nat_neq_iff nth_take take_all_iff)
+    by (smt (verit, ccfv_SIG) Collect_cong in_set_takeD in_set_take_conv_nth le_eq_less_or_eq less_Suc_eq linorder_neqE_nat nth_take take_all_iff)
 
   then show ?thesis
-    by (metis assms find_last_before_self_eq find_last_correct_1(2) length_take less_irrefl_nat min.absorb4)
+    using assms find_last_before_self_eq find_last_correct_1(2) by fastforce 
 qed
+
+end
 
 end

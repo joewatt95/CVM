@@ -30,7 +30,7 @@ proof -
     proof -
       have
         \<open>map_pmf ?go =
-          map_pmf (\<lambda> f. {x \<in> set xs. \<forall>k' < k. f x k'}) \<circ>
+          map_pmf (\<lambda> f. {x \<in> set xs. \<forall> k' < k. f x k'}) \<circ>
           map_pmf (\<lambda> f. \<lambda> i \<in> set xs. f (find_last i xs))\<close>
         using assms
         by (auto
