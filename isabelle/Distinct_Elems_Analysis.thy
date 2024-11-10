@@ -512,7 +512,7 @@ next
 
   also have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * (exp_term l) ^ (2 ^ (l - k)))\<close>
-    (is \<open>_ = (\<Sum> k \<le> _. ?g k)\<close>)
+    (is \<open>_ = sum ?g _\<close>)
   proof -
     show ?thesis when
       \<open>\<And> k. k \<le> l \<Longrightarrow>
@@ -526,54 +526,34 @@ next
     show \<open>?thesis k\<close> if \<open>k \<le> l\<close> for k
       using \<open>\<epsilon> > 0\<close>
       apply (simp add:
-        exp_of_nat_mult[symmetric] power_add[symmetric]
-        field_split_simps)
+        exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
       by (smt (verit, best) mult_pos_pos one_le_power ordered_cancel_comm_monoid_diff_class.add_diff_inverse that)
   qed
 
-  also have \<open>\<dots> = 2 * (\<Sum> r \<in> (^) 2 ` {.. l}. exp_term l ^ r)\<close>
-    using sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
+  also have \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> (^) 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
+    using
+      sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
+      power_add[of "exp_term l" "1" "2 ^ _ - 1"]
     by (auto
       intro: sum.reindex_bij_witness[of _ Discrete.log \<open>(^) 2\<close>]
       simp add: sum_distrib_left)
 
-  also have \<open>\<dots> \<le> 2 * (\<Sum> r = 0 .. 2 ^ l. exp_term l ^ r)\<close>
-    by (auto intro: sum_mono2)
-
-  also have \<open>\<dots> \<le> 2 * (\<Sum> r \<in> {1 .. Suc (2 ^ l)}. exp_term l ^ r)\<close>
+  also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
+    apply simp
+    apply (intro sum_le_included[where i = Suc])
+    apply simp_all
     using
-      \<open>exp_term l < 1\<close> 
-      sum_gp_offset[
-        where x = \<open>exp_term l\<close>,
-        where m = 1,
-        where n = \<open>2 ^ l - 1\<close>]
-      sum.atLeast_Suc_atMost[
-        where m = \<open>0 :: nat\<close>, where n = \<open>2 ^ l\<close>,
-        where g = \<open>(^) <| exp_term l\<close>]
-    apply (simp del: exp_term_def add: field_simps)
-    sorry
+      verit_comp_simplify(5)[of "num.Bit0 num.One"] pos2 atLeast0AtMost[of "2 ^ l - Suc 0"] zero_less_power[of "2"] Suc_pred[of "2 ^ _"]
+      diff_le_mono[of "2 ^ _" "2 ^ l" "Suc 0"] power_increasing[of _ l "2"]
+    by blast
 
-  also have \<open>\<dots> = 2 * (1 - exp_term l ^ Suc (2 ^ l)) / (1 - exp_term l)\<close>
-    using \<open>exp_term l < 1\<close>
-    sorry
+  also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>
+    using \<open>exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
+    by (auto
+      intro: sum_le_suminf 
+      simp add: suminf_geometric[symmetric])
 
-  also have \<open>\<dots> \<le> 2 * exp_term l / (1 - exp_term l)\<close>
-  proof -
-    have \<open>0 < exp_term l\<close> \<open>exp_term l < 1\<close> using \<open>exp_term l < 1\<close> by simp_all
-    then show ?thesis
-      apply (simp add: field_simps del: exp_term_def)
-      sorry
-  qed
-
-    (* using \<open>exp_term l < 1\<close>
-    apply (simp add:
-      exp_of_nat_mult[symmetric] power_add[symmetric] power2_eq_square
-      field_simps
-      del: exp_term_def)
-    sledgehammer[suggest_of, timeout = 100, preplay_timeout = 20]
-    sorry *)
-
-  finally show ?thesis sorry
+  finally show ?thesis by simp
 qed
 
 lemma estimate_distinct_error_bound:
