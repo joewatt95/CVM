@@ -440,8 +440,8 @@ lemma estimate_distinct_error_bound_l_binom:
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (if xs = [] then 0 else 2 * exp_term l / (1 - exp_term l))\<close>
-    (is \<open>?L (\<le>) l \<le> (if _ then _ else ?R)\<close>)
+    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 * exp_term l / (1 - exp_term l))\<close>
+    (is \<open>?L (\<le>) l \<le> _\<close>)
 proof (cases xs)
   case Nil
   then show ?thesis
@@ -449,10 +449,7 @@ proof (cases xs)
 next
   case (Cons _ _)
 
-  then show ?thesis when
-    \<open>?L (\<le>) l \<le> ?R\<close> (is ?thesis) using that by simp
-
-  from Cons have \<open>exp_term k < 1\<close> for k
+  then have \<open>exp_term k < 1\<close> for k
     using \<open>\<epsilon> > 0\<close>
     apply (simp add: field_split_simps)
     by (metis List.finite_set numeral_neq_zero[of "num.Bit0 (num.Bit1 num.One)"] numeral_neq_zero[of "num.Bit0 num.One"] verit_comp_simplify(7)[of "num.Bit0 num.One"]
@@ -494,41 +491,25 @@ next
     by (auto
       intro!: sum_mono intro: pmf_mono
       simp add:
-        field_simps
         map_pmf_nondet_alg_eq_binomial[
-          where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric])
+          where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
+        field_simps)
 
   also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
-  proof -
-    have \<open>?L k \<le> ?R k\<close> for k
-      using
-        binomial_distribution.chernoff_prob_abs_ge[
-          where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
-        \<open>\<epsilon> > 0\<close> 
-      by (simp add: binomial_distribution_def field_simps)
-
-    then show ?thesis by (auto intro: sum_mono)
+  proof (rule sum_mono)
+    fix k
+    from
+      binomial_distribution.chernoff_prob_abs_ge[
+        where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>]
+      \<open>\<epsilon> > 0\<close>
+    show \<open>?L k \<le> ?R k\<close> by (simp add: binomial_distribution_def field_simps)
   qed
 
   also have
-    \<open>\<dots> = (\<Sum> k \<le> l. 2 * (exp_term l) ^ (2 ^ (l - k)))\<close>
-    (is \<open>_ = sum ?g _\<close>)
-  proof -
-    show ?thesis when
-      \<open>\<And> k. k \<le> l \<Longrightarrow>
-      exp (- (real (card (set xs)) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))) =
-      exp (- (real (card (set xs)) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))) ^ 2 ^ (l - k)\<close>
-      (is \<open>\<And> k. _ \<Longrightarrow> ?thesis k\<close>)
-      apply (intro sum.cong)
-      apply blast
-      by (metis (no_types, lifting) assms(3) atMost_iff more_arith_simps(7) that times_divide_eq_right)
-
-    show \<open>?thesis k\<close> if \<open>k \<le> l\<close> for k
-      using \<open>\<epsilon> > 0\<close>
-      apply (simp add:
-        exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
-      by (smt (verit, best) mult_pos_pos one_le_power ordered_cancel_comm_monoid_diff_class.add_diff_inverse that)
-  qed
+    \<open>\<dots> = (\<Sum> k \<le> l. 2 * (exp_term l) ^ (2 ^ (l - k)))\<close> (is \<open>_ = sum ?g _\<close>)
+    apply (intro Finite_Cartesian_Product.sum_cong_aux)
+    apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
+    by (smt (verit, ccfv_threshold) assms(1) mult_sign_intros(5) two_realpow_ge_one)
 
   also have \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> (^) 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
     using
@@ -539,21 +520,17 @@ next
       simp add: sum_distrib_left)
 
   also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
-    apply simp
-    apply (intro sum_le_included[where i = Suc])
-    apply simp_all
     using
-      verit_comp_simplify(5)[of "num.Bit0 num.One"] pos2 atLeast0AtMost[of "2 ^ l - Suc 0"] zero_less_power[of "2"] Suc_pred[of "2 ^ _"]
-      diff_le_mono[of "2 ^ _" "2 ^ l" "Suc 0"] power_increasing[of _ l "2"]
-    by blast
+      semiring_norm(92)[of "num.Bit0 num.One"] pos2 zero_less_power[of "2"]
+      Suc_pred[of "2 ^ _"] diff_le_mono[of "2 ^ _" "2 ^ l" "Suc 0"]
+      power_increasing[of _ l "2"]
+    by (force intro: sum_le_included[where i = Suc]) 
 
   also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>
     using \<open>exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
-    by (auto
-      intro: sum_le_suminf 
-      simp add: suminf_geometric[symmetric])
+    by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
 
-  finally show ?thesis by simp
+  finally show ?thesis by (simp add: Cons) 
 qed
 
 lemma estimate_distinct_error_bound:
