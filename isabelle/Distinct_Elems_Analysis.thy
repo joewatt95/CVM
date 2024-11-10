@@ -99,9 +99,8 @@ next
     then have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close>
       using snoc.IH by fastforce
 
-    then have
-      \<open>state_k (eager_algorithm_then_step_1 (length xs) (xs @ [x]) \<phi>) = l\<close>
-      using snoc(2)
+    with snoc(2)
+    have \<open>state_k (eager_algorithm_then_step_1 (length xs) (xs @ [x]) \<phi>) = l\<close>
       unfolding eager_algorithm_snoc
       by (auto
         simp add:
@@ -110,8 +109,8 @@ next
           run_reader_simps run_steps_from_state_def 
         split: if_splits)
 
-    then show False
-      using assm snoc(2)
+    with assm snoc(2)
+    show False
       unfolding eager_algorithm_then_step_1_def eager_algorithm_snoc
       by (fastforce simp add:
         eager_algorithm_def run_steps_from_state_def
@@ -139,8 +138,8 @@ lemma estimate_distinct_error_bound_fail_2:
     (is \<open>?L \<le> _ * exp ?exponent\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
-  moreover note eager_algorithm_k_bounded
-  ultimately have \<open>?L = 0\<close>
+  with eager_algorithm_k_bounded
+  have \<open>?L = 0\<close>
     apply (simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
     using order_trans_rules(20,21) by blast
   then show ?thesis by simp
@@ -179,62 +178,66 @@ next
     apply (simp add: eager_algorithm_then_step_1_def nondet_alg_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
-  also have \<open>\<dots> \<le> length xs * exp ?exponent\<close>
-  proof -
-    define p :: real and n \<mu> \<alpha> where
-      [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
-      \<open>n \<equiv> \<lambda> i. card (set <| take (Suc i) xs)\<close> and
-      [simp] : \<open>\<mu> \<equiv> \<lambda> i. n i * p\<close> and
-      \<open>\<alpha> \<equiv> \<lambda> i. threshold / \<mu> i\<close>
-
-    show ?thesis when \<open>\<And> i.
-      \<P>(estimate in binomial_pmf (n i) p. real estimate \<ge> threshold)
-      \<le> exp ?exponent\<close>
-      (is \<open>\<And> i. ?thesis i\<close>)
-      using that
-      by (auto
-        intro: real_sum_nat_ivl_bounded2[where k = 0, simplified]
-        simp add: n_def \<open>l \<le> length xs\<close> map_pmf_nondet_alg_eq_binomial)
-
-    show \<open>?thesis i\<close> for i
+  also have \<open>\<dots> = (
+    \<Sum> i < length xs.
+      \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) (1 / 2 ^ l).
+        real estimate \<ge> threshold))\<close>
+    (is \<open>_ = sum ?prob _\<close>)
+    by (auto
+      intro: sum.cong
+      simp add:
+        map_pmf_nondet_alg_eq_binomial[
+          where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
+        \<open>l \<le> length xs\<close>)
+  
+  also have \<open>\<dots> \<le> (\<Sum> i < length xs. exp ?exponent)\<close>
+  proof (rule sum_mono, simp only: lessThan_iff)
+    fix i assume \<open>i < length xs\<close>
+    show \<open>?prob i \<le> exp ?exponent\<close>
     proof (cases xs)
       case Nil
       then show ?thesis
-        by (simp add: n_def binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_from_state_def run_reader_simps initial_state_def)
+        by (simp add: binomial_pmf_0 threshold_pos eager_algorithm_def run_steps_from_state_def run_reader_simps initial_state_def)
     next
+      define p :: real and n \<mu> \<alpha> where
+        [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
+        \<open>n \<equiv> card (set <| take (Suc i) xs)\<close> and
+        [simp] : \<open>\<mu> \<equiv> n * p\<close> and
+        \<open>\<alpha> \<equiv> threshold / \<mu>\<close>
+
       case (Cons _ _)
-      then have \<open>n i \<ge> 1\<close> by (simp add: leI n_def)
+      then have \<open>n \<ge> 1\<close> by (simp add: leI n_def)
 
       moreover have
-        \<open>\<alpha> i \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> i * \<mu> i\<close>
+        \<open>\<alpha> \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
         using
-          \<open>n i \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
+          \<open>n \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
           card_set_take_le_card_set[of \<open>Suc i\<close> xs]
           of_nat_le_iff[of "3 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
         by (auto simp add: \<alpha>_def n_def field_simps)
 
       moreover have
-        \<open>- (real (n i) * (\<alpha> i - 1)\<^sup>2 / (2 ^ l * (2 + (2 * \<alpha> i - 2) / 3)))
+        \<open>- (real n * (\<alpha> - 1)\<^sup>2 / (2 ^ l * (2 + (2 * \<alpha> - 2) / 3)))
         \<le> ?exponent\<close>
       proof -
-        have \<open>4 * 2 ^ l + \<alpha> i * 2 * 2 ^ l > 0\<close>
+        have \<open>4 * 2 ^ l + \<alpha> * 2 * 2 ^ l > 0\<close>
           by (smt (verit, ccfv_threshold) calculation(2) mult_sign_intros(1) two_realpow_ge_one)
 
         moreover have
-          \<open>\<alpha> i * real (n i) * 2 ^ l * 40
-          \<le> real (n i) * 2 ^ l * 18 + \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
+          \<open>\<alpha> * real n * 2 ^ l * 40
+          \<le> real n * 2 ^ l * 18 + \<alpha> * \<alpha> * real n * 2 ^ l * 16\<close>
           proof -
-            have \<open>\<alpha> i * real (n i) * 2 ^ l * 40 \<le> \<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16\<close>
-              using calculation \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 3\<close> by simp
+            have \<open>\<alpha> * real n * 2 ^ l * 40 \<le> \<alpha> * \<alpha> * real n * 2 ^ l * 16\<close>
+              using calculation \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close> by simp
 
             then show ?thesis
-              by (meson semiring_norm(94)[of "num.Bit0 num.One"] semiring_norm(94)[of "num.Bit0 (num.Bit1 (num.Bit0 (num.Bit0 num.One)))"] of_nat_0_le_iff[of "n i"] zero_le_power[of "2" l]
-                mult_sign_intros(1)[of "of_nat (n i)" "2 ^ l"] mult_sign_intros(1)[of "of_nat (n i) * 2 ^ l" "18"]
-                zero_compare_simps(3)[of "real (n i) * 2 ^ l * 18" "\<alpha> i * real (n i) * 2 ^ l * 40" "\<alpha> i * \<alpha> i * real (n i) * 2 ^ l * 16"])
+              by (meson semiring_norm(94)[of "num.Bit0 num.One"] semiring_norm(94)[of "num.Bit0 (num.Bit1 (num.Bit0 (num.Bit0 num.One)))"] of_nat_0_le_iff[of "n"] zero_le_power[of "2" l]
+                mult_sign_intros(1)[of "of_nat n" "2 ^ l"] mult_sign_intros(1)[of "of_nat n * 2 ^ l" "18"]
+                zero_compare_simps(3)[of "real n * 2 ^ l * 18" "\<alpha> * real n * 2 ^ l * 40" "\<alpha> * \<alpha> * real n * 2 ^ l * 16"])
           qed
 
         ultimately show ?thesis
-          using \<open>n i \<ge> 1\<close> \<open>\<alpha> i \<ge> 3\<close>
+          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
           by (auto simp add: field_split_simps power2_eq_square)
       qed
 
@@ -242,11 +245,11 @@ next
         using binomial_distribution.chernoff_prob_ge[
           of p, simplified binomial_distribution_def]
         apply simp
-        by (smt (verit, best) Collect_cong exp_le_cancel_iff mult.commute) 
+        by (smt (verit, ccfv_SIG) Collect_cong Groups.mult_ac(2) exp_le_cancel_iff n_def) 
     qed
   qed
 
-  finally show ?thesis .
+  finally show ?thesis by simp
 qed
 
 lemma estimate_distinct_error_bound_l_binom:

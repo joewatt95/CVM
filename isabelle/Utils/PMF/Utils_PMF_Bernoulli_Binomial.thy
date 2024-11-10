@@ -57,11 +57,10 @@ next
     \<open>finite J\<close> \<open>card J = Suc k\<close> \<open>I = insert x J\<close> \<open>x \<notin> J\<close>
     by (metis card_Suc_eq_finite)
 
-  moreover note
+  with
     Suc.IH[of J] \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> power_le_one[of p]
     bernoulli_pmf_eq_bernoulli_pmfs[of \<open>p ^ Suc k\<close>]
-
-  ultimately show ?case
+  show ?case
     by (fastforce
       intro: bind_pmf_cong
       simp add: Pi_pmf_insert' map_bind_pmf bind_map_pmf)
