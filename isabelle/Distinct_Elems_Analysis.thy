@@ -440,7 +440,7 @@ lemma estimate_distinct_error_bound_l_binom:
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 * exp_term l / (1 - exp_term l))\<close>
+    \<le> (xs |> case_list 0 \<lblot>\<lblot>2 * exp_term l / (1 - exp_term l)\<rblot>\<rblot>)\<close>
     (is \<open>?L (\<le>) l \<le> _\<close>)
 proof (cases xs)
   case Nil
