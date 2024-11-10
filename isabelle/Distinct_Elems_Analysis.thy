@@ -24,6 +24,36 @@ definition
   \<open>eager_algorithm_then_step_1 i xs \<equiv>
     run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i)\<close>
 
+lemma
+  \<open>state_k (run_reader (eager_algorithm xs) \<phi>) > l \<Longrightarrow>
+  \<exists> i < length xs.
+    state_k (eager_algorithm_then_step_1 i xs \<phi>) = l \<and>
+    card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) \<ge> threshold\<close>
+proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case 
+    by (simp add: eager_algorithm_def run_steps_from_state_def eager_step_def run_reader_simps initial_state_def)
+next
+  case (snoc x xs)
+
+  thm snoc
+
+  show ?case
+  proof (rule ccontr, simp add: not_le)
+    let ?state = \<open>\<lambda> i. eager_algorithm_then_step_1 i (xs @ [x]) \<phi>\<close>
+
+    assume \<open>\<forall> i.
+      state_k (?state i) = l \<longrightarrow>
+      i < Suc (length xs) \<longrightarrow>
+      card (state_chi <| ?state i) < threshold\<close>
+
+    (* then have
+      \<open>card (state_chi <| run_reader <| eager_algorithm (take i xs))\<close> *)
+
+    show False sorry
+  qed
+qed
+
 lemma contrapos_state_k_lt_l:
   assumes "\<And> i. i < length xs \<Longrightarrow>
   (
