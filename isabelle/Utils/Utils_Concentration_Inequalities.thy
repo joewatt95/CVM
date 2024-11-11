@@ -169,7 +169,7 @@ proof -
     \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (real n * p) + 2 * (real n * p * \<delta> * B) / 3)
     = real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)\<close> for B
     apply (simp add: field_split_simps power_numeral_reduce)
-    (* Sledgehammer can only reconstruct an efficient proof of this when using
+    (* Joe: Sledgehammer can only reconstruct an efficient proof of this when using
     the `suggest_of` option to instantiate universally quantified parameters.
     Note that this option is only available in the dev version, and not in the
     2024 release. *)

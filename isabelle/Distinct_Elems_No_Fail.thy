@@ -87,17 +87,8 @@ proof -
     1. card chi = threshold
     2. The subset of chi defined with keep_in_chi is still the same size as chi
       itself.
-
-    This is marked as an intro pattern, ie a derived introduction rule, to
-    assist classical sequent calculi based proof search procedures like auto to
-    prove that not filtering anything out of chi is equivalent to sampling a
-    keep_in_chi that is True everywhere on chi.
-    The forward direction can be difficult for such procedures, as this
-    involves reasoning about set and subset cardinalities.
-    Note that we also use intro! instead of just intro, because we want to
-    override other more general intro patterns, like function extensionality.
   *)
-  have [intro!] :
+  have [intro] :
     \<open>keep_in_chi = (\<lambda> _ \<in> chi. True)\<close>
     if
       \<open>keep_in_chi \<in> chi \<rightarrow>\<^sub>E UNIV\<close>
@@ -114,7 +105,7 @@ proof -
   then show ?thesis
     using assms
     by (auto
-      intro: map_pmf_cong
+      intro!: map_pmf_cong
       simp add: set_prod_pmf Let_def Set.filter_def map_pmf_def[symmetric])
 qed
 
@@ -125,27 +116,21 @@ proof -
   let ?chi = \<open>state_chi state\<close>
   let ?chi' = \<open>insert x ?chi\<close>
 
-  have \<open>card (Set.remove x ?chi) < threshold\<close>
-    by (metis assms card_Diff1_less card_Diff_singleton_if dual_order.strict_trans remove_def well_formed_state_def) 
+  have
+    \<open>card (Set.remove x ?chi) < threshold\<close>
+    \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
+    using
+      assms
+      Diff_insert0[of x "state_chi state" "{}"]
+      insert_absorb[of x "state_chi state"]
+    by (fastforce simp add: well_formed_state_def Let_def Set.remove_def)+
 
-  moreover have \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
-    by (metis Suc_leI assms card.insert insert_absorb le_neq_implies_less nat_neq_iff well_formed_state_def)
-
-  (* This inequality arises because assuming that |chi| = threshold - 1,
-    LHS = probability of failure at iteration i
-        = (prob of sampling H (and hence inserting x into chi)
-            with probability 1 / 2 ^ k)
-          * (prob of not throwing anything away in chi afterwards) *)
-  moreover have
-    \<open>((1 :: real) / 2) ^ threshold / 2 ^ k \<le> 1 / 2 ^ threshold\<close> for threshold k
-    by (metis div_by_1 frac_le dual_order.order_iff_strict half_gt_zero_iff power_one_over two_realpow_ge_one verit_comp_simplify(28) zero_less_power)
-
-  ultimately show ?thesis
+  then show ?thesis
     using assms
     apply (simp add: step_def well_formed_state_def Let_def)
     by (simp add:
       spmf_bind_filter_chi_eq_map prob_fail_def pmf_prod_pmf
-      pmf_bind pmf_map measure_pmf_single vimage_def)
+      pmf_bind pmf_map measure_pmf_single vimage_def field_simps)
 qed
 
 lemma prob_fail_estimate_size_le :

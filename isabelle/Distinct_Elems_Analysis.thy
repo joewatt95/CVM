@@ -211,27 +211,9 @@ next
       moreover have
         \<open>- (real n * (\<alpha> - 1)\<^sup>2 / (2 ^ l * (2 + (2 * \<alpha> - 2) / 3)))
         \<le> ?exponent\<close>
-      proof -
-        have \<open>4 * 2 ^ l + \<alpha> * 2 * 2 ^ l > 0\<close>
-          by (smt (verit, ccfv_threshold) calculation(2) mult_sign_intros(1) two_realpow_ge_one)
-
-        moreover have
-          \<open>\<alpha> * real n * 2 ^ l * 40
-          \<le> real n * 2 ^ l * 18 + \<alpha> * \<alpha> * real n * 2 ^ l * 16\<close>
-          proof -
-            have \<open>\<alpha> * real n * 2 ^ l * 40 \<le> \<alpha> * \<alpha> * real n * 2 ^ l * 16\<close>
-              using calculation \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close> by simp
-
-            then show ?thesis
-              by (meson semiring_norm(94)[of "num.Bit0 num.One"] semiring_norm(94)[of "num.Bit0 (num.Bit1 (num.Bit0 (num.Bit0 num.One)))"] of_nat_0_le_iff[of "n"] zero_le_power[of "2" l]
-                mult_sign_intros(1)[of "of_nat n" "2 ^ l"] mult_sign_intros(1)[of "of_nat n * 2 ^ l" "18"]
-                zero_compare_simps(3)[of "real n * 2 ^ l * 18" "\<alpha> * real n * 2 ^ l * 40" "\<alpha> * \<alpha> * real n * 2 ^ l * 16"])
-          qed
-
-        ultimately show ?thesis
-          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
-          by (auto simp add: field_simps power_numeral_reduce)
-      qed
+        using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
+        apply (simp add: field_split_simps power_numeral_reduce add_increasing)
+        by (smt (verit, ccfv_threshold) mult_sign_intros(1) two_realpow_ge_one)
 
       ultimately show ?thesis
         using binomial_distribution.chernoff_prob_ge[
@@ -267,11 +249,7 @@ next
 
   then have \<open>exp_term k < 1\<close> for k
     using \<open>\<epsilon> > 0\<close>
-    apply (simp add: field_split_simps)
-    by (metis List.finite_set numeral_neq_zero[of "num.Bit0 (num.Bit1 num.One)"] numeral_neq_zero[of "num.Bit0 num.One"] verit_comp_simplify(7)[of "num.Bit0 num.One"]
-      verit_comp_simplify(7)[of "num.Bit0 (num.Bit1 num.One)"] insertI1[of _ "set _"] finite_insert[of _ "set _"] card_gt_0_iff[of "insert _ (set _)"] empty_iff less_le[of "0" "2"] less_le[of "0" "6"]
-      less_le[of "0" "2 ^ k"] less_le[of "0" "6 * 2 ^ k"] power_not_zero[of "2" k] zero_le_power[of "2" k] mult_sign_intros(5)[of "2" "2 ^ k"] mult_sign_intros(5)[of "6" "2 ^ k"]
-      mult_sign_intros(5)[of \<epsilon> "2 * 2 ^ k"] add_strict_increasing2[of "6 * 2 ^ k" "0" "\<epsilon> * (2 * 2 ^ k)"] basic_trans_rules(20)[of "6 * 2 ^ k + \<epsilon> * (2 * 2 ^ k)" "0"])
+    by (simp add: field_split_simps add_strict_increasing2 card_gt_0_iff)
 
   let ?binom_mean = \<open>\<lambda> k. real (card <| set xs) / 2 ^ k\<close>
 
