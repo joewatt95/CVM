@@ -383,11 +383,11 @@ proof -
       run_steps_from_state_def eager_step_def eager_step_1_def Let_def
       eager_step_2_def map_rd_def
     by (auto
-        intro!:
-          Utils_Reader_Monad_Hoare.seq'[where Q = \<open>state_k_bounded i\<close>]
-          Utils_Reader_Monad_Hoare.if_then_else
-          Utils_Reader_Monad_Hoare.postcond_true
-        intro: Utils_Reader_Monad_Hoare.seq')
+      intro!:
+        Utils_Reader_Monad_Hoare.seq'[where Q = \<open>state_k_bounded i\<close>]
+        Utils_Reader_Monad_Hoare.if_then_else
+        Utils_Reader_Monad_Hoare.postcond_true
+      intro: Utils_Reader_Monad_Hoare.seq')
 
     with Utils_Reader_Monad_Hoare.loop[
       where offset = 0, where xs = \<open>[0 ..< length xs]\<close>]
