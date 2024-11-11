@@ -82,14 +82,14 @@ next
 qed
 
 (* We may want to further rephrase the RHS *)
-lemma nondet_measureD :
+(* lemma nondet_measureD :
   assumes \<open>\<And> \<phi>. eager_state_inv xs \<phi> (run_reader (f xs) \<phi>)\<close>
   shows
     \<open>\<P>(state in map_pmf (run_reader <| f xs) p.
       state_k state = k \<and> P (state_chi state))
     \<le> \<P>(chi in map_pmf (nondet_alg_aux k xs) p. P chi)\<close>
   apply simp 
-  by (metis (mono_tags, lifting) assms eager_state_inv_def mem_Collect_eq pmf_mono)
+  by (metis (mono_tags, lifting) assms eager_state_inv_def mem_Collect_eq pmf_mono) *)
 
 end
 

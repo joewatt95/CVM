@@ -164,9 +164,9 @@ next
   also have \<open>\<dots> \<le> (
     \<Sum> i < length xs.
       \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg l <<< take (Suc i).
-        estimate \<ge> threshold))\<close>
+        real estimate \<ge> threshold))\<close>
     apply (rule sum_mono)
-    apply (simp add: eager_algorithm_then_step_1_def nondet_alg_def)
+    apply (simp add: eager_algorithm_then_step_1_def nondet_alg_def Let_def)
     by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
   also have \<open>\<dots> = (
@@ -180,7 +180,7 @@ next
         map_pmf_nondet_alg_eq_binomial[
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
         \<open>l \<le> length xs\<close>)
-  
+
   also have \<open>\<dots> \<le> (\<Sum> i < length xs. exp ?exponent)\<close>
   proof (rule sum_mono, simp only: lessThan_iff)
     fix i assume \<open>i < length xs\<close>
