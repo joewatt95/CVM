@@ -253,7 +253,7 @@ next
 
   let ?binom_mean = \<open>\<lambda> k. real (card <| set xs) / 2 ^ k\<close>
 
-  (* Splits the error event for k=0, k=1,...,k=l *)
+  text \<open>Apply subadditivity.\<close>
   have \<open>?L (\<le>) l \<le> (\<Sum> k \<le> l. ?L (=) k)\<close>
   proof -
     have [simp] :
@@ -265,7 +265,7 @@ next
         simp add: vimage_def) 
   qed
 
-  (* Now we go into nondeterministic *)
+  text \<open>Transform to nondeterministic algorithm.\<close>
   also have \<open>\<dots> \<le> (
     \<Sum> k \<le> l.
       \<P>(estimate in run_with_bernoulli_matrix <| nondet_alg k.
@@ -276,6 +276,7 @@ next
         nondet_alg_def compute_estimate_def algebra_simps
         eager_algorithm_inv[unfolded eager_state_inv_def])
 
+  text \<open>Transform to binomial distribution and weaken > to >=.\<close>
   also have \<open>\<dots> \<le> (
     \<Sum> k \<le> l.
       \<P>(estimate in binomial_pmf (card <| set xs) <| 1 / 2 ^ k.
@@ -289,6 +290,7 @@ next
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
         field_simps)
 
+  text \<open>Apply strong Chernoff bound to each term.\<close>
   also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
   proof (rule sum_mono)
     fix k
@@ -300,6 +302,7 @@ next
     show \<open>?L k \<le> ?R k\<close> by (simp add: field_simps)
   qed
 
+  text \<open>Shuffle stuff around in preparation to bound via geometric series.\<close>
   also have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
     apply (rule sum.cong, blast)
@@ -307,6 +310,14 @@ next
     apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
     by (smt (verit, best) mult_sign_intros(5) one_le_power)
 
+  text
+    \<open>This is the tricky bit. We do the following:
+    1. Reverse the summation from `l --> 0`, to `0 --> l`
+    2. Reindex the sum to be taken over exponents `r` of the form `2 ^ k`
+       instead of being over all `k`.
+    3. Pull out a factor of `exp_term l` from each term.
+       This last part is important to get a tight bound when bounding via a
+       geometric series later on.\<close>
   also have
     \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
     using
@@ -316,6 +327,9 @@ next
       intro: sum.reindex_bij_witness[of _ Discrete.log \<open>power 2\<close>]
       simp add: sum_distrib_left)
 
+  text
+    \<open>upper bound by a partial geometric series, taken over all r \<in> nat
+    up to `2 ^ l`.\<close>
   also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
     using
       semiring_norm(92)[of "num.Bit0 num.One"] pos2 zero_less_power[of "2"]
@@ -323,6 +337,7 @@ next
       power_increasing[of _ l "2"]
     by (force intro: sum_le_included[where i = Suc]) 
 
+  text \<open>upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>
     using \<open>exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
     by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
