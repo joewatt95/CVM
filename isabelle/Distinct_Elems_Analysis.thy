@@ -307,12 +307,13 @@ next
     apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
     by (smt (verit, best) mult_sign_intros(5) one_le_power)
 
-  also have \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> (^) 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
+  also have
+    \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
     using
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
       power_add[of "exp_term l" "1" "2 ^ _ - 1"]
     by (auto
-      intro: sum.reindex_bij_witness[of _ Discrete.log \<open>(^) 2\<close>]
+      intro: sum.reindex_bij_witness[of _ Discrete.log \<open>power 2\<close>]
       simp add: sum_distrib_left)
 
   also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
