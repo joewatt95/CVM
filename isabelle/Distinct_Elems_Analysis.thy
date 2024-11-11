@@ -106,7 +106,7 @@ next
 
     with ih have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by blast
 
-    with assm snoc.prems show False by fastforce 
+    with assm snoc.prems show False by auto
   qed
 qed
 
@@ -324,7 +324,7 @@ next
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
       power_add[of "exp_term l" "1" "2 ^ _ - 1"]
     by (auto
-      intro: sum.reindex_bij_witness[of _ Discrete.log \<open>power 2\<close>]
+      intro!: sum.reindex_bij_witness[of _ Discrete.log \<open>power 2\<close>]
       simp add: sum_distrib_left)
 
   text
@@ -335,7 +335,7 @@ next
       semiring_norm(92)[of "num.Bit0 num.One"] pos2 zero_less_power[of "2"]
       Suc_pred[of "2 ^ _"] diff_le_mono[of "2 ^ _" "2 ^ l" "Suc 0"]
       power_increasing[of _ l "2"]
-    by (force intro: sum_le_included[where i = Suc]) 
+    by (force intro!: sum_le_included[where i = Suc]) 
 
   text \<open>upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>

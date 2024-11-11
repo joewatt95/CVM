@@ -196,12 +196,12 @@ proof -
     by simp
 
   moreover have \<open>?R_le' \<midarrow>0\<rightarrow> ?R_le\<close>
+    apply (intro tendsto_intros)
     using
       bounded_linear_mult_right[of "2"]
       tendsto_add_const_iff[of "2" "\<lambda> R. 2 * R * \<delta> / 3" "0" "at 0"]
       linear_lim_0[of "(*) 2"] tendsto_mult_left_zero[of "(*) 2" "at 0" \<delta>]
       tendsto_divide_zero[of "\<lambda> R. 2 * R * \<delta>" "at 0" "3"]
-    apply (intro tendsto_intros)
     by auto
 
   ultimately show \<open>?L_le \<le> ?R_le\<close>
