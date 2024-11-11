@@ -376,7 +376,7 @@ proof -
   moreover show ?thesis_1
   proof -
     have \<open>\<turnstile>rd
-      \<lbrakk>(\<lambda> \<phi> state. i < length xs \<and> state_k state \<le> i)\<rbrakk>
+      \<lbrakk>(\<lambda> \<phi> state. i < length xs \<and> state_k_bounded i \<phi> state)\<rbrakk>
       eager_step xs x
       \<lbrakk>state_k_bounded (Suc i)\<rbrakk>\<close> for i x
     unfolding
