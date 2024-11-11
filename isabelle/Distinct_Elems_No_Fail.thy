@@ -47,7 +47,7 @@ lemma initial_state_well_formed :
   using threshold_pos by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
-  \<open>\<turnstile> \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
+  \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
   unfolding step_def bind_spmf_of_pmf[symmetric] Let_def
   by (fastforce
     intro: seq' hoare_tripleI

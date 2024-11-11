@@ -207,7 +207,7 @@ proof -
   ultimately show \<open>?L_le \<le> ?R_le\<close>
     using
       eventually_at_right_less[of "0"]
-      eventually_mono[of "(<) 0" "at_right 0" "\<lambda>uuc. measure_pmf.prob (binomial_pmf n p) {uuc. real uuc \<le> real n * p * (1 - \<delta>)} \<le> exp (- (real n * p * \<delta>\<^sup>2 / (2 + 2 * uuc * \<delta> / 3)))"]
+      eventually_mono[of "(<) 0" "at_right 0" "\<lambda> uuc. measure_pmf.prob (binomial_pmf n p) {uuc. real uuc \<le> real n * p * (1 - \<delta>)} \<le> exp (- (real n * p * \<delta>\<^sup>2 / (2 + 2 * uuc * \<delta> / 3)))"]
     by (fastforce
       intro!: tendsto_lowerbound[of _ ?R_le \<open>at_right 0\<close>]
       simp add: filterlim_at_split)
