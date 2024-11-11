@@ -90,7 +90,6 @@ next
   show ?case
   proof (rule ccontr, simp add: not_le)
     note [simp] = eager_algo_simps eager_algorithm_then_step_1_def
-    note [split] = if_splits
 
     assume assm : \<open>?P (xs @ [x]) <| Suc <| length xs\<close>
 
@@ -101,12 +100,10 @@ next
         \<open>state_k (eager_algorithm_then_step_1 i xs \<phi>) = l\<close>
       for i
       using that
-      apply simp
+      apply (simp split: if_splits)
       by (metis less_Suc_eq nth_append)
 
-    with ih have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by blast
-
-    with assm snoc.prems show False by auto
+    with ih assm snoc.prems show False by (auto split!: if_splits)
   qed
 qed
 
