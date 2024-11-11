@@ -161,7 +161,7 @@ proof -
 
   have lhs_eq :
     \<open>?L_le = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<le> -np\<delta>)\<close>
-    \<open>?L_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<ge> np\<delta>)\<close>
+    \<open>?L_ge = ?prob (\<ge>)\<close>
     \<open>?L_abs_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. \<bar>sum_mean_deviation\<bar> \<ge> np\<delta>)\<close>
     by (simp_all add: binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
