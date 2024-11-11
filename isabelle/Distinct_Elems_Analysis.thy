@@ -75,15 +75,23 @@ proof (induction xs rule: rev_induct)
   case Nil
   then show ?case by (simp add: eager_algo_simps eager_algorithm_def)
 next
+  let ?P = \<open>\<lambda> xs length.
+    \<forall> i.
+      state_k (eager_algorithm_then_step_1 i xs \<phi>) = l \<longrightarrow>
+      i < length \<longrightarrow>
+      card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) < threshold\<close>
+
   case (snoc x xs)
+  then have ih :
+    \<open>?P xs (length xs) \<Longrightarrow> state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close>
+    using not_le by blast
+
   show ?case
   proof (rule ccontr, simp add: not_le)
-    let ?state = \<open>\<lambda> i. eager_algorithm_then_step_1 i (xs @ [x]) \<phi>\<close>
+    note [simp] = eager_algo_simps eager_algorithm_then_step_1_def
+    note [split] = if_splits
 
-    assume assm : \<open>\<forall> i.
-      state_k (?state i) = l \<longrightarrow>
-      i < Suc (length xs) \<longrightarrow>
-      card (state_chi <| ?state i) < threshold\<close>
+    assume assm : \<open>?P (xs @ [x]) <| Suc <| length xs\<close>
 
     then have
       \<open>card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) < threshold\<close>
@@ -91,18 +99,13 @@ next
         \<open>i < length xs\<close>
         \<open>state_k (eager_algorithm_then_step_1 i xs \<phi>) = l\<close>
       for i
-      using that eager_step_cong[of i \<open>xs @ [x]\<close> xs]
-      apply (simp add: eager_algo_simps eager_algorithm_then_step_1_def)
-      by (smt (verit, best) diff_is_0_eq le_simps(2) less_SucI nth_append self_append_conv take_eq_Nil2)
+      using that
+      apply simp
+      by (metis less_Suc_eq[of i "length xs"] nth_append_left[of i xs "[x]"])
 
-    with snoc.IH
-    have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by fastforce
+    with ih have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by blast
 
-    with assm snoc(2)
-    show False
-      by (fastforce
-        simp add: eager_algo_simps eager_algorithm_then_step_1_def
-        split: if_splits)
+    with assm snoc(2) show False by fastforce 
   qed
 qed
 
@@ -226,7 +229,7 @@ next
 
         ultimately show ?thesis
           using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
-          by (auto simp add: field_split_simps power2_eq_square)
+          by (auto simp add: field_simps power_numeral_reduce)
       qed
 
       ultimately show ?thesis

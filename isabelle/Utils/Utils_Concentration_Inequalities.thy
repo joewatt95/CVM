@@ -168,7 +168,11 @@ proof -
   have arithmetic_aux :
     \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (real n * p) + 2 * (real n * p * \<delta> * B) / 3)
     = real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)\<close> for B
-    apply (simp add: field_split_simps power2_eq_square)
+    apply (simp add: field_split_simps power_numeral_reduce)
+    (* Sledgehammer can only reconstruct an efficient proof of this when using
+    the `suggest_of` option to instantiate universally quantified parameters.
+    Note that this option is only available in the dev version, and not in the
+    2024 release. *)
     by (metis of_nat_0_eq_iff[of n] Groups.mult_ac(2)[of "6 + B * (\<delta> + \<delta>)" p] Groups.mult_ac(2)[of p "real n"] mult_2_right[of \<delta>] mult_2_right[of "of_nat n"]
       Groups.mult_ac(3)[of "6 + B * (\<delta> + \<delta>)" "real n" p] Groups.mult_ac(3)[of "real n" p "6 + B * (\<delta> + \<delta>)"] Groups.mult_ac(3)[of B "real n" "\<delta> * 2"]
       Groups.mult_ac(3)[of \<delta> "real n" "2"] Groups.mult_ac(3)[of "B * \<delta>" p "real n + real n"] nat_distrib(2)[of "real n" "6" "B * (\<delta> * 2)"]
@@ -197,7 +201,8 @@ proof -
       tendsto_add_const_iff[of "2" "\<lambda> R. 2 * R * \<delta> / 3" "0" "at 0"]
       linear_lim_0[of "(*) 2"] tendsto_mult_left_zero[of "(*) 2" "at 0" \<delta>]
       tendsto_divide_zero[of "\<lambda> R. 2 * R * \<delta>" "at 0" "3"]
-    by (intro tendsto_intros, auto)
+    apply (intro tendsto_intros)
+    by auto
 
   ultimately show \<open>?L_le \<le> ?R_le\<close>
     using
