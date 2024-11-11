@@ -101,7 +101,7 @@ next
         \<open>state_k (eager_algorithm_then_step_1 i xs \<phi>) = l\<close>
       for i
       using that
-      apply (simp add: nth_append_left)
+      apply simp
       by (metis less_Suc_eq nth_append)
 
     with ih have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by blast
