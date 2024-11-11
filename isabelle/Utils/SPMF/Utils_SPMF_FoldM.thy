@@ -38,8 +38,8 @@ lemma pmf_foldM_spmf_nil :
   by simp
 
 lemma pmf_foldM_spmf_cons :
-  \<open>pmf (foldM_spmf f (x # xs) acc) a
-  = \<integral> acc'. (
+  \<open>pmf (foldM_spmf f (x # xs) acc) a =
+    \<integral> acc'. (
       case acc' of
         None \<Rightarrow> pmf fail_spmf a |
         Some acc' \<Rightarrow> pmf (foldM_spmf f xs acc') a)

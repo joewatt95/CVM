@@ -66,42 +66,42 @@ lemma prob_fail_eq_of_rel_spmf :
 
 definition relational_hoare_triple ::
   \<open>['a \<Rightarrow> 'b \<Rightarrow> bool, 'a \<Rightarrow> 'c spmf, 'b \<Rightarrow> 'd spmf, 'c \<Rightarrow> 'd \<Rightarrow> bool] \<Rightarrow> bool\<close>
-  (\<open>\<turnstile> \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
-  \<open>(\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> \<forall> x x'. R x x' \<longrightarrow> rel_spmf S (f x) (f' x')\<close>
+  (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
+  \<open>(\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> \<forall> x x'. R x x' \<longrightarrow> rel_spmf S (f x) (f' x')\<close>
 
 lemma precond_strengthen :
   assumes
     \<open>\<And> x x'. R x x' \<Longrightarrow> R' x x'\<close>
-    \<open>\<turnstile> \<lbrace>R'\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>R'\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) relational_hoare_triple_def)
 
 lemma precond_false :
-  \<open>\<turnstile> \<lbrace>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+  \<open>\<turnstile>spmf \<lbrace>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (simp add: relational_hoare_triple_def)
 
 lemma postcond_weaken :
   assumes
     \<open>\<And> x x'. S' x x' \<Longrightarrow> S x x'\<close>
-    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S'\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S'\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def)
 
 lemma skip [simp] :
-  \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
+  \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
   by (simp add: relational_hoare_triple_def) 
 
 lemma skip' [simp] :
-  \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
+  \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
 
 lemma seq :
   assumes
-    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-    \<open>\<turnstile> \<lbrace>S\<rbrace> \<langle>g | g'\<rangle> \<lbrace>T\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(f >=> g) | (f' >=> g')\<rangle> \<lbrace>T\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>S\<rbrace> \<langle>g | g'\<rangle> \<lbrace>T\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(f >=> g) | (f' >=> g')\<rangle> \<lbrace>T\<rbrace>\<close>
   using assms
   by (auto
     intro!: rel_spmf_bindI
@@ -109,9 +109,9 @@ lemma seq :
 
 lemma seq' :
   assumes
-    \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-    \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile> \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
+    \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile>spmf \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
   using assms
   by (auto
     intro!: rel_spmf_bindI
@@ -131,11 +131,13 @@ abbreviation (input)
   \<open>R' index val val' \<equiv> index < offset + length xs \<and> R index val val'\<close>
 
 lemma loop_enumerate :
-  \<open>(\<And> index x. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrace>R (Suc index)\<rbrace>)
-    \<Longrightarrow> \<turnstile> \<lbrace>R offset\<rbrace>
-        \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
-        \<lbrace>R (offset + length xs)\<rbrace>\<close>
-proof (induction xs arbitrary: offset)
+  assumes
+    \<open>\<And> index x. \<turnstile>spmf \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf
+    \<lbrace>R offset\<rbrace>
+    \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
+    \<lbrace>R (offset + length xs)\<rbrace>\<close>
+using assms proof (induction xs arbitrary: offset)
   case Nil
   then show ?case by (simp add: foldM_enumerate_def)
 next
@@ -149,11 +151,11 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x. \<turnstile> \<lbrace>R' index\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
-  shows
-    \<open>\<turnstile> \<lbrace>R offset\<rbrace>
-      \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
-      \<lbrace>R (offset + length xs)\<rbrace>\<close>
+  assumes \<open>\<And> index x. \<turnstile>spmf \<lbrace>R' index\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf
+    \<lbrace>R offset\<rbrace>
+    \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
+    \<lbrace>R (offset + length xs)\<rbrace>\<close>
   using assms
   by (auto
     intro: loop_enumerate
@@ -162,8 +164,8 @@ lemma loop :
 end
 
 lemma loop_unindexed :
-  assumes \<open>\<And> x. \<turnstile> \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
-  shows \<open>\<turnstile> \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
+  assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
 

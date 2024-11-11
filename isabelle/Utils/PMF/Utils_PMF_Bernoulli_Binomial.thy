@@ -40,12 +40,13 @@ proof -
 qed
 
 lemma bernoulli_eq_map_Pi_pmf_aux : 
-  \<open>card I = Suc k \<Longrightarrow>
-  bernoulli_pmf (p ^ Suc k) = (
-    \<lblot>bernoulli_pmf p\<rblot>
-      |> Pi_pmf I dflt
-      |> map_pmf (Ball I))\<close>
-proof (induction k arbitrary: I)
+  assumes \<open>card I = Suc k\<close>
+  shows
+    \<open>bernoulli_pmf (p ^ Suc k) = (
+      \<lblot>bernoulli_pmf p\<rblot>
+        |> Pi_pmf I dflt
+        |> map_pmf (Ball I))\<close>
+using assms proof (induction k arbitrary: I)
   case 0
   then show ?case
     by (auto simp add:

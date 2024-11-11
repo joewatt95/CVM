@@ -67,11 +67,12 @@ next
 qed *)
 
 lemma exists_index_threshold_exceeded_of_k_exceeds :
-  \<open>state_k (run_reader (eager_algorithm xs) \<phi>) > l \<Longrightarrow>
-  \<exists> i < length xs.
-    state_k (eager_algorithm_then_step_1 i xs \<phi>) = l \<and>
-    card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) \<ge> threshold\<close>
-proof (induction xs rule: rev_induct)
+  assumes \<open>state_k (run_reader (eager_algorithm xs) \<phi>) > l\<close>
+  shows
+    \<open>\<exists> i < length xs.
+      state_k (eager_algorithm_then_step_1 i xs \<phi>) = l \<and>
+      card (state_chi <| eager_algorithm_then_step_1 i xs \<phi>) \<ge> threshold\<close>
+using assms proof (induction xs rule: rev_induct)
   case Nil
   then show ?case by (simp add: eager_algo_simps eager_algorithm_def)
 next
@@ -105,7 +106,7 @@ next
 
     with ih have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by blast
 
-    with assm snoc(2) show False by fastforce 
+    with assm snoc.prems show False by fastforce 
   qed
 qed
 

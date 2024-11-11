@@ -125,11 +125,13 @@ abbreviation (input)
   \<open>R' index \<phi> val \<phi>' val' \<equiv> index < offset + length xs \<and> R index \<phi> val \<phi>' val'\<close>
 
 lemma loop_enumerate :
-  \<open>(\<And> index x. \<turnstile>rd \<lbrakk>R' index\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>) \<Longrightarrow>
-  \<turnstile>rd \<lbrakk>R offset\<rbrakk>
-      \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
-      \<lbrakk>R (offset + length xs)\<rbrakk>\<close>
-proof (induction xs arbitrary: offset)
+  assumes
+    \<open>\<And> index x. \<turnstile>rd \<lbrakk>R' index\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd
+    \<lbrakk>R offset\<rbrakk>
+    \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
+    \<lbrakk>R (offset + length xs)\<rbrakk>\<close>
+using assms proof (induction xs arbitrary: offset)
   case Nil
   then show ?case by (simp add: foldM_enumerate_def)
 next
