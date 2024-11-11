@@ -359,7 +359,6 @@ next
 qed
 
 lemma
-  fixes xs
   defines [simp] : \<open>state_k_bounded \<equiv> \<lambda> i \<phi> state. state_k state \<le> i\<close>
   shows 
     initial_state_k_bounded :
