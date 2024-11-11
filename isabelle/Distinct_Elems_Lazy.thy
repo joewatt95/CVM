@@ -104,9 +104,7 @@ next
     "\<omega>1 \<in> set_pmf (lazy_algorithm xs)"
     "\<omega>2 \<in> set_pmf (lazy_step_1 (xs@[x]) ?n \<omega>1)"
     "\<omega> \<in> set_pmf (lazy_step_2 (xs@[x]) ?n \<omega>2)"
-    using snoc
-    unfolding lazy_algorithm_snoc lazy_step_def
-    sorry
+    using snoc by (auto simp add: lazy_algorithm_snoc lazy_step_def)
 
   have "state_chi \<omega>1 \<subseteq> set xs" using snoc \<omega>(1) by simp
   moreover have "state_chi \<omega>2 \<subseteq> insert x (state_chi \<omega>1)"
