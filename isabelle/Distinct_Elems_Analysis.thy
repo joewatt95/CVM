@@ -226,24 +226,24 @@ lemma estimate_distinct_error_bound_l_binom:
   assumes
     \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
-  defines
-    [simp] :
-      \<open>exp_term k \<equiv>
-        exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close>
+    (* \<open>2 ^ l * threshold \<le> 3 * (card <| set xs)\<close> *)
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (xs |> case_list 0 \<lblot>\<lblot>2 * exp_term l / (1 - exp_term l)\<rblot>\<rblot>)\<close>
+    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow>
+        2 / (exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3))) - 1))\<close>
     (is \<open>?L (\<le>) l \<le> _\<close>)
 proof (cases xs)
   case Nil
   then show ?thesis
     by (simp add: eager_algorithm_def run_steps_from_state_def run_reader_simps initial_state_def compute_estimate_def)
 next
-  case (Cons _ _)
+  let ?exp_term = \<open>\<lambda> k.
+    exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close>
 
-  then have \<open>exp_term k < 1\<close> for k
+  case (Cons _ _)
+  then have \<open>?exp_term k < 1\<close> for k
     using \<open>\<epsilon> > 0\<close>
     by (simp add: field_split_simps add_strict_increasing2 card_gt_0_iff)
 
@@ -287,7 +287,7 @@ next
         field_simps)
 
   text \<open>Apply Chernoff bound to each term.\<close>
-  also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
+  also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * ?exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
   proof (rule sum_mono)
     fix k
     from
@@ -305,7 +305,7 @@ next
     Note that `exp_term l < 1` and that this is important for obtaining a tight
     bound later on.\<close>
   also have
-    \<open>\<dots> = (\<Sum> k \<le> l. 2 * exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
+    \<open>\<dots> = (\<Sum> k \<le> l. 2 * ?exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
     apply (rule sum.cong[OF refl])
     using \<open>\<epsilon> > 0\<close>
     apply (simp add:
@@ -319,10 +319,10 @@ next
        instead of being over all `k`.
     3. Pull out a factor of `2 * exp_term l` from each term.\<close>
   also have
-    \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
+    \<open>\<dots> = 2 * ?exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. ?exp_term l ^ (r - 1))\<close>
     using
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
-      power_add[of "exp_term l" "1" "2 ^ _ - 1"]
+      power_add[of "?exp_term l" "1" "2 ^ _ - 1"]
     by (auto
       intro!: sum.reindex_bij_witness[of _ Discrete.log \<open>power 2\<close>]
       simp add: sum_distrib_left)
@@ -330,16 +330,16 @@ next
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
     up to `2 ^ l`.\<close>
-  also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
+  also have \<open>\<dots> \<le> 2 * ?exp_term l * (\<Sum> r \<le> 2 ^ l - 1. ?exp_term l ^ r)\<close>
     using diff_le_mono[of "2 ^ _" "2 ^ l" 1]
     by (force intro!: sum_le_included[where i = Suc])
 
   text \<open>Upper bound by infinite geometric series.\<close>
-  also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>
-    using \<open>exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
+  also have \<open>\<dots> \<le> 2 * ?exp_term l * (1 / (1 - ?exp_term l))\<close>
+    using \<open>?exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
     by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
 
-  finally show ?thesis by (simp add: Cons) 
+  finally show ?thesis by (simp add: Cons exp_minus' algebra_simps)
 qed
 
 lemma estimate_distinct_error_bound:
