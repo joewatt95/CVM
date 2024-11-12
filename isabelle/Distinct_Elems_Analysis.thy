@@ -2,6 +2,8 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
+  "HOL-Decision_Procs.Approximation"
+  "HOL-Library.Sum_of_Squares"
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
   CVM.Distinct_Elems_Eager
@@ -126,7 +128,7 @@ lemma estimate_distinct_error_bound_fail_2:
     \<open>\<P>(state in
       run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
       state_k state > l)
-    \<le> real (length xs) * exp (- real threshold / 6)\<close>
+    \<le> real (length xs) * exp (- 4 * real threshold / 11)\<close>
     (is \<open>?L \<le> _ * ?exp_term\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
@@ -184,7 +186,8 @@ next
 
   also have \<open>\<dots> \<le> real (length xs) * ?exp_term\<close>
   proof (rule sum_bounded_above[where A = \<open>{..< length xs}\<close>, simplified card_lessThan])
-    fix i show \<open>?prob i \<le> ?exp_term\<close>
+    fix i
+    show \<open>?prob i \<le> ?exp_term\<close>
     proof (cases xs)
       case Nil
       then show ?thesis
@@ -192,28 +195,38 @@ next
     next
       define p :: real and n \<mu> \<alpha> where
         [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
-        [simp] : \<open>n \<equiv> card (set <| take (Suc i) xs)\<close> and
+        \<open>n \<equiv> card (set <| take (Suc i) xs)\<close> and
         [simp] : \<open>\<mu> \<equiv> n * p\<close> and
         \<open>\<alpha> \<equiv> threshold / \<mu>\<close>
 
       case (Cons _ _)
-      then have \<open>n \<ge> 1\<close> by (simp add: leI)
+      then have \<open>n \<ge> 1\<close> by (simp add: n_def leI)
       then have \<open>\<alpha> \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
         using
           \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
           card_set_take_le_card_set[of \<open>Suc i\<close> xs]
           of_nat_le_iff[of "3 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
-        by (auto simp add: \<alpha>_def field_simps)
+        by (auto simp add: \<alpha>_def n_def field_simps)
 
       with binomial_distribution.chernoff_prob_ge[
         of p \<open>\<alpha> - 1\<close>, simplified binomial_distribution_def]
       have \<open>?prob i \<le> exp (- real n * p * (\<alpha> - 1)\<^sup>2 / (2 + 2 * (\<alpha> - 1) / 3))\<close>
-        by (simp add: algebra_simps)
+        by (simp add: n_def algebra_simps)
 
       also have \<open>\<dots> \<le> ?exp_term\<close>
-        using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
-        apply (simp add: field_split_simps power_numeral_reduce add_increasing)
-        by (smt (verit, ccfv_threshold) mult_sign_intros(1) two_realpow_ge_one)
+      proof -
+        show ?thesis
+          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
+          apply (auto simp add: field_split_simps power_numeral_reduce add_increasing less_le_not_le)
+
+          subgoal
+           sorry
+
+          by (smt (verit) zero_compare_simps(4))
+      qed
+        (* using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
+        apply (auto simp add: Cons field_split_simps power_numeral_reduce add_increasing less_le_not_le) *)
+        (* by (smt (verit, ccfv_threshold) mult_sign_intros(1) two_realpow_ge_one) *)
 
       finally show ?thesis .
     qed
