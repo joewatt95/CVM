@@ -346,7 +346,7 @@ next
 
   also have \<open>\<dots> \<le> ?exp_bound\<close>
   proof -
-    have [intro] : \<open>a + b \<le> c + d\<close> if \<open>a \<le> d\<close> \<open>b \<le> c\<close> for a b c d :: real
+    have [intro!] : \<open>a + b \<le> c + d\<close> if \<open>a \<le> d\<close> \<open>b \<le> c\<close> for a b c d :: real
       using that by simp
 
     with \<open>2 ^ l * threshold \<le> 3 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
