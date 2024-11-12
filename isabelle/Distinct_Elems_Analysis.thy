@@ -227,12 +227,13 @@ lemma estimate_distinct_error_bound_l_binom:
     \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
     (* \<open>2 ^ l * threshold \<le> 3 * (card <| set xs)\<close> *)
+  defines [simp] :
+    \<open>exp_term \<equiv> exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow>
-        2 / (exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3))) - 1))\<close>
+    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp_term - 1))\<close>
     (is \<open>?L (\<le>) l \<le> _\<close>)
 proof (cases xs)
   case Nil
