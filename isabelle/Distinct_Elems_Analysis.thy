@@ -121,7 +121,7 @@ abbreviation
 lemma estimate_distinct_error_bound_fail_2:
   assumes
     (* This says that l \<ge> log2 (3F_0 / threshold) *)
-    \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
+    \<open>2 ^ l * threshold \<ge> 3 * card (set xs)\<close>
   shows
     \<open>\<P>(state in
       run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
@@ -226,19 +226,13 @@ lemma estimate_distinct_error_bound_l_binom:
   assumes
     \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
-    \<open>2 ^ l * real threshold = 3 * (card <| set xs)\<close>
-  (* defines
-    [simp] :
-      \<open>exp_term \<equiv> exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))\<close> *)
-  defines
-    [simp] :
-      \<open>exp_term \<equiv> exp (\<epsilon>\<^sup>2 * threshold / (6 + 2 * \<epsilon>))\<close>
+    \<open>2 ^ l * threshold \<le> 3 * card (set xs)\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp_term - 1))\<close>
-    (is \<open>?L (\<le>) l \<le> _\<close>)
+    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp (\<epsilon>\<^sup>2 * threshold / (6 + 2 * \<epsilon>)) - 1))\<close>
+    (is \<open>?L (\<le>) l \<le> (case _ of [] \<Rightarrow> _ | _ \<Rightarrow> ?exp_bound)\<close>)
 proof (cases xs)
   case Nil
   then show ?thesis
@@ -344,12 +338,22 @@ next
     using \<open>?exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
     by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
 
-  also have \<open>\<dots> = 2 / (exp_term - 1)\<close>
-    using \<open>2 ^ l * real threshold = 3 * (card <| set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
-    apply (simp add: Cons exp_minus' power_numeral_reduce field_split_simps)
-    (* apply (smt (verit, best) nat_distrib(2) right_diff_distrib') *)
-    (* sledgehammer[suggest_of, timeout = 100, preplay_timeout = 20] *)
-    sorry
+  (* also have \<open>\<dots> =
+    2 / (
+      exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))
+      - 1)\<close>
+    by (simp add: exp_minus' field_simps) *)
+
+  also have \<open>\<dots> \<le> ?exp_bound\<close>
+  proof -
+    have [intro!] : \<open>a + b \<le> c + d\<close> if \<open>a \<le> d\<close> \<open>b \<le> c\<close> for a b c d :: real
+      using that by simp
+
+    with \<open>2 ^ l * threshold \<le> 3 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
+    show ?thesis
+      using of_nat_le_iff[of "threshold * 2 ^ l" "3 * card (set xs)"]
+      by (auto simp add: exp_minus' field_split_simps)
+  qed
 
   finally show ?thesis by (simp add: Cons)
 qed
