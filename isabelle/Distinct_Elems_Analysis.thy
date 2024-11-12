@@ -226,9 +226,13 @@ lemma estimate_distinct_error_bound_l_binom:
   assumes
     \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
-    (* \<open>2 ^ l * threshold \<le> 3 * (card <| set xs)\<close> *)
-  defines [simp] :
-    \<open>exp_term \<equiv> exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))\<close>
+    \<open>2 ^ l * real threshold = 3 * (card <| set xs)\<close>
+  (* defines
+    [simp] :
+      \<open>exp_term \<equiv> exp (real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ l * (2 + 2 * \<epsilon> / 3)))\<close> *)
+  defines
+    [simp] :
+      \<open>exp_term \<equiv> exp (\<epsilon>\<^sup>2 * threshold / (6 + 2 * \<epsilon>))\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
@@ -340,7 +344,14 @@ next
     using \<open>?exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
     by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
 
-  finally show ?thesis by (simp add: Cons exp_minus' algebra_simps)
+  also have \<open>\<dots> = 2 / (exp_term - 1)\<close>
+    using \<open>2 ^ l * real threshold = 3 * (card <| set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
+    apply (simp add: Cons exp_minus' power_numeral_reduce field_split_simps)
+    (* apply (smt (verit, best) nat_distrib(2) right_diff_distrib') *)
+    (* sledgehammer[suggest_of, timeout = 100, preplay_timeout = 20] *)
+    sorry
+
+  finally show ?thesis by (simp add: Cons)
 qed
 
 lemma estimate_distinct_error_bound:
