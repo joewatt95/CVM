@@ -92,8 +92,8 @@ lemma integrable_Pi_bernoulli_nat_pmf_square :
   shows \<open>integrable Pi_bernoulli_nat_pmf <| \<lambda> P. real ((P i)\<^sup>2)\<close>
   using assms
   by (auto
-      intro: integrable_Pi_pmf_slice
-      simp add: integrable_measure_pmf_finite)
+    intro: integrable_Pi_pmf_slice
+    simp add: integrable_measure_pmf_finite)
 
 lemma indep_vars_Pi_bernoulli_nat_pmf :
   \<open>prob_space.indep_vars

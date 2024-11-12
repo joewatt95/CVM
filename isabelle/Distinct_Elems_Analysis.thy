@@ -90,6 +90,7 @@ next
   show ?case
   proof (rule ccontr, simp add: not_le)
     note [simp] = eager_algo_simps eager_algorithm_then_step_1_def
+    note [split] = if_splits
 
     assume assm : \<open>?P (xs @ [x]) <| Suc <| length xs\<close>
 
@@ -100,10 +101,12 @@ next
         \<open>state_k (eager_algorithm_then_step_1 i xs \<phi>) = l\<close>
       for i
       using that
-      apply (simp split: if_splits)
+      apply simp
       by (metis less_Suc_eq nth_append)
 
-    with ih assm snoc.prems show False by (auto split!: if_splits)
+    with ih have \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close> by blast
+
+    with assm snoc.prems show False by auto
   qed
 qed
 
@@ -124,7 +127,7 @@ lemma estimate_distinct_error_bound_fail_2:
       run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
       state_k state > l)
     \<le> real (length xs) * exp (- real threshold / 6)\<close>
-    (is \<open>?L \<le> _ * exp ?exponent\<close>)
+    (is \<open>?L \<le> _ * ?exp_term\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
   with eager_algorithm_k_bounded
@@ -179,10 +182,10 @@ next
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
         \<open>l \<le> length xs\<close>)
 
-  also have \<open>\<dots> \<le> (\<Sum> i < length xs. exp ?exponent)\<close>
-  proof (rule sum_mono, simp only: lessThan_iff)
-    fix i assume \<open>i < length xs\<close>
-    show \<open>?prob i \<le> exp ?exponent\<close>
+  also have \<open>\<dots> \<le> (\<Sum> i < length xs. ?exp_term)\<close>
+  proof (rule sum_mono)
+    fix i
+    show \<open>?prob i \<le> ?exp_term\<close>
     proof (cases xs)
       case Nil
       then show ?thesis
@@ -190,33 +193,30 @@ next
     next
       define p :: real and n \<mu> \<alpha> where
         [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
-        \<open>n \<equiv> card (set <| take (Suc i) xs)\<close> and
+        [simp] : \<open>n \<equiv> card (set <| take (Suc i) xs)\<close> and
         [simp] : \<open>\<mu> \<equiv> n * p\<close> and
         \<open>\<alpha> \<equiv> threshold / \<mu>\<close>
 
       case (Cons _ _)
-      then have \<open>n \<ge> 1\<close> by (simp add: leI n_def)
-
-      moreover have
-        \<open>\<alpha> \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
+      then have \<open>n \<ge> 1\<close> by (simp add: leI)
+      then have \<open>\<alpha> \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
         using
-          \<open>n \<ge> 1\<close> \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
+          \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
           card_set_take_le_card_set[of \<open>Suc i\<close> xs]
           of_nat_le_iff[of "3 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
-        by (auto simp add: \<alpha>_def n_def field_simps)
+        by (auto simp add: \<alpha>_def field_simps)
 
-      moreover have
-        \<open>- (real n * (\<alpha> - 1)\<^sup>2 / (2 ^ l * (2 + (2 * \<alpha> - 2) / 3)))
-        \<le> ?exponent\<close>
+      with binomial_distribution.chernoff_prob_ge[
+        of p \<open>\<alpha> - 1\<close>, simplified binomial_distribution_def]
+      have \<open>?prob i \<le> exp (- real n * p * (\<alpha> - 1)\<^sup>2 / (2 + 2 * (\<alpha> - 1) / 3))\<close>
+        by (simp add: algebra_simps)
+
+      also have \<open>\<dots> \<le> ?exp_term\<close>
         using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
         apply (simp add: field_split_simps power_numeral_reduce add_increasing)
         by (smt (verit, ccfv_threshold) mult_sign_intros(1) two_realpow_ge_one)
 
-      ultimately show ?thesis
-        using binomial_distribution.chernoff_prob_ge[
-          of p, simplified binomial_distribution_def]
-        apply simp
-        by (smt (verit, ccfv_SIG) Collect_cong Groups.mult_ac(2) exp_le_cancel_iff n_def) 
+      finally show ?thesis .
     qed
   qed
 
@@ -259,7 +259,7 @@ next
     show ?thesis
       by (auto
         intro: measure_pmf.finite_measure_subadditive_finite
-        simp add: vimage_def) 
+        simp add: vimage_def)
   qed
 
   text \<open>Transform to nondeterministic algorithm.\<close>
@@ -299,22 +299,26 @@ next
     show \<open>?L k \<le> ?R k\<close> by (simp add: field_simps)
   qed
 
-  text \<open>Shuffle stuff around in preparation to bound via geometric series.\<close>
+  text
+    \<open>In preparation to bound via a geometric series, we first transform each
+    term to be of the form `2 * exp_term l * 2 ^ r` so that we can later pull
+    out a factor of `2 * exp_term l` from each term.
+    Note that `exp_term l < 1` and that this is important for obtaining a tight
+    bound later on.\<close>
   also have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
-    apply (rule sum.cong, blast)
+    apply (rule sum.cong[OF refl])
     using \<open>\<epsilon> > 0\<close>
-    apply (simp add: exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
+    apply (simp add:
+      Cons exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
     by (smt (verit, best) mult_sign_intros(5) one_le_power)
 
   text
-    \<open>This is the tricky bit. We do the following:
+    \<open>Now we do the following:
     1. Reverse the summation from `l --> 0`, to `0 --> l`
     2. Reindex the sum to be taken over exponents `r` of the form `2 ^ k`
        instead of being over all `k`.
-    3. Pull out a factor of `exp_term l` from each term.
-       This last part is important to get a tight bound when bounding via a
-       geometric series later on.\<close>
+    3. Pull out a factor of `exp_term l` from each term.\<close>
   also have
     \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
     using
@@ -325,7 +329,7 @@ next
       simp add: sum_distrib_left)
 
   text
-    \<open>upper bound by a partial geometric series, taken over all r \<in> nat
+    \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
     up to `2 ^ l`.\<close>
   also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
     using
@@ -334,7 +338,7 @@ next
       power_increasing[of _ l "2"]
     by (force intro!: sum_le_included[where i = Suc]) 
 
-  text \<open>upper bound by infinite geometric series.\<close>
+  text \<open>Upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>
     using \<open>exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
     by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
