@@ -182,10 +182,9 @@ next
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
         \<open>l \<le> length xs\<close>)
 
-  also have \<open>\<dots> \<le> (\<Sum> i < length xs. ?exp_term)\<close>
-  proof (rule sum_mono)
-    fix i
-    show \<open>?prob i \<le> ?exp_term\<close>
+  also have \<open>\<dots> \<le> real (length xs) * ?exp_term\<close>
+  proof (rule sum_bounded_above[where A = \<open>{..< length xs}\<close>, simplified card_lessThan])
+    fix i show \<open>?prob i \<le> ?exp_term\<close>
     proof (cases xs)
       case Nil
       then show ?thesis
@@ -220,7 +219,7 @@ next
     qed
   qed
 
-  finally show ?thesis by simp
+  finally show ?thesis .
 qed
 
 lemma estimate_distinct_error_bound_l_binom:
@@ -287,7 +286,7 @@ next
           where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
         field_simps)
 
-  text \<open>Apply strong Chernoff bound to each term.\<close>
+  text \<open>Apply Chernoff bound to each term.\<close>
   also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
   proof (rule sum_mono)
     fix k
@@ -310,7 +309,7 @@ next
     apply (rule sum.cong[OF refl])
     using \<open>\<epsilon> > 0\<close>
     apply (simp add:
-      Cons exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
+      exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
     by (smt (verit, best) mult_sign_intros(5) one_le_power)
 
   text
@@ -318,7 +317,7 @@ next
     1. Reverse the summation from `l --> 0`, to `0 --> l`
     2. Reindex the sum to be taken over exponents `r` of the form `2 ^ k`
        instead of being over all `k`.
-    3. Pull out a factor of `exp_term l` from each term.\<close>
+    3. Pull out a factor of `2 * exp_term l` from each term.\<close>
   also have
     \<open>\<dots> = 2 * exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. exp_term l ^ (r - 1))\<close>
     using
@@ -331,12 +330,9 @@ next
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
     up to `2 ^ l`.\<close>
-  also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
-    using
-      semiring_norm(92)[of "num.Bit0 num.One"] pos2 zero_less_power[of "2"]
-      Suc_pred[of "2 ^ _"] diff_le_mono[of "2 ^ _" "2 ^ l" "Suc 0"]
-      power_increasing[of _ l "2"]
-    by (force intro!: sum_le_included[where i = Suc]) 
+  also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l. exp_term l ^ r)\<close>
+    using diff_le_mono[of "2 ^ _" "2 ^ l" 1]
+    by (force intro!: sum_le_included[where i = Suc])
 
   text \<open>Upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * exp_term l * (1 / (1 - exp_term l))\<close>
