@@ -330,7 +330,7 @@ next
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
     up to `2 ^ l`.\<close>
-  also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l. exp_term l ^ r)\<close>
+  also have \<open>\<dots> \<le> 2 * exp_term l * (\<Sum> r \<le> 2 ^ l - 1. exp_term l ^ r)\<close>
     using diff_le_mono[of "2 ^ _" "2 ^ l" 1]
     by (force intro!: sum_le_included[where i = Suc])
 
