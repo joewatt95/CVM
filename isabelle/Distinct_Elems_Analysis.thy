@@ -185,8 +185,7 @@ next
 
   also have \<open>\<dots> \<le> real (length xs) * ?exp_term\<close>
   proof (rule sum_bounded_above[where A = \<open>{..< length xs}\<close>, simplified card_lessThan])
-    fix i
-    show \<open>?prob i \<le> ?exp_term\<close>
+    fix i show \<open>?prob i \<le> ?exp_term\<close>
     proof (cases xs)
       case Nil
       then show ?thesis
@@ -265,6 +264,7 @@ next
     have [simp] :
       \<open>{x. f x \<le> l \<and> P x} = (
         \<Union> k \<le> l. {x. f x = k \<and> P x})\<close> for f :: \<open>'b \<Rightarrow> nat\<close> and P by auto
+
     show ?thesis
       by (auto
         intro: measure_pmf.finite_measure_subadditive_finite
