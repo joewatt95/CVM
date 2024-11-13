@@ -2,7 +2,6 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
-  "HOL-Decision_Procs.Approximation"
   "HOL-Library.Sum_of_Squares"
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
@@ -122,13 +121,13 @@ abbreviation
 
 lemma estimate_distinct_error_bound_fail_2:
   assumes
-    (* This says that l \<ge> log2 (3F_0 / threshold) *)
-    \<open>2 ^ l * threshold \<ge> 3 * card (set xs)\<close>
+    (* This says that l \<ge> log2 (4 F_0 / threshold) *)
+    \<open>2 ^ l * threshold \<ge> 4 * card (set xs)\<close>
   shows
     \<open>\<P>(state in
       run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
       state_k state > l)
-    \<le> real (length xs) * exp (- 4 * real threshold / 11)\<close>
+    \<le> real (length xs) * exp (- 27 * real threshold / 52)\<close>
     (is \<open>?L \<le> _ * ?exp_term\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
@@ -201,11 +200,11 @@ next
 
       case (Cons _ _)
       then have \<open>n \<ge> 1\<close> by (simp add: n_def leI)
-      then have \<open>\<alpha> \<ge> 3\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
+      then have \<open>\<alpha> \<ge> 4\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
         using
-          \<open>2 ^ l * threshold \<ge> 3 * (card <| set xs)\<close>
+          \<open>2 ^ l * threshold \<ge> 4 * (card <| set xs)\<close>
           card_set_take_le_card_set[of \<open>Suc i\<close> xs]
-          of_nat_le_iff[of "3 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
+          of_nat_le_iff[of "4 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
         by (auto simp add: \<alpha>_def n_def field_simps)
 
       with binomial_distribution.chernoff_prob_ge[
@@ -215,18 +214,18 @@ next
 
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
-        show ?thesis
-          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
-          apply (auto simp add: field_split_simps power_numeral_reduce add_increasing less_le_not_le)
+        have \<open>real n * 2 ^ l * (102 * x\<^sup>2 - 420 * x + 156) \<ge> 0\<close> if \<open>x \<ge> 4\<close> for x 
+          apply (rule mult_nonneg_nonneg)
+          apply simp
+          using that
+          by (sos "((R<1 + ((R<1 * ((R<28907/2048 * [~7727/28907*x__ + 1]^2) + (R<1759/118403072 * [x__]^2))) + (((A<0 * R<1) * (R<81/8192 * [1]^2)) + ((A<=0 * R<1) * (R<6949/2048 * [1]^2))))))")
 
-          subgoal
-           sorry
-
-          by (smt (verit) zero_compare_simps(4))
+        then show ?thesis
+          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 4\<close>
+          apply (simp add:
+            field_split_simps power_numeral_reduce add_increasing less_le_not_le)
+          by (smt (verit, best) zero_compare_simps(8))
       qed
-        (* using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 3\<close>
-        apply (auto simp add: Cons field_split_simps power_numeral_reduce add_increasing less_le_not_le) *)
-        (* by (smt (verit, ccfv_threshold) mult_sign_intros(1) two_realpow_ge_one) *)
 
       finally show ?thesis .
     qed
@@ -239,12 +238,12 @@ lemma estimate_distinct_error_bound_l_binom:
   assumes
     \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
-    \<open>2 ^ l * threshold \<le> 3 * card (set xs)\<close>
+    \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp (\<epsilon>\<^sup>2 * threshold / (6 + 2 * \<epsilon>)) - 1))\<close>
+    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp (\<epsilon>\<^sup>2 * threshold / (8 + 8 * \<epsilon> / 3)) - 1))\<close>
     (is \<open>?L (\<le>) l \<le> (case _ of [] \<Rightarrow> _ | _ \<Rightarrow> ?exp_bound)\<close>)
 proof (cases xs)
   case Nil
@@ -358,15 +357,10 @@ next
     by (simp add: exp_minus' field_simps) *)
 
   also have \<open>\<dots> \<le> ?exp_bound\<close>
-  proof -
-    have [intro!] : \<open>a + b \<le> c + d\<close> if \<open>a \<le> d\<close> \<open>b \<le> c\<close> for a b c d :: real
-      using that by simp
-
-    with \<open>2 ^ l * threshold \<le> 3 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
-    show ?thesis
-      using of_nat_le_iff[of "threshold * 2 ^ l" "3 * card (set xs)"]
-      by (auto simp add: exp_minus' field_split_simps)
-  qed
+    using
+      \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
+      of_nat_le_iff[of "threshold * 2 ^ l" "card (set xs) * 4"]
+    by (auto intro: add_mono simp add: exp_minus' field_split_simps)
 
   finally show ?thesis by (simp add: Cons)
 qed
