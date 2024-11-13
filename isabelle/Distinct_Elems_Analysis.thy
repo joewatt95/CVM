@@ -214,13 +214,12 @@ next
 
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
-        have
-          \<open>(6 * real n * 2 ^ l) * (17 * \<alpha>\<^sup>2 - 70 * \<alpha> + 26) \<ge> 0\<close>
-          apply (rule mult_nonneg_nonneg)
-          apply simp
-          using \<open>\<alpha> \<ge> 4\<close> by sos
+        have \<open>6 * c * (17 * \<alpha>\<^sup>2 - 70 * \<alpha> + 26) \<ge> 0\<close> if \<open>c \<ge> 0\<close> for c
+          using \<open>\<alpha> \<ge> 4\<close> that
+          by (sos "(((A<0 * R<1) + (((A<=1 * R<1) * ((R<9904/11 * [~6667/19808*\<alpha>__ + 1]^2) + (R<263/435776 * [\<alpha>__]^2))) + ((A<=0 * (A<=1 * R<1)) * (R<2047/11 * [1]^2)))))")
 
-        then show ?thesis
+        from this[of \<open>real n * 2 ^ l\<close>]
+        show ?thesis
           using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 4\<close>
           apply (simp add:
             field_split_simps power_numeral_reduce add_increasing less_le_not_le)
