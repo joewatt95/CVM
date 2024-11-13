@@ -214,11 +214,11 @@ next
 
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
-        have \<open>real n * 2 ^ l * (102 * x\<^sup>2 - 420 * x + 156) \<ge> 0\<close> if \<open>x \<ge> 4\<close> for x 
+        have
+          \<open>(6 * real n * 2 ^ l) * (17 * \<alpha>\<^sup>2 - 70 * \<alpha> + 26) \<ge> 0\<close>
           apply (rule mult_nonneg_nonneg)
           apply simp
-          using that
-          by (sos "((R<1 + ((R<1 * ((R<28907/2048 * [~7727/28907*x__ + 1]^2) + (R<1759/118403072 * [x__]^2))) + (((A<0 * R<1) * (R<81/8192 * [1]^2)) + ((A<=0 * R<1) * (R<6949/2048 * [1]^2))))))")
+          using \<open>\<alpha> \<ge> 4\<close> by sos
 
         then show ?thesis
           using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> 4\<close>
