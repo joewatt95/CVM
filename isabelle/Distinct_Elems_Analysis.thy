@@ -359,7 +359,7 @@ next
     using
       \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
       of_nat_le_iff[of "threshold * 2 ^ l" "card (set xs) * 4"]
-    by (auto intro: add_mono simp add: exp_minus' field_split_simps)
+    by (auto intro: add_mono simp add: exp_minus field_split_simps)
 
   finally show ?thesis by (simp add: Cons)
 qed
