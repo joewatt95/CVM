@@ -246,7 +246,7 @@ lemma estimate_distinct_error_bound_l_binom:
 proof (cases xs)
   case Nil
   then show ?thesis
-    by (simp add: eager_algorithm_def run_steps_from_state_def run_reader_simps initial_state_def compute_estimate_def)
+    by (simp add: eager_algo_simps eager_algorithm_def compute_estimate_def)
 next
   let ?exp_term = \<open>\<lambda> k.
     exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close>
