@@ -112,23 +112,20 @@ next
 qed
 
 context
-  fixes xs :: \<open>'a list\<close>
+  fixes l and xs :: \<open>'a list\<close>
+  assumes \<open>2 ^ l * threshold = 4 * card (set xs)\<close>
 begin
 
 abbreviation
   \<open>run_with_bernoulli_matrix f \<equiv>
     map_pmf (f xs) (fair_bernoulli_matrix (length xs) (length xs))\<close>
 
-lemma estimate_distinct_error_bound_fail_2:
-  assumes
-    (* This says that l \<ge> log2 (4 F_0 / threshold) *)
-    \<open>2 ^ l * threshold \<ge> 4 * card (set xs)\<close>
-  shows
-    \<open>\<P>(state in
-      run_with_bernoulli_matrix (run_reader <<< eager_algorithm).
-      state_k state > l)
-    \<le> real (length xs) * exp (- 27 * real threshold / 52)\<close>
-    (is \<open>?L \<le> _ * ?exp_term\<close>)
+lemma prob_eager_algo_k_gt_l_le :
+  \<open>\<P>(state in
+    run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
+    state_k state > l)
+  \<le> real (length xs) * exp (- 27 * real threshold / 52)\<close>
+  (is \<open>?L \<le> _ * ?exp_term\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
   with eager_algorithm_k_bounded
@@ -201,9 +198,9 @@ next
       then have \<open>n \<ge> 1\<close> by (simp add: n_def leI)
       then have \<open>\<alpha> \<ge> 4\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
         using
-          \<open>2 ^ l * threshold \<ge> 4 * (card <| set xs)\<close>
-          card_set_take_le_card_set[of \<open>Suc i\<close> xs]
-          of_nat_le_iff[of "4 * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
+          \<open>2 ^ l * threshold = 4 * (card <| set xs)\<close>
+          card_set_take_le_card_set[of "Suc i" xs]
+          Multiseries_Expansion.intyness_simps(2)[of threshold "2 ^ l"]
         by (auto simp add: \<alpha>_def n_def field_simps)
 
       with binomial_distribution.chernoff_prob_ge[
@@ -232,17 +229,18 @@ next
   finally show ?thesis .
 qed
 
-lemma estimate_distinct_error_bound_l_binom:
+context
   assumes
     \<open>\<epsilon> > 0\<close>
     \<open>l \<le> length xs\<close>
-    \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close>
-  shows
-    \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
-      state_k state \<le> l \<and>
-      real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp (\<epsilon>\<^sup>2 * threshold / (8 + 8 * \<epsilon> / 3)) - 1))\<close>
-    (is \<open>?L (\<le>) l \<le> (case _ of [] \<Rightarrow> _ | _ \<Rightarrow> ?exp_bound)\<close>)
+begin
+
+lemma prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
+  \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
+    state_k state \<le> l \<and>
+    real (compute_estimate state) >[\<epsilon>] card (set xs))
+  \<le> (case xs of [] \<Rightarrow> 0 | _ \<Rightarrow> 2 / (exp (\<epsilon>\<^sup>2 * threshold / (8 + 8 * \<epsilon> / 3)) - 1))\<close>
+  (is \<open>?L (\<le>) l \<le> (case _ of [] \<Rightarrow> _ | _ \<Rightarrow> ?exp_bound)\<close>)
 proof (cases xs)
   case Nil
   then show ?thesis
@@ -288,7 +286,7 @@ next
       \<P>(estimate in binomial_pmf (card <| set xs) <| 1 / 2 ^ k.
         \<bar>real estimate - ?binom_mean k\<bar> \<ge> \<epsilon> * ?binom_mean k))\<close>
     (is \<open>_ \<le> (\<Sum> k \<le> _. ?L k)\<close>)
-    using assms
+    using \<open>\<epsilon> > 0\<close> \<open>l \<le> length xs\<close>
     by (auto
       intro!: sum_mono intro: pmf_mono
       simp add:
@@ -357,52 +355,67 @@ next
 
   also have \<open>\<dots> \<le> ?exp_bound\<close>
     using
-      \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
+      \<open>2 ^ l * threshold = 4 * card (set xs)\<close> \<open>\<epsilon> > 0\<close> threshold_pos
       of_nat_le_iff[of "threshold * 2 ^ l" "card (set xs) * 4"]
-    by (auto intro: add_mono simp add: exp_minus field_split_simps)
+      Multiseries_Expansion.intyness_simps(2)[of threshold "2 ^ l"]
+    by (auto intro!: add_mono simp add: exp_minus field_split_simps)
 
   finally show ?thesis by (simp add: Cons)
 qed
 
-lemma estimate_distinct_error_bound:
-  assumes "(l::nat) = undefined"
-  shows "
-    \<P>(n in estimate_distinct xs.
-      n |> fail_or_satisfies (beyond_eps_range_of_card xs))
-     \<le> real (length xs) / 2 ^ threshold + bar \<epsilon> thresh"
-  (is "?l \<le> ?R")
-proof -
-  have *: "estimate_distinct_no_fail xs =
-     map_pmf compute_estimate
-     (map_pmf
-       (run_reader (eager_algorithm xs))
-       (fair_bernoulli_matrix (length xs) (length xs)))" (is "_ =  map_pmf compute_estimate ?E")   
-    unfolding estimate_distinct_no_fail_eq_lazy_algo
-    apply (subst eager_lazy_conversion)
-    by auto
+theorem estimate_distinct_error_bound:
+  defines
+    [simp] : \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close> and
+    [simp] : \<open>prob_eager_algo_k_gt_l_le_bound \<equiv>
+      real (length xs) * exp (- 27 * real threshold / 52)\<close> and
+    [simp] : \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
+      2 / (exp (\<epsilon>\<^sup>2 * real threshold / (8 + 8 * \<epsilon> / 3)) - 1)\<close>
+  shows
+    \<open>\<P>(estimate in estimate_distinct xs.
+        estimate |> fail_or_satisfies
+          (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
+    \<le> prob_fail_bound +
+      prob_eager_algo_k_gt_l_le_bound +
+      prob_eager_algo_k_le_l_and_estimate_out_of_range_bound\<close>
+  (is \<open>?L \<le> _\<close>)
+proof (cases xs)
+  case Nil
+  then show ?thesis
+    using threshold_pos \<open>\<epsilon> > 0\<close>
+    by (simp add:
+      estimate_distinct_def run_steps_then_estimate_def compute_estimate_def
+      initial_state_def)
+next
+  case (Cons _ _)
 
-  have "?l \<le> real (length xs) / 2 ^ threshold
-    + \<P>(n in estimate_distinct_no_fail xs.
-       n |> (beyond_eps_range_of_card xs))"
-    by (intro prob_estimate_distinct_fail_or_satisfies_le)
-  
-  moreover have "... =
-    real (length xs) / 2 ^ threshold
-      + \<P>(st in ?E.
-        beyond_eps_range_of_card xs (compute_estimate st))"
-    unfolding *
-    by auto
-  moreover have "... \<le>
-    real (length xs) / 2 ^ threshold
-      + \<P>(st in ?E. state_k st > l)
-      + \<P>(st in ?E. 
-        state_k st \<le> l \<and>
-          beyond_eps_range_of_card xs (compute_estimate st))"
-    by (auto intro!: pmf_add)
- 
-  ultimately show ?thesis
-    sorry
+  let ?run_eager_algo =
+    \<open>run_with_bernoulli_matrix <| run_reader <<< eager_algorithm\<close>
+
+  have \<open>?L \<le>
+    prob_fail_bound +
+    \<P>(estimate in estimate_distinct_no_fail xs.
+      real estimate >[\<epsilon>] card (set xs))\<close>
+    using prob_estimate_distinct_fail_or_satisfies_le by auto
+
+  also have \<open>\<dots> \<le>
+      prob_fail_bound +
+      \<P>(state in ?run_eager_algo. state_k state > l) +
+      \<P>(state in ?run_eager_algo. 
+        state_k state \<le> l \<and> real (compute_estimate state) >[\<epsilon>] card (set xs))\<close>
+    by (auto
+      intro: prob_estimate_distinct_fail_or_satisfies_le pmf_add
+      simp add:
+        estimate_distinct_no_fail_eq_lazy_algo
+        eager_lazy_conversion[of _ \<open>length xs\<close>])
+
+  finally show ?thesis
+    using
+      prob_eager_algo_k_gt_l_le
+      prob_eager_algo_k_le_l_and_estimate_out_of_range_le
+    by (simp add: Cons)
 qed
+
+end
 
 end
 
