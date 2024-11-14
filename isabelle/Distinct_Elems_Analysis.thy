@@ -261,7 +261,7 @@ proof -
 qed
 
 lemma prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
-  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>r > 0\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
+  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
@@ -387,7 +387,10 @@ next
       \<open>?exp_bound \<le> 1 / 2\<close> (is ?thesis_1) 
       using that by auto
 
-    from \<open>\<epsilon> > 0\<close> \<open>r > 0\<close> \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
+    from threshold_pos \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
+    have \<open>r > 0\<close> using gr0I[of r] by fastforce
+
+    with \<open>\<epsilon> > 0\<close> \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
     show ?thesis_0
       using
         not_less[of "6 * 2 ^ l + \<epsilon> * (2 * 2 ^ l)" "0"]
