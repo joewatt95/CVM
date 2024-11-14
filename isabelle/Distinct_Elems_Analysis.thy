@@ -235,36 +235,38 @@ next
 qed
 
 context
+  fixes r
   assumes
-    \<open>threshold \<ge> 2\<close>
-    \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close>
+    \<open>threshold \<ge> r\<close>
+    \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
 begin
 
 lemma l_le_length_xs :
   \<open>l \<le> length xs\<close>
 proof -
-  from \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close>
-  have \<open>l \<le> Discrete.log (4 * card (set xs) div threshold)\<close>
+  from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
+  have \<open>l \<le> Discrete.log (2 * r * card (set xs) div threshold)\<close>
     by (metis Discrete.log_le_iff less_eq_div_iff_mult_less_eq log_power threshold_pos)
 
-  also have \<open>\<dots> \<le> Discrete.log (4 * length xs div 2)\<close>
-    using \<open>threshold \<ge> 2\<close>
-    by (meson Discrete.log_le_iff  card_length div_le_mono div_le_mono2 le_trans mult_le_mono2 verit_comp_simplify(19))
+  also have \<open>\<dots> \<le> Discrete.log (2 * length xs)\<close>
+    apply (rule Discrete.log_le_iff)
+    using \<open>threshold \<ge> r\<close>
+    by (smt (verit, best) card_length div_le_mono le_trans less_eq_nat.simps(1) mult.commute mult.left_commute mult_le_mono1 nonzero_mult_div_cancel_right
+      semidom_div_by_0)
 
   also have \<open>\<dots> \<le> length xs\<close>
-    apply simp
     by (metis Discrete.log_le_iff less_exp log_exp2_le log_power log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
 
   finally show ?thesis .
 qed
 
 lemma prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
-  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 12\<close>
+  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>r > 0\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> 4 * exp (- \<epsilon>\<^sup>2 * threshold / (4 * (2 + 2 * \<epsilon> / 3)))\<close>
+    \<le> 4 * exp (- \<epsilon>\<^sup>2 * threshold / (2 * real r * (2 + 2 * \<epsilon> / 3)))\<close>
     (is \<open>?L (\<le>) l \<le> 4 * ?exp_bound\<close>)
 proof (cases xs)
   case Nil
@@ -378,25 +380,28 @@ next
     have
       \<open>2 * x / (1 - x) \<le> 4 * y\<close>
       if \<open>0 \<le> x\<close> \<open>x \<le> y\<close> \<open>y \<le> 1 / 2\<close> for x y :: real
-      using that
-      apply (simp add: field_simps)
-      by (smt (verit, ccfv_SIG) Groups.mult_ac(2) distrib_left mult_left_le)
-    
+      using that by sos
+
     then show ?thesis when
       \<open>?exp_term l \<le> ?exp_bound\<close> (is ?thesis_0)
       \<open>?exp_bound \<le> 1 / 2\<close> (is ?thesis_1) 
       using that by auto
 
-    from \<open>0 < \<epsilon>\<close> \<open>2 ^ l * threshold \<le> 4 * card (set xs)\<close>
+    from \<open>\<epsilon> > 0\<close> \<open>r > 0\<close> \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
     show ?thesis_0
       using
         not_less[of "6 * 2 ^ l + \<epsilon> * (2 * 2 ^ l)" "0"]
-        of_nat_le_iff[of "threshold * 2 ^ l" "card (set xs) * 4"]
+        of_nat_le_iff[of "threshold * 2 ^ l" "card (set xs) * 2 * r"]
       by (auto
         intro: add_mono
         simp add: field_split_simps power_numeral_reduce pos_add_strict)
 
-    from \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 12\<close>
+    have
+      \<open>2 * r * (2 + 2 * \<epsilon> / 3) \<le> \<epsilon>\<^sup>2 * threshold\<close>
+      if \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>r \<ge> 1\<close> for r threshold :: real
+      using \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> that by sos
+
+    with \<open>\<epsilon> > 0\<close> \<open>r > 0\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
     have \<open>?exp_bound \<le> exp (-1)\<close> by simp
 
     also have \<open>\<dots> \<le> 1 / 2\<close>
