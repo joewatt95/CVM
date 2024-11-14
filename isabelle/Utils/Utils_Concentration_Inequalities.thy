@@ -163,7 +163,8 @@ proof -
     \<open>?L_le = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<le> -np\<delta>)\<close>
     \<open>?L_ge = ?prob (\<ge>)\<close>
     \<open>?L_abs_ge = ?prob (\<lambda> sum_mean_deviation np\<delta>. \<bar>sum_mean_deviation\<bar> \<ge> np\<delta>)\<close>
-    by (simp_all add: binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
+    by (simp_all add:
+      binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
   have arithmetic_aux :
     \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (real n * p) + 2 * (real n * p * \<delta> * B) / 3)

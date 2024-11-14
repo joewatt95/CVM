@@ -377,7 +377,7 @@ theorem estimate_distinct_error_bound:
     \<le> prob_fail_bound +
       prob_eager_algo_k_gt_l_le_bound +
       prob_eager_algo_k_le_l_and_estimate_out_of_range_bound\<close>
-  (is \<open>?L \<le> _\<close>)
+    (is \<open>?L \<le> _\<close>)
 proof (cases xs)
   case Nil
   then show ?thesis
