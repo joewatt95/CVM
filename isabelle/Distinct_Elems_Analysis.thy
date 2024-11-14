@@ -2,7 +2,6 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
-  "HOL-Decision_Procs.Approximation"
   "HOL-Library.Sum_of_Squares"
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
