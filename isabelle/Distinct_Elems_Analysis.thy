@@ -2,6 +2,7 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
+  "HOL-Decision_Procs.Approximation"
   "HOL-Library.Sum_of_Squares"
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
@@ -407,8 +408,7 @@ next
     with \<open>\<epsilon> > 0\<close> \<open>r > 0\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
     have \<open>?exp_bound \<le> exp (-1)\<close> by simp
 
-    also have \<open>\<dots> \<le> 1 / 2\<close>
-      by (metis exp_ge_add_one_self exp_gt_zero exp_minus' le_divide_eq_numeral1(1) more_arith_simps(10) mult.commute one_add_one pos_le_divide_eq)
+    also have \<open>\<dots> \<le> 1 / 2\<close> by (approximation 0)
 
     finally show ?thesis_1 . 
   qed
