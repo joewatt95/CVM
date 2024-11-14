@@ -232,8 +232,26 @@ qed
 context
   assumes
     \<open>\<epsilon> > 0\<close>
-    \<open>l \<le> length xs\<close>
+    \<open>threshold \<ge> 2\<close>
 begin
+
+lemma l_le_length_xs :
+  \<open>l \<le> length xs\<close>
+proof -
+  from \<open>2 ^ l * threshold = 4 * card (set xs)\<close>
+  have \<open>l = Discrete.log (4 * card (set xs) div threshold)\<close>
+    by (metis div_mult_self_is_m log_power threshold_pos) 
+
+  also have \<open>\<dots> \<le> Discrete.log (4 * length xs div 2)\<close>
+    using \<open>threshold \<ge> 2\<close>
+    by (meson Discrete.log_le_iff card_length div_le_mono div_le_mono2 le_trans mult_le_mono2 not_gr0 verit_eq_simplify(4))
+
+  also have \<open>\<dots> \<le> length xs\<close>
+    apply simp
+    by (metis Discrete.log_le_iff less_exp log_exp2_le log_power log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
+
+  finally show ?thesis .
+qed
 
 lemma prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
   \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
@@ -286,7 +304,7 @@ next
       \<P>(estimate in binomial_pmf (card <| set xs) <| 1 / 2 ^ k.
         \<bar>real estimate - ?binom_mean k\<bar> \<ge> \<epsilon> * ?binom_mean k))\<close>
     (is \<open>_ \<le> (\<Sum> k \<le> _. ?L k)\<close>)
-    using \<open>\<epsilon> > 0\<close> \<open>l \<le> length xs\<close>
+    using \<open>\<epsilon> > 0\<close> l_le_length_xs 
     by (auto
       intro!: sum_mono intro: pmf_mono
       simp add:
