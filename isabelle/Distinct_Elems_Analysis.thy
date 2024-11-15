@@ -113,7 +113,7 @@ qed
 
 context
   fixes
-    l :: nat and
+    r l :: nat and
     xs :: \<open>'a list\<close>
 begin
 
@@ -121,7 +121,7 @@ abbreviation
   \<open>run_with_bernoulli_matrix f \<equiv>
     map_pmf (f xs) (fair_bernoulli_matrix (length xs) (length xs))\<close>
 
-lemma prob_eager_algo_k_gt_l_le :
+theorem prob_eager_algo_k_gt_l_le :
   assumes \<open>r \<ge> 2\<close> \<open>2 ^ l * threshold \<ge> r * card (set xs)\<close>
   shows
     \<open>\<P>(state in
@@ -240,7 +240,6 @@ next
 qed
 
 context
-  fixes r
   assumes
     \<open>threshold \<ge> r\<close>
     \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
@@ -272,7 +271,7 @@ lemma r_pos :
     threshold_pos power_eq_0_iff
   by fastforce
 
-lemma prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
+theorem prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
   assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
@@ -422,13 +421,23 @@ next
   finally show ?thesis .
 qed
 
-(* theorem estimate_distinct_error_bound:
+end
+
+theorem estimate_distinct_error_bound :
+  assumes
+    \<open>2 \<le> r\<close> \<open>r \<le> threshold\<close> \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close>
+    \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
+    \<open>2 ^ l * threshold \<in> {r * card (set xs) .. 2 * r * card (set xs)}\<close>
   defines
-    [simp] : \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close> and
-    [simp] : \<open>prob_eager_algo_k_gt_l_le_bound \<equiv>
-      real (length xs) * exp (- real threshold / 6)\<close> and
-    [simp] : \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
-      2 / (exp (\<epsilon>\<^sup>2 * real threshold / (16 + 16 * \<epsilon> / 3)) - 1)\<close>
+    [simp] :
+      \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close> and
+    [simp] :
+      \<open>prob_eager_algo_k_gt_l_le_bound \<equiv>
+        real (length xs) *
+        exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close> and
+    [simp] :
+      \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
+        4 * exp (- \<epsilon>\<^sup>2 * threshold / (2 * real r * (2 + 2 * \<epsilon> / 3)))\<close>
   shows
     \<open>\<P>(estimate in estimate_distinct xs.
         estimate |> fail_or_satisfies
@@ -437,16 +446,7 @@ qed
       prob_eager_algo_k_gt_l_le_bound +
       prob_eager_algo_k_le_l_and_estimate_out_of_range_bound\<close>
     (is \<open>?L \<le> _\<close>)
-proof (cases xs)
-  case Nil
-  then show ?thesis
-    using threshold_pos \<open>\<epsilon> > 0\<close>
-    by (simp add:
-      estimate_distinct_def run_steps_then_estimate_def compute_estimate_def
-      initial_state_def)
-next
-  case (Cons _ _)
-
+proof -
   let ?run_eager_algo =
     \<open>run_with_bernoulli_matrix <| run_reader <<< eager_algorithm\<close>
 
@@ -454,13 +454,13 @@ next
     prob_fail_bound +
     \<P>(estimate in estimate_distinct_no_fail xs.
       real estimate >[\<epsilon>] card (set xs))\<close>
-    using prob_estimate_distinct_fail_or_satisfies_le by auto
+    using prob_estimate_distinct_fail_or_satisfies_le by simp
 
-  also have \<open>\<dots> \<le>
-      prob_fail_bound +
-      \<P>(state in ?run_eager_algo. state_k state > l) +
-      \<P>(state in ?run_eager_algo. 
-        state_k state \<le> l \<and> real (compute_estimate state) >[\<epsilon>] card (set xs))\<close>
+  also have \<open>\<dots> \<le> (
+    prob_fail_bound +
+    \<P>(state in ?run_eager_algo. state_k state > l) +
+    \<P>(state in ?run_eager_algo. 
+      state_k state \<le> l \<and> real (compute_estimate state) >[\<epsilon>] card (set xs)))\<close>
     by (auto
       intro: prob_estimate_distinct_fail_or_satisfies_le pmf_add
       simp add:
@@ -469,13 +469,10 @@ next
 
   finally show ?thesis
     using
-      prob_eager_algo_k_gt_l_le
+      prob_eager_algo_k_gt_l_le assms
       prob_eager_algo_k_le_l_and_estimate_out_of_range_le
-    apply simp
-    sorry
-qed *)
-
-end
+    by simp
+qed
 
 end
 
