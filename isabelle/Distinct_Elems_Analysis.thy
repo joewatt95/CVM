@@ -99,6 +99,9 @@ next
 
   note assms = assms this
 
+  define x where
+    \<open>x \<equiv> card (set xs) / nat \<lceil>threshold\<rceil>\<close>
+
   note estimate_distinct_error_bound[of 2 \<open>nat \<lceil>threshold\<rceil>\<close> \<epsilon> ?l xs] assms
 
   moreover have
@@ -126,9 +129,6 @@ next
   moreover have
     \<open>2 * card (set xs) \<le> 2 ^ ?l * nat \<lceil>threshold\<rceil>\<close>
   proof -
-    define x where
-      \<open>x \<equiv> card (set xs) / nat \<lceil>threshold\<rceil>\<close>
-
     show ?thesis when
       \<open>log 2 (2 * x) \<le> ?l\<close> (is ?thesis)
       using that assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
@@ -161,15 +161,21 @@ next
   moreover have
     \<open>2 ^ ?l * nat \<lceil>threshold\<rceil> \<le> 4 * card (set xs)\<close>
   proof -
-    define x where
-      \<open>x \<equiv> 4 * card (set xs) / nat \<lceil>threshold\<rceil>\<close>
+    show ?thesis when
+      \<open>?l \<le> log 2 (4 * x)\<close> (is ?thesis)
+      using that assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
+      apply (subst (asm) Transcendental.le_log_iff)
+      apply (simp_all add: x_def)
+      apply (metis List.finite_set card_gt_0_iff divide_pos_pos mult_pos_pos nat_le_0 of_nat_0_less_iff rel_simps(51) set_empty2 verit_comp_simplify(3) zero_less_nat_eq)
+      by (smt (verit, ccfv_threshold) Multiseries_Expansion.intyness_1 Num.of_nat_simps(4,5) arithmetic_simps(68) divide_le_eq more_arith_simps(11) mult_2 nat_le_real_less
+        nonzero_eq_divide_eq numeral_Bit0_eq_double of_nat_power powr_realpow)
 
-    have \<open>\<lfloor>log 2 x\<rfloor> \<le> log 2 x\<close> using of_int_floor_le by blast
-
-    have \<open>2 ^ ?l \<le> 4 * card (set xs) / nat \<lceil>threshold\<rceil>\<close>
+    have \<open>\<lfloor>log 2 <| 4 * x\<rfloor> \<le> log 2 (4 * x)\<close> by simp
+     
+    then show ?thesis
+      using assms
+      apply (simp add: x_def)
       sorry
-
-    show ?thesis sorry
   qed
 
   ultimately show ?thesis
