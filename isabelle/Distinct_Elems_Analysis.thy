@@ -2,7 +2,6 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
-  "HOL-Decision_Procs.Approximation"
   "HOL-Library.Sum_of_Squares"
   CVM.Distinct_Elems_Algo
   CVM.Distinct_Elems_No_Fail
@@ -406,11 +405,9 @@ next
       using \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> that by sos
 
     with \<open>\<epsilon> > 0\<close> \<open>r > 0\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
-    have \<open>?exp_bound \<le> exp (-1)\<close> by simp
+    have \<open>?exp_bound \<le> exp (- 1)\<close> by simp
 
-    also have \<open>\<dots> \<le> 1 / 2\<close> by (approximation 0)
-
-    finally show ?thesis_1 . 
+    with exp_minus_one_le_half show ?thesis_1 by argo
   qed
 
   finally show ?thesis .
