@@ -260,6 +260,13 @@ proof -
   finally show ?thesis .
 qed
 
+lemma r_pos :
+  \<open>r > 0\<close>
+  using
+    \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
+    threshold_pos power_eq_0_iff
+  by fastforce
+
 lemma prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
   assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
   shows
@@ -385,12 +392,9 @@ next
     then show ?thesis when
       \<open>?exp_term l \<le> ?exp_bound\<close> (is ?thesis_0)
       \<open>?exp_bound \<le> 1 / 2\<close> (is ?thesis_1) 
-      using that by auto
+      using that by simp_all
 
-    from threshold_pos \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
-    have \<open>r > 0\<close> using gr0I[of r] by fastforce
-
-    with \<open>\<epsilon> > 0\<close> \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
+    from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> \<open>\<epsilon> > 0\<close> r_pos 
     show ?thesis_0
       using
         not_less[of "6 * 2 ^ l + \<epsilon> * (2 * 2 ^ l)" "0"]
@@ -404,7 +408,7 @@ next
       if \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>r \<ge> 1\<close> for r threshold :: real
       using \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> that by sos
 
-    with \<open>\<epsilon> > 0\<close> \<open>r > 0\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
+    with \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>\<epsilon> > 0\<close> r_pos
     have \<open>?exp_bound \<le> exp (- 1)\<close> by simp
 
     with exp_minus_one_le_half show ?thesis_1 by argo
