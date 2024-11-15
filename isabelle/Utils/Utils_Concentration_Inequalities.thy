@@ -44,14 +44,13 @@ proof -
 
   moreover have
     \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
-    apply (simp add: comp_def)
-    by (metis (mono_tags, lifting) minus_diff_eq more_arith_simps(1) sum.cong sum_negf)
+    by (auto simp add: comp_def sum_subtractf)
 
   ultimately show ?thesis
     using
       bernstein_inequality[OF I, where X = ?Y, where t = t, where B = B]
       ind intsq bnd B t
-    by (fastforce intro!: indep_vars_compose)
+    by (force intro!: indep_vars_compose)
 qed
 
 lemma bernstein_inequality_abs_ge :
@@ -70,12 +69,12 @@ proof -
     using 
       bernstein_inequality[OF I, where X = X, where t = t, where B = B]
       ind intsq assms B t
-    by fastforce
+    by force
 
   moreover have
     \<open>{x \<in> space M. sum_mean_deviation X x \<le> -t} \<in> events\<close>
     \<open>{x \<in> space M. sum_mean_deviation X x \<ge> t} \<in> events\<close>
-    using ind[unfolded indep_vars_def] by (measurable, auto)+
+    using ind[unfolded indep_vars_def] by (measurable, fastforce)+
 
   ultimately show ?thesis by (smt (verit) finite_measure_subadditive)
 qed
