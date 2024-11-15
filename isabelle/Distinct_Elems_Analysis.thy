@@ -277,7 +277,7 @@ theorem prob_eager_algo_k_le_l_and_estimate_out_of_range_le :
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> 4 * exp (- \<epsilon>\<^sup>2 * threshold / (2 * real r * (2 + 2 * \<epsilon> / 3)))\<close>
+    \<le> 4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + 1 * \<epsilon> / 3)))\<close>
     (is \<open>?L (\<le>) l \<le> 4 * ?exp_bound\<close>)
 proof (cases xs)
   case Nil
@@ -408,7 +408,7 @@ next
         simp add: field_split_simps power_numeral_reduce pos_add_strict)
 
     have
-      \<open>2 * r * (2 + 2 * \<epsilon> / 3) \<le> \<epsilon>\<^sup>2 * threshold\<close>
+      \<open>4 * r * (1 + 1 * \<epsilon> / 3) \<le> \<epsilon>\<^sup>2 * threshold\<close>
       if \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>r \<ge> 1\<close> for r threshold :: real
       using \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> that by sos
 
@@ -437,7 +437,7 @@ theorem estimate_distinct_error_bound :
         exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close> and
     [simp] :
       \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
-        4 * exp (- \<epsilon>\<^sup>2 * threshold / (2 * real r * (2 + 2 * \<epsilon> / 3)))\<close>
+        4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + 1 * \<epsilon> / 3)))\<close>
   shows
     \<open>\<P>(estimate in estimate_distinct xs.
         estimate |> fail_or_satisfies
