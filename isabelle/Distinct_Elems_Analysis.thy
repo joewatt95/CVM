@@ -122,21 +122,20 @@ abbreviation
     map_pmf (f xs) (fair_bernoulli_matrix (length xs) (length xs))\<close>
 
 lemma prob_eager_algo_k_gt_l_le :
-  assumes
-    \<open>2 ^ l * threshold \<ge> r * card (set xs)\<close>
-    \<open>r \<ge> 2\<close>
+  assumes \<open>r \<ge> 2\<close> \<open>2 ^ l * threshold \<ge> r * card (set xs)\<close>
   shows
     \<open>\<P>(state in
       run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state > l)
-    \<le> real (length xs) * exp (- real threshold / 6)\<close>
+    \<le> real (length xs) *
+      exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
     (is \<open>?L \<le> _ * ?exp_term\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
   with eager_algorithm_k_bounded
   have \<open>?L = 0\<close>
-    apply (simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
-    using order_trans_rules(20,21) by blast
+    using dual_order.strict_trans1
+    by (fastforce simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
   then show ?thesis by simp
 next
   case False
@@ -217,12 +216,18 @@ next
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
         have
-          \<open>c * (16 * \<alpha>\<^sup>2 - 40 * \<alpha> + 18) \<ge> 0\<close> if \<open>c \<ge> 0\<close> \<open>\<alpha> \<ge> 2\<close> for c \<alpha> :: real
+          \<open>c * (27*\<alpha>\<^sup>2*r - 24*\<alpha>*r\<^sup>2 - 6*\<alpha>*r - 6*\<alpha>\<^sup>2 + 6*r\<^sup>2 - 12*\<alpha> + 15*r) \<ge> 0\<close>
+          if \<open>c \<ge> 0\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> for c r :: real
+          apply (rule mult_nonneg_nonneg[OF \<open>c \<ge> 0\<close>])
           using that by sos
 
-        from this[of \<open>real n * 2 ^ l\<close> \<alpha>]
-        show ?thesis
-          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> order.trans[of "4 * 2 ^ l" "4 * 2 ^ l + \<alpha> * (2 * 2 ^ l)" "0"] 
+        note this[of \<open>real n * 2 ^ l\<close> r]
+
+        moreover have \<open>4 * 2 ^ l + \<alpha> * (2 * 2 ^ l) > 0\<close>
+          using \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> by (simp add: pos_add_strict)
+
+        ultimately show ?thesis
+          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close>
           by (simp add:
             field_split_simps power_numeral_reduce add_increasing less_le_not_le)
       qed
