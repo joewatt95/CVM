@@ -1,11 +1,11 @@
-theory Distinct_Elems_Binomial
+theory Algo_Transforms_Binomial
 
 imports
-  CVM.Distinct_Elems_Nondet
+  CVM.Algo_Transforms_Nondet
 
 begin
 
-context with_threshold
+context with_threshold_pos
 begin
 
 lemma map_pmf_nondet_alg_aux_eq:

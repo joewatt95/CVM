@@ -12,13 +12,22 @@ session CVM = "HOL-Probability" +
     "Utils/PMF"
     "Utils/SPMF"
 
+    "Algo_Transforms"
+    "Error_Bounds"
+
   theories
     "Distinct_Elems_Algo"
-    "Distinct_Elems_No_Fail"
-    "Distinct_Elems_Eager"
-    "Distinct_Elems_Lazy"
-    "Distinct_Elems_Nondet"
-    "Distinct_Elems_Binomial"
+
+    "Algo_Transforms_No_Fail"
+    "Algo_Transforms_Eager"
+    "Algo_Transforms_Lazy"
+    "Algo_Transforms_Nondet"
+    "Algo_Transforms_Binomial"
+
+    "Error_Bounds_Common"
+    "Error_Bounds_K_Exceeds_L"
+    "Error_Bounds_Est_Out_Of_Range"
+    "Distinct_Elems_Analysis"
 
     "Utils/Utils_Approx_Algo"
     "Utils/Utils_Function"

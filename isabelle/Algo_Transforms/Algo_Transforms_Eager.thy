@@ -1,17 +1,17 @@
-theory Distinct_Elems_Eager
+theory Algo_Transforms_Eager
 
 imports
   CVM.Utils_List
   CVM.Utils_PMF_Lazify
   CVM.Utils_PMF_Bernoulli_Binomial
   CVM.Utils_Reader_Monad_Hoare
-  CVM.Distinct_Elems_Lazy
+  CVM.Algo_Transforms_Lazy
 
 begin
 
 type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
-context with_threshold
+context with_threshold_pos
 begin
 
 definition eager_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
@@ -82,6 +82,46 @@ qed
 lemmas eager_algo_simps =
   eager_algorithm_snoc initial_state_def run_steps_from_state_def
   eager_step_def eager_step_1_def eager_step_2_def Let_def run_reader_simps
+
+lemma
+  defines [simp] : \<open>state_k_bounded \<equiv> \<lambda> i \<phi> state. state_k state \<le> i\<close>
+  shows 
+    initial_state_k_bounded :
+      \<open>state_k_bounded i \<phi> initial_state\<close> (is ?thesis_0) and
+    run_eager_steps_k_bounded : \<open>\<turnstile>rd
+      \<lbrakk>state_k_bounded 0\<rbrakk>
+      (flip (run_steps_from_state foldM_rd eager_step) xs)
+      \<lbrakk>state_k_bounded (length xs)\<rbrakk>\<close>
+      (is ?thesis_1) and
+    eager_algorithm_k_bounded :
+      \<open>state_k (run_eager_algorithm xs \<phi>) \<le> length xs\<close> (is ?thesis_2)
+proof -
+  show ?thesis_0 by (simp add: initial_state_def)
+
+  moreover show ?thesis_1
+  proof -
+    have \<open>\<turnstile>rd
+      \<lbrakk>(\<lambda> \<phi> state. i < length xs \<and> state_k_bounded i \<phi> state)\<rbrakk>
+      eager_step xs x
+      \<lbrakk>state_k_bounded (Suc i)\<rbrakk>\<close> for i x
+      unfolding
+        run_steps_from_state_def eager_step_def eager_step_1_def Let_def
+        eager_step_2_def map_rd_def
+      by (auto
+        intro!:
+          Utils_Reader_Monad_Hoare.seq'[where Q = \<open>state_k_bounded i\<close>]
+          Utils_Reader_Monad_Hoare.if_then_else
+          Utils_Reader_Monad_Hoare.postcond_true
+        intro: Utils_Reader_Monad_Hoare.seq')
+
+    with Utils_Reader_Monad_Hoare.loop[
+      where offset = 0, where xs = \<open>[0 ..< length xs]\<close>]
+    show ?thesis unfolding run_steps_from_state_def by fastforce
+  qed
+
+  ultimately show ?thesis_2
+    by (simp add: Utils_Reader_Monad_Hoare.hoare_triple_def eager_algorithm_def initial_state_def)
+qed
 
 abbreviation "coin_pmf \<equiv> bernoulli_pmf (1/2)"
 
@@ -356,46 +396,6 @@ next
   also have "... = lazy_algorithm (xs@[x])"
     unfolding lazy_algorithm_snoc by simp
   finally show ?case by simp
-qed
-
-lemma
-  defines [simp] : \<open>state_k_bounded \<equiv> \<lambda> i \<phi> state. state_k state \<le> i\<close>
-  shows 
-    initial_state_k_bounded :
-      \<open>state_k_bounded i \<phi> initial_state\<close> (is ?thesis_0) and
-    run_eager_steps_k_bounded : \<open>\<turnstile>rd
-      \<lbrakk>state_k_bounded 0\<rbrakk>
-      (flip (run_steps_from_state foldM_rd eager_step) xs)
-      \<lbrakk>state_k_bounded (length xs)\<rbrakk>\<close>
-      (is ?thesis_1) and
-    eager_algorithm_k_bounded :
-      \<open>state_k (run_eager_algorithm xs \<phi>) \<le> length xs\<close> (is ?thesis_2)
-proof -
-  show ?thesis_0 by (simp add: initial_state_def)
-
-  moreover show ?thesis_1
-  proof -
-    have \<open>\<turnstile>rd
-      \<lbrakk>(\<lambda> \<phi> state. i < length xs \<and> state_k_bounded i \<phi> state)\<rbrakk>
-      eager_step xs x
-      \<lbrakk>state_k_bounded (Suc i)\<rbrakk>\<close> for i x
-      unfolding
-        run_steps_from_state_def eager_step_def eager_step_1_def Let_def
-        eager_step_2_def map_rd_def
-      by (auto
-        intro!:
-          Utils_Reader_Monad_Hoare.seq'[where Q = \<open>state_k_bounded i\<close>]
-          Utils_Reader_Monad_Hoare.if_then_else
-          Utils_Reader_Monad_Hoare.postcond_true
-        intro: Utils_Reader_Monad_Hoare.seq')
-
-    with Utils_Reader_Monad_Hoare.loop[
-      where offset = 0, where xs = \<open>[0 ..< length xs]\<close>]
-    show ?thesis unfolding run_steps_from_state_def by fastforce
-  qed
-
-  ultimately show ?thesis_2
-    by (simp add: Utils_Reader_Monad_Hoare.hoare_triple_def eager_algorithm_def initial_state_def)
 qed
 
 text \<open>Version of the above with the definitions from the locale unfolded. This theorem can be used

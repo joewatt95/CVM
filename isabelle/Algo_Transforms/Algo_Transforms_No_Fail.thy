@@ -1,5 +1,5 @@
 section \<open> Analysis of algorithm TODO \<close>
-theory Distinct_Elems_No_Fail
+theory Algo_Transforms_No_Fail
 
 imports
   CVM.Distinct_Elems_Algo
@@ -8,7 +8,7 @@ imports
 
 begin
 
-context with_threshold
+context with_threshold_pos
 begin
 
 definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
@@ -160,7 +160,7 @@ lemma estimate_distinct_ord_spmf_eq :
       estimate_distinct_def estimate_distinct_no_fail_def
       run_steps_then_estimate_def
       map_spmf_of_pmf[symmetric] ord_spmf_map_spmf)
-  by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold.step_ord_spmf_eq with_threshold_axioms) 
+  by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold_pos.step_ord_spmf_eq with_threshold_pos_axioms) 
 
 (* Think of P as event that `estimate` is the wrong count *)
 theorem prob_estimate_distinct_fail_or_satisfies_le :

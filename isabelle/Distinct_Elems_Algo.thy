@@ -36,7 +36,6 @@ abbreviation
 
 locale with_threshold =
   fixes threshold :: nat
-  assumes threshold_pos : \<open>threshold > 0\<close>
 begin
 
 text
@@ -71,5 +70,8 @@ definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> wh
     run_steps_then_estimate foldM_spmf map_spmf step\<close>
 
 end
+
+locale with_threshold_pos = with_threshold +
+  assumes threshold_pos : \<open>threshold > 0\<close>
 
 end

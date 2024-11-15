@@ -1,14 +1,14 @@
-theory Distinct_Elems_Lazy
+theory Algo_Transforms_Lazy
 
 imports
   CVM.Utils_List
   CVM.Utils_Reader_Monad_Basic
   CVM.Utils_PMF_Bernoulli_Binomial
-  CVM.Distinct_Elems_No_Fail
+  CVM.Algo_Transforms_No_Fail
 
 begin
 
-context with_threshold
+context with_threshold_pos
 begin
 
 definition lazy_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"

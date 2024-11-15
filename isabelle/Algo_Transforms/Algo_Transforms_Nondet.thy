@@ -1,9 +1,9 @@
-theory Distinct_Elems_Nondet
+theory Algo_Transforms_Nondet
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
   CVM.Utils_Approx_Algo
-  CVM.Distinct_Elems_Eager
+  CVM.Algo_Transforms_Eager
 
 begin
 
@@ -18,7 +18,7 @@ definition nondet_alg_aux ::
 definition nondet_alg :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> nat \<Rightarrow> bool) \<Rightarrow> nat\<close> where
   \<open>nondet_alg k xs = nondet_alg_aux k xs >>> card\<close>
 
-context with_threshold
+context with_threshold_pos
 begin
 
 (* Given fixed xs and phi,
