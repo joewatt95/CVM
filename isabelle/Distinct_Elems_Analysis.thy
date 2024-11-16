@@ -105,9 +105,6 @@ proof (cases xs)
       compute_estimate_def initial_state_def)
 next
   case (Cons _ _)
-  then have \<open>length xs > 0\<close> by simp
-
-  note assms = assms this
 
   define x where
     \<open>x \<equiv> card (set xs) / nat \<lceil>threshold\<rceil>\<close>
@@ -121,8 +118,8 @@ next
     proof - 
       have \<open>threshold \<ge> 2\<close>
         using assms
-        apply (simp add: field_simps)
-        by (smt (verit, del_insts) Num.of_nat_simps(1) \<open>0 < length xs\<close> log_divide_pos log_le_zero_cancel_iff nat_less_real_le one_le_log_cancel_iff power_le_one)
+        apply (simp add: field_simps Cons)
+        by (smt (verit) log_divide_pos log_le_zero_cancel_iff of_nat_0_le_iff one_le_log_cancel_iff one_of_nat_le_iff powr_le_one_le powr_realpow rel_simps(25))
 
       then show ?thesis by linarith
     qed
@@ -131,8 +128,7 @@ next
   proof -
     from assms
     have \<open>\<epsilon>\<^sup>2 * threshold \<ge> 12\<close>
-      using verit_comp_simplify1(3)[of "1" "length xs"]
-      by (auto simp add: field_simps)
+      by (simp add: Cons field_simps)
 
     then show ?thesis
       by (meson assms(1) dual_order.trans landau_o.R_mult_left_mono less_imp_le of_nat_ceiling zero_less_power)
@@ -143,31 +139,35 @@ next
   proof -
     show ?thesis when
       \<open>log 2 (2 * x) \<le> ?l\<close> (is ?thesis)
-      using that assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
+      using that Cons assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
       apply (subst (asm) Transcendental.log_le_iff)
-      apply (simp_all add: x_def)
-      apply (metis List.finite_set card_gt_0_iff nat_0_iff of_nat_0_less_iff rel_simps(51) set_empty2 verit_comp_simplify(3) zero_compare_simps(6,7) zero_less_nat_eq)
-      by (smt (verit, del_insts) Multiseries_Expansion.intyness_simps(2,3,4) Num.of_nat_simps(4) Suc_1 divide_le_eq mult_2 of_nat_le_iff powr_realpow semiring_1_class.of_nat_simps(2))
+      apply (simp_all add: x_def card_gt_0_iff Transcendental.powr_realpow)
+      apply (subst (asm) mult_le_cancel_right_pos[
+        of \<open>real <| nat \<lceil>threshold\<rceil>\<close>, symmetric])
+      apply simp_all
+      apply (simp only: Multiseries_Expansion.intyness_simps)
+      by (smt (verit, ccfv_threshold) Num.of_nat_simps(5) One_nat_def Suc_1 nat_2 nat_le_eq_zle of_nat_le_iff of_nat_nat)
 
     have \<open>log 2 (2 * x) = 1 + log 2 x\<close> (is \<open>?L = _\<close>)
       apply (subst log_mult_pos)
-      using assms
-      apply (simp_all add: log_mult_pos x_def)
-      by (smt (verit, ccfv_SIG) List.finite_set Multiseries_Expansion.intyness_0 calculation(9) card_gt_0_iff mult_eq_0_iff mult_sign_intros(5) nat_ceiling_le_eq of_nat_0_less_iff of_nat_le_0_iff
-        of_nat_mono power2_less_0 set_empty2 threshold_def zero_compare_simps(7))
+      using assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
+      by (simp_all add: log_mult_pos x_def Cons card_gt_0_iff)
     
-    also have \<open>\<dots> \<le> 2 + \<lfloor>log 2 x\<rfloor>\<close>
-      apply simp
-      by linarith
+    also have \<open>\<dots> \<le> log 2 4 + \<lfloor>log 2 x\<rfloor>\<close>
+      by (smt (verit, best) Multiseries_Expansion.intyness_1 floor_eq_iff four_x_squared le_log_of_power log2_of_power_eq log_of_power_less one_power2 pos2 power_one_right)
 
     also have \<open>\<dots> = \<lfloor>log 2 <| 4 * x\<rfloor>\<close> (is \<open>_ = ?R\<close>)
       apply (subst log_mult_pos)
-      using assms
-      apply (simp_all add: log_mult_pos x_def)
-      apply (metis List.finite_set \<open>2 \<le> nat \<lceil>threshold\<rceil>\<close> assms(5) card_gt_0_iff divide_pos_pos of_nat_0_less_iff rel_simps(28) set_empty2 zero_order(4))
-      by (metis (no_types, opaque_lifting) four_x_squared int_add_floor log2_of_power_eq more_arith_simps(6) of_int_add of_int_numeral of_nat_numeral of_nat_power power_one)
-     
-    finally show ?thesis by (simp add: x_def)
+      using assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
+      apply (simp_all add: log_mult_pos x_def Cons card_gt_0_iff field_simps)
+      apply (simp only: Multiseries_Expansion.intyness_simps)
+      by (metis of_int_numeral[of "num.Bit0 num.One"] numeral_Bit0_eq_double[of "num.Bit0 num.One"]
+        of_int_add[of "2" "\<lfloor>log 2 (real (card (insert _ (set _))) / real_of_int \<lceil>12 * log 2 (real (8 + length _ * 8) / \<delta>) / (\<epsilon> * \<epsilon>)\<rceil>)\<rfloor>"]
+        int_add_floor[of "2" "log 2 (real (card (insert _ (set _))) / real_of_int \<lceil>12 * log 2 (real (8 + length _ * 8) / \<delta>) / (\<epsilon> * \<epsilon>)\<rceil>)"] power2_eq_square[of \<epsilon>]
+        power2_eq_square[of "2"] log2_of_power_eq[of "2\<^sup>2" "2"] Multiseries_Expansion.intyness_numeral[of "num.Bit0 (num.Bit0 (num.Bit1 num.One))"]
+        Multiseries_Expansion.intyness_numeral[of "num.Bit0 num.One"])
+
+    finally show ?thesis by simp
   qed
 
   moreover have
@@ -184,8 +184,9 @@ next
       apply (subst (asm) mult_le_cancel_right_pos[
         of \<open>real <| nat \<lceil>threshold\<rceil>\<close>, symmetric])
       apply linarith
-      apply (simp add: x_def field_split_simps split: if_splits)
-      sorry
+      apply (simp add: x_def field_simps split: if_splits)
+      apply (simp only: Multiseries_Expansion.intyness_simps)
+      by (smt (verit, best) Multiseries_Expansion.intyness_simps(2,5) of_nat_int_ceiling of_nat_le_iff)
   qed
 
   ultimately show ?thesis
