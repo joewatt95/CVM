@@ -16,6 +16,18 @@ context
     \<open>2 \<le> r\<close> \<open>r \<le> threshold\<close> \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> 
     \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
     \<open>2 ^ l * threshold \<in> {r * card (set xs) .. 2 * r * card (set xs)}\<close>
+    (* TODO:
+    Tweak this API to allow the extra assumptions that `xs` is nonempty, and
+    that `threshold` is strictly less than `F_0`, ie:
+
+    \<open>\<lbrakk>xs \<noteq> []; threshold < card (set xs)\<rbrakk> \<Longrightarrow>
+    2 ^ l * threshold \<in> {r * card (set xs) .. 2 * r * card (set xs)}\<close>
+
+    Then discharge of these assumptions when applying our intermediate lemmas
+    by arguing that the algorithm is always correct
+    (ie P(fail of estimate out of range = 0)) if either of these conditions
+    holds.
+    *)
 begin
 
 interpretation with_params :
@@ -92,8 +104,6 @@ proof (cases xs)
       with_threshold.estimate_distinct_def run_steps_then_estimate_def
       compute_estimate_def initial_state_def)
 next
-  let ?l = \<open>nat \<lfloor>log 2 <| 4 * card (set xs) / nat \<lceil>threshold\<rceil>\<rfloor>\<close>
-
   case (Cons _ _)
   then have \<open>length xs > 0\<close> by simp
 
@@ -101,6 +111,8 @@ next
 
   define x where
     \<open>x \<equiv> card (set xs) / nat \<lceil>threshold\<rceil>\<close>
+
+  let ?l = \<open>nat \<lfloor>log 2 <| 4 * x\<rfloor>\<close>
 
   note estimate_distinct_error_bound[of 2 \<open>nat \<lceil>threshold\<rceil>\<close> \<epsilon> ?l xs] assms
 
@@ -161,20 +173,18 @@ next
   moreover have
     \<open>2 ^ ?l * nat \<lceil>threshold\<rceil> \<le> 4 * card (set xs)\<close>
   proof -
-    show ?thesis when
-      \<open>?l \<le> log 2 (4 * x)\<close> (is ?thesis)
-      using that assms \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
-      apply (subst (asm) Transcendental.le_log_iff)
-      apply (simp_all add: x_def)
-      apply (metis List.finite_set card_gt_0_iff divide_pos_pos mult_pos_pos nat_le_0 of_nat_0_less_iff rel_simps(51) set_empty2 verit_comp_simplify(3) zero_less_nat_eq)
-      by (smt (verit, ccfv_threshold) Multiseries_Expansion.intyness_1 Num.of_nat_simps(4,5) arithmetic_simps(68) divide_le_eq more_arith_simps(11) mult_2 nat_le_real_less
-        nonzero_eq_divide_eq numeral_Bit0_eq_double of_nat_power powr_realpow)
+    (* See comments on the context assms for how to discharge th is. *)
+    have \<open>x \<ge> 1\<close> sorry
 
-    have \<open>\<lfloor>log 2 <| 4 * x\<rfloor> \<le> log 2 (4 * x)\<close> by simp
-     
-    then show ?thesis
-      using assms
-      apply (simp add: x_def)
+    then have \<open>2 ^ ?l \<le> 4 * x\<close>
+      by (simp add: power_of_nat_log_le)
+
+    with \<open>nat \<lceil>threshold\<rceil> \<ge> 2\<close>
+    show ?thesis
+      apply (subst (asm) mult_le_cancel_right_pos[
+        of \<open>real <| nat \<lceil>threshold\<rceil>\<close>, symmetric])
+      apply linarith
+      apply (simp add: x_def field_split_simps split: if_splits)
       sorry
   qed
 
