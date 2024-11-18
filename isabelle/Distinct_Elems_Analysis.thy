@@ -52,29 +52,20 @@ context
   fixes
     threshold l r :: nat and
     \<epsilon> :: real and
-    xs
-  assumes params :
-    \<open>2 \<le> r\<close> \<open>r \<le> threshold\<close> \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> 
-    \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
-    \<open>2 ^ l * threshold \<in> {r * card (set xs) .. 2 * r * card (set xs)}\<close>
-    (* TODO:
-    Tweak this API to allow the extra assumptions that `xs` is nonempty, and
-    that `threshold` is strictly less than `F_0`, ie:
-
-    \<open>\<lbrakk>xs \<noteq> []; threshold < card (set xs)\<rbrakk> \<Longrightarrow>
-    2 ^ l * threshold \<in> {r * card (set xs) .. 2 * r * card (set xs)}\<close>
-
-    Then discharge of these assumptions when applying our intermediate lemmas
-    by arguing that the algorithm is always correct
-    (ie P(fail of estimate out of range = 0)) if either of these conditions
-    holds.
-    *)
+    xs :: \<open>'a list\<close>
 begin
 
-interpretation with_params :
-  with_threshold_pos_r_l_xs threshold r l xs
-  apply unfold_locales
-  using \<open>2 \<le> r\<close> \<open>r \<le> threshold\<close> by simp
+abbreviation (input) \<open>F0 \<equiv> card (set xs)\<close>
+
+context
+  assumes params :
+    \<open>0 < \<epsilon>\<close>
+    \<open>threshold \<le> F0 \<Longrightarrow> (
+      \<epsilon> \<le> 1 \<and>
+      r \<in> {2 .. threshold} \<and>
+      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
+      2 ^ l * threshold \<in> {r * F0 .. 2 * r * F0})\<close>
+begin
 
 theorem estimate_distinct_error_bound :
   defines
@@ -88,14 +79,28 @@ theorem estimate_distinct_error_bound :
       \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
         4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + 1 * \<epsilon> / 3)))\<close>
   shows
-    \<open>\<P>(estimate in with_params.estimate_distinct xs.
+    \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
         estimate |> fail_or_satisfies
           (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
     \<le> prob_fail_bound +
       prob_eager_algo_k_gt_l_le_bound +
       prob_eager_algo_k_le_l_and_estimate_out_of_range_bound\<close>
     (is \<open>?L \<le> _\<close>)
-proof -
+proof (cases \<open>threshold > F0\<close>)
+  case True
+  then have \<open>?L = 0\<close>
+    using \<open>\<epsilon> > 0\<close> zero_compare_simps(10)[of "\<bar>\<epsilon>\<bar>" "real (card (set xs))"]
+    by (simp add: with_threshold.estimate_distinct_correct_of_threshold)
+  then show ?thesis by simp
+next
+  case False
+  then have \<open>threshold \<le> F0\<close> by simp
+
+  then interpret with_params :
+    with_threshold_pos_r_l_xs threshold r l xs
+    apply unfold_locales
+    using params by simp
+
   let ?run_eager_algo =
     \<open>with_params.run_with_bernoulli_matrix <|
       run_reader <<< with_params.eager_algorithm\<close>
@@ -121,9 +126,11 @@ proof -
     using
       with_params.prob_eager_algo_k_gt_l_le assms
       with_params.prob_eager_algo_k_le_l_and_est_out_of_range_le
-      params \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close>
+      params \<open>threshold \<le> F0\<close>
     by force
 qed
+
+end
 
 end
 
