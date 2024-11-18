@@ -21,16 +21,23 @@ lemma foldM_spmf_eq_foldM_pmf_case :
   (is \<open>_ = Some >>> ?foldM_pmf\<close>)
 proof -
   have \<open>?foldM_pmf = case_option fail_spmf (foldM_spmf f xs)\<close>
-    apply (induction xs)
-    apply (metis fail_spmf_def foldM.simps(1) not_None_eq option.simps(4) option.simps(5)) 
-    by (metis (mono_tags, lifting) bind_return_pmf bind_spmf_def fail_spmf_def foldM.simps(2) not_None_eq option.simps(4) return_bind_spmf)
+  proof (induction xs)
+    case Nil
+    then show ?case
+      by (metis bind_return_pmf bind_return_spmf bind_spmf_def fail_spmf_def foldM_empty)
+  next
+    case (Cons _ _)
+    then show ?case
+      by (metis (mono_tags, lifting) bind_spmf_def fail_spmf_def foldM.simps(2) not_None_eq option.case(1,2) return_None_bind_spmf)
+  qed
 
-  then show ?thesis by (metis option.simps(5))
+  then show ?thesis by simp 
 qed
 
-lemma spmf_of_pmf_foldM_pmf_eq_foldM_spmf :
-  \<open>spmf_of_pmf <<< foldM_pmf f xs = foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs\<close>
-  apply (induction xs) by (simp_all add: spmf_of_pmf_bind)
+lemma foldM_spmf_of_pmf_eq :
+  \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs = spmf_of_pmf <<< foldM_pmf f xs\<close>
+  apply (induction xs)
+  by (simp_all add: spmf_of_pmf_bind)
 
 lemma pmf_foldM_spmf_nil :
   \<open>spmf (foldM_spmf f [] acc) acc' = of_bool (acc = acc')\<close>
