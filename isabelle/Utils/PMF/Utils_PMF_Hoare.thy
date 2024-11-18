@@ -118,10 +118,10 @@ next
   case (Cons _ _)
   then show ?case
     apply (simp add: foldM_enumerate_def)
-  by (fastforce
-    intro!: seq[where Q = \<open>P <| Suc offset\<close>]
-    simp add: hoare_triple_def add_Suc[symmetric]
-    simp del: add_Suc)
+    by (fastforce
+      intro!: seq[where Q = \<open>P <| Suc offset\<close>]
+      simp add: hoare_triple_def add_Suc[symmetric]
+      simp del: add_Suc)
 qed
 
 lemma loop :
