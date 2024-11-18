@@ -132,7 +132,9 @@ abbreviation (input)
 
 lemma loop_enumerate :
   assumes
-    \<open>\<And> index x. \<turnstile>spmf \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
+    \<open>\<And> index x.
+      x \<in> set xs \<Longrightarrow>
+      \<turnstile>spmf \<lbrace>R' index\<rbrace> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>R offset\<rbrace>
     \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
@@ -151,7 +153,8 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x. \<turnstile>spmf \<lbrace>R' index\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
+  assumes \<open>\<And> index x.
+    x \<in> set xs \<Longrightarrow> \<turnstile>spmf \<lbrace>R' index\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>R offset\<rbrace>
     \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
@@ -164,7 +167,7 @@ lemma loop :
 end
 
 lemma loop_unindexed :
-  assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
+  assumes \<open>\<And> x. x \<in> set xs \<Longrightarrow> \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
