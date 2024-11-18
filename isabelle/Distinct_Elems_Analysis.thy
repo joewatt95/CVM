@@ -17,8 +17,8 @@ lemma estimate_distinct_correct_of_threshold :
   shows \<open>estimate_distinct xs = return_spmf (card <| set xs)\<close>
 proof -
   let ?step = \<open>\<lambda> x. case_option fail_spmf (step x)\<close>
-  let ?P = \<open>\<lambda> index state.
-    state = Some \<lparr>state_k = 0, state_chi = set (take index xs)\<rparr>\<close>
+  let ?P = \<open>\<lambda> index.
+    (=) (Some \<lparr>state_k = 0, state_chi = set (take index xs)\<rparr>)\<close>
 
   have \<open>\<turnstile>pmf
     \<lbrakk>(\<lambda> state. (index, x) \<in> set (List.enumerate 0 xs) \<and> ?P index state)\<rbrakk>
@@ -33,7 +33,7 @@ proof -
   then have \<open>\<turnstile>pmf
     \<lbrakk>?P 0\<rbrakk>
     map_spmf compute_estimate <<< foldM_pmf ?step xs
-    \<lbrakk>(\<lambda> estimate. estimate = Some (card <| set xs))\<rbrakk>\<close>
+    \<lbrakk>flip (=) (Some <| card <| set xs)\<rbrakk>\<close>
     using Utils_PMF_Hoare.loop[where offset = 0]
     by (force
       intro: Utils_PMF_Hoare.seq
