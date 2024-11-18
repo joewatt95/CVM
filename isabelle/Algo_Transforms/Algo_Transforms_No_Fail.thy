@@ -160,7 +160,7 @@ lemma estimate_distinct_ord_spmf_eq :
       estimate_distinct_def estimate_distinct_no_fail_def
       run_steps_then_estimate_def
       map_spmf_of_pmf[symmetric] ord_spmf_map_spmf)
-  by (metis (mono_tags, lifting) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD spmf_of_pmf_foldM_pmf_eq_foldM_spmf with_threshold_pos.step_ord_spmf_eq with_threshold_pos_axioms) 
+  by (metis (mono_tags, lifting) foldM_spmf_of_pmf_eq foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD step_ord_spmf_eq)
 
 (* Think of P as event that `estimate` is the wrong count *)
 theorem prob_estimate_distinct_fail_or_satisfies_le :
