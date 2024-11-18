@@ -41,6 +41,7 @@ session CVM = "HOL-Probability" +
     "Utils/Reader_Monad/Utils_Reader_Monad_Relational"
 
     "Utils/PMF/Utils_PMF_Basic"
+    "Utils/PMF/Utils_PMF_Hoare"
     "Utils/PMF/Utils_PMF_Bernoulli_Binomial"
     "Utils/PMF/Utils_PMF_Lazify"
 

@@ -20,8 +20,7 @@ lemma foldM_spmf_eq_foldM_pmf_case :
       xs <<< Some\<close>
   (is \<open>_ = Some >>> ?foldM_pmf\<close>)
 proof -
-  have
-    \<open>?foldM_pmf = case_option fail_spmf (foldM_spmf f xs)\<close>
+  have \<open>?foldM_pmf = case_option fail_spmf (foldM_spmf f xs)\<close>
     apply (induction xs)
     apply (metis fail_spmf_def foldM.simps(1) not_None_eq option.simps(4) option.simps(5)) 
     by (metis (mono_tags, lifting) bind_return_pmf bind_spmf_def fail_spmf_def foldM.simps(2) not_None_eq option.simps(4) return_bind_spmf)

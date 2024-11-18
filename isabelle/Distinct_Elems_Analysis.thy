@@ -2,10 +2,51 @@ section \<open> TODO \<close>
 theory Distinct_Elems_Analysis
 
 imports
-  Error_Bounds_K_Exceeds_L
-  Error_Bounds_Est_Out_Of_Range
+  CVM.Utils_PMF_Bernoulli_Binomial
+  CVM.Utils_PMF_Hoare
+  CVM.Error_Bounds_K_Exceeds_L
+  CVM.Error_Bounds_Est_Out_Of_Range
 
 begin
+
+context with_threshold
+begin
+
+lemma estimate_distinct_correct_of_threshold :
+  assumes \<open>threshold > card (set xs)\<close>
+  shows \<open>estimate_distinct xs = return_spmf (card <| set xs)\<close>
+proof -
+  let ?step = \<open>\<lambda> x. case_option fail_spmf (step x)\<close>
+  let ?P = \<open>\<lambda> index state.
+    state = Some \<lparr>state_k = 0, state_chi = set (take index xs)\<rparr>\<close>
+
+  have \<open>\<turnstile>pmf
+    \<lbrakk>(\<lambda> state. (index, x) \<in> set (List.enumerate 0 xs) \<and> ?P index state)\<rbrakk>
+    ?step x 
+    \<lbrakk>?P (Suc index)\<rbrakk>\<close> for index x
+    using
+      assms card_set_take_le_card_set[of "Suc index" xs]
+      insert_nth_set_take_eq_set_take_Suc[of index xs]
+    by (auto simp add:
+      Utils_PMF_Hoare.hoare_triple_def step_def in_set_enumerate_eq)
+
+  then have \<open>\<turnstile>pmf
+    \<lbrakk>?P 0\<rbrakk>
+    map_spmf compute_estimate <<< foldM_pmf ?step xs
+    \<lbrakk>(\<lambda> estimate. estimate = Some (card <| set xs))\<rbrakk>\<close>
+    using Utils_PMF_Hoare.loop[where offset = 0]
+    by (force
+      intro: Utils_PMF_Hoare.seq
+      simp add: map_pmf_def compute_estimate_def)
+
+  then show ?thesis
+    using map_pmf_eq_return_pmf_iff
+    by (force simp add:
+      estimate_distinct_def run_steps_then_estimate_def initial_state_def
+      foldM_spmf_eq_foldM_pmf_case Utils_PMF_Hoare.hoare_triple_def image_def)
+qed
+
+end
 
 context
   fixes
