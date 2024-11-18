@@ -157,10 +157,8 @@ next
 
   have \<open>threshold \<ge> 2\<close>
     using assms
-    apply (simp add: Cons log_divide_pos)
-    apply (simp only: Multiseries_Expansion.intyness_simps)
-    by (smt (verit, ccfv_threshold) Num.of_nat_simps(4) One_nat_def Suc_1 ceiling_le_one divide_le_eq_1_pos log_le_one_cancel_iff log_le_zero_cancel_iff log_nat_power nat_2
-      nat_mono numeral_Bit0_eq_double of_nat_0_le_iff of_nat_le_1_iff of_nat_numeral one_of_nat_le_iff power_le_one self_le_power zero_less_numeral zero_less_power)
+    apply (simp add: Cons log_divide)
+    by (smt (verit, best) Multiseries_Expansion.intyness_simps(4) Num.of_nat_simps(4) divide_le_eq_1_pos log_le_one_cancel_iff log_le_zero_cancel_iff nat_le_real_less of_nat_0_le_iff one_add_one one_power2 power_mono real_nat_ceiling_ge zero_less_power)
 
   moreover have \<open>x > 0\<close>
     using \<open>threshold \<ge> 2\<close>
@@ -168,27 +166,27 @@ next
     by (metis List.finite_set bot_nat_0.not_eq_extremum card_0_eq list.distinct(2) list.simps(15) not_numeral_le_zero of_nat_0_less_iff set_empty2 zero_less_divide_iff)
 
   moreover have \<open>\<epsilon>\<^sup>2 * threshold \<ge> 12\<close>
-    using assms \<open>threshold \<ge> 2\<close>
+    using assms \<open>x > 0\<close> \<open>threshold \<ge> 2\<close>
     apply simp
-    by (smt (verit, best) Groups.mult_ac(2) ceiling_divide_upper ceiling_le_zero less_one log_divide log_le_one_cancel_iff log_le_zero_cancel_iff of_nat_eq_0_iff
-      of_nat_less_1_iff of_nat_nat rel_simps(28) split_nat zero_compare_simps(7))
+    by (smt (z3) Groups.mult_ac(2) ceiling_le_zero divide_le_eq log_divide log_le_one_cancel_iff log_le_zero_cancel_iff nat_le_0 of_nat_le_0_iff of_nat_less_1_iff
+      real_nat_ceiling_ge rel_simps(28) zero_compare_simps(7))
   
   moreover have
     \<open>2 * card (set xs) \<le> 2 ^ ?l * threshold\<close>
   proof -
     have \<open>log 2 (2 * x) \<le> ?l\<close>
       using \<open>x > 0\<close>
-      apply (simp add: log_mult_pos)
+      apply (simp add: log_mult)
       apply (simp only: Multiseries_Expansion.intyness_simps)
       by (smt (verit, ccfv_SIG) Multiseries_Expansion.intyness_1 One_nat_def Suc_1 log2_of_power_eq nat_2 numeral_Bit0_eq_double of_int_1 of_int_add of_nat_0_le_iff of_nat_nat
         power2_eq_square real_of_int_floor_add_one_ge zero_le_floor)
 
     then show ?thesis
       using \<open>x > 0\<close> \<open>threshold \<ge> 2\<close> 
-      apply (simp add: log_mult_pos x_def)
+      apply (simp add: log_mult x_def)
       apply (simp only: Multiseries_Expansion.intyness_simps)
-      by (smt (verit, ccfv_threshold) Multiseries_Expansion.intyness_simps(2,3) divide_le_eq le_powr_iff nat_le_real_less of_nat_eq_numeral_iff one_le_power powr_realpow
-        rel_simps(49,9))
+      by (smt (verit, ccfv_threshold) Num.of_nat_simps(5) divide_le_eq le_num_simps(2) less_log_of_power nat_le_real_less of_nat_le_1_iff of_nat_power
+        verit_comp_simplify(6))
   qed
 
   moreover have

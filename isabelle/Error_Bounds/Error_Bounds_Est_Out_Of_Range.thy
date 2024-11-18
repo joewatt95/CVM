@@ -6,6 +6,7 @@ imports
   CVM.Algo_Transforms_No_Fail
   CVM.Algo_Transforms_Eager
   CVM.Algo_Transforms_Binomial
+  CVM.Utils_Compat_Discrete
   CVM.Utils_Real
   CVM.Utils_Concentration_Inequalities
 
@@ -24,17 +25,17 @@ lemma l_le_length_xs :
   \<open>l \<le> length xs\<close>
 proof -
   from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
-  have \<open>l \<le> Discrete.log (2 * r * card (set xs) div threshold)\<close>
-    by (metis Discrete.log_le_iff less_eq_div_iff_mult_less_eq log_power threshold_pos)
+  have \<open>l \<le> Utils_Compat_Discrete.floor_log (2 * r * card (set xs) div threshold)\<close>
+    by (metis Utils_Compat_Discrete.floor_log_le_iff less_eq_div_iff_mult_less_eq Utils_Compat_Discrete.floor_log_power threshold_pos)
 
-  also have \<open>\<dots> \<le> Discrete.log (2 * length xs)\<close>
-    apply (rule Discrete.log_le_iff)
+  also have \<open>\<dots> \<le> Utils_Compat_Discrete.floor_log (2 * length xs)\<close>
+    apply (rule Utils_Compat_Discrete.floor_log_le_iff)
     using \<open>threshold \<ge> r\<close>
     by (smt (verit, best) card_length div_le_mono le_trans less_eq_nat.simps(1) mult.commute mult.left_commute mult_le_mono1 nonzero_mult_div_cancel_right
       semidom_div_by_0)
 
   also have \<open>\<dots> \<le> length xs\<close>
-    by (metis Discrete.log_le_iff less_exp log_exp2_le log_power log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
+    by (metis Utils_Compat_Discrete.floor_log_le_iff less_exp Utils_Compat_Discrete.floor_log_exp2_le Utils_Compat_Discrete.floor_log_power Utils_Compat_Discrete.floor_log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
 
   finally show ?thesis .
 qed
@@ -147,7 +148,7 @@ next
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
       power_add[of "?exp_term l" "1" "2 ^ _ - 1"]
     by (auto
-      intro!: sum.reindex_bij_witness[of _ Discrete.log \<open>power 2\<close>]
+      intro!: sum.reindex_bij_witness[of _ Utils_Compat_Discrete.floor_log \<open>power 2\<close>]
       simp add: sum_distrib_left)
 
   text

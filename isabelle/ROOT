@@ -8,6 +8,7 @@ session CVM = "HOL-Probability" +
 
   directories
     "Utils"
+    "Utils/Compat"
     "Utils/Reader_Monad"
     "Utils/PMF"
     "Utils/SPMF"
@@ -28,6 +29,8 @@ session CVM = "HOL-Probability" +
     "Error_Bounds_K_Exceeds_L"
     "Error_Bounds_Est_Out_Of_Range"
     "Distinct_Elems_Analysis"
+
+    "Utils/Compat/Utils_Compat_Discrete"
 
     "Utils/Utils_Approx_Algo"
     "Utils/Utils_Function"

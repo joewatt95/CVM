@@ -169,15 +169,16 @@ next
           apply (rule mult_nonneg_nonneg[OF \<open>c \<ge> 0\<close>])
           using that by sos
 
-        note this[of \<open>real n * 2 ^ l\<close> r]
+        note this[of \<open>2 ^ l * real n\<close> r]
 
         moreover have \<open>4 * 2 ^ l + \<alpha> * (2 * 2 ^ l) > 0\<close>
           using \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> by (simp add: pos_add_strict)
 
         ultimately show ?thesis
           using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close>
-          by (simp add:
-            field_split_simps power_numeral_reduce add_increasing less_le_not_le)
+          by (auto simp add:
+            field_split_simps power_numeral_reduce add_increasing less_le_not_le
+            Multiseries_Expansion.of_nat_diff_real)
       qed
 
       finally show ?thesis .
