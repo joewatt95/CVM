@@ -55,20 +55,9 @@ context
     xs :: \<open>'a list\<close>
 begin
 
-abbreviation (input) \<open>F0 \<equiv> card (set xs)\<close>
-
-context
-  assumes params :
-    \<open>0 < \<epsilon>\<close>
-    \<open>threshold \<le> F0 \<Longrightarrow> (
-      \<epsilon> \<le> 1 \<and>
-      r \<in> {2 .. threshold} \<and>
-      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
-      2 ^ l * threshold \<in> {r * F0 .. 2 * r * F0})\<close>
-begin
-
 theorem estimate_distinct_error_bound :
   defines
+    [simp] : \<open>F0 \<equiv> card (set xs)\<close> and
     [simp] :
       \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close> and
     [simp] :
@@ -78,6 +67,13 @@ theorem estimate_distinct_error_bound :
     [simp] :
       \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
         4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + 1 * \<epsilon> / 3)))\<close>
+  assumes
+    \<open>0 < \<epsilon>\<close>
+    \<open>threshold \<le> F0 \<Longrightarrow> (
+      \<epsilon> \<le> 1 \<and>
+      r \<in> {2 .. threshold} \<and>
+      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
+      2 ^ l * threshold \<in> {r * F0 .. 2 * r * F0})\<close>
   shows
     \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
         estimate |> fail_or_satisfies
@@ -99,7 +95,7 @@ next
   then interpret with_params :
     with_threshold_pos_r_l_xs threshold r l xs
     apply unfold_locales
-    using params by simp
+    using assms by simp
 
   let ?run_eager_algo =
     \<open>with_params.run_with_bernoulli_matrix <|
@@ -126,11 +122,9 @@ next
     using
       with_params.prob_eager_algo_k_gt_l_le assms
       with_params.prob_eager_algo_k_le_l_and_est_out_of_range_le
-      params \<open>threshold \<le> F0\<close>
+      assms \<open>threshold \<le> F0\<close>
     by force
 qed
-
-end
 
 end
 
