@@ -113,7 +113,7 @@ next
     \<P>(state in ?run_eager_algo. 
       state_k state \<le> l \<and> real (compute_estimate state) >[\<epsilon>] card (set xs)))\<close>
     by (auto
-      intro: with_params.prob_estimate_distinct_fail_or_satisfies_le pmf_add
+      intro: pmf_add
       simp add:
         with_params.estimate_distinct_no_fail_eq_lazy_algo
         with_params.eager_lazy_conversion[of _ \<open>length xs\<close>])
