@@ -87,15 +87,15 @@ proof (cases \<open>threshold > F0\<close>)
   then have \<open>?L = 0\<close>
     using \<open>\<epsilon> > 0\<close> zero_compare_simps(10)[of "\<bar>\<epsilon>\<bar>" "real (card (set xs))"]
     by (simp add: with_threshold.estimate_distinct_correct_of_threshold)
+
   then show ?thesis by simp
 next
   case False
   then have \<open>threshold \<le> F0\<close> by simp
 
-  then interpret with_params :
+  with assms interpret with_params :
     with_threshold_pos_r_l_xs threshold r l xs
-    apply unfold_locales
-    using assms by simp
+    apply unfold_locales by simp
 
   let ?run_eager_algo =
     \<open>with_params.run_with_bernoulli_matrix <|
