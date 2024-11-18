@@ -12,7 +12,6 @@ locale benett_bernstein = prob_space +
   assumes I : \<open>finite I\<close>
   assumes ind : \<open>indep_vars \<lblot>borel\<rblot> X I\<close>
   assumes intsq : \<open>\<And>i. i \<in> I \<Longrightarrow> integrable M (\<lambda>x. (X i x)\<^sup>2)\<close>
-
 begin
 
 abbreviation (input)
@@ -26,21 +25,21 @@ context
   assumes B : \<open>B > 0\<close>
 begin
 
-abbreviation (input) "exp_bound \<equiv> exp (- t\<^sup>2 / (2 * (V + t * B / 3)))"
+abbreviation (input) \<open>exp_bound \<equiv> exp (- t\<^sup>2 / (2 * (V + t * B / 3)))\<close>
 
 lemma bernstein_inequality_ge :
-  assumes bnd: "\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<le> B"
+  assumes \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<le> B\<close>
   shows \<open>\<P>(x in M. sum_mean_deviation X x \<ge> t) \<le> exp_bound\<close>
-  using bernstein_inequality[OF I ind intsq bnd t B, simplified]
+  using bernstein_inequality[OF I ind intsq assms(1) t B, simplified]
   by argo
 
 lemma bernstein_inequality_le :
-  assumes bnd: "\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<ge> - B"
+  assumes \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<ge> - B\<close>
   shows \<open>\<P>(x in M. sum_mean_deviation X x \<le> - t) \<le> exp_bound\<close>
 proof -
   let ?Y = \<open>\<lambda> i. uminus \<circ> X i\<close>
 
-  have \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. ?Y i x \<le> B\<close> using bnd by fastforce 
+  have \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. ?Y i x \<le> B\<close> using assms by fastforce 
 
   moreover have
     \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
@@ -49,7 +48,7 @@ proof -
   ultimately show ?thesis
     using
       bernstein_inequality[OF I, where X = ?Y, where t = t, where B = B]
-      ind intsq bnd B t
+      ind intsq assms B t
     by (force intro!: indep_vars_compose)
 qed
 
@@ -169,16 +168,8 @@ proof -
     \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (real n * p) + 2 * (real n * p * \<delta> * B) / 3)
     = real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)\<close> for B
     apply (simp add: field_split_simps power_numeral_reduce)
-    (* Joe: Sledgehammer can only reconstruct an efficient proof of this when using
-    the `suggest_of` option to instantiate universally quantified parameters.
-    Note that this option is only available in the dev version, and not in the
-    2024 release. *)
-    by (metis of_nat_0_eq_iff[of n] Groups.mult_ac(2)[of "6 + B * (\<delta> + \<delta>)" p] Groups.mult_ac(2)[of p "real n"] mult_2_right[of \<delta>] mult_2_right[of "of_nat n"]
-      Groups.mult_ac(3)[of "6 + B * (\<delta> + \<delta>)" "real n" p] Groups.mult_ac(3)[of "real n" p "6 + B * (\<delta> + \<delta>)"] Groups.mult_ac(3)[of B "real n" "\<delta> * 2"]
-      Groups.mult_ac(3)[of \<delta> "real n" "2"] Groups.mult_ac(3)[of "B * \<delta>" p "real n + real n"] nat_distrib(2)[of "real n" "6" "B * (\<delta> * 2)"]
-      nat_distrib(2)[of p "real n * 6" "B * (\<delta> * (real n + real n))"] mult_eq_0_iff[of p "real n"] mult_eq_0_iff[of "6 + B * (\<delta> + \<delta>)" "real n * p"]
-      more_arith_simps(11)[of B \<delta> "p * (real n + real n)"] more_arith_simps(11)[of B \<delta> "real n + real n"])
-
+    apply (simp only: Multiseries_Expansion.intyness_simps)
+    by (smt (verit, del_insts) Num.of_nat_simps(5) mult_eq_0_iff nat_distrib(2) of_nat_eq_0_iff vector_space_over_itself.scale_left_commute)
   show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
     using
       lhs_eq arithmetic_aux[of 1] p \<open>\<delta> \<ge> 0\<close>
