@@ -3,9 +3,11 @@ theory Distinct_Elems_Algo
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  CVM.Utils_List
   CVM.Utils_PMF_Basic
   CVM.Utils_PMF_Bernoulli_Binomial
   CVM.Utils_SPMF_FoldM
+  CVM.Utils_SPMF_Hoare
 
 begin
 
@@ -69,6 +71,54 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct \<equiv>
     run_steps_then_estimate foldM_spmf map_spmf step\<close>
+
+lemma
+  assumes \<open>threshold > card (set xs)\<close>
+  defines
+    \<open>P index state \<equiv>
+      state_k state = 0 \<and> state_chi state = set (take index xs)\<close>
+  shows \<open>\<turnstile>spmf
+    \<lbrace>(\<lambda> state. (index, x) \<in> set (List.enumerate 0 xs) \<and> P index state)\<rbrace>
+    step x
+    \<lbrace>P (Suc index)\<rbrace>\<close>
+  using
+    assms card_set_take_le_card_set[of "Suc index" xs]
+    insert_nth_set_take_eq_set_take_Suc[of index xs]
+  by (fastforce
+    simp add: hoare_triple_def
+      step_def Let_def Set.remove_def Set.filter_def in_set_enumerate_eq
+      bind_spmf_of_pmf[symmetric]
+    simp del: bind_spmf_of_pmf)
+
+lemma
+  assumes \<open>threshold > card (set xs)\<close>
+  shows \<open>estimate_distinct xs = return_spmf (card <| set xs)\<close>
+proof -
+  let ?P = \<open>\<lambda> index state.
+    state_k state = 0 \<and> state_chi state = set (take index xs)\<close>
+
+  have \<open>\<turnstile>spmf
+    \<lbrace>(\<lambda> state. (index, x) \<in> set (List.enumerate 0 xs) \<and> ?P index state)\<rbrace>
+    step x
+    \<lbrace>?P (Suc index)\<rbrace>\<close> for index x
+    using
+      assms card_set_take_le_card_set[of "Suc index" xs]
+      insert_nth_set_take_eq_set_take_Suc[of index xs]
+    by (fastforce
+      simp add: hoare_triple_def
+        step_def Let_def Set.remove_def Set.filter_def in_set_enumerate_eq
+        bind_spmf_of_pmf[symmetric]
+      simp del: bind_spmf_of_pmf)
+
+  then have \<open>\<turnstile>spmf \<lbrace>?P 0\<rbrace> foldM_spmf step xs \<lbrace>?P (length xs)\<rbrace>\<close>
+    by (fastforce intro: loop[where offset = 0, simplified])
+
+  then show ?thesis
+    apply (auto simp add:
+      hoare_triple_def estimate_distinct_def run_steps_then_estimate_def
+      initial_state_def)
+    sorry
+qed
 
 end
 

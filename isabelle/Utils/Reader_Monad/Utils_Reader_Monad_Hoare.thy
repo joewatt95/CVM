@@ -91,11 +91,12 @@ context
 begin
 
 abbreviation (input)
-  \<open>P' index \<phi> val \<equiv> index < offset + length xs \<and> P index \<phi> val\<close>
+  \<open>P' index x \<phi> val \<equiv>
+    (index, x) \<in> set (List.enumerate offset xs) \<and>
+    P index \<phi> val\<close>
 
 lemma loop_enumerate :
-  assumes \<open>\<And> index x.
-    x \<in> set xs \<Longrightarrow> \<turnstile>rd \<lbrakk>P' index\<rbrakk> f (index, x) \<lbrakk>P (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> index x. \<turnstile>rd \<lbrakk>P' index x\<rbrakk> f (index, x) \<lbrakk>P (Suc index)\<rbrakk>\<close>
   shows \<open> \<turnstile>rd
     \<lbrakk>P offset\<rbrakk>
     foldM_rd_enumerate f xs offset
@@ -114,8 +115,7 @@ next
 qed
 
 lemma loop :
-  assumes
-    \<open>\<And> index x. x \<in> set xs \<Longrightarrow> \<turnstile>rd \<lbrakk>P' index\<rbrakk> f x \<lbrakk>P (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> index x. \<turnstile>rd \<lbrakk>P' index x\<rbrakk> f x \<lbrakk>P (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>rd \<lbrakk>P offset\<rbrakk> foldM_rd f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
   using assms
   by (auto

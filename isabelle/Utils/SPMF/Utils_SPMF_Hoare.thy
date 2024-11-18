@@ -112,11 +112,12 @@ context
 begin
 
 abbreviation (input)
-  \<open>P' index val \<equiv> index < offset + length xs \<and> P index val\<close>
+  \<open>P' index x val \<equiv>
+    (index, x) \<in> set (List.enumerate offset xs) \<and>
+    P index val\<close>
 
 lemma loop_enumerate :
-  assumes \<open>\<And> index x.
-    x \<in> set xs \<Longrightarrow> \<turnstile>spmf \<lbrace>P' index\<rbrace> f (index, x) \<lbrace>P (Suc index)\<rbrace>\<close>
+  assumes \<open>\<And> index x. \<turnstile>spmf \<lbrace>P' index x\<rbrace> f (index, x) \<lbrace>P (Suc index)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>P offset\<rbrace>
     foldM_spmf_enumerate f xs offset
@@ -128,14 +129,14 @@ next
   case (Cons _ _)
   then show ?case
     apply (simp add: foldM_enumerate_def)
-    by (fastforce
-      intro!: seq[where Q = \<open>P <| Suc offset\<close>]
-      simp add: hoare_triple_def add_Suc[symmetric]
-      simp del: add_Suc)
+  by (fastforce
+    intro!: seq[where Q = \<open>P <| Suc offset\<close>]
+    simp add: hoare_triple_def add_Suc[symmetric]
+    simp del: add_Suc)
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x. x \<in> set xs \<Longrightarrow> \<turnstile>spmf \<lbrace>P' index\<rbrace> f x \<lbrace>P (Suc index)\<rbrace>\<close>
+  assumes \<open>\<And> index x. \<turnstile>spmf \<lbrace>P' index x\<rbrace> f x \<lbrace>P (Suc index)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
   using assms
   by (auto
@@ -145,7 +146,7 @@ lemma loop :
 end
 
 lemma loop_unindexed :
-  assumes \<open>\<And> x. x \<in> set xs \<Longrightarrow> \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
+  assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
   using loop[where ?P = \<open>curry <| snd >>> P\<close>, where ?offset = 0] assms
   by (fastforce simp add: hoare_triple_def curry_def snd_def)

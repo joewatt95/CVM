@@ -11,6 +11,14 @@ lemma card_set_take_le_card_set :
   \<open>card (set (take i xs)) \<le> card (set xs)\<close>
   by (simp add: card_mono set_take_subset)
 
+lemma insert_nth_set_take_eq_set_take_Suc :
+  assumes \<open>i < length xs\<close>
+  shows \<open>insert (xs ! i) (set (take i xs)) = set (take (Suc i) xs)\<close>
+  using assms
+  apply (induction xs rule: rev_induct)
+  apply simp
+  by (metis Un_insert_right append_Nil2 list.simps(15) set_append take_Suc_conv_app_nth)
+
 (* definition least_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
   \<open>least_index xs x \<equiv>
     if x \<in> set xs

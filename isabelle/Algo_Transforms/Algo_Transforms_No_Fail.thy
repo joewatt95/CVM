@@ -50,7 +50,7 @@ lemma step_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
   unfolding step_def bind_spmf_of_pmf[symmetric] Let_def
   by (fastforce
-    intro: seq' hoare_tripleI
+    intro: Utils_SPMF_Hoare.seq' hoare_tripleI
     split: if_splits
     simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def Let_def)
 

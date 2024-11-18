@@ -122,13 +122,16 @@ abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_rd_enumerate fn xs offset\<close>
 
 abbreviation (input)
-  \<open>R' index \<phi> val \<phi>' val' \<equiv> index < offset + length xs \<and> R index \<phi> val \<phi>' val'\<close>
+  \<open>R' index x \<phi> val \<phi>' val' \<equiv>
+    (index, x) \<in> set (List.enumerate offset xs) \<and>
+    R index \<phi> val \<phi>' val'\<close>
 
 lemma loop_enumerate :
   assumes
     \<open>\<And> index x.
+
       x \<in> set xs \<Longrightarrow>
-      \<turnstile>rd \<lbrakk>R' index\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
+      \<turnstile>rd \<lbrakk>R' index x\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>rd
     \<lbrakk>R offset\<rbrakk>
     \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
@@ -147,8 +150,7 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x.
-    x \<in> set xs \<Longrightarrow> \<turnstile>rd \<lbrakk>R' index\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> index x. \<turnstile>rd \<lbrakk>R' index x\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>rd
     \<lbrakk>R offset\<rbrakk>
     \<langle>foldM_rd f xs | foldM_rd f' xs\<rangle>
@@ -161,7 +163,7 @@ lemma loop :
 end
 
 lemma loop_unindexed :
-  assumes \<open>\<And> x. x \<in> set xs \<Longrightarrow> \<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
+  assumes \<open>\<And> x. \<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>foldM_rd f xs | foldM_rd f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
