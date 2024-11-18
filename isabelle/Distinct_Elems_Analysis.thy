@@ -22,7 +22,7 @@ proof -
 
   have \<open>\<turnstile>pmf
     \<lbrakk>(\<lambda> state. (index, x) \<in> set (List.enumerate 0 xs) \<and> ?P index state)\<rbrakk>
-    ?step x 
+    ?step x
     \<lbrakk>?P (Suc index)\<rbrakk>\<close> for index x
     using
       assms card_set_take_le_card_set[of "Suc index" xs]
