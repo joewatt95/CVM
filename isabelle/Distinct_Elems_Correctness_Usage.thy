@@ -71,7 +71,8 @@ end
 
 interpretation estimate_distinct \<open>nat \<lceil>threshold\<rceil>\<close> \<open>nat l\<close> 2 xs \<epsilon>
   apply unfold_locales
-  using \<epsilon>(1) apply simp_all
+  using \<epsilon>(1)
+  apply simp_all
   by (metis Distinct_Elems_Correctness_Usage.\<epsilon>_threshold_ge_12(2) Distinct_Elems_Correctness_Usage.threshold_ge_2 \<delta>(1) \<delta>(2) \<epsilon>(2) ceiling_mono ceiling_numeral nat_le_0 nat_mono nat_numeral_as_int of_nat_nat rel_simps(28) two_l_threshold_bounds(1) two_l_threshold_bounds(2) verit_la_generic)
 
 lemma exp_minus_log_le :
