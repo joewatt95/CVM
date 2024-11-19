@@ -28,7 +28,8 @@ session CVM = "HOL-Probability" +
     "Error_Bounds_Common"
     "Error_Bounds_K_Exceeds_L"
     "Error_Bounds_Est_Out_Of_Range"
-    "Distinct_Elems_Analysis"
+    "Distinct_Elems_Correctness"
+    "Distinct_Elems_Correctness_Usage"
 
     "Utils/Compat/Utils_Compat_Discrete"
 

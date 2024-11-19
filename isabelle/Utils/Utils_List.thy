@@ -7,6 +7,10 @@ imports
 
 begin
 
+lemma nonempty_iff_length_ge_1 :
+  \<open>xs \<noteq> [] \<longleftrightarrow> length xs \<ge> 1\<close>
+  by (simp add: Suc_le_eq)
+
 lemma card_set_take_le_card_set :
   \<open>card (set (take i xs)) \<le> card (set xs)\<close>
   by (simp add: card_mono set_take_subset)
