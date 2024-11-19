@@ -54,11 +54,11 @@ locale estimate_distinct =
     \<epsilon> :: real
   assumes assms :
     \<open>0 < \<epsilon>\<close>
-    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow> (
+    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
       \<epsilon> \<le> 1 \<and>
       r \<in> {2 .. threshold} \<and>
       \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
-      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)})\<close>
+      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
 begin
 
 definition
