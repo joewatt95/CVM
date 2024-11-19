@@ -47,18 +47,11 @@ qed
 
 end
 
-locale estimate_distinct =
+locale estimate_distinct_basic =
   fixes
     threshold l r :: nat and
     xs :: \<open>'a list\<close> and
     \<epsilon> :: real
-  assumes assms :
-    \<open>0 < \<epsilon>\<close>
-    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
-      \<epsilon> \<le> 1 \<and>
-      r \<in> {2 .. threshold} \<and>
-      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
-      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
 begin
 
 definition
@@ -77,6 +70,18 @@ lemmas prob_bounds_defs =
   prob_fail_bound_def
   prob_eager_algo_k_gt_l_le_bound_def
   prob_eager_algo_k_le_l_and_estimate_out_of_range_bound_def
+
+end
+
+locale estimate_distinct = estimate_distinct_basic +
+  assumes assms :
+    \<open>0 < \<epsilon>\<close>
+    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
+      \<epsilon> \<le> 1 \<and>
+      r \<in> {2 .. threshold} \<and>
+      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
+      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
+begin
 
 theorem estimate_distinct_error_bound :
   \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
