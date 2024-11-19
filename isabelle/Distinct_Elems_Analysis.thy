@@ -76,7 +76,7 @@ theorem estimate_distinct_error_bound :
       2 ^ l * threshold \<in> {r * F0 .. 2 * r * F0})\<close>
   shows
     \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
-        estimate |> fail_or_satisfies
+        estimate |> fails_or_satisfies
           (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
     \<le> prob_fail_bound +
       prob_eager_algo_k_gt_l_le_bound +
@@ -105,7 +105,7 @@ next
     prob_fail_bound +
     \<P>(estimate in with_params.estimate_distinct_no_fail xs.
       real estimate >[\<epsilon>] card (set xs))\<close>
-    using with_params.prob_estimate_distinct_fail_or_satisfies_le by simp
+    using with_params.prob_estimate_distinct_fails_or_satisfies_le by simp
 
   also have \<open>\<dots> \<le> (
     prob_fail_bound +
@@ -135,7 +135,7 @@ lemma
     \<open>threshold \<equiv> nat \<lceil>12 * log 2 (8 * real (length xs) / \<delta>) / \<epsilon>\<^sup>2\<rceil>\<close>
   shows
     \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
-      estimate |> fail_or_satisfies
+      estimate |> fails_or_satisfies
         (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
     \<le> \<delta>\<close>
 proof (cases xs)

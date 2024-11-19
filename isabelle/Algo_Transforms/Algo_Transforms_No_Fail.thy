@@ -163,11 +163,11 @@ lemma estimate_distinct_ord_spmf_eq :
   by (metis (mono_tags, lifting) foldM_spmf_of_pmf_eq foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD step_ord_spmf_eq)
 
 (* Think of P as event that `estimate` is the wrong count *)
-theorem prob_estimate_distinct_fail_or_satisfies_le :
-  \<open>\<P>(estimate in estimate_distinct xs. estimate |> fail_or_satisfies P)
+theorem prob_estimate_distinct_fails_or_satisfies_le :
+  \<open>\<P>(estimate in estimate_distinct xs. estimate |> fail_or_fails_or_satisfies
   \<le> real (length xs) / 2 ^ threshold
     + \<P>(estimate in estimate_distinct_no_fail xs. P estimate)\<close>
-  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_fail_estimate_size_le prob_fail_or_satisfies_le_prob_fail_plus_prob prob_le_prob_of_ord_spmf_eq)
+  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_fail_estimate_size_le prob_fails_or_satisfies_le_prob_fail_plus_prob prob_le_prob_of_ord_spmf_eq)
 
 end
 

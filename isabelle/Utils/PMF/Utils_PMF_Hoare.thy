@@ -100,7 +100,7 @@ context
     offset :: nat
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>P' index x val \<equiv>
     (index, x) \<in> set (List.enumerate offset xs) \<and>
     P index val\<close>

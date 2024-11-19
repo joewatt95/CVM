@@ -121,7 +121,7 @@ begin
 abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_rd_enumerate fn xs offset\<close>
 
-abbreviation (input)
+private abbreviation (input)
   \<open>R' index x \<phi> val \<phi>' val' \<equiv>
     (index, x) \<in> set (List.enumerate offset xs) \<and>
     R index \<phi> val \<phi>' val'\<close>

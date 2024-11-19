@@ -90,7 +90,7 @@ context
     offset :: nat
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>P' index x \<phi> val \<equiv>
     (index, x) \<in> set (List.enumerate offset xs) \<and>
     P index \<phi> val\<close>

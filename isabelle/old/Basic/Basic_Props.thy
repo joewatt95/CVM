@@ -83,14 +83,14 @@ lemma prob_estimate_distinct_le :
 
   using estimate_distinct_ord_spmf_eq prob_le_prob_of_ord_spmf_eq by fastforce
 
-lemma prob_estimate_distinct_fail_or_satisfies_le :
+lemma prob_estimate_distinct_fails_or_satisfies_le :
   assumes \<open>threshold > 0\<close>
   shows
-    \<open>\<P>(state in estimate_distinct Fail xs. state |> fail_or_satisfies P)
+    \<open>\<P>(state in estimate_distinct Fail xs. state |> fail_or_fails_or_satisfies
       \<le> (length xs :: real) * 2 powr threshold
           + \<P>(state in estimate_distinct_pmf xs. P state)\<close>
 
-  by (smt (verit, best) Collect_cong assms prob_estimate_distinct_le prob_fail_estimate_size_le prob_fail_or_satisfies_le_prob_fail_plus_prob) 
+  by (smt (verit, best) Collect_cong assms prob_estimate_distinct_le prob_fail_estimate_size_le prob_fails_or_satisfies_le_prob_fail_plus_prob) 
 
 end
 

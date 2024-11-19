@@ -13,6 +13,7 @@ https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
 
 imports
   CVM.Utils_SPMF_FoldM
+  CVM.Utils_PMF_Hoare
 
 begin
 
@@ -31,6 +32,17 @@ definition hoare_triple ::
   \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> \<forall> x y. P x \<longrightarrow> (\<turnstile>spmf f x \<Rightarrow>? y) \<longrightarrow> Q y\<close>
+
+definition hoare_triple_total ::
+  \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
+  (\<open>\<turnstile>spmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk>\<close> [21, 20, 21] 60) where
+  \<open>\<turnstile>spmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> \<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>succeeds_and_satisfies Q\<rbrakk>\<close>
+
+lemma hoare_triple_altdef :
+  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>fails_or_satisfies Q\<rbrakk>)\<close>
+  by (simp
+    add: hoare_triple_def Utils_PMF_Hoare.hoare_triple_def in_set_spmf
+    split: option.splits)
 
 lemma hoare_tripleI :
   assumes \<open>\<And> x y. \<lbrakk>P x; \<turnstile>spmf f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y\<close>
@@ -79,9 +91,9 @@ lemma skip' [simp] :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q (f x))\<close>
   by (simp add: hoare_triple_def)
 
-lemma hoare_triple_altdef :
+(* lemma hoare_triple_altdef :
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<longleftrightarrow> \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile>spmf f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrace>\<close>
-  by (smt (verit, ccfv_SIG) hoare_tripleE hoare_tripleI)
+  by (smt (verit, ccfv_SIG) hoare_tripleE hoare_tripleI) *)
 
 lemma if_then_else :
   assumes
@@ -111,7 +123,7 @@ context
     offset :: nat
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>P' index x val \<equiv>
     (index, x) \<in> set (List.enumerate offset xs) \<and>
     P index val\<close>

@@ -16,14 +16,17 @@ lemma prob_fail_map_spmf_eq :
   \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
   by (simp add: prob_fail_def pmf_None_eq_weight_spmf)
 
-abbreviation fail_or_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
-  \<open>fail_or_satisfies \<equiv> Option.case_option True\<close>
+abbreviation fails_or_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
+  \<open>fails_or_satisfies \<equiv> case_option True\<close>
 
-lemma prob_fail_or_satisfies_le_prob_fail_plus_prob :
-  \<open>\<P>(x in measure_pmf p. x |> fail_or_satisfies P)
+abbreviation succeeds_and_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
+  \<open>succeeds_and_satisfies \<equiv> case_option False\<close>
+
+lemma prob_fails_or_satisfies_le_prob_fail_plus_prob :
+  \<open>\<P>(x in measure_pmf p. x |> fails_or_satisfies P)
     \<le> prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
-  have \<open>Collect (fail_or_satisfies P) = {None} \<union> Some ` Collect P\<close>
+  have \<open>Collect (fails_or_satisfies P) = {None} \<union> Some ` Collect P\<close>
     by (auto elim: case_optionE)
 
   then show ?thesis
