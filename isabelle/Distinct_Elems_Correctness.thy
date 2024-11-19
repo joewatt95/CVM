@@ -50,8 +50,8 @@ end
 locale estimate_distinct =
   fixes
     threshold l r :: nat and
-    \<epsilon> :: real and
-    xs :: \<open>'a list\<close>
+    xs :: \<open>'a list\<close> and
+    \<epsilon> :: real
   assumes assms :
     \<open>0 < \<epsilon>\<close>
     \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow> (
