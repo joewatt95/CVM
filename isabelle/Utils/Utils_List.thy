@@ -23,57 +23,6 @@ lemma insert_nth_set_take_eq_set_take_Suc :
   apply simp
   by (metis Un_insert_right append_Nil2 list.simps(15) set_append take_Suc_conv_app_nth)
 
-(* definition least_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
-  \<open>least_index xs x \<equiv>
-    if x \<in> set xs
-    then Some <| LEAST index. xs ! index = x
-    else None\<close>
-
-lemma least_index_le_length :
-  assumes \<open>least_index xs x = Some index\<close>
-  shows \<open>index < length xs\<close>
-  by (metis (mono_tags, lifting) assms in_set_conv_nth least_index_def linorder_less_linear not_less_Least option.discI option.inject order_less_trans)
-
-lemma least_index_take_mono :
-  fixes xs x i j
-  assumes \<open>i \<le> j\<close>
-  defines
-    \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
-  shows \<open>ord_option (\<le>) (least_index_up_to i) (least_index_up_to j)\<close>
-  using assms
-  apply (simp add: least_index_def)
-  by (smt (verit, best) LeastI2 in_set_conv_nth length_take linorder_not_less min_less_iff_conj not_less_Least nth_take order.trans) 
-
-lemma least_index_eq_of_index_le :
-  fixes xs x i j
-  assumes \<open>i \<le> j\<close> \<open>x \<in> set (take i xs)\<close> 
-  defines
-    \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
-  shows \<open>least_index_up_to i = least_index_up_to j\<close>
-proof -
-  have \<open>ord_option (\<le>) (least_index_up_to i) (least_index_up_to j)\<close>
-    by (simp add: assms(1) least_index_take_mono least_index_up_to_def) 
-
-  then show ?thesis
-    using assms
-    apply (simp add: least_index_def)
-    by (smt (verit) LeastI in_set_conv_nth length_take linorder_less_linear linorder_not_less min_less_iff_conj not_less_Least nth_take ord_option_simps(3) order.strict_trans2) 
-qed
-
-lemma least_index_eq_of_Suc_index :
-  fixes xs x i
-  assumes \<open>x \<in> set (take i xs)\<close> 
-  defines
-    \<open>least_index_up_to index \<equiv> least_index (take index xs) x\<close>
-  shows \<open>least_index_up_to (Suc i) = least_index_up_to i\<close>
-  by (metis assms least_index_eq_of_index_le lessI less_imp_le_nat)  *)
-
-(* definition greatest_index :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> nat option\<close> where
-  \<open>greatest_index xs x = (
-    if x \<in> set xs
-    then Some <| GREATEST index. xs ! index = x
-    else None)\<close> *)
-
 lemma in_set_take_conv_nth :
   assumes \<open>i < length xs\<close>
   shows \<open>x \<in> set (take i xs) \<longleftrightarrow> (\<exists> j < i. xs ! j = x)\<close>

@@ -1,7 +1,8 @@
 theory Utils_Real
 
 imports
-  "HOL-Analysis.Harmonic_Numbers"
+  HOL.MacLaurin
+  (* "HOL-Analysis.Harmonic_Numbers" *)
 
 begin
 

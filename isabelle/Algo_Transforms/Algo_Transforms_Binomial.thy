@@ -53,13 +53,13 @@ proof -
         \<lblot>map_pmf (\<lambda> f. \<forall> k' < k. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)\<close>
     by (auto
       intro: map_pmf_cong
-      simp add: Pi_pmf_map'[where d' = undefined] map_pmf_comp)
+      simp add: Pi_pmf_map'[where dflt' = undefined] map_pmf_comp)
 
   finally show ?thesis
     using
       assms(2)          
       bernoulli_eq_map_Pi_pmf[where I = \<open>{.. k - 1}\<close>, unfolded Ball_def]
-    by (cases k, auto simp add:
+    by (cases k; simp add:
       power_one_over le_simps(2) map_pmf_comp Iic_subset_Iio_iff)
 qed
 

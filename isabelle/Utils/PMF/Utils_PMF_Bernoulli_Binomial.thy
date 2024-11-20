@@ -12,13 +12,13 @@ lemma bernoulli_pmf_0_1 [simp] :
   \<open>bernoulli_pmf 1 = return_pmf True\<close>
   by (simp_all add: bernoulli_pmf.rep_eq pmf_eqI)
 
-lemma binomial_pmf_one [simp] :
-  \<open>binomial_pmf n 1 = return_pmf n\<close>
-  by (metis set_pmf_binomial_1 set_pmf_subset_singleton subset_iff_psubset_eq)
+lemma
+  binomial_pmf_0 [simp] : \<open>binomial_pmf n 0 = return_pmf 0\<close> and
+  binomial_pmf_1 [simp] : \<open>binomial_pmf n 1 = return_pmf n\<close>
+  using set_pmf_subset_singleton by fastforce+
 
 context
-  fixes
-    p :: real
+  fixes p :: real
   assumes \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
 begin
 
@@ -111,7 +111,7 @@ lemma binomial_pmf_eq_map_sum_of_bernoullis :
   by (simp add:
     map_pmf_comp Collect_conj_eq lessThan_def
     binomial_pmf_altdef'[where A = \<open>{..< n}\<close>, where dflt = undefined]
-    Pi_pmf_map'[where d' = undefined])
+    Pi_pmf_map'[where dflt' = undefined])
 
 lemma expectation_binomial_pmf :
   \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
