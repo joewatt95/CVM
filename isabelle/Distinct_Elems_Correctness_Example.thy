@@ -112,7 +112,7 @@ proof -
     apply (simp only: estimate_distinct_basic.prob_bounds_defs threshold_def)
     by (smt (verit, ccfv_SIG) Multiseries_Expansion.intyness_0 divide_le_eq_1_pos frac_le divide_pos_pos less_log_of_power max_nat.eq_neutr_iff mult_eq_0_iff mult_le_cancel_right1
       of_nat_le_0_iff power_le_one real_nat_ceiling_ge rel_simps(76,93) zero_less_power)
- 
+
   with \<delta> show ?thesis by (cases \<open>length xs = 0\<close>; simp)
 qed
 
