@@ -12,7 +12,11 @@ imports
 
 begin
 
-context with_threshold_pos_r_l_xs
+definition (in with_threshold_r_l_\<epsilon>_xs)
+  \<open>prob_k_le_l_and_est_out_of_range_bound \<equiv>
+    4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
+
+context with_threshold_pos_r_l_\<epsilon>_xs
 begin
 
 context
@@ -48,20 +52,23 @@ lemma r_pos :
   by fastforce
 
 theorem prob_eager_algo_k_le_l_and_est_out_of_range_le :
-  fixes \<epsilon> :: real
   assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
   shows
     \<open>\<P>(state in run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state \<le> l \<and>
       real (compute_estimate state) >[\<epsilon>] card (set xs))
-    \<le> 4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + 1 * \<epsilon> / 3)))\<close>
-    (is \<open>?L (\<le>) l \<le> 4 * ?exp_bound\<close>)
+    \<le> prob_k_le_l_and_est_out_of_range_bound\<close>
+    (is \<open>?L (\<le>) l \<le> _\<close>)
 proof (cases xs)
   case Nil
   then show ?thesis
     using \<open>\<epsilon> > 0\<close>
-    by (simp add: eager_algo_simps eager_algorithm_def compute_estimate_def)
+    by (simp add:
+      eager_algo_simps eager_algorithm_def compute_estimate_def
+      prob_k_le_l_and_est_out_of_range_bound_def)
 next
+  let ?exp_bound =
+    \<open>exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
   let ?exp_term = \<open>\<lambda> k.
     exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close>
 
@@ -195,7 +202,7 @@ next
     with exp_minus_one_le_half show ?thesis_1 by argo
   qed
 
-  finally show ?thesis .
+  finally show ?thesis unfolding prob_k_le_l_and_est_out_of_range_bound_def .
 qed
 
 end

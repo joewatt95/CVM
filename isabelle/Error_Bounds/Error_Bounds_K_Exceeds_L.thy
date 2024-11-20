@@ -66,7 +66,12 @@ qed
 
 end
 
-context with_threshold_pos_r_l_xs
+definition (in with_threshold_r_l_\<epsilon>_xs)
+  \<open>prob_k_gt_l_bound \<equiv>
+    real (length xs) *
+    exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
+
+context with_threshold_pos_r_l_\<epsilon>_xs
 begin
 
 theorem prob_eager_algo_k_gt_l_le :
@@ -75,19 +80,20 @@ theorem prob_eager_algo_k_gt_l_le :
     \<open>\<P>(state in
       run_with_bernoulli_matrix <| run_reader <<< eager_algorithm.
       state_k state > l)
-    \<le> real (length xs) *
-      exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
-    (is \<open>?L \<le> _ * ?exp_term\<close>)
+    \<le> prob_k_gt_l_bound\<close>
+    (is \<open>?L \<le> _\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
   with eager_algorithm_k_bounded
   have \<open>?L = 0\<close>
     using dual_order.strict_trans1
     by (fastforce simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
-  then show ?thesis by simp
+  then show ?thesis by (simp add: prob_k_gt_l_bound_def) 
 next
   case False
   then have \<open>l \<le> length xs\<close> by simp
+
+  let ?exp_term = \<open>exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
 
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
     after running eager_step_1.
@@ -185,7 +191,7 @@ next
     qed
   qed
 
-  finally show ?thesis .
+  finally show ?thesis unfolding prob_k_gt_l_bound_def .
 qed
 
 end

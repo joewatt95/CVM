@@ -47,29 +47,16 @@ qed
 
 end
 
-locale estimate_distinct_basic =
-  fixes
-    threshold l r :: nat and
-    xs :: \<open>'a list\<close> and
-    \<epsilon> :: real
+locale estimate_distinct_basic = with_threshold_r_l_\<epsilon>_xs
 begin
 
 definition
   \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close>
 
-definition
-  \<open>prob_eager_algo_k_gt_l_le_bound \<equiv>
-    real (length xs) *
-    exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
-
-definition
-  \<open>prob_eager_algo_k_le_l_and_estimate_out_of_range_bound \<equiv>
-    4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + 1 * \<epsilon> / 3)))\<close>
-
 lemmas prob_bounds_defs =
   prob_fail_bound_def
-  prob_eager_algo_k_gt_l_le_bound_def
-  prob_eager_algo_k_le_l_and_estimate_out_of_range_bound_def
+  prob_k_gt_l_bound_def
+  prob_k_le_l_and_est_out_of_range_bound_def
 
 end
 
@@ -88,8 +75,8 @@ theorem estimate_distinct_error_bound :
       estimate |> fails_or_satisfies
         (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
   \<le> prob_fail_bound +
-    prob_eager_algo_k_gt_l_le_bound +
-    prob_eager_algo_k_le_l_and_estimate_out_of_range_bound\<close>
+    prob_k_gt_l_bound +
+    prob_k_le_l_and_est_out_of_range_bound\<close>
   (is \<open>?L \<le> _\<close>)
 proof (cases \<open>xs = [] \<or> threshold > card (set xs)\<close>)
   case True
@@ -103,19 +90,19 @@ next
   then have
     \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close> by simp_all
 
-  with assms interpret with_params :
-    with_threshold_pos_r_l_xs threshold r l xs
+  with assms interpret
+    with_threshold_pos_r_l_\<epsilon>_xs threshold r l \<epsilon> xs
     apply unfold_locales by simp
 
   let ?run_eager_algo =
-    \<open>with_params.run_with_bernoulli_matrix <|
-      run_reader <<< with_params.eager_algorithm\<close>
+    \<open>run_with_bernoulli_matrix <|
+      run_reader <<< eager_algorithm\<close>
 
   have \<open>?L \<le>
     prob_fail_bound +
-    \<P>(estimate in with_params.estimate_distinct_no_fail xs.
+    \<P>(estimate in estimate_distinct_no_fail xs.
       real estimate >[\<epsilon>] card (set xs))\<close>
-    using with_params.prob_estimate_distinct_fails_or_satisfies_le
+    using prob_estimate_distinct_fails_or_satisfies_le
     by (simp add: prob_bounds_defs)
 
   also have \<open>\<dots> \<le> (
@@ -126,13 +113,13 @@ next
     by (auto
       intro: pmf_add
       simp add:
-        with_params.estimate_distinct_no_fail_eq_lazy_algo
-        with_params.eager_lazy_conversion[of _ \<open>length xs\<close>])
+        estimate_distinct_no_fail_eq_lazy_algo
+        eager_lazy_conversion[of _ \<open>length xs\<close>])
 
   finally show ?thesis
     using
-      with_params.prob_eager_algo_k_gt_l_le assms
-      with_params.prob_eager_algo_k_le_l_and_est_out_of_range_le
+      prob_eager_algo_k_gt_l_le assms
+      prob_eager_algo_k_le_l_and_est_out_of_range_le
       \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
     by (force simp add: prob_bounds_defs)
 qed

@@ -6,9 +6,10 @@ imports
 
 begin
 
-locale with_threshold_pos_r_l_xs = with_threshold_pos +
+locale with_threshold_r_l_\<epsilon>_xs = with_threshold +
   fixes
     r l :: nat and
+    \<epsilon> :: real and
     xs :: \<open>'a list\<close>
 begin
 
@@ -17,5 +18,8 @@ abbreviation
     map_pmf (f xs) (fair_bernoulli_matrix (length xs) (length xs))\<close>
 
 end
+
+locale with_threshold_pos_r_l_\<epsilon>_xs =
+  with_threshold_r_l_\<epsilon>_xs + with_threshold_pos
 
 end
