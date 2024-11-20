@@ -40,7 +40,7 @@ context
     xs :: \<open>'a list\<close>
 begin
 
-abbreviation \<open>length_xs_1 \<equiv> max 1 (length xs)\<close>
+abbreviation (input) \<open>length_xs_1 \<equiv> max 1 (length xs)\<close>
 
 definition \<open>threshold \<equiv> (12 / \<epsilon>\<^sup>2) * log 2 (8 * length_xs_1 / \<delta>)\<close>
 
