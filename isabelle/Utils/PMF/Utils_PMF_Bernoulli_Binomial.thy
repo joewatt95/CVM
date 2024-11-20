@@ -32,8 +32,7 @@ lemma bernoulli_pmf_eq_bernoulli_pmfs :
 proof -
   have \<open>- (p * p') = (1 - p') * p - p\<close> by argo
 
-  then show ?thesis
-    using assms \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
+  with assms \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> show ?thesis
     by (auto
       intro: pmf_eqI
       simp add: mult_le_one bernoulli_pmf.rep_eq pmf_bind)
