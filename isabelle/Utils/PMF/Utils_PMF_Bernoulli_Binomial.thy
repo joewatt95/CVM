@@ -13,8 +13,8 @@ lemma bernoulli_pmf_0_1 [simp] :
   by (simp_all add: bernoulli_pmf.rep_eq pmf_eqI)
 
 lemma
-  binomial_pmf_0 [simp] : \<open>binomial_pmf n 0 = return_pmf 0\<close> and
-  binomial_pmf_1 [simp] : \<open>binomial_pmf n 1 = return_pmf n\<close>
+  binomial_pmf_p_0 [simp] : \<open>binomial_pmf n 0 = return_pmf 0\<close> and
+  binomial_pmf_p_1 [simp] : \<open>binomial_pmf n 1 = return_pmf n\<close>
   using set_pmf_subset_singleton by fastforce+
 
 context
