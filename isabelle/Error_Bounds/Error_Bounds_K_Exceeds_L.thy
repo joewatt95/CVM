@@ -159,7 +159,8 @@ next
           \<open>2 ^ l * threshold \<ge> r * (card <| set xs)\<close>
           card_set_take_le_card_set[of "Suc i" xs]
           of_nat_le_iff[of "r * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
-          mult_le_mono2[of "card (set (take (Suc i) xs))" "card (set xs)" r] order.trans[of "r * card (set (take (Suc i) xs))" "r * card (set xs)" "threshold * 2 ^ l"]
+          mult_le_mono2[of "card (set (take (Suc i) xs))" "card (set xs)" r]
+          order.trans[of "r * card (set (take (Suc i) xs))" "r * card (set xs)" "threshold * 2 ^ l"]
         by (auto simp add: \<alpha>_def n_def field_simps)
 
       with binomial_distribution.chernoff_prob_ge[
