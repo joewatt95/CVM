@@ -38,9 +38,6 @@ context
   fixes
     \<epsilon> \<delta> :: real and
     xs :: \<open>'a list\<close>
-  assumes
-    \<epsilon> : \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> and
-    \<delta> : \<open>0 < \<delta>\<close> \<open>\<delta> \<le> 1\<close>
 begin
 
 abbreviation \<open>length_xs_1 \<equiv> max 1 (length xs)\<close>
@@ -48,6 +45,12 @@ abbreviation \<open>length_xs_1 \<equiv> max 1 (length xs)\<close>
 definition \<open>threshold \<equiv> (12 / \<epsilon>\<^sup>2) * log 2 (8 * length_xs_1 / \<delta>)\<close>
 
 definition \<open>l \<equiv> \<lfloor>log 2 <| 4 * card (set xs) / \<lceil>threshold\<rceil>\<rfloor>\<close>
+
+context
+  assumes
+    \<epsilon> : \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> and
+    \<delta> : \<open>0 < \<delta>\<close> \<open>\<delta> \<le> 1\<close>
+begin
 
 context
   assumes
@@ -130,11 +133,15 @@ qed
 lemma prob_k_le_l_and_est_out_of_range_bound_le_\<delta> :
   \<open>prob_k_le_l_and_est_out_of_range_bound \<le> \<delta> / 5\<close>
   using exp_minus_log_le[of \<open>12 / (8 * (1 + \<epsilon> / 3))\<close> \<open>length_xs_1\<close> \<delta>] \<epsilon> \<delta>
-  apply (simp add: estimate_distinct_basic.prob_bounds_defs threshold_def real_of_nat_ge_one_iff field_split_simps split: if_splits)
+  apply (simp
+    add:
+      estimate_distinct_basic.prob_bounds_defs threshold_def field_split_simps
+      real_of_nat_ge_one_iff
+    split: if_splits)
   by (smt (verit, ccfv_SIG) Groups.mult_ac(2) Num.of_nat_simps(1) ceiling_divide_upper divide_le_eq_1_pos frac_le exp_le_cancel_iff log_le_zero_cancel_iff
     mult_le_cancel_right1 nat_less_real_le zero_less_power)
 
-theorem
+theorem estimate_distinct_example_correct :
   \<open>\<P>(estimate in estimate_distinct xs.
     estimate |> fails_or_satisfies
       (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
@@ -145,5 +152,9 @@ theorem
   by simp
 
 end
+
+end
+
+thm estimate_distinct_example_correct threshold_def
 
 end
