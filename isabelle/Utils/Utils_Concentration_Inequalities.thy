@@ -30,8 +30,7 @@ abbreviation (input) \<open>exp_bound \<equiv> exp (- t\<^sup>2 / (2 * (V + t * 
 lemma bernstein_inequality_ge :
   assumes \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<le> B\<close>
   shows \<open>\<P>(x in M. sum_mean_deviation X x \<ge> t) \<le> exp_bound\<close>
-  using bernstein_inequality[OF I ind intsq assms(1) t B, simplified]
-  by argo
+  using bernstein_inequality[OF I ind intsq assms(1) t B] by simp
 
 lemma bernstein_inequality_le :
   assumes \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<ge> - B\<close>
