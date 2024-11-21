@@ -164,8 +164,8 @@ corollary estimate_distinct_example_correct' :
     \<open>thresh \<equiv> nat \<lceil>(12 / \<epsilon>\<^sup>2) * log 2 (real 8 * real (max 1 (length xs)) / \<delta>)\<rceil>\<close>
   shows
     \<open>\<P>(estimate in with_threshold.estimate_distinct thresh xs.
-        estimate |> fails_or_satisfies
-          (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
+      estimate |> fails_or_satisfies
+        (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
     \<le> 3 * \<delta> / 8\<close>
   using estimate_distinct_example_correct assms
   by (simp add: threshold_def)
