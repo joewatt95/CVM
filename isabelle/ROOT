@@ -5,7 +5,6 @@ session CVM = "HOL-Probability" +
     "Universal_Hash_Families"
     "Finite_Fields"
     "Concentration_Inequalities"
-    "Executable_Randomized_Algorithms"
 
   directories
     "Utils"
