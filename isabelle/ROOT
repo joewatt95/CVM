@@ -1,4 +1,4 @@
-session CVM = "Executable_Randomized_Algorithms" +
+session CVM = "HOL-Probability" +
   options [timeout = 300]
 
   sessions

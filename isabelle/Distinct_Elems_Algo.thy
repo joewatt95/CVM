@@ -3,7 +3,6 @@ theory Distinct_Elems_Algo
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-  Executable_Randomized_Algorithms.Basic_Randomized_Algorithms
   CVM.Utils_List
   CVM.Utils_PMF_Basic
   CVM.Utils_SPMF_FoldM
