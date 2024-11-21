@@ -1,11 +1,10 @@
-session CVM = "HOL-Probability" +
+session CVM = "Executable_Randomized_Algorithms" +
   options [timeout = 300]
 
   sessions
     "Universal_Hash_Families"
     "Finite_Fields"
     "Concentration_Inequalities"
-    "Probabilistic_While"
 
   directories
     "Utils"
