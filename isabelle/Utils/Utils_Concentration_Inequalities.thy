@@ -11,13 +11,13 @@ locale benett_bernstein = prob_space +
   fixes X :: \<open>'b \<Rightarrow> 'a \<Rightarrow> real\<close> and I
   assumes I : \<open>finite I\<close>
   assumes ind : \<open>indep_vars \<lblot>borel\<rblot> X I\<close>
-  assumes intsq : \<open>\<And>i. i \<in> I \<Longrightarrow> integrable M (\<lambda>x. (X i x)\<^sup>2)\<close>
+  assumes intsq : \<open>\<And>i. i \<in> I \<Longrightarrow> integrable M (\<lambda> x. (X i x)\<^sup>2)\<close>
 begin
 
 abbreviation (input)
   \<open>sum_mean_deviation Y x \<equiv> (\<Sum> i \<in> I. Y i x - expectation (Y i))\<close>
 
-abbreviation \<open>V \<equiv> (\<Sum>i \<in> I. expectation (\<lambda>x. (X i x)\<^sup>2))\<close>
+abbreviation \<open>V \<equiv> (\<Sum>i \<in> I. expectation (\<lambda> x. (X i x)\<^sup>2))\<close>
 
 context
   fixes t B :: real
