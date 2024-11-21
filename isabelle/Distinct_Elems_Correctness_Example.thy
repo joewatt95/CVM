@@ -141,7 +141,7 @@ lemma prob_k_le_l_and_est_out_of_range_bound_le_\<delta> :
   by (smt (verit, ccfv_SIG) Groups.mult_ac(2) Num.of_nat_simps(1) ceiling_divide_upper divide_le_eq_1_pos frac_le exp_le_cancel_iff log_le_zero_cancel_iff
     mult_le_cancel_right1 nat_less_real_le zero_less_power)
 
-theorem estimate_distinct_example_correct :
+corollary estimate_distinct_example_correct :
   \<open>\<P>(estimate in estimate_distinct xs.
     estimate |> fails_or_satisfies
       (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
@@ -155,6 +155,19 @@ end
 
 end
 
-thm estimate_distinct_example_correct threshold_def
+corollary estimate_distinct_example_correct' :
+  fixes
+    \<epsilon> \<delta> :: real and
+    xs :: \<open>'a list\<close>
+  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>0 < \<delta>\<close> \<open>\<delta> \<le> 1\<close>
+  defines
+    \<open>thresh \<equiv> nat \<lceil>(12 / \<epsilon>\<^sup>2) * log 2 (real 8 * real (max 1 (length xs)) / \<delta>)\<rceil>\<close>
+  shows
+    \<open>\<P>(estimate in with_threshold.estimate_distinct thresh xs.
+        estimate |> fails_or_satisfies
+          (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
+    \<le> 3 * \<delta> / 8\<close>
+  using estimate_distinct_example_correct assms
+  by (simp add: threshold_def)
 
 end

@@ -4,6 +4,7 @@ imports
   "HOL-Probability.Probability_Mass_Function"
 
 begin
+
 abbreviation beyond_eps_range_of
   (\<open>_ >[ _ ] _\<close> [60, 60, 60] 60) where
   \<open>\<omega> >[\<epsilon>] x \<equiv> \<bar>\<omega> - x\<bar> > \<epsilon> * x\<close>

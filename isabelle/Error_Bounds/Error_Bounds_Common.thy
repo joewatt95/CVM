@@ -20,6 +20,7 @@ abbreviation
 end
 
 locale with_threshold_pos_r_l_\<epsilon>_xs =
-  with_threshold_r_l_\<epsilon>_xs + with_threshold_pos
+  with_threshold_r_l_\<epsilon>_xs +
+  with_threshold_pos
 
 end

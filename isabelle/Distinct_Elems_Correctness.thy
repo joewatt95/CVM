@@ -126,4 +126,36 @@ qed
 
 end
 
+text \<open>As before, but stated outside of our locales, for convenience and clarity.\<close>
+theorem estimate_distinct_error_bound' :
+ fixes
+    \<epsilon> :: real and
+    threshold l :: nat and
+    xs :: \<open>'a list\<close>
+  assumes
+    \<open>0 < \<epsilon>\<close>
+    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
+      \<epsilon> \<le> 1 \<and>
+      r \<in> {2 .. threshold} \<and>
+      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
+      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
+  defines
+   \<open>prob_fail_bound \<equiv>
+      real (length xs) / 2 ^ threshold\<close> and
+   \<open>prob_k_gt_l_bound \<equiv>
+      real (length xs) *
+      exp (- 3 * real threshold * real ((r - 1)\<^sup>2) / real (5 * r + 2 * r\<^sup>2))\<close> and
+   \<open>prob_k_le_l_and_est_out_of_range_bound \<equiv>
+      4 * exp (- \<epsilon>\<^sup>2 * real threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
+  shows
+    \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
+      estimate |> fails_or_satisfies
+        (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
+    \<le> prob_fail_bound +
+      prob_k_gt_l_bound +
+      prob_k_le_l_and_est_out_of_range_bound\<close>
+  using estimate_distinct.estimate_distinct_error_bound assms
+  unfolding estimate_distinct_def estimate_distinct_basic.prob_bounds_defs
+  by blast
+
 end
