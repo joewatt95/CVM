@@ -92,7 +92,7 @@ next
 
   with assms interpret
     with_threshold_pos_r_l_\<epsilon>_xs threshold r l \<epsilon> xs
-    apply unfold_locales by simp
+    by unfold_locales simp
 
   let ?run_eager_algo =
     \<open>run_with_bernoulli_matrix <|
