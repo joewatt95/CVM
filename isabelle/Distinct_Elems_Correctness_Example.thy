@@ -77,8 +77,8 @@ lemma two_l_threshold_bounds :
     \<open>2 * card (set xs) \<le> two_l_threshold\<close> (is \<open>?lower \<le> _\<close>)
     \<open>two_l_threshold \<le> 4 * card (set xs)\<close> (is \<open>_ \<le> ?upper\<close>)
 proof -
+  from \<open>threshold \<le> card (set xs)\<close> threshold_ge_2
   have \<open>l > 0\<close>
-    using \<open>threshold \<le> card (set xs)\<close> threshold_ge_2
     apply (simp add: l_def field_simps)
     by linarith
 
