@@ -10,10 +10,10 @@ context
   fixes threshold :: nat
 begin
 
-definition "fail_ra \<equiv> lub_ra {}"
+definition \<open>fail_ra \<equiv> lub_ra {}\<close>
 
 lemma
-  "spmf_of_ra fail_ra = fail_spmf"
+  \<open>spmf_of_ra fail_ra = fail_spmf\<close>
   by (simp add: fail_ra_def fail_spmf_def spmf_of_ra_lub_ra_empty) 
 
 (*

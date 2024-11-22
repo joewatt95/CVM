@@ -5,6 +5,7 @@ session CVM = "HOL-Probability" +
     "Universal_Hash_Families"
     "Finite_Fields"
     "Concentration_Inequalities"
+    "Probabilistic_While"
 
   directories
     "Utils"
@@ -18,6 +19,7 @@ session CVM = "HOL-Probability" +
 
   theories
     "Distinct_Elems_Algo"
+    "Distinct_Elems_While"
 
     "Algo_Transforms_No_Fail"
     "Algo_Transforms_Eager"
