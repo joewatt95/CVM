@@ -66,9 +66,12 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
       then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
       else fail_spmf }}\<close>
 
+abbreviation
+  \<open>run_steps_then_estimate_spmf \<equiv>
+    run_steps_then_estimate foldM_spmf map_spmf\<close>
+
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
-  \<open>estimate_distinct \<equiv>
-    run_steps_then_estimate foldM_spmf map_spmf step\<close>
+  \<open>estimate_distinct \<equiv> run_steps_then_estimate_spmf step\<close>
 
 end
 
