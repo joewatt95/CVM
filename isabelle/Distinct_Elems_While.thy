@@ -26,7 +26,7 @@ definition step_while :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state
             prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
 
           let chi = Set.filter keep_in_chi (state_chi state);
-          let k = Suc (state_k state);
+          let k = state_k state + 1;
 
           return_spmf \<lparr>state_k = k, state_chi = chi\<rparr>}) }\<close>
 
