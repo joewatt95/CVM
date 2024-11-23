@@ -58,9 +58,12 @@ These include:
   terminate (which form a CPPO under the usual approximation ordering), ie have
   fixed points at or beyond \<omega>.
 
-  Note that such a bound exists at \<omega> if the inflationary function is Scott
-  continuous, ie preserves limits (ie sups), so that one need only consider
-  limits of \<omega>-chains in the limit stages.
+  Note that:
+  - Such a bound exists at \<omega> if the inflationary function is Scott
+    continuous, ie preserves limits (ie sups), so that one need only consider
+    limits of \<omega>-chains in the limit stages.
+  - The Scott induction principle for while loops essentially yields the
+    soundness of the (partial) Hoare rule for while loops,
 
 For details, see for instance:
 https://pcousot.github.io/publications/Cousot-LOPSTR-2019.pdf
@@ -91,8 +94,19 @@ thm partial_function_definitions.fixp_induct_uc
 thm ccpo.fixp_induct
 term ccpo.iterates
 
-thm loop_spmf.while_fixp_induct[
-  unfolded ccpo.admissible_def Ball_def fun_ord_def fun_lub_def]
+(* Soundness of partial correctness of Hoare while rule. *)
+lemma while :
+  assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>P\<rbrace>\<close> 
+  (* Transfinite induction over inflationary sequence. *)
+  apply (rule loop_spmf.while_fixp_induct)
+  (* Limit ordinal case. Here, a typical Zorn's Lemma style argument shows that
+  chains satisfying the Hoare triple `(\<lambda> f. \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>P\<rbrace>)` contain a sup. *)
+  subgoal by (simp add: hoare_triple_def)
+  (* 0 case. *)
+  subgoal by (rule fail[simplified fail_spmf_def])
+  (* Successor ordinal case. *)
+  using assms by (auto intro!: if_then_else seq')
 
 lemma
   \<open>do {
