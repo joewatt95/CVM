@@ -42,16 +42,18 @@ constructed by standard set theoretic machinery:
 2. fixing an inflationary function (ie endofunctor) that iteratively constructs
    the data type / recursive function and then iterating over the ordinals
 3. taking the LFP (ie limit) (at an ordinal \<le> Hartog's number for the sequence)
-   so that the inductive definition has the "no-junk" property
+   so that the inductive definition has the "no-junk" property.
 
-Such a construction affords them induction principles.
+Such a construction affords them induction principles, in that one can induct
+over the corresponding inflationary sequence if one wishes to prove a property
+holds for some inductive construction.
 These include:
-- Structural induction (~ standard natural number induction) which only
+- Structural induction (analogous to standard natural number induction) only
   considers finite initial segments of the transfinite sequence, which suffices
   for finitary recursive data types.
 
 - Scott / fixpoint induction, which considers the transfinite sequence up to
-  some ordinal bound (\<le> Hartog's number), which is useful for
+  some ordinal bound (\<le> Hartog's number), is useful for
   things like (partial) recursive functions and while loops that may not
   terminate (which form a CPPO under the usual approximation ordering), ie have
   fixed points at or beyond \<omega>.
@@ -63,18 +65,30 @@ These include:
 For details, see for instance:
 https://pcousot.github.io/publications/Cousot-LOPSTR-2019.pdf
 
-For probabilisitc while loops `loop_spmf.while`, the Scott induction principle
-`loop_spmf.while_fixp_induct` has 3 cases, with each correspond to each case
-of the transfinite sequence, namely:
-`adm` aka CCPO admissibility, handles limit ordinals.
-`bottom` handles the base case, with `\<bottom> = return_pmf None`
-`step` handles successor ordinals.
+Note that partial recursive functions in Isabelle are defined as above, via the
+`partial_function` command from the `HOL.Partial_Function` package.
+The Scott induction `partial_function_definitions.fixp_induct_uc` rule there
+comes directly from `ccpo.fixp_induct`, which in turn arises from transfinite
+induction over the transfinite iteration sequence `ccpo.iterates`
+
+Consequently, the probabilistic while loop combinator `loop_spmf.while`, defined
+as a partial recursive function via `partial_function`, admits a Scott induction
+principle `loop_spmf.while_fixp_induct` with 3 cases, each corresponding to each
+case of a transfinite induction argument, namely:
+- `adm` aka CCPO admissibility, handles limit ordinals.
+- `bottom` handles the base case, with `\<bottom> = return_pmf None`
+- `step` handles successor ordinals.
 
 Note that in general, endofunctors over spmf need not be Scott continuous
 (see pg 560 of https://ethz.ch/content/dam/ethz/special-interest/infk/inst-infsec/information-security-group-dam/research/publications/pub2020/Basin2020_Article_CryptHOLGame-BasedProofsInHigh.pdf )
 so that fixpoints may only be found beyond \<omega>, which means that one may not be
 able to consider only \<omega>-chains for the `adm` step.
 *)
+
+thm partial_function_definitions.fixp_induct_uc
+thm ccpo.fixp_induct
+term ccpo.iterates
+
 thm loop_spmf.while_fixp_induct[
   unfolded ccpo.admissible_def Ball_def fun_ord_def fun_lub_def]
 
