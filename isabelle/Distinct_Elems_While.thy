@@ -103,11 +103,11 @@ lemma while :
   (* Limit ordinal case.
   Here, a typical Zorn's Lemma style argument shows that sups of chains of
   functions f satisfying the Hoare triple `\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>P\<rbrace>` also satisfy it. *)
-  subgoal by (simp add: hoare_triple_def)
-  (* 0 case. *)
-  subgoal by (rule fail[simplified fail_spmf_def])
-  (* Successor ordinal case. *)
-  using assms by (auto intro!: if_then_else seq')
+  apply (simp add: hoare_triple_def)
+  using assms
+  by (auto
+    intro!: fail if_then_else seq'
+    simp add: fail_spmf_def[symmetric])
 
 lemma
   \<open>do {
