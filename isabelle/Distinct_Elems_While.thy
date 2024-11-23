@@ -94,7 +94,6 @@ thm partial_function_definitions.fixp_induct_uc
 thm ccpo.fixp_induct
 term ccpo.iterates
 
-(* Soundness of partial correctness of Hoare while rule. *)
 lemma while :
   assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>P\<rbrace>\<close> 
