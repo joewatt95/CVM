@@ -69,7 +69,9 @@ Note that partial recursive functions in Isabelle are defined as above, via the
 `partial_function` command from the `HOL.Partial_Function` package.
 The Scott induction `partial_function_definitions.fixp_induct_uc` rule there
 comes directly from `ccpo.fixp_induct`, which in turn arises from transfinite
-induction over the transfinite iteration sequence `ccpo.iterates`
+induction over the transfinite iteration sequence `ccpo.iterates` of an
+inflationary function.
+Note that here, Scott-continuity is not enforced, only monotonicity.
 
 Consequently, the probabilistic while loop combinator `loop_spmf.while`, defined
 as a partial recursive function via `partial_function`, admits a Scott induction
