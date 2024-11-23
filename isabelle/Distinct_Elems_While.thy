@@ -100,8 +100,9 @@ lemma while :
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>P\<rbrace>\<close> 
   (* Transfinite induction over inflationary iteration sequence. *)
   apply (rule loop_spmf.while_fixp_induct)
-  (* Limit ordinal case. Here, a typical Zorn's Lemma style argument shows that
-  chains satisfying the Hoare triple `(\<lambda> f. \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>P\<rbrace>)` contain a sup. *)
+  (* Limit ordinal case.
+  Here, a typical Zorn's Lemma style argument shows that sups of chains of
+  functions f satisfying the Hoare triple `\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>P\<rbrace>` also satisfy it. *)
   subgoal by (simp add: hoare_triple_def)
   (* 0 case. *)
   subgoal by (rule fail[simplified fail_spmf_def])
