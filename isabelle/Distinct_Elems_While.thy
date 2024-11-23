@@ -34,14 +34,37 @@ definition step_while :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state
 definition estimate_distinct_while :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct_while \<equiv> run_steps_then_estimate_spmf step_while\<close>
 
-(* Probabilistic while loops are defined as the limit (ie sup) of the usual
-(increasing) transfinite sequence over the CCPO structure on spmf.
-See https://pcousot.github.io/publications/Cousot-LOPSTR-2019.pdf
+(*
+In general, inductive data types and (partial) recursive functions can be
+constructed by standard set theoretic machinery:
+1. fixing an appropriate CCPO (the usual approximation ordering for recursive
+   functions)
+2. fixing an inflationary function (ie endofunctor) that iteratively constructs
+   the data type / recursive function and then iterating over the ordinals
+3. taking the LFP (ie limit) (at an ordinal \<le> Hartog's number for the sequence)
+   so that the inductive definition has the "no-junk" property
 
-Thus, to prove that a property holds of a loop, one essentially shows that the
-property is a loop invariant by performing transfinite induction over the
-sequence, aka Scott induction.
-The 3 cases of the `loop_spmf.while_fixp_induct` rule correspond to each case
+Such a construction affords them induction principles.
+These include:
+- Structural induction (~ standard natural number induction) which only
+  considers finite initial segments of the transfinite sequence, which suffices
+  for finitary recursive data types.
+
+- Scott / fixpoint induction, which considers the transfinite sequence up to
+  some ordinal bound (\<le> Hartog's number), which is useful for
+  things like (partial) recursive functions and while loops that may not
+  terminate (which form a CPPO under the usual approximation ordering), ie have
+  fixed points at or beyond \<omega>.
+
+  Note that such a bound exists at \<omega> if the inflationary function is Scott
+  continuous, ie preserves limits (ie sups), so that one need only consider
+  limits of \<omega>-chains in the limit stages.
+
+For details, see for instance:
+https://pcousot.github.io/publications/Cousot-LOPSTR-2019.pdf
+
+For probabilisitc while loops `loop_spmf.while`, the Scott induction principle
+`loop_spmf.while_fixp_induct` has 3 cases, with each correspond to each case
 of the transfinite sequence, namely:
 `adm` aka CCPO admissibility, handles limit ordinals.
 `bottom` handles the base case, with `\<bottom> = return_pmf None`
@@ -50,7 +73,8 @@ of the transfinite sequence, namely:
 Note that in general, endofunctors over spmf need not be Scott continuous
 (see pg 560 of https://ethz.ch/content/dam/ethz/special-interest/infk/inst-infsec/information-security-group-dam/research/publications/pub2020/Basin2020_Article_CryptHOLGame-BasedProofsInHigh.pdf )
 so that fixpoints may only be found beyond \<omega>, which means that one may not be
-able to consider only \<omega>-chains for the `adm` step. *)
+able to consider only \<omega>-chains for the `adm` step.
+*)
 thm loop_spmf.while_fixp_induct[
   unfolded ccpo.admissible_def Ball_def fun_ord_def fun_lub_def]
 
