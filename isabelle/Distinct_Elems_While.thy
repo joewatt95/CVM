@@ -98,7 +98,7 @@ term ccpo.iterates
 lemma while :
   assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>P\<rbrace>\<close> 
-  (* Transfinite induction over inflationary sequence. *)
+  (* Transfinite induction over inflationary iteration sequence. *)
   apply (rule loop_spmf.while_fixp_induct)
   (* Limit ordinal case. Here, a typical Zorn's Lemma style argument shows that
   chains satisfying the Hoare triple `(\<lambda> f. \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>P\<rbrace>)` contain a sup. *)
