@@ -13,6 +13,7 @@ session CVM = "HOL-Probability" +
     "Utils/Reader_Monad"
     "Utils/PMF"
     "Utils/SPMF"
+    "Utils/Hoare"
 
     "Algo_Transforms"
     "Error_Bounds"
@@ -57,6 +58,8 @@ session CVM = "HOL-Probability" +
     "Utils/SPMF/Utils_SPMF_FoldM"
     "Utils/SPMF/Utils_SPMF_Hoare"
     "Utils/SPMF/Utils_SPMF_Relational"
+
+    "Utils/Hoare/Utils_Hoare_Basic"
 
   document_files
     "root.tex"
