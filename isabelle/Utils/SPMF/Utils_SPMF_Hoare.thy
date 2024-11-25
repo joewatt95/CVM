@@ -12,6 +12,7 @@ https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
 *)
 
 imports
+  Probabilistic_While.While_SPMF
   CVM.Utils_SPMF_FoldM
   CVM.Utils_PMF_Hoare
 
@@ -162,6 +163,90 @@ lemma loop_unindexed :
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
   using loop[where ?P = \<open>curry <| snd >>> P\<close>, where ?offset = 0] assms
   by (fastforce simp add: hoare_triple_def curry_def snd_def)
+
+(*
+In general, inductive data types and (partial) recursive functions can be
+constructed by standard set theoretic machinery:
+1. fixing an appropriate CCPO (the usual approximation ordering for recursive
+   functions)
+2. fixing an inflationary function (ie endofunctor) that iteratively constructs
+   the data type / recursive function and then iterating over the ordinals
+3. taking the LFP (ie limit) (at an ordinal \<le> Hartog's number for the sequence)
+   so that the inductive definition has the "no-junk" property.
+
+Such a construction affords them induction principles, in that one can induct
+over the corresponding inflationary sequence if one wishes to prove a property
+holds for some inductive construction.
+These include:
+- Structural induction (analogous to standard natural number induction) only
+  considers finite initial segments of the transfinite sequence, which suffices
+  for finitary recursive data types.
+
+- Scott / fixpoint induction, which considers the transfinite sequence up to
+  some ordinal bound (\<le> Hartog's number), is useful for
+  things like (partial) recursive functions and while loops that may not
+  terminate (which form a CPPO under the usual approximation ordering), ie have
+  fixed points at or beyond \<omega>.
+
+  Note that:
+  - Such a bound exists at \<omega> if the inflationary function is Scott
+    continuous, ie preserves limits (ie sups), so that one need only consider
+    limits of \<omega>-chains in the limit stages.
+  - The Scott induction principle for while loops essentially yields the
+    soundness of the (partial) Hoare rule for while loops,
+
+For details, see for instance:
+https://pcousot.github.io/publications/Cousot-LOPSTR-2019.pdf
+
+Note that partial recursive functions in Isabelle are defined as above, via the
+`partial_function` command from the `HOL.Partial_Function` package.
+The Scott induction `partial_function_definitions.fixp_induct_uc` rule there
+comes directly from `ccpo.fixp_induct`, which in turn arises from transfinite
+induction over the transfinite iteration sequence `ccpo.iterates` of an
+inflationary / monotone function.
+Note that here, Scott-continuity is not enforced, only monotonicity.
+
+Consequently, the probabilistic while loop combinator `loop_spmf.while`, defined
+as a partial recursive function via `partial_function`, admits a Scott induction
+principle `loop_spmf.while_fixp_induct` with 3 cases, each corresponding to each
+case of a transfinite induction argument, namely:
+- `adm` aka CCPO admissibility, handles limit ordinals.
+- `bottom` handles the base case, with `\<bottom> = return_pmf None`
+- `step` handles successor ordinals.
+
+Note that in general, endofunctors over spmf need not be Scott continuous
+(see pg 560 of https://ethz.ch/content/dam/ethz/special-interest/infk/inst-infsec/information-security-group-dam/research/publications/pub2020/Basin2020_Article_CryptHOLGame-BasedProofsInHigh.pdf )
+so that fixpoints may only be found beyond \<omega>, which means that one may not be
+able to consider only \<omega>-chains for the `adm` step.
+*)
+
+(* thm partial_function_definitions.fixp_induct_uc
+thm ccpo.fixp_induct
+term ccpo.iterates
+thm ccpo_spmf *)
+
+(*
+Admissibility of Hoare triple, ie sups of chains of Kleisli arrows f satisfying
+a Hoare triple also satsify it.
+
+This is useful when one wants to use a transfinite iteration / Zorn's Lemma
+argument, like when inducting on the transfinite iteration of the endofunctor
+defining probabilistic while loops to show that a Hoare triple continues to hold
+after the while loop.
+*)
+lemma admissible_hoare_triple :
+  \<open>spmf.admissible <| \<lambda> f. \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
+  by (simp add: hoare_triple_def)
+
+lemma while :
+  assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close> 
+  (* Transfinite induction over iteration sequence. *)
+  apply (rule loop_spmf.while_fixp_induct)
+  using assms
+  by (auto
+    intro!: admissible_hoare_triple fail if_then_else seq'
+    simp add: fail_spmf_def[symmetric])
 
 lemma integral_mono_of_hoare_triple :
   fixes
