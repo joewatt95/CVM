@@ -227,12 +227,19 @@ thm ccpo_spmf *)
 
 (*
 Admissibility of Hoare triple, ie sups of chains of Kleisli arrows f satisfying
-a Hoare triple also satsify it.
+a (partial correctness) Hoare triple also satsify it.
 
 This is useful when one wants to use a transfinite iteration / Zorn's Lemma
 argument, like when inducting on the transfinite iteration of the endofunctor
 defining probabilistic while loops to show that a Hoare triple continues to hold
 after the while loop.
+
+Note that one can intepret the notion of a while loop / Y combinator as the
+limit of the usual transfinite iteration sequence in monads with a flat CCPO
+structure (including the identity monad).
+Consequently, this notion of a while loop, along with the proofs of
+admissibility of Hoare triples and (partial correctness) Hoare while rule can
+be copy pasted to all other such monads.
 *)
 lemma admissible_hoare_triple :
   \<open>spmf.admissible <| \<lambda> f. \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
@@ -241,7 +248,6 @@ lemma admissible_hoare_triple :
 lemma while :
   assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close> 
-  (* Transfinite induction over iteration sequence. *)
   apply (rule loop_spmf.while_fixp_induct)
   using assms
   by (auto
