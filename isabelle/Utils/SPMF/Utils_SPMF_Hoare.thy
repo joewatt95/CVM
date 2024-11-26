@@ -234,7 +234,7 @@ argument, like when inducting on the transfinite iteration of the endofunctor
 defining probabilistic while loops to show that a Hoare triple continues to hold
 after the while loop.
 
-Note that one can intepret the notion of a while loop / Y combinator as the
+Note that one can interpret the notion of a while loop / Y combinator as the
 limit of the usual transfinite iteration sequence in monads with a flat CCPO
 structure (including the identity monad).
 Consequently, this notion of a while loop, along with the proofs of
