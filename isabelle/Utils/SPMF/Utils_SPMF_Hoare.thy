@@ -234,7 +234,7 @@ argument, like when inducting on the transfinite iteration of the endofunctor
 defining probabilistic while loops to show that a Hoare triple continues to hold
 after the while loop.
 
-tidy, improve while loop ruletepret the notion of a while loop / Y combinator as the
+Note that one can intepret the notion of a while loop / Y combinator as the
 limit of the usual transfinite iteration sequence in monads with a flat CCPO
 structure (including the identity monad).
 Consequently, this notion of a while loop, along with the proofs of
@@ -284,41 +284,31 @@ next
 
   let ?val' = \<open>f x val\<close>
   let ?\<mu>' = \<open>measure_spmf ?val'\<close>
-  have pge: "p \<ge> 0"
-    by (metis assms(2) local.Cons(4) order_trans pmf_nonneg prob_fail_def)
 
   have
-    \<open>prob_fail (foldM_spmf f (x # xs) val)
-    = prob_fail ?val' + \<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>'\<close>
+    \<open>prob_fail (foldM_spmf f (x # xs) val) =
+      prob_fail ?val' + \<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>'\<close>
+    (is \<open>_ = _ + \<integral> val'. ?prob_fail val' \<partial> _\<close>)
     by (simp add: prob_fail_def pmf_bind_spmf_None)
 
   also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
   proof -
-    have \<open>\<turnstile>spmf
-      \<lbrace>\<lblot>\<top>\<rblot>\<rbrace> \<lblot>?val'\<rblot>
-      \<lbrace>(\<lambda> val'. prob_fail (foldM_spmf f xs val') \<le> length xs * p)\<rbrace>\<close>
-      using assms Cons.IH \<open>P val\<close>
-      by (smt (verit, ccfv_threshold) hoare_tripleE hoare_tripleI skip)
+    from Cons.IH assms \<open>P val\<close>
+    have \<open>\<turnstile>spmf \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?val'\<rblot> \<lbrace>(\<lambda> val'. ?prob_fail val' \<le> length xs * p)\<rbrace>\<close>
+      by (simp add: Utils_SPMF_Hoare.hoare_triple_def)
 
-    then have
-      \<open>(\<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>')
-      \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+    then have \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where f = \<open>\<lblot>?val'\<rblot>\<close>])
-      using assms integrable_prob_fail_foldM_spmf by auto
+      by (simp_all add: integrable_prob_fail_foldM_spmf)
 
-    moreover have \<open>prob_fail ?val' \<le> p\<close> using \<open>P val\<close> assms by simp
-
-    ultimately show ?thesis by simp
+    with \<open>P val\<close> assms(2) show ?thesis by (simp add: add_mono)
   qed
+
   also have \<open>\<dots> \<le> p + length xs * p\<close>
-  proof -
-    show ?thesis
-      using pge
-      apply simp
-      by (metis mult.commute mult_left_le mult_left_mono of_nat_0_le_iff weight_spmf_le_1) 
-  qed
+    apply simp
+    by (metis assms(2) local.Cons(4) measure_spmf.subprob_measure_le_1 mult.commute mult_left_le mult_nonneg_nonneg of_nat_0_le_iff order_trans pmf_nonneg prob_fail_def)
 
-  finally show ?case by (simp add: distrib_left mult.commute) 
+  finally show ?case by (simp add: algebra_simps)
 qed
 
 end
