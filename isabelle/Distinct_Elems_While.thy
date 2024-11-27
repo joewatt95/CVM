@@ -73,20 +73,18 @@ proof -
     \<langle>step x | step_while x\<rangle>
     \<lbrakk>ord_option (=)\<rbrakk>\<close>
     (is \<open>\<turnstile>pmf \<lbrakk>?R\<rbrakk> \<langle>_ | _ \<rangle> \<lbrakk>_\<rbrakk>\<close>)
-    unfolding step_def step_while_def Let_def Set.filter_def Set.remove_def 
+    unfolding
+      step_def step_while_def well_formed_state_def Let_def
+      Set.filter_def Set.remove_def 
     apply (rule Utils_PMF_Relational.seq'[where S = \<open>(=)\<close>])
     apply (simp add: Utils_PMF_Relational.relational_hoare_triple_def pmf.rel_refl)
     apply (subst aux)
-    using assms
-    apply (auto simp add: well_formed_state_def Let_def card_insert_if)
-    apply (rule Utils_PMF_Relational.if_then_else)
-    apply simp_all
-    apply (rule Utils_PMF_Relational.seq'[where S = \<open>(=)\<close>])
-    by (auto
-      simp add: aux Set.filter_def fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def pmf.rel_refl)
+    by (fastforce
+      intro: Utils_PMF_Relational.if_then_else Utils_PMF_Relational.seq'[where S = \<open>(=)\<close>]
+      simp add: card_insert_if aux Set.filter_def fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def pmf.rel_refl)+
 
-  then show ?thesis
-    using assms by (blast intro: prob_fail_le_of_relational_hoare_triple)
+  with assms show ?thesis
+    by (blast intro: prob_fail_le_of_relational_hoare_triple)
 qed
 
 end
