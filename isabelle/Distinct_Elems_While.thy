@@ -79,9 +79,10 @@ proof -
     apply (rule Utils_PMF_Relational.seq'[where S = \<open>(=)\<close>])
     apply (simp add: Utils_PMF_Relational.relational_hoare_triple_def pmf.rel_refl)
     apply (subst aux)
+    apply (simp_all add: card_insert_if le_diff_conv)
     by (fastforce
       intro: Utils_PMF_Relational.if_then_else Utils_PMF_Relational.seq'[where S = \<open>(=)\<close>]
-      simp add: card_insert_if aux Set.filter_def fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def pmf.rel_refl)+
+      simp add: aux Set.filter_def fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def pmf.rel_refl)
 
   with assms show ?thesis
     by (blast intro: prob_fail_le_of_relational_hoare_triple)
