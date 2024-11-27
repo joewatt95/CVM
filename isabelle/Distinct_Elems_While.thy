@@ -36,11 +36,21 @@ definition step_while :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state
 
 definition estimate_distinct_while :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct_while \<equiv> run_steps_then_estimate_spmf step_while\<close>
-
 end
 
 context with_threshold_pos
 begin
+
+thm SPMF.fundamental_lemma
+
+thm SPMF.fundamental_lemma[
+  where q = \<open>step_while x state\<close>,
+  where p = \<open>spmf_of_pmf (step_no_fail x state)\<close>,
+  where A = E,
+  where B = E,
+  of \<open>\<lambda> state. card (state_chi state) \<ge> threshold\<close> _
+]
+(* For bad2, add a boolean flag to the while loop algo to indicate that the threshold was hit and the loop was run \<ge> 1*)
 
 lemma aux :
   fixes state
