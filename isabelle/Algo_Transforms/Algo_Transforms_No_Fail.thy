@@ -150,8 +150,6 @@ lemma step_ord_spmf_eq :
       step_no_fail_def step_def fail_spmf_def Let_def
       spmf_of_pmf_def bind_spmf_of_pmf[symmetric] map_bind_pmf)
 
-find_theorems "ord_spmf (=)"
-
 lemma estimate_distinct_ord_spmf_eq :
   \<open>ord_spmf (=)
     (estimate_distinct xs)
