@@ -1,6 +1,7 @@
 theory Utils_SPMF_Relational
 
 imports
+  CVM.Utils_PMF_Relational
   CVM.Utils_SPMF_FoldM
 
 begin
@@ -52,12 +53,6 @@ lemma prob_le_prob_of_ord_spmf_eq :
   using assms
   by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
-lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
-  assumes \<open>\<And> x val. ord_spmf (=) (f x val) (f' x val)\<close>
-  shows \<open>ord_spmf (=) (foldM_spmf f xs val) <| foldM_spmf f' xs val\<close>
-  apply (induction xs arbitrary: val)
-  using assms by (auto intro: ord_spmf_bindI)
-
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
@@ -97,6 +92,17 @@ lemma skip' [simp] :
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
 
+lemma if_then_else :
+  assumes
+    \<open>\<And> x x'. R x x' \<Longrightarrow> f x \<longleftrightarrow> f' x'\<close>
+    \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. f x \<and> R x x')\<rbrace> \<langle>g | g'\<rangle> \<lbrace>S\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. \<not> f x \<and> R x x')\<rbrace> \<langle>h | h'\<rangle> \<lbrace>S\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf
+    \<lbrace>R\<rbrace>
+    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then g' x else h' x)\<rangle>
+    \<lbrace>S\<rbrace>\<close>
+  using assms by (simp add: relational_hoare_triple_def)
+
 lemma seq :
   assumes
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
@@ -124,7 +130,7 @@ context
     offset :: nat
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_spmf_enumerate fn xs offset\<close>
 
 private abbreviation (input)
@@ -171,5 +177,42 @@ lemma loop_unindexed :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
+
+lemma hoare_ord_option_iff_ord_spmf :
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option S\<rbrakk>
+  \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> ord_spmf S (f x) (f' x'))\<close>
+  by (simp add: Utils_PMF_Relational.relational_hoare_triple_def)
+
+lemma prob_fail_le_of_relational_hoare_triple :
+  assumes
+    \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option (=)\<rbrakk>\<close>
+    \<open>R x x'\<close>
+  shows
+    \<open>prob_fail (f' x') \<le> prob_fail (f x)\<close>
+  using assms
+  by (auto
+    intro!: ord_spmf_eqD_pmf_None[where Y = \<open>{}\<close>] 
+    simp add: hoare_ord_option_iff_ord_spmf  prob_fail_def chain_empty)
+
+lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
+  assumes \<open>\<And> x val. ord_spmf (=) (f x val) (f' x val)\<close>
+  shows \<open>ord_spmf (=) (foldM_spmf f xs val) (foldM_spmf f' xs val)\<close>
+proof -
+  let ?go = \<open>\<lambda> f x. case_option fail_spmf (f x)\<close>
+
+  have \<open>\<turnstile>pmf
+    \<lbrakk>ord_option (=)\<rbrakk>
+    \<langle>foldM_pmf (?go f) xs | foldM_pmf (?go f') xs\<rangle>
+    \<lbrakk>ord_option (=)\<rbrakk>\<close>
+    by (fastforce
+      intro: Utils_PMF_Relational.loop_unindexed
+      simp add: assms hoare_ord_option_iff_ord_spmf fail_spmf_def
+      split: option.splits)
+
+  then show ?thesis
+    by (simp add:
+      foldM_spmf_eq_foldM_pmf_case
+      Utils_PMF_Relational.relational_hoare_triple_def)
+qed
 
 end

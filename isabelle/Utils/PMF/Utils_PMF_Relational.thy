@@ -38,6 +38,17 @@ lemma skip' [simp] :
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
 
+lemma if_then_else :
+  assumes
+    \<open>\<And> x x'. R x x' \<Longrightarrow> f x \<longleftrightarrow> f' x'\<close>
+    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. f x \<and> R x x')\<rbrakk> \<langle>g | g'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. \<not> f x \<and> R x x')\<rbrakk> \<langle>h | h'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf
+    \<lbrakk>R\<rbrakk>
+    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then g' x else h' x)\<rangle>
+    \<lbrakk>S\<rbrakk>\<close>
+  using assms by (simp add: relational_hoare_triple_def)
+
 lemma seq :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
@@ -65,7 +76,7 @@ context
     offset :: nat
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_pmf_enumerate fn xs offset\<close>
 
 private abbreviation (input)

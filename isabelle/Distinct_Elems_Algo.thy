@@ -61,9 +61,10 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
         prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
 
       let chi = Set.filter keep_in_chi chi;
+      let k = k + 1;
 
       if card chi < threshold
-      then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
+      then return_spmf \<lparr>state_k = k, state_chi = chi\<rparr>
       else fail_spmf }}\<close>
 
 abbreviation
