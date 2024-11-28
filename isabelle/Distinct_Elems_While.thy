@@ -38,19 +38,10 @@ definition estimate_distinct_while :: \<open>'a list \<Rightarrow> nat spmf\<clo
   \<open>estimate_distinct_while \<equiv> run_steps_then_estimate_spmf step_while\<close>
 end
 
+find_theorems "measure_pmf (bind_pmf _ _)"
+
 context with_threshold_pos
 begin
-
-thm SPMF.fundamental_lemma
-
-thm SPMF.fundamental_lemma[
-  where q = \<open>step_while x state\<close>,
-  where p = \<open>spmf_of_pmf (step_no_fail x state)\<close>,
-  where A = E,
-  where B = E,
-  of \<open>\<lambda> state. card (state_chi state) \<ge> threshold\<close> _
-]
-(* For bad2, add a boolean flag to the while loop algo to indicate that the threshold was hit and the loop was run \<ge> 1*)
 
 lemma aux :
   fixes state
@@ -73,6 +64,41 @@ lemma aux :
   apply (subst loop_spmf.while.simps)
   apply (subst bind_spmf_assoc)
   using assms by simp
+
+thm SPMF.fundamental_lemma[
+  where p = \<open>spmf_of_pmf (step_no_fail x state)\<close>,
+  where q = \<open>step_while x state\<close>,
+  where A = P, where B = P,
+  of
+    \<open>\<lambda> state'. card (state_chi state') \<ge> threshold\<close>
+    (* \<open>\<lambda> state'. state_k state' > state_k state + 1\<close> *)
+]
+
+thm loop_spmf.while.simps
+
+thm SPMF.fundamental_lemma[
+  where p = p, where q = \<open>bind_spmf p q\<close>,
+  where A = P, where B = P,
+  of bad bad'
+]
+
+lemma
+  \<open>\<bar>\<P>(x in measure_spmf <| body x. P x) -
+    \<P>(x in measure_spmf (loop_spmf.while guard body x). P x)\<bar>
+  \<le> \<P>(x in measure_spmf <| body x. \<not> guard x)\<close>
+  apply (rule SPMF.fundamental_lemma)
+  apply (subst loop_spmf.while.simps)
+  (* TODO: for bad2, need to unroll while loop once, and set a flag there,
+  indicating that the guard check succeeded. *)
+  sorry
+
+lemma
+  \<open>\<turnstile>spmf
+    \<lbrace>(\<lambda> state state'. (state ok) \<and> (state' ok))\<rbrace>
+    \<langle>spmf_of_pmf <<< step_no_fail x | step_while x\<rangle>
+    \<lbrace>(\<lambda> state state'.
+      undefined)\<rbrace>\<close>
+  sorry
 
 lemma
   assumes \<open>state ok\<close>
