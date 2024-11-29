@@ -72,7 +72,7 @@ thm SPMF.fundamental_lemma[
     (* \<open>\<lambda> state'. state_k state' > state_k state + 1\<close> *)
 ]
 
-lemma
+lemma test' :
   fixes cond g
   assumes
     \<open>\<And> x. lossless_spmf (body x)\<close>
@@ -93,7 +93,7 @@ proof -
   let ?while_with_flag = \<open>\<lambda> flag x.
     loop_spmf.while ?cond_with_flag ?body_with_flag (x, flag)\<close>
 
-  from assms have \<open>lossless_spmf (?while_with_flag False x)\<close> for x
+  from assms have \<open>lossless_spmf (?while_with_flag flag x)\<close> for flag x
     sorry
 
   then have \<open>\<turnstile>spmf
@@ -131,7 +131,7 @@ proof -
     apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def split_beta')
     by (smt (verit, ccfv_threshold) Collect_cong UNIV_I rel_spmf_mono space_measure_spmf)
 
-  also have \<open>\<dots> \<le> ?R\<close>
+  moreover have \<open>\<dots> \<le> ?R\<close>
   proof -
     from assms have \<open>\<turnstile>spmf
       \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
@@ -148,39 +148,32 @@ proof -
         simp add: Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
   qed
 
-  finally show ?thesis
-  proof -
-    have
-      \<open>map_spmf fst (p \<bind> (?while_with_flag flag)) = p \<bind> loop_spmf.while cond body\<close> for flag
-      apply (simp add: map_bind_pmf)
-      apply (intro bind_pmf_cong)
-      apply blast
+  moreover have
+    \<open>map_spmf fst <<< ?while_with_flag flag = loop_spmf.while cond body\<close>
+    for flag
+    (* To show that 2 while loops are equal, we appeal to their domain-theoretic
+    denotational semantics as least fixed points of transfinite iteration
+    sequences, and show, via transfinite induction, that they are upper bounds
+    of each other's sequences. *)
+    apply (intro ext)
+    apply (intro spmf.leq_antisym)
 
-      (* To show that 2 while loops are equal, we appeal to their domain-theoretic
-      denotational semantics as least fixed points of transfinite iteration
-      sequences, and show, via transfinite induction, that they are upper bounds
-      of each other's sequences. *)
-      apply (intro spmf.leq_antisym)
+    subgoal for x
+      apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = \<open>\<lambda> (x, _). cond x\<close>])
+      by (auto
+        intro: ord_spmf_bind_reflI
+        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
 
-      subgoal premises prems for x
-        apply (simp add: case_prod_beta')
-        apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = \<open>cond <<< fst\<close>])
-        by (auto
-          intro: ord_spmf_bind_reflI
-          simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+    subgoal for x
+      apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = cond])
+      by (auto
+        intro: ord_spmf_bind_reflI
+        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+    done
 
-      subgoal premises prems for x
-        apply (simp add: case_prod_beta')
-        apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = cond])
-        by (auto
-          intro: ord_spmf_bind_reflI
-          simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
-      done
-
-    then show ?thesis
-      apply (simp add: space_measure_spmf measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def Set.mem_Collect_eq, symmetric])
-      sorry
-  qed
+  ultimately show ?thesis
+    apply (simp add: space_measure_spmf map_bind_pmf measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def Set.mem_Collect_eq, symmetric])
+    by (smt (verit) bind_pmf_cong scale_spmf_eq_same weight_return_spmf weight_spmf_def)
 qed
 
 lemma
