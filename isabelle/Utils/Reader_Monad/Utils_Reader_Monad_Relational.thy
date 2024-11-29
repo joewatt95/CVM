@@ -67,14 +67,10 @@ lemma skip [simp] :
   \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>return_rd | return_rd\<rangle> \<lbrakk>S\<rbrakk>
   \<longleftrightarrow> (\<forall> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<longrightarrow> S \<phi> x \<phi>' x')\<close>
 
-  \<open>(\<turnstile>rd \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x')\<rbrakk>
-    \<langle>return_rd | f\<rangle>
-    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. S \<phi> x \<phi>' x')\<rbrakk>)
+  \<open>(\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>return_rd | f\<rangle> \<lbrakk>S\<rbrakk>)
   \<longleftrightarrow> (\<forall> \<phi> x. \<turnstile>rd \<lbrakk>R \<phi> x\<rbrakk> f \<lbrakk>S \<phi> x\<rbrakk>)\<close>
 
-  \<open>(\<turnstile>rd \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x')\<rbrakk>
-    \<langle>f | return_rd\<rangle>
-    \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. S \<phi> x \<phi>' x')\<rbrakk>)
+  \<open>(\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | return_rd\<rangle> \<lbrakk>S\<rbrakk>)
   \<longleftrightarrow> (\<forall> \<phi>' x'. \<turnstile>rd \<lbrakk>(\<lambda> \<phi> x. R \<phi> x \<phi>' x')\<rbrakk> f \<lbrakk>(\<lambda> \<phi> x. S \<phi> x \<phi>' x')\<rbrakk>)\<close>
   by (auto simp add: relational_hoare_triple_def hoare_triple_def rel_rd_def run_reader_simps(1))
 

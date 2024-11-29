@@ -1,6 +1,7 @@
 theory Utils_SPMF_Relational
 
 imports
+  CVM.Utils_SPMF_Hoare
   CVM.Utils_PMF_Relational
   CVM.Utils_SPMF_FoldM
 
@@ -87,10 +88,42 @@ lemma skip [simp] :
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>
   by (simp add: relational_hoare_triple_def) 
 
+lemma skip_left [simp] :
+  assumes \<open>\<And> x. lossless_spmf (f x)\<close>
+  shows
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>return_spmf | f\<rangle> \<lbrace>S\<rbrace>
+    \<longleftrightarrow> (\<forall> x. \<turnstile>spmf \<lbrace>R x\<rbrace> f \<lbrace>S x\<rbrace>)\<close>
+  using assms
+  by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf1)
+
+lemma skip_right [simp] :
+  assumes \<open>\<And> x. lossless_spmf (f x)\<close>
+  shows
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | return_spmf\<rangle> \<lbrace>S\<rbrace>
+    \<longleftrightarrow> (\<forall> x'. \<turnstile>spmf \<lbrace>flip R x'\<rbrace> f \<lbrace>flip S x'\<rbrace>)\<close>
+  using assms
+  by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf2)
+
 lemma skip' [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
+
+lemma skip_left' [simp] :
+  assumes \<open>\<And> x. lossless_spmf (f' x)\<close>
+  shows
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | f'\<rangle> \<lbrace>S\<rbrace>
+    \<longleftrightarrow> (\<forall> x. \<turnstile>spmf \<lbrace>R x\<rbrace> f' \<lbrace>S (f x)\<rbrace>)\<close>
+  using assms
+  by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf1)
+
+lemma skip_right' [simp] :
+  assumes \<open>\<And> x. lossless_spmf (f x)\<close>
+  shows
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
+    \<longleftrightarrow> (\<forall> x'. \<turnstile>spmf \<lbrace>flip R x'\<rbrace> f \<lbrace>flip S (f' x')\<rbrace>)\<close>
+  using assms
+  by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf2)
 
 lemma if_then_else :
   assumes

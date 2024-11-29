@@ -38,8 +38,6 @@ definition estimate_distinct_while :: \<open>'a list \<Rightarrow> nat spmf\<clo
   \<open>estimate_distinct_while \<equiv> run_steps_then_estimate_spmf step_while\<close>
 end
 
-find_theorems "measure_pmf (bind_pmf _ _)"
-
 context with_threshold_pos
 begin
 
@@ -74,31 +72,116 @@ thm SPMF.fundamental_lemma[
     (* \<open>\<lambda> state'. state_k state' > state_k state + 1\<close> *)
 ]
 
-thm loop_spmf.while.simps
-
-thm SPMF.fundamental_lemma[
-  where p = p, where q = \<open>bind_spmf p q\<close>,
-  where A = P, where B = P,
-  of bad bad'
-]
-
 lemma
-  \<open>\<bar>\<P>(x in measure_spmf <| body x. P x) -
-    \<P>(x in measure_spmf (loop_spmf.while guard body x). P x)\<bar>
-  \<le> \<P>(x in measure_spmf <| body x. \<not> guard x)\<close>
-  apply (rule SPMF.fundamental_lemma)
-  apply (subst loop_spmf.while.simps)
-  (* TODO: for bad2, need to unroll while loop once, and set a flag there,
-  indicating that the guard check succeeded. *)
-  sorry
+  fixes cond g
+  assumes
+    \<open>\<And> x. lossless_spmf (body x)\<close>
+    \<open>\<And> x. lossless_spmf (loop_spmf.while cond body x)\<close>
+  shows
+    \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| \<lambda> x. if cond x then body x else return_spmf x. P x) -
+      \<P>(x in measure_spmf <| bind_pmf p <| loop_spmf.while cond body. P x)\<bar>
+    \<le> \<P>(x in p. cond x)\<close>
+    (is \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf _ <| ?if. _) - ?prob (loop_spmf.while _ _)\<bar> \<le> ?R\<close>)
+proof -
+  let ?bind_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
 
-lemma
-  \<open>\<turnstile>spmf
-    \<lbrace>(\<lambda> state state'. (state ok) \<and> (state' ok))\<rbrace>
-    \<langle>spmf_of_pmf <<< step_no_fail x | step_while x\<rangle>
-    \<lbrace>(\<lambda> state state'.
-      undefined)\<rbrace>\<close>
-  sorry
+  let ?if_with_flag = \<open>\<lambda> x.
+    pair_spmf (?if x) (return_spmf <| cond x)\<close>
+
+  let ?cond_with_flag = \<open>\<lambda> (x, _). cond x\<close>
+  let ?body_with_flag = \<open>\<lambda> (x, _). pair_spmf (body x) (return_spmf True)\<close>
+  let ?while_with_flag = \<open>\<lambda> flag x.
+    loop_spmf.while ?cond_with_flag ?body_with_flag (x, flag)\<close>
+
+  from assms have \<open>lossless_spmf (?while_with_flag False x)\<close> for x
+    sorry
+
+  then have \<open>\<turnstile>spmf
+    \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
+    \<langle>?bind_spmf_p ?if_with_flag | ?bind_spmf_p (?while_with_flag False)\<rangle>
+    \<lbrace>(\<lambda> (y, flag) (y', flag'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
+    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq)
+    unfolding pair_spmf_alt_def
+    apply (simp add: if_distrib if_distribR loop_spmf.while.simps)
+    apply (intro Utils_SPMF_Relational.if_then_else)
+    apply blast
+    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>\<lambda> x (x', flag). flag\<close>])
+    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
+    apply (metis (no_types, lifting) bind_return_spmf case_prodI option.rel_inject(2) rel_pmf_return_pmfI rel_spmf_bind_reflI)
+    subgoal
+      apply (subst Utils_SPMF_Relational.skip_left')
+      apply (smt (verit, del_insts) case_prodE loop_spmf.while.simps lossless_return_spmf split_conv)
+      by (auto
+        intro!:
+          Utils_SPMF_Hoare.while Utils_SPMF_Hoare.seq'
+          Utils_SPMF_Hoare.postcond_true
+        simp add: case_prod_beta')
+    by (simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
+
+  with SPMF.fundamental_lemma[
+    where p = \<open>p \<bind> ?if_with_flag\<close>,
+    where q = \<open>p \<bind> (?while_with_flag False)\<close>,
+    where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
+    of snd snd]
+  have
+    \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> ?if_with_flag. P (fst x))
+      - \<P>(x in measure_spmf <| p \<bind> (?while_with_flag False). P (fst x))\<bar>
+    \<le> \<P>(x in measure_spmf <| p \<bind> ?if_with_flag. snd x)\<close>
+    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def split_beta')
+    by (smt (verit, ccfv_threshold) Collect_cong UNIV_I rel_spmf_mono space_measure_spmf)
+
+  also have \<open>\<dots> \<le> ?R\<close>
+  proof -
+    from assms have \<open>\<turnstile>spmf
+      \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
+      \<langle>?bind_spmf_p ?if_with_flag | ?bind_spmf_p return_spmf\<rangle>
+      \<lbrace>(\<lambda> (_, flag) x'. flag \<longleftrightarrow> cond x')\<rbrace>\<close>
+      unfolding pair_spmf_alt_def
+      apply (intro Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>])
+      apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq) 
+      by (auto intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.postcond_true)
+
+    then show ?thesis
+      by (auto
+        dest: rel_spmf_measureD[where A = \<open>{x. snd x}\<close>]
+        simp add: Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
+  qed
+
+  finally show ?thesis
+  proof -
+    have
+      \<open>map_spmf fst (p \<bind> (?while_with_flag flag)) = p \<bind> loop_spmf.while cond body\<close> for flag
+      apply (simp add: map_bind_pmf)
+      apply (intro bind_pmf_cong)
+      apply blast
+
+      (* To show that 2 while loops are equal, we appeal to their domain-theoretic
+      denotational semantics as least fixed points of transfinite iteration
+      sequences, and show, via transfinite induction, that they are upper bounds
+      of each other's sequences. *)
+      apply (intro spmf.leq_antisym)
+
+      subgoal premises prems for x
+        apply (simp add: case_prod_beta')
+        apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = \<open>cond <<< fst\<close>])
+        by (auto
+          intro: ord_spmf_bind_reflI
+          simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+
+      subgoal premises prems for x
+        apply (simp add: case_prod_beta')
+        apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = cond])
+        by (auto
+          intro: ord_spmf_bind_reflI
+          simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+      done
+
+    then show ?thesis
+      apply (simp add: space_measure_spmf measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def Set.mem_Collect_eq, symmetric])
+      sorry
+  qed
+qed
 
 lemma
   assumes \<open>state ok\<close>

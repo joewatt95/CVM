@@ -247,12 +247,25 @@ lemma admissible_hoare_triple :
 
 lemma while :
   assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close> 
-  apply (rule loop_spmf.while_fixp_induct)
-  using assms
-  by (auto
-    intro!: admissible_hoare_triple fail if_then_else seq'
-    simp add: fail_spmf_def[symmetric])
+  defines
+    [simp] :
+      \<open>while_triple postcond \<equiv>
+        \<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>postcond\<rbrace>\<close>
+  shows
+    \<open>while_triple (\<lambda> x. \<not> guard x \<and> P x)\<close> (is ?thesis_0) 
+    \<open>while_triple P\<close> (is ?thesis_1)
+proof -
+  show ?thesis_0
+    apply simp
+    apply (induction rule: loop_spmf.while_fixp_induct)
+    using assms
+    by (auto
+      intro!: admissible_hoare_triple fail if_then_else seq'
+      simp add: fail_spmf_def[symmetric])
+
+  then show ?thesis_1
+    by (simp, metis (mono_tags, lifting) Utils_SPMF_Hoare.postcond_weaken)
+qed
 
 lemma integral_mono_of_hoare_triple :
   fixes
