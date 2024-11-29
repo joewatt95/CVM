@@ -93,8 +93,35 @@ proof -
   let ?while_with_flag = \<open>\<lambda> flag x.
     loop_spmf.while ?cond_with_flag ?body_with_flag (x, flag)\<close>
 
-  from assms have \<open>lossless_spmf (?while_with_flag flag x)\<close> for flag x
-    sorry
+  have
+    \<open>?while_with_flag flag x = (
+      if cond x
+      then pair_spmf (loop_spmf.while cond body x) (return_spmf True)
+      else return_spmf (x, flag))\<close> for flag x
+    apply (auto simp add: loop_spmf.while_simps pair_spmf_alt_def)
+    apply (intro bind_spmf_cong)
+    apply blast
+
+    (* To show that 2 while loops are equal, we appeal to their domain-theoretic
+    denotational semantics as least fixed points of transfinite iteration
+    sequences, and show, via transfinite induction, that they are upper bounds
+    of each other's sequences. *)
+    apply (intro spmf.leq_antisym)
+    subgoal for x'
+      apply (induction arbitrary: flag x x' rule: loop_spmf.while_fixp_induct[where guard = \<open>\<lambda> (x, _). cond x\<close>])
+      by (auto
+        intro!: ord_spmf_bind_reflI
+        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+
+    subgoal for x'
+      apply (induction arbitrary: flag x x' rule: loop_spmf.while_fixp_induct[where guard = cond])
+      by (auto
+        intro: ord_spmf_bind_reflI
+        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+    done
+
+  with assms have \<open>lossless_spmf (?while_with_flag flag x)\<close> for flag x
+    by (simp add: pair_spmf_return_spmf2)
 
   then have \<open>\<turnstile>spmf
     \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
@@ -151,10 +178,6 @@ proof -
   moreover have
     \<open>map_spmf fst <<< ?while_with_flag flag = loop_spmf.while cond body\<close>
     for flag
-    (* To show that 2 while loops are equal, we appeal to their domain-theoretic
-    denotational semantics as least fixed points of transfinite iteration
-    sequences, and show, via transfinite induction, that they are upper bounds
-    of each other's sequences. *)
     apply (intro ext)
     apply (intro spmf.leq_antisym)
 
