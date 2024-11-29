@@ -105,7 +105,11 @@ proof -
     (* To show that 2 while loops are equal, we appeal to their domain-theoretic
     denotational semantics as least fixed points of transfinite iteration
     sequences, and show, via transfinite induction, that they are upper bounds
-    of each other's sequences. *)
+    of each other's sequences.
+
+    TODO: Try to derive a relational Hoare logic proof rule that provides a
+    simpler API by abstracting away all this domain-theoretic fiddling.
+    For rereference, see ch5 of http://publications.rwth-aachen.de/record/814578/files/814578.pdf *)
     apply (intro spmf.leq_antisym)
     subgoal for x'
       apply (induction arbitrary: flag x x' rule: loop_spmf.while_fixp_induct[where guard = \<open>\<lambda> (x, _). cond x\<close>])
