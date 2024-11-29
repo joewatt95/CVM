@@ -72,7 +72,7 @@ thm SPMF.fundamental_lemma[
     (* \<open>\<lambda> state'. state_k state' > state_k state + 1\<close> *)
 ]
 
-lemma test' :
+lemma
   fixes cond g
   assumes
     \<open>\<And> x. lossless_spmf (body x)\<close>
@@ -93,7 +93,7 @@ proof -
   let ?while_with_flag = \<open>\<lambda> flag x.
     loop_spmf.while ?cond_with_flag ?body_with_flag (x, flag)\<close>
 
-  have
+  have while_with_flag_eq :
     \<open>?while_with_flag flag x = (
       if cond x
       then pair_spmf (loop_spmf.while cond body x) (return_spmf True)
@@ -158,7 +158,7 @@ proof -
     apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def split_beta')
     by (smt (verit, ccfv_threshold) Collect_cong UNIV_I rel_spmf_mono space_measure_spmf)
 
-  moreover have \<open>\<dots> \<le> ?R\<close>
+  also have \<open>\<dots> \<le> ?R\<close>
   proof -
     from assms have \<open>\<turnstile>spmf
       \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
@@ -175,28 +175,10 @@ proof -
         simp add: Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
   qed
 
-  moreover have
-    \<open>map_spmf fst <<< ?while_with_flag flag = loop_spmf.while cond body\<close>
-    for flag
-    apply (intro ext)
-    apply (intro spmf.leq_antisym)
-
-    subgoal for x
-      apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = \<open>\<lambda> (x, _). cond x\<close>])
-      by (auto
-        intro: ord_spmf_bind_reflI
-        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
-
-    subgoal for x
-      apply (induction arbitrary: flag x rule: loop_spmf.while_fixp_induct[where guard = cond])
-      by (auto
-        intro: ord_spmf_bind_reflI
-        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
-    done
-
-  ultimately show ?thesis
-    apply (simp add: space_measure_spmf map_bind_pmf measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def Set.mem_Collect_eq, symmetric])
-    by (smt (verit) bind_pmf_cong scale_spmf_eq_same weight_return_spmf weight_spmf_def)
+  finally show ?thesis
+    apply (simp add: space_measure_spmf while_with_flag_eq)
+    using measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def, simplified]
+    by (smt (verit, best) bind_pmf_cong loop_spmf.while_simps(2) map_bind_pmf map_fst_pair_spmf pair_spmf_return_spmf scale_spmf_eq_same weight_return_spmf)
 qed
 
 lemma
