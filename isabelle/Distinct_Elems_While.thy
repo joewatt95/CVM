@@ -78,15 +78,18 @@ lemma
     \<open>\<And> x. lossless_spmf (body x)\<close>
     \<open>\<And> x. lossless_spmf (loop_spmf.while cond body x)\<close>
   shows
-    \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| \<lambda> x. if cond x then body x else return_spmf x. P x) -
-      \<P>(x in measure_spmf <| bind_pmf p <| loop_spmf.while cond body. P x)\<bar>
+    \<open>\<bar>\<P>(x in measure_spmf <| do {x \<leftarrow> p; if cond x then body x else return_spmf x}.
+      P x)
+      - \<P>(x in measure_spmf <| bind_pmf p <| loop_spmf.while cond body. P x)\<bar>
     \<le> \<P>(x in p. cond x)\<close>
-    (is \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf _ <| ?if. _) - ?prob (loop_spmf.while _ _)\<bar> \<le> ?R\<close>)
+    (is
+      \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf _ <| ?if. _)
+        - ?prob (loop_spmf.while _ _)\<bar>
+      \<le> ?R\<close>)
 proof -
   let ?bind_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
 
-  let ?if_with_flag = \<open>\<lambda> x.
-    pair_spmf (?if x) (return_spmf <| cond x)\<close>
+  let ?if_with_flag = \<open>\<lambda> x. pair_spmf (?if x) (return_spmf <| cond x)\<close>
 
   let ?cond_with_flag = \<open>\<lambda> (x, _). cond x\<close>
   let ?body_with_flag = \<open>\<lambda> (x, _). pair_spmf (body x) (return_spmf True)\<close>
