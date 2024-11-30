@@ -32,6 +32,10 @@ lemma postcond_true :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrakk>\<close>
   by (smt (verit, best) map_pmf_const pmf.rel_map(1) pmf.rel_mono_strong rel_pmf_return_pmf1 relational_hoare_triple_def)
 
+lemma refl_eq :
+  \<open>\<turnstile>pmf \<lbrakk>(=)\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
+  by (simp add: relational_hoare_triple_def pmf.rel_eq)
+
 lemma skip [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>return_pmf | return_pmf\<rangle> \<lbrakk>S\<rbrakk>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>

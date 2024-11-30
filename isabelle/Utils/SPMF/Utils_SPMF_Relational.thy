@@ -83,6 +83,10 @@ lemma postcond_weaken :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def)
 
+lemma refl_eq :
+  \<open>\<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f | f\<rangle> \<lbrace>(=)\<rbrace>\<close>
+  by (simp add: relational_hoare_triple_def spmf_rel_eq)
+
 lemma skip [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S x x')\<close>

@@ -259,9 +259,10 @@ proof -
       unfolding pair_spmf_alt_def
       apply (intro Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>])
       apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq) 
-      by (auto
-        intro!: Utils_SPMF_Hoare.if_then_else
-        intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.postcond_true)
+      by (fastforce
+        intro:
+          Utils_SPMF_Hoare.if_then_else Utils_SPMF_Hoare.seq'
+          Utils_SPMF_Hoare.postcond_true)
 
     then show ?thesis
       by (auto
