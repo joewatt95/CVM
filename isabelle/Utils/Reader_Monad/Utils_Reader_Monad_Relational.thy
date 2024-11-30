@@ -48,7 +48,7 @@ lemma precond_strengthen :
   shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (metis assms(1,2) relational_hoare_triple_def)
 
-lemma precond_false :
+lemma precond_false [simp] :
   \<open>\<turnstile>rd \<lbrakk>\<lblot>\<lblot>\<lblot>\<lblot>False\<rblot>\<rblot>\<rblot>\<rblot>\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (simp add: relational_hoare_triple_def)
 
@@ -59,7 +59,7 @@ lemma postcond_weaken :
   shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (metis (mono_tags, opaque_lifting) assms(1,2) rel_rd_def relational_hoare_triple_def)
 
-lemma postcond_true :
+lemma postcond_true [simp] :
   \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>\<lblot>\<lblot>\<lblot>\<lblot>True\<rblot>\<rblot>\<rblot>\<rblot>\<rbrakk>\<close>
   by (simp add: rel_rd_def relational_hoare_triple_def)
 

@@ -17,7 +17,7 @@ lemma precond_strengthen :
   shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (metis assms(1,2) relational_hoare_triple_def)
 
-lemma precond_false :
+lemma precond_false [simp] :
   \<open>\<turnstile>pmf \<lbrakk>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (simp add: relational_hoare_triple_def)
 
@@ -28,13 +28,15 @@ lemma postcond_weaken :
   shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
   by (metis assms(1,2) pmf.rel_mono_strong relational_hoare_triple_def)
 
-lemma postcond_true :
+lemma postcond_true [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrakk>\<close>
   by (smt (verit, best) map_pmf_const pmf.rel_map(1) pmf.rel_mono_strong rel_pmf_return_pmf1 relational_hoare_triple_def)
 
-lemma refl_eq :
+lemma refl_eq [simp] :
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
   \<open>\<turnstile>pmf \<lbrakk>(=)\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
-  by (simp add: relational_hoare_triple_def pmf.rel_eq)
+  \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. S x x' \<and> x = x')\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
+  by (simp_all add: relational_hoare_triple_def pmf.rel_eq)
 
 lemma skip [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>return_pmf | return_pmf\<rangle> \<lbrakk>S\<rbrakk>

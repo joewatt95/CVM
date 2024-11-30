@@ -34,7 +34,7 @@ lemma precond_strengthen :
   shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
   by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
 
-lemma precond_false :
+lemma precond_false [simp] :
   \<open>\<turnstile>rd \<lbrakk>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
   by (simp add: hoare_tripleI)
 
@@ -45,7 +45,7 @@ lemma postcond_weaken :
   shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
   by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
 
-lemma postcond_true :
+lemma postcond_true [simp] :
   \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrakk>\<close>
   by (simp add: hoare_tripleI)
 

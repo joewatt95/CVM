@@ -165,8 +165,7 @@ proof -
     by (fastforce
       intro: rel_spmf_mono
       simp add:
-        Utils_SPMF_Relational.relational_hoare_triple_def
-        space_measure_spmf case_prod_beta')
+        Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
 
   also have \<open>\<dots> \<le> ?R\<close>
   proof -
@@ -202,9 +201,8 @@ lemma
     \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| go f. P x)
       - \<P>(x in measure_spmf <| bind_pmf p <| go f'. P x)\<bar>
     \<le> \<P>(x in p. cond x)\<close>
-    (is \<open>_ \<le> ?R\<close>)
 proof -
-  let ?bind_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
+  let ?kleisli_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
 
   let ?go_with_flag = \<open>\<lambda> f'' x.
     if cond x
@@ -213,23 +211,15 @@ proof -
 
   have \<open>\<turnstile>spmf
     \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
-    \<langle>?bind_spmf_p (?go_with_flag f) | ?bind_spmf_p (?go_with_flag f')\<rangle>
+    \<langle>?kleisli_spmf_p (?go_with_flag f) | ?kleisli_spmf_p (?go_with_flag f')\<rangle>
     \<lbrace>(\<lambda> (y, flag) (y', flag'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
-    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
-    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq)
-    apply (intro Utils_SPMF_Relational.if_then_else)
-    apply blast
     unfolding pair_spmf_alt_def
     apply (subst bind_commute_spmf)
-    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>curry fst\<close>])
-    apply (simp add:
-      Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq
-      rel_spmf_return_spmf1)
-    apply (simp add:
-      Utils_SPMF_Relational.relational_hoare_triple_def
-      rel_spmf_return_spmf2 map_spmf_conv_bind_spmf[symmetric])
-    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
-    by (simp_all add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq)
+    apply (intro
+      Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
+      Utils_SPMF_Relational.if_then_else
+      Utils_SPMF_Relational.seq'[where S = \<open>curry fst\<close>])
+    by (auto intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.hoare_tripleI)
 
   with SPMF.fundamental_lemma[
     where p = \<open>p \<bind> ?go_with_flag f\<close>,
@@ -243,23 +233,19 @@ proof -
     by (fastforce
       intro: rel_spmf_mono
       simp add:
-        Utils_SPMF_Relational.relational_hoare_triple_def
-        space_measure_spmf case_prod_beta')
+        Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
 
-  also have \<open>\<dots> \<le> ?R\<close>
+  also have \<open>\<dots> \<le> \<P>(x in p. cond x)\<close>
   proof -
     have \<open>\<turnstile>spmf
       \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
-      \<langle>?bind_spmf_p (?go_with_flag f) | ?bind_spmf_p return_spmf\<rangle>
+      \<langle>?kleisli_spmf_p (?go_with_flag f) | ?kleisli_spmf_p return_spmf\<rangle>
       \<lbrace>(\<lambda> (_, flag) x'. flag \<longleftrightarrow> cond x')\<rbrace>\<close>
-      (is \<open>\<turnstile>spmf \<lbrace>_\<rbrace> \<langle>_ | _\<rangle> \<lbrace>?postcond\<rbrace>\<close>)
       unfolding pair_spmf_alt_def
-      apply (intro Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>])
-      apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq) 
-      by (fastforce
-        intro:
-          Utils_SPMF_Hoare.if_then_else Utils_SPMF_Hoare.seq'
-          Utils_SPMF_Hoare.postcond_true)
+      by (fastforce intro:
+        Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>]
+        Utils_SPMF_Hoare.if_then_else Utils_SPMF_Hoare.seq'
+        Utils_SPMF_Hoare.postcond_true)
 
     then show ?thesis
       by (auto

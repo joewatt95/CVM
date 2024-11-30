@@ -72,7 +72,7 @@ lemma precond_strengthen :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) relational_hoare_triple_def)
 
-lemma precond_false :
+lemma precond_false [simp] :
   \<open>\<turnstile>spmf \<lbrace>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (simp add: relational_hoare_triple_def)
 
@@ -83,9 +83,11 @@ lemma postcond_weaken :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def)
 
-lemma refl_eq :
+lemma refl_eq [simp] :
+  \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrace>(=)\<rbrace>\<close>
   \<open>\<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f | f\<rangle> \<lbrace>(=)\<rbrace>\<close>
-  by (simp add: relational_hoare_triple_def spmf_rel_eq)
+  \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. S x x' \<and> x = x')\<rbrace> \<langle>f | f\<rangle> \<lbrace>(=)\<rbrace>\<close>
+  by (simp_all add: relational_hoare_triple_def spmf_rel_eq)
 
 lemma skip [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>return_spmf | return_spmf\<rangle> \<lbrace>S\<rbrace>
