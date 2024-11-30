@@ -202,6 +202,7 @@ lemma
     \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| go f. P x)
       - \<P>(x in measure_spmf <| bind_pmf p <| go f'. P x)\<bar>
     \<le> \<P>(x in p. cond x)\<close>
+    (is \<open>?L \<le> _\<close>)
 proof -
   let ?kleisli_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
   let ?go_with_flag = \<open>\<lambda> f x.
@@ -209,29 +210,38 @@ proof -
     then pair_spmf (f x) (return_spmf True)
     else pair_spmf (g x) (return_spmf False)\<close>
 
-  have \<open>\<turnstile>spmf
-    \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
-    \<langle>?kleisli_spmf_p (?go_with_flag f) | ?kleisli_spmf_p (?go_with_flag f')\<rangle>
-    \<lbrace>(\<lambda> (y, flag) (y', flag'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
-    unfolding pair_spmf_alt_def
-    apply (subst bind_commute_spmf)
-    apply (intro
-      Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
-      Utils_SPMF_Relational.if_then_else
-      Utils_SPMF_Relational.seq'[where S = \<open>curry fst\<close>])
-    by (auto intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.hoare_tripleI)
+  have \<open>?L =
+    \<bar>\<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. P (fst x))
+      - \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f'. P (fst x))\<bar>\<close>
+    apply (simp add:
+      map_bind_pmf if_distrib
+      measure_map_spmf[
+        of fst, where A = \<open>{x. P x}\<close>,
+        simplified vimage_def, simplified, symmetric])
+    unfolding map_fst_pair_spmf map_snd_pair_spmf weight_return_spmf scale_spmf_1 ..
 
-  with SPMF.fundamental_lemma[
-    where p = \<open>p \<bind> ?go_with_flag f\<close>, where q = \<open>p \<bind> ?go_with_flag f'\<close>,
-    where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
-    of snd snd]
-  have
-    \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. P (fst x))
-      - \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f'. P (fst x))\<bar>
-    \<le> \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. snd x)\<close>
-    by (fastforce
-      intro: rel_spmf_mono
-      simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
+  also have \<open>\<dots> \<le> \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. snd x)\<close>
+  proof -
+    have \<open>\<turnstile>spmf
+      \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
+      \<langle>?kleisli_spmf_p (?go_with_flag f) | ?kleisli_spmf_p (?go_with_flag f')\<rangle>
+      \<lbrace>(\<lambda> (y, flag) (y', flag'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
+      unfolding pair_spmf_alt_def
+      apply (subst bind_commute_spmf)
+      apply (intro
+        Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
+        Utils_SPMF_Relational.if_then_else
+        Utils_SPMF_Relational.seq'[where S = \<open>curry fst\<close>])
+      by (auto intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.hoare_tripleI)
+
+    with SPMF.fundamental_lemma[
+      where p = \<open>p \<bind> ?go_with_flag f\<close>, where q = \<open>p \<bind> ?go_with_flag f'\<close>,
+      where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
+      of snd snd]
+      show ?thesis by (fastforce
+        intro: rel_spmf_mono
+        simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
+  qed
 
   also have \<open>\<dots> \<le> \<P>(x in p. cond x)\<close>
   proof -
@@ -251,13 +261,7 @@ proof -
         simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
   qed
 
-  finally show ?thesis
-    apply (simp add:
-      map_bind_pmf if_distrib
-      measure_map_spmf[
-        of fst, where A = \<open>{x. P x}\<close>,
-        simplified vimage_def, simplified, symmetric])
-    unfolding map_fst_pair_spmf map_snd_pair_spmf weight_return_spmf scale_spmf_1 .
+  finally show ?thesis .
 qed
 
 (* lemma
