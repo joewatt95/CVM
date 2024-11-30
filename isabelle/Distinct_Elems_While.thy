@@ -72,6 +72,15 @@ lemma aux :
     (* \<open>\<lambda> state'. state_k state' > state_k state + 1\<close> *)
 ] *)
 
+text
+  \<open>If 2 probabilistic if-then-else expressions differ in only one branch of
+  computation, the total variation metric between their output distributions
+  is bounded by the probability that their guard condition evaluates such that
+  that branch of computation is taken.
+
+  This generalises and captures the essence behind bounding the distance between
+  running a while loop for only 1 iteration vs running it for \<ge> 1 iterations.\<close>
+
 lemma aux' :
   fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
   assumes [simp] :
