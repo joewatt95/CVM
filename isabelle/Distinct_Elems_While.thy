@@ -196,7 +196,7 @@ lemma
     \<open>\<And> x. lossless_spmf (f x)\<close>
     \<open>\<And> x. lossless_spmf (f' x)\<close>
     \<open>\<And> x. lossless_spmf (g x)\<close>
-  defines [simp] : \<open>go \<equiv> \<lambda> f'' x. if cond x then f'' x else g x\<close>
+  defines [simp] : \<open>go \<equiv> \<lambda> f x. if cond x then f x else g x\<close>
   shows
     \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| go f. P x)
       - \<P>(x in measure_spmf <| bind_pmf p <| go f'. P x)\<bar>
@@ -204,9 +204,9 @@ lemma
 proof -
   let ?kleisli_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
 
-  let ?go_with_flag = \<open>\<lambda> f'' x.
+  let ?go_with_flag = \<open>\<lambda> f x.
     if cond x
-    then pair_spmf (f'' x) (return_spmf True)
+    then pair_spmf (f x) (return_spmf True)
     else pair_spmf (g x) (return_spmf False)\<close>
 
   have \<open>\<turnstile>spmf
@@ -222,8 +222,7 @@ proof -
     by (auto intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.hoare_tripleI)
 
   with SPMF.fundamental_lemma[
-    where p = \<open>p \<bind> ?go_with_flag f\<close>,
-    where q = \<open>p \<bind> ?go_with_flag f'\<close>,
+    where p = \<open>p \<bind> ?go_with_flag f\<close>, where q = \<open>p \<bind> ?go_with_flag f'\<close>,
     where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
     of snd snd]
   have
