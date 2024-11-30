@@ -190,7 +190,7 @@ proof -
     by (smt (verit, best) bind_pmf_cong loop_spmf.while_simps(2) map_bind_pmf map_fst_pair_spmf pair_spmf_return_spmf scale_spmf_eq_same weight_return_spmf)
 qed
 
-lemma
+lemma aux' :
   fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
   assumes [simp] :
     \<open>\<And> x. lossless_spmf (f x)\<close>
@@ -264,6 +264,21 @@ proof -
 
   finally show ?thesis .
 qed
+
+lemma
+  assumes [simp] :
+    \<open>\<And> x. lossless_spmf (body x)\<close>
+    \<open>\<And> x. lossless_spmf (loop_spmf.while cond body x)\<close>
+  defines [simp] :
+    \<open>while_1 \<equiv> \<lambda> cond body x. if cond x then body x else return_spmf x\<close>
+  shows
+    \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| while_1 cond body. P x)
+      - \<P>(x in measure_spmf <| bind_pmf p <| loop_spmf.while cond body. P x)\<bar>
+    \<le> \<P>(x in p. cond x)\<close>
+  using aux'[
+    where f' = \<open>body >=> loop_spmf.while cond body\<close>,
+    where g = return_spmf, where cond = cond]
+  by (simp add: loop_spmf.while.simps[symmetric])
 
 (* lemma
   assumes \<open>state ok\<close>
