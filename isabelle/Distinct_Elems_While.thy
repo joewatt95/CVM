@@ -118,13 +118,13 @@ proof -
       apply (induction arbitrary: flag x x' rule: loop_spmf.while_fixp_induct[where guard = \<open>\<lambda> (x, _). cond x\<close>])
       by (auto
         intro!: ord_spmf_bind_reflI
-        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+        simp add: map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
 
     subgoal for x'
       apply (induction arbitrary: flag x x' rule: loop_spmf.while_fixp_induct[where guard = cond])
       by (auto
         intro: ord_spmf_bind_reflI
-        simp add: map_spmf_bind_spmf bind_map_spmf comp_def pair_spmf_alt_def loop_spmf.while_simps)
+        simp add: map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
     done
 
   with assms have \<open>lossless_spmf (?while_with_flag flag x)\<close> for flag x
@@ -162,8 +162,11 @@ proof -
     \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> ?if_with_flag. P (fst x))
       - \<P>(x in measure_spmf <| p \<bind> (?while_with_flag False). P (fst x))\<bar>
     \<le> \<P>(x in measure_spmf <| p \<bind> ?if_with_flag. snd x)\<close>
-    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def split_beta')
-    by (smt (verit, ccfv_threshold) Collect_cong UNIV_I rel_spmf_mono space_measure_spmf)
+    by (fastforce
+      intro: rel_spmf_mono
+      simp add:
+        Utils_SPMF_Relational.relational_hoare_triple_def
+        space_measure_spmf case_prod_beta')
 
   also have \<open>\<dots> \<le> ?R\<close>
   proof -
@@ -189,6 +192,91 @@ proof -
 qed
 
 lemma
+  fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
+  assumes
+    \<open>\<And> x. lossless_spmf (f x)\<close>
+    \<open>\<And> x. lossless_spmf (f' x)\<close>
+    \<open>\<And> x. lossless_spmf (g x)\<close>
+  defines [simp] : \<open>go \<equiv> \<lambda> f'' x. if cond x then f'' x else g x\<close>
+  shows
+    \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| go f. P x)
+      - \<P>(x in measure_spmf <| bind_pmf p <| go f'. P x)\<bar>
+    \<le> \<P>(x in p. cond x)\<close>
+    (is \<open>_ \<le> ?R\<close>)
+proof -
+  let ?bind_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
+
+  let ?go_with_flag = \<open>\<lambda> f'' x.
+    if cond x
+    then pair_spmf (f'' x) (return_spmf True)
+    else pair_spmf (g x) (return_spmf False)\<close>
+
+  have \<open>\<turnstile>spmf
+    \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
+    \<langle>?bind_spmf_p (?go_with_flag f) | ?bind_spmf_p (?go_with_flag f')\<rangle>
+    \<lbrace>(\<lambda> (y, flag) (y', flag'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
+    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq)
+    apply (intro Utils_SPMF_Relational.if_then_else)
+    apply blast
+    unfolding pair_spmf_alt_def
+    apply (subst bind_commute_spmf)
+    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>curry fst\<close>])
+    using assms
+    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq rel_spmf_return_spmf1)
+
+    subgoal
+      using assms
+      apply (auto simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq rel_spmf_return_spmf2)
+      apply (metis SigmaD2 map_spmf_conv_bind_spmf pair_spmf_return_spmf2 set_pair_spmf set_return_pmf set_spmf_spmf_of_pmf singleton_iff spmf_of_pmf_return_pmf)
+      by (metis SigmaD2 map_spmf_conv_bind_spmf pair_spmf_return_spmf2 set_pair_spmf set_return_spmf singleton_iff)
+
+    apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+    by (simp_all add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq)
+
+  with SPMF.fundamental_lemma[
+    where p = \<open>p \<bind> ?go_with_flag f\<close>,
+    where q = \<open>p \<bind> ?go_with_flag f'\<close>,
+    where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
+    of snd snd]
+  have
+    \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. P (fst x))
+      - \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f'. P (fst x))\<bar>
+    \<le> \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. snd x)\<close>
+    by (fastforce
+      intro: rel_spmf_mono
+      simp add:
+        Utils_SPMF_Relational.relational_hoare_triple_def
+        space_measure_spmf case_prod_beta')
+
+  also have \<open>\<dots> \<le> ?R\<close>
+  proof -
+    from assms have \<open>\<turnstile>spmf
+      \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
+      \<langle>?bind_spmf_p (?go_with_flag f) | ?bind_spmf_p return_spmf\<rangle>
+      \<lbrace>(\<lambda> (_, flag) x'. flag \<longleftrightarrow> cond x')\<rbrace>\<close>
+      (is \<open>\<turnstile>spmf \<lbrace>_\<rbrace> \<langle>_ | _\<rangle> \<lbrace>?postcond\<rbrace>\<close>)
+      unfolding pair_spmf_alt_def
+      apply (intro Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>])
+      apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq) 
+      by (auto
+        intro!: Utils_SPMF_Hoare.if_then_else
+        intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.postcond_true)
+
+    then show ?thesis
+      by (auto
+        dest: rel_spmf_measureD[where A = \<open>{x. snd x}\<close>]
+        simp add: Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
+  qed
+
+  finally show ?thesis
+    apply (simp add:
+      space_measure_spmf map_bind_pmf if_distrib
+      measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def, simplified, symmetric])
+    unfolding map_fst_pair_spmf map_snd_pair_spmf weight_return_spmf scale_spmf_1 .
+qed
+
+(* lemma
   assumes \<open>state ok\<close>
   shows \<open>prob_fail (step_while x state) \<le> prob_fail (step x state)\<close>
 proof -
@@ -210,7 +298,7 @@ proof -
 
   with assms show ?thesis
     by (blast intro: prob_fail_le_of_relational_hoare_triple)
-qed
+qed *)
 
 end
 
