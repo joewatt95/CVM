@@ -79,8 +79,10 @@ text
   that branch of computation is taken.
 
   This generalises and captures the essence behind bounding the distance between
-  running a while loop for only 1 iteration vs running it for \<ge> 1 iterations.\<close>
+  running a while loop for only 1 iteration vs running it for \<ge> 1 iterations.
 
+  The proof of this result utilises the fundamental lemma for spmfs, along with
+  automation provided by our probabilistic relational Hoare logic for spmfs.\<close>
 lemma aux' :
   fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
   assumes [simp] :
