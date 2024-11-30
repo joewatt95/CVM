@@ -238,7 +238,8 @@ proof -
       where p = \<open>p \<bind> ?go_with_flag f\<close>, where q = \<open>p \<bind> ?go_with_flag f'\<close>,
       where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
       of snd snd]
-      show ?thesis by (fastforce
+    show ?thesis
+      by (fastforce
         intro: rel_spmf_mono
         simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
   qed
