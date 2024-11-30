@@ -193,7 +193,7 @@ qed
 
 lemma
   fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
-  assumes
+  assumes [simp] :
     \<open>\<And> x. lossless_spmf (f x)\<close>
     \<open>\<And> x. lossless_spmf (f' x)\<close>
     \<open>\<And> x. lossless_spmf (g x)\<close>
@@ -222,15 +222,12 @@ proof -
     unfolding pair_spmf_alt_def
     apply (subst bind_commute_spmf)
     apply (intro Utils_SPMF_Relational.seq'[where S = \<open>curry fst\<close>])
-    using assms
-    apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq rel_spmf_return_spmf1)
-
-    subgoal
-      using assms
-      apply (auto simp add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq rel_spmf_return_spmf2)
-      apply (metis SigmaD2 map_spmf_conv_bind_spmf pair_spmf_return_spmf2 set_pair_spmf set_return_pmf set_spmf_spmf_of_pmf singleton_iff spmf_of_pmf_return_pmf)
-      by (metis SigmaD2 map_spmf_conv_bind_spmf pair_spmf_return_spmf2 set_pair_spmf set_return_spmf singleton_iff)
-
+    apply (simp add:
+      Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq
+      rel_spmf_return_spmf1)
+    apply (simp add:
+      Utils_SPMF_Relational.relational_hoare_triple_def
+      rel_spmf_return_spmf2 map_spmf_conv_bind_spmf[symmetric])
     apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
     by (simp_all add: Utils_SPMF_Relational.relational_hoare_triple_def spmf_rel_eq)
 
@@ -251,7 +248,7 @@ proof -
 
   also have \<open>\<dots> \<le> ?R\<close>
   proof -
-    from assms have \<open>\<turnstile>spmf
+    have \<open>\<turnstile>spmf
       \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
       \<langle>?bind_spmf_p (?go_with_flag f) | ?bind_spmf_p return_spmf\<rangle>
       \<lbrace>(\<lambda> (_, flag) x'. flag \<longleftrightarrow> cond x')\<rbrace>\<close>
