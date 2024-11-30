@@ -270,7 +270,7 @@ text
   `pair_spmf` to "pair" the original function with a boolean flag indicating
   if the condition evaluated to true or not. This is in turned used alongside
   the fundamental lemma.\<close>
-lemma measure_spmf_dist_ite_le :
+lemma measure_spmf_dist_ite_ite_le :
   fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
   assumes [simp] :
     \<open>\<And> x. lossless_spmf (f x)\<close>
@@ -346,7 +346,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma measure_spmf_dist_ite_while_le :
+lemma measure_spmf_dist_ite_le :
+  fixes cond and f g :: \<open>'a \<Rightarrow> 'a spmf\<close>
+  assumes [simp] :
+    \<open>\<And> x. lossless_spmf (f x)\<close>
+    \<open>\<And> x. lossless_spmf (g x)\<close>
+  shows
+    \<open>\<bar>\<P>(x in measure_spmf <| do {x \<leftarrow> p; if cond x then f x else g x}. P x)
+      - \<P>(x in measure_spmf <| p \<bind> g. P x)\<bar>
+    \<le> \<P>(x in measure_spmf p. cond x)\<close>
+  using measure_spmf_dist_ite_ite_le[where f' = g, where g = g] by simp
+
+lemma measure_spmf_dist_ite_ite_while_le :
   assumes [simp] :
     \<open>\<And> x. lossless_spmf (body x)\<close>
     \<open>\<And> x. lossless_spmf (loop_spmf.while cond body x)\<close>
@@ -356,7 +367,7 @@ lemma measure_spmf_dist_ite_while_le :
     \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> while1 cond body. P x)
       - \<P>(x in measure_spmf <| p \<bind> loop_spmf.while cond body. P x)\<bar>
     \<le> \<P>(x in measure_spmf p. cond x)\<close>
-  using measure_spmf_dist_ite_le[
+  using measure_spmf_dist_ite_ite_le[
     where f' = \<open>body >=> loop_spmf.while cond body\<close>,
     where g = return_spmf, where cond = cond]
   by (simp add: loop_spmf.while.simps[symmetric])
