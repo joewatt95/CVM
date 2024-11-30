@@ -197,13 +197,13 @@ lemma
     \<open>\<And> x. lossless_spmf (f' x)\<close>
     \<open>\<And> x. lossless_spmf (g x)\<close>
   defines [simp] : \<open>go \<equiv> \<lambda> f x. if cond x then f x else g x\<close>
+  notes [simp] = space_measure_spmf
   shows
     \<open>\<bar>\<P>(x in measure_spmf <| bind_pmf p <| go f. P x)
       - \<P>(x in measure_spmf <| bind_pmf p <| go f'. P x)\<bar>
     \<le> \<P>(x in p. cond x)\<close>
 proof -
   let ?kleisli_spmf_p = \<open>(>=>) \<lblot>spmf_of_pmf p\<rblot>\<close>
-
   let ?go_with_flag = \<open>\<lambda> f x.
     if cond x
     then pair_spmf (f x) (return_spmf True)
@@ -231,8 +231,7 @@ proof -
     \<le> \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. snd x)\<close>
     by (fastforce
       intro: rel_spmf_mono
-      simp add:
-        Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
+      simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
 
   also have \<open>\<dots> \<le> \<P>(x in p. cond x)\<close>
   proof -
@@ -249,13 +248,15 @@ proof -
     then show ?thesis
       by (auto
         dest: rel_spmf_measureD[where A = \<open>{x. snd x}\<close>]
-        simp add: Utils_SPMF_Relational.relational_hoare_triple_def space_measure_spmf)
+        simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
   qed
 
   finally show ?thesis
     apply (simp add:
-      space_measure_spmf map_bind_pmf if_distrib
-      measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def, simplified, symmetric])
+      map_bind_pmf if_distrib
+      measure_map_spmf[
+        of fst, where A = \<open>{x. P x}\<close>,
+        simplified vimage_def, simplified, symmetric])
     unfolding map_fst_pair_spmf map_snd_pair_spmf weight_return_spmf scale_spmf_1 .
 qed
 
