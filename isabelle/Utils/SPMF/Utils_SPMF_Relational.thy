@@ -339,7 +339,7 @@ proof -
 
     then show ?thesis
       by (auto
-        dest: rel_spmf_measureD[where A = \<open>{x. fst x}\<close>]
+        dest: rel_spmf_measureD[where A = \<open>Collect fst\<close>]
         simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
   qed
 
