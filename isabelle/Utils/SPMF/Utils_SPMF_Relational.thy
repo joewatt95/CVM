@@ -297,7 +297,7 @@ proof -
     apply (simp add:
       if_distrib map_spmf_bind_spmf comp_def
       measure_map_spmf[
-        of snd, where A = \<open>{x. P x}\<close>,
+        of snd, where A = \<open>Collect P\<close>,
         simplified vimage_def, simplified, symmetric])
     unfolding map_snd_pair_spmf weight_return_spmf scale_spmf_1 ..
 
@@ -313,7 +313,7 @@ proof -
         Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
         Utils_SPMF_Relational.if_then_else
         Utils_SPMF_Relational.seq'[where S = \<open>curry snd\<close>])
-      by (auto intro: Utils_SPMF_Hoare.seq' Utils_SPMF_Hoare.hoare_tripleI)
+      by (auto intro: Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
 
     with SPMF.fundamental_lemma[
       where p = \<open>p \<bind> ?go_with_flag f\<close>, where q = \<open>p \<bind> ?go_with_flag f'\<close>,
