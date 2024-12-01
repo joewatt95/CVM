@@ -64,10 +64,9 @@ proof -
     \<open>pmf (map_pmf cond (body state)) True = 1 / 2 ^ threshold\<close>
     if \<open>cond state\<close> for state :: \<open>'a state\<close>
     using that
-    by (auto
-      simp add:
-        cond_def body_def Let_def vimage_def pmf_map field_simps card_ge_0_finite
-        map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single)
+    by (auto simp add:
+      cond_def body_def Let_def vimage_def pmf_map card_ge_0_finite
+      map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single field_simps)
 
   show ?thesis
     by (auto
