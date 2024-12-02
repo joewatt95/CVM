@@ -46,12 +46,9 @@ context with_threshold_pos
 begin
 
 lemma lossless_step_while_loop :
-  fixes state
-  defines [simp] : \<open>chi \<equiv> state_chi state\<close>
-  assumes \<open>finite chi\<close>
-  shows \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
+  \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
 proof -
-  have [simp] :
+  have
     \<open>{keep_in_chi. card (Set.filter keep_in_chi chi) = card chi} =
       chi \<rightarrow> {True}\<close>
     if \<open>finite chi\<close> for chi :: \<open>'a set\<close>
@@ -60,15 +57,15 @@ proof -
     apply (simp add: Pi_iff)
     by (metis card_mono card_seteq finite_filter member_filter subsetI)
 
-  from \<open>finite chi\<close> threshold_pos have [simp] :
-    \<open>pmf (map_pmf cond (body state)) True = 1 / 2 ^ threshold\<close>
+  with threshold_pos have
+    \<open>pmf (map_pmf cond <| body state) True = 1 / 2 ^ threshold\<close>
     if \<open>cond state\<close> for state :: \<open>'a state\<close>
     using that
-    by (auto simp add:
+    by (fastforce simp add:
       cond_def body_def Let_def vimage_def pmf_map card_ge_0_finite
       map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single field_simps)
 
-  show ?thesis
+  then show ?thesis
     by (auto
       intro: loop_spmf.termination_0_1_immediate
       simp add: pmf_False_conv_True threshold_pos)
