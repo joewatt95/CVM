@@ -62,8 +62,8 @@ proof -
     if \<open>cond state\<close> for state :: \<open>'a state\<close>
     using that
     by (fastforce simp add:
-      cond_def body_def Let_def vimage_def pmf_map card_ge_0_finite
-      map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single field_simps)
+      cond_def body_def card_ge_0_finite Let_def vimage_def field_simps
+      pmf_map map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single)
 
   then show ?thesis
     by (auto
