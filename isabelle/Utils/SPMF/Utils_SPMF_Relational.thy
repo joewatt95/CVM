@@ -333,8 +333,7 @@ proof -
       unfolding pair_spmf_alt_def
       by (fastforce intro:
         Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>]
-        Utils_SPMF_Hoare.if_then_else Utils_SPMF_Hoare.seq'
-        Utils_SPMF_Hoare.postcond_true)
+        Utils_SPMF_Hoare.if_then_else Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
 
     then show ?thesis
       by (auto
