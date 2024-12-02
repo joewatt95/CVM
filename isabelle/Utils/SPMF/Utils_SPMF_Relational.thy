@@ -316,7 +316,6 @@ proof -
       by (auto intro: Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
 
     with SPMF.fundamental_lemma[
-      where p = \<open>p \<bind> ?go_with_flag f\<close>, where q = \<open>p \<bind> ?go_with_flag f'\<close>,
       where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>,
       where ?bad1.0 = fst, where ?bad2.0 = fst]
     show ?thesis
