@@ -273,9 +273,9 @@ text
 lemma measure_spmf_dist_ite_ite_le :
   fixes cond g and f f' :: \<open>'a \<Rightarrow> 'a spmf\<close>
   assumes [simp] :
-    \<open>\<And> x. lossless_spmf (f x)\<close>
-    \<open>\<And> x. lossless_spmf (f' x)\<close>
-    \<open>\<And> x. lossless_spmf (g x)\<close>
+    \<open>\<And> x. lossless_spmf <| f x\<close>
+    \<open>\<And> x. lossless_spmf <| f' x\<close>
+    \<open>\<And> x. lossless_spmf <| g x\<close>
   defines [simp] : \<open>go \<equiv> \<lambda> f x. if cond x then f x else g x\<close>
   shows
     \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> go f. P x)
@@ -347,18 +347,18 @@ qed
 lemma measure_spmf_dist_ite_le :
   fixes cond and f g :: \<open>'a \<Rightarrow> 'a spmf\<close>
   assumes [simp] :
-    \<open>\<And> x. lossless_spmf (f x)\<close>
-    \<open>\<And> x. lossless_spmf (g x)\<close>
+    \<open>\<And> x. lossless_spmf <| f x\<close>
+    \<open>\<And> x. lossless_spmf <| g x\<close>
   shows
     \<open>\<bar>\<P>(x in measure_spmf <| do {x \<leftarrow> p; if cond x then f x else g x}. P x)
       - \<P>(x in measure_spmf <| p \<bind> g. P x)\<bar>
     \<le> \<P>(x in measure_spmf p. cond x)\<close>
   using measure_spmf_dist_ite_ite_le[where f' = g, where g = g] by simp
 
-lemma measure_spmf_dist_ite_ite_while_le :
+lemma measure_spmf_dist_ite_while_le :
   assumes [simp] :
-    \<open>\<And> x. lossless_spmf (body x)\<close>
-    \<open>\<And> x. lossless_spmf (loop_spmf.while cond body x)\<close>
+    \<open>\<And> x. lossless_spmf <| body x\<close>
+    \<open>\<And> x. lossless_spmf <| loop_spmf.while cond body x\<close>
   defines [simp] :
     \<open>while1 \<equiv> \<lambda> cond body x. if cond x then body x else return_spmf x\<close>
   shows
@@ -367,6 +367,22 @@ lemma measure_spmf_dist_ite_ite_while_le :
     \<le> \<P>(x in measure_spmf p. cond x)\<close>
   using measure_spmf_dist_ite_ite_le[
     where f' = \<open>body >=> loop_spmf.while cond body\<close>,
+    where g = return_spmf, where cond = cond]
+  by (simp add: loop_spmf.while.simps[symmetric])
+
+lemma measure_spmf_dist_while_while_le :
+  assumes [simp] :
+    \<open>\<And> x. lossless_spmf <| body x\<close>
+    \<open>\<And> x. lossless_spmf <| loop_spmf.while cond body x\<close>
+    \<open>\<And> x. lossless_spmf <| body' x\<close>
+    \<open>\<And> x. lossless_spmf <| loop_spmf.while cond body' x\<close>
+  shows
+    \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> loop_spmf.while cond body. P x)
+      - \<P>(x in measure_spmf <| p \<bind> loop_spmf.while cond body'. P x)\<bar>
+    \<le> \<P>(x in measure_spmf p. cond x)\<close>
+  using measure_spmf_dist_ite_ite_le[
+    where f = \<open>body >=> loop_spmf.while cond body\<close>,
+    where f' = \<open>body' >=> loop_spmf.while cond body'\<close>,
     where g = return_spmf, where cond = cond]
   by (simp add: loop_spmf.while.simps[symmetric])
 
