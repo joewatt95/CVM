@@ -324,4 +324,18 @@ next
   finally show ?case by (simp add: algebra_simps)
 qed
 
+lemma lossless_foldM_spmf :
+  assumes
+    \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
+    \<open>\<And> x val. P val \<Longrightarrow> lossless_spmf (f x val)\<close>
+    \<open>P val\<close>
+  shows \<open>lossless_spmf <| foldM_spmf f xs val\<close>
+  using assms prob_fail_foldM_spmf_le[of P f 0]
+  by (simp add: lossless_iff_pmf_None prob_fail_def)
+
+lemma lossless_foldM_spmf' [simp] :
+  assumes \<open>\<And> x val. lossless_spmf <| f x val\<close>
+  shows \<open>lossless_spmf <| foldM_spmf f xs val\<close>
+  by (simp add: assms lossless_foldM_spmf[of \<open>\<lblot>True\<rblot>\<close> f])
+
 end

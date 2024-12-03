@@ -45,7 +45,7 @@ end
 context with_threshold_pos
 begin
 
-lemma lossless_step_while_loop :
+lemma lossless_step_while_loop [simp] :
   \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
 proof -
   have
@@ -70,6 +70,14 @@ proof -
       intro: loop_spmf.termination_0_1_immediate
       simp add: pmf_False_conv_True threshold_pos)
 qed
+
+lemma lossless_step_while [simp] :
+  \<open>lossless_spmf <| step_while x state\<close>
+  by (simp add: step_while_def)
+
+lemma lossless_estimate_distinct_while [simp] :
+  \<open>lossless_spmf <| estimate_distinct_while xs\<close>
+  by (simp add: estimate_distinct_while_def run_steps_then_estimate_def)
 
 (* lemma aux :
   fixes state
