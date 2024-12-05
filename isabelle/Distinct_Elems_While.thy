@@ -3,6 +3,7 @@ theory Distinct_Elems_While
 imports
   CVM.Distinct_Elems_Algo
   CVM.Algo_Transforms_No_Fail
+  CVM.Utils_PMF_Bernoulli_Binomial
 
 begin
 
@@ -78,6 +79,18 @@ lemma lossless_step_while [simp] :
 lemma lossless_estimate_distinct_while [simp] :
   \<open>lossless_spmf <| estimate_distinct_while xs\<close>
   by (simp add: estimate_distinct_while_def run_steps_then_estimate_def)
+
+lemma
+  \<open>\<bar>\<P>(x in measure_spmf <| estimate_distinct_while xs. P x)
+    - \<P>(x in measure_spmf <| estimate_distinct xs. P x)\<bar>
+  \<le> length xs / 2 ^ threshold\<close>
+  apply (induction xs)
+  apply (simp_all add:
+    estimate_distinct_while_def estimate_distinct_def run_steps_then_estimate_def
+    step_def step_while_def initial_state_def
+    measure_map_spmf vimage_def space_measure_spmf Let_def)
+  unfolding Let_def Set.filter_def Set.remove_def if_distribR
+  sorry
 
 (* lemma aux :
   fixes state

@@ -386,6 +386,22 @@ lemma measure_spmf_dist_while_while_le :
     where g = return_spmf, where cond = cond]
   by (simp add: loop_spmf.while.simps[symmetric])
 
+thm SPMF.rel_spmf_bindI[
+  THEN SPMF.fundamental_lemma]
+
+lemma
+  fixes h cond g xs val P
+  assumes \<open>\<And> x val. \<P>(val in measure_pmf <| h x val. cond val) \<le> p\<close>
+  defines [simp] :
+    \<open>prob \<equiv> \<lambda> f xs.
+      \<P>(val in measure_spmf <| foldM_spmf (\<lambda> x val. bind_pmf (h x val) (\<lambda> val. if cond val then f val else g val)) xs val. P val)\<close>
+  shows \<open>\<bar>prob f xs - prob f' xs\<bar> \<le> p * length xs\<close>
+proof -
+
+  show ?thesis sorry
+
+qed
+
 (* Old, deprecated experiments below. *)
 
 lemma
