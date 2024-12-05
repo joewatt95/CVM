@@ -59,17 +59,17 @@ proof -
     by (metis card_mono card_seteq finite_filter member_filter subsetI)
 
   with threshold_pos have
-    \<open>pmf (map_pmf cond <| body state) True = 1 / 2 ^ threshold\<close>
+    \<open>\<P>(state in body state. cond state) = 1 / 2 ^ threshold\<close>
     if \<open>cond state\<close> for state :: \<open>'a state\<close>
     using that
     by (fastforce simp add:
       cond_def body_def card_ge_0_finite Let_def vimage_def field_simps
-      pmf_map map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single)
+      map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single)
 
   then show ?thesis
     by (auto
       intro: loop_spmf.termination_0_1_immediate
-      simp add: pmf_False_conv_True threshold_pos)
+      simp add: pmf_map_pred_true_eq_prob pmf_False_conv_True threshold_pos)
 qed
 
 lemma lossless_step_while [simp] :

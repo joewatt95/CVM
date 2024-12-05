@@ -16,6 +16,10 @@ lemma prob_fail_map_spmf_eq :
   \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
   by (simp add: prob_fail_def pmf_None_eq_weight_spmf)
 
+lemma spmf_map_pred_true_eq_prob :
+  \<open>spmf (map_spmf P p) True = \<P>(x in measure_spmf p. P x)\<close>
+  by (simp add: space_measure_spmf spmf_map vimage_def)
+
 abbreviation fails_or_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
   \<open>fails_or_satisfies \<equiv> case_option True\<close>
 
