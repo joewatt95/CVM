@@ -450,7 +450,8 @@ using assms proof -
       \<langle>?fold_with_flag f | ?fold_with_flag f'\<rangle>
       \<lbrace>?invariant\<rbrace>\<close>
       apply (simp add: case_prod_beta')
-      apply (intro Utils_SPMF_Relational.loop)
+      apply (intro Utils_SPMF_Relational.loop[where offset = 0])
+      apply (simp add: in_set_enumerate_eq)
       sorry
 
     with SPMF.fundamental_lemma[
