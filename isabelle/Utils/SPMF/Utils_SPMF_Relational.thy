@@ -407,18 +407,11 @@ lemma
     [simp] : \<open>prob \<equiv> \<lambda> p. \<P>(x in measure_spmf p. P x)\<close>
   shows
     \<open>\<bar>prob (foldM_spmf' f xs val) - prob (foldM_spmf' f' xs val)\<bar> \<le> p * length xs\<close>
-    (is \<open>?L xs val \<le> _\<close>)
-using assms proof (induction xs arbitrary: val)
-  case Nil
-  then show ?case by simp
-next
+    (is \<open>?L \<le> _\<close>)
+using assms proof - 
   note [simp] = space_measure_spmf
 
-  case (Cons x xs)
-
   (* let ?kleisli_spmf_p = \<open>(>=>) \<lblot>p\<rblot>\<close> *)
-
-  let ?xs' = \<open>x # xs\<close>
 
   let ?go_with_flag = \<open>\<lambda> f x (flag, val). do {
     val \<leftarrow> h x val;
@@ -426,63 +419,50 @@ next
     then map_spmf (Pair True) (f val)
     else map_spmf (Pair False) (g val) }\<close>
 
-  let ?fold_with_flag = \<open>\<lambda> f xs flag val.
-    foldM_spmf (?go_with_flag f) xs (flag, val)\<close>
+  let ?fold_with_flag = \<open>\<lambda> f.
+    foldM_spmf (?go_with_flag f) xs\<close>
 
   have
-    \<open>map_spmf snd (?fold_with_flag f xs flag val) = foldM_spmf' f xs val\<close>
-    for f xs flag val
+    \<open>map_spmf snd (?fold_with_flag f (flag, val)) = foldM_spmf' f xs val\<close>
+    for f flag val
     apply (induction xs arbitrary: flag val)
     by (auto
-      intro: bind_spmf_cong
+      intro!: bind_spmf_cong
       simp add: map_spmf_bind_spmf map_spmf_conv_bind_spmf)
 
-  then have \<open>?L ?xs' val =
-    \<bar>\<P>(x in measure_spmf <| ?fold_with_flag f ?xs' False val. P (snd x))
-      - \<P>(x in measure_spmf <| ?fold_with_flag f' ?xs' False val. P (snd x))\<bar>\<close>
+  then have \<open>?L =
+    \<bar>\<P>(x in measure_spmf <| ?fold_with_flag f (False, val). P (snd x))
+      - \<P>(x in measure_spmf <| ?fold_with_flag f' (False, val). P (snd x))\<bar>\<close>
     apply (simp add:
       if_distrib if_distribR map_spmf_bind_spmf comp_def
       measure_map_spmf[
         of snd, where A = \<open>Collect P\<close>,
         simplified vimage_def, simplified, symmetric])
-    unfolding map_spmf_bind_spmf comp_def bind_map_spmf
-    by presburger
+    unfolding map_spmf_bind_spmf comp_def bind_map_spmf .
 
-  also have \<open>\<dots> \<le> \<P>(x in measure_spmf <| ?fold_with_flag f ?xs' False val. fst x)\<close>
+  also have \<open>\<dots> \<le> \<P>(x in measure_spmf <| ?fold_with_flag f (False, val). fst x)\<close>
   proof -
+    let ?invariant = \<open>\<lambda> (flag, y) (flag', y').
+      (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y')\<close>
+
     have \<open>\<turnstile>spmf
-      \<lbrace>(=)\<rbrace>
-      \<langle>(?fold_with_flag f ?xs' False) | (?fold_with_flag f' ?xs' False)\<rangle>
-      \<lbrace>(\<lambda> (flag, y) (flag', y'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
-      unfolding SPMF.pair_spmf_return_spmf1[symmetric] pair_spmf_alt_def
-      apply (subst bind_commute_spmf)
-      apply simp
-      apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
-      apply simp
-      apply (intro Utils_SPMF_Relational.if_then_else)
-      apply simp
-      apply (intro Utils_SPMF_Relational.seq'[where S = \<open>curry snd\<close>])
-      apply simp
-      apply auto
+      \<lbrace>?invariant\<rbrace>
+      \<langle>?fold_with_flag f | ?fold_with_flag f'\<rangle>
+      \<lbrace>?invariant\<rbrace>\<close>
+      apply (simp add: case_prod_beta')
+      apply (intro Utils_SPMF_Relational.loop)
       sorry
-      (* apply (subst bind_commute_spmf)
-      apply (intro
-        Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
-        Utils_SPMF_Relational.if_then_else
-        Utils_SPMF_Relational.seq'[where S = \<open>curry snd\<close>])
-      by (auto intro: Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>]) *)
 
     with SPMF.fundamental_lemma[
       where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>,
       where ?bad1.0 = fst, where ?bad2.0 = fst]
     show ?thesis
-      sorry
-      (* by (fastforce
+      by (fastforce
         intro: rel_spmf_mono
-        simp add: Utils_SPMF_Relational.relational_hoare_triple_def) *)
+        simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
   qed
 
-  show ?case
+  show ?thesis
     apply (simp add: algebra_simps measure_spmf_bind)
     sorry
 qed
