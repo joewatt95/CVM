@@ -419,8 +419,7 @@ using assms proof -
     then map_spmf (Pair True) (f val)
     else map_spmf (Pair False) (g val) }\<close>
 
-  let ?fold_with_flag = \<open>\<lambda> f.
-    foldM_spmf (?go_with_flag f) xs\<close>
+  let ?fold_with_flag = \<open>\<lambda> f. foldM_spmf (?go_with_flag f) xs\<close>
 
   have
     \<open>map_spmf snd (?fold_with_flag f (flag, val)) = foldM_spmf' f xs val\<close>
@@ -452,6 +451,8 @@ using assms proof -
       apply (simp add: case_prod_beta')
       apply (intro Utils_SPMF_Relational.loop[where offset = 0])
       apply (simp add: in_set_enumerate_eq)
+      apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+      apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
       sorry
 
     with SPMF.fundamental_lemma[

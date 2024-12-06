@@ -1,6 +1,7 @@
 theory Utils_SPMF_FoldM
 
 imports
+  Constructive_Cryptography_CM.Fold_Spmf
   CVM.Utils_PMF_Basic
   CVM.Utils_SPMF_Basic
 
@@ -12,6 +13,22 @@ abbreviation foldM_spmf
 
 abbreviation
   \<open>foldM_spmf_enumerate \<equiv> foldM_enumerate bind_spmf return_spmf\<close>
+
+lemma foldM_spmf_eq_foldl_spmf :
+  \<open>foldM_spmf f xs val = foldl_spmf (flip f) (return_spmf val) xs\<close>
+  apply (induction xs arbitrary: val)
+  by (simp_all add: bind_foldl_spmf_return bind_spmf_cong)
+
+(* Adapted from: 
+https://search.isabelle.in.tum.de/#details/default_Isabelle2024_AFP2024/Constructive_Cryptography_CM.Fold_Spmf.1483.1876
+*)
+lemma map_foldM_spmf_eq_foldM_map_spmf :
+  assumes \<open>\<And> x. h (f x) = x\<close> \<open>\<And> x. f (h x) = x\<close>
+  shows
+    \<open>map_spmf h (foldM_spmf g xs <| f val) =
+      foldM_spmf (\<lambda> x val. map_spmf h (g x <| f val)) xs val\<close> 
+  apply (simp add: foldM_spmf_eq_foldl_spmf)
+  by (metis assms(1,2) foldl_spmf_helper map_spmf_conv_ap spmf.homomorphism)
 
 lemma foldM_spmf_eq_foldM_pmf_case :
   \<open>foldM_spmf f xs =
@@ -60,16 +77,5 @@ lemma integrable_prob_fail_foldM_spmf :
   by (auto
     intro: measure_spmf.integrable_const_bound[where B = 1]
     simp add: prob_fail_def pmf_le_1)
-
-(* Adapted from: 
-https://search.isabelle.in.tum.de/#details/default_Isabelle2024_AFP2024/Constructive_Cryptography_CM.Fold_Spmf.1483.1876
-*)
-lemma map_foldM_spmf_eq_foldM_map_spmf :
-  assumes [simp] : \<open>\<And> x. h (f x) = x\<close> \<open>\<And> x. f (h x) = x\<close>
-  shows
-    \<open>map_spmf h (foldM_spmf g xs <| f val) =
-      foldM_spmf (\<lambda> x val. map_spmf h (g x <| f val)) xs val\<close> 
-  apply (rule sym, induction xs arbitrary: val)
-  by (simp_all add: spmf.map_comp map_spmf_bind_spmf bind_map_spmf comp_def)
 
 end

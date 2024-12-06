@@ -6,6 +6,7 @@ session CVM = "HOL-Probability" +
     "Finite_Fields"
     "Concentration_Inequalities"
     "Probabilistic_While"
+    "Constructive_Cryptography_CM"
 
   directories
     "Utils"
