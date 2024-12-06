@@ -419,10 +419,10 @@ using assms proof -
     then map_spmf (Pair True) (f val)
     else map_spmf (Pair False) (g val) }\<close>
 
-  let ?fold_with_flag = \<open>\<lambda> f. foldM_spmf (?go_with_flag f) xs\<close>
+  let ?fold_with_flag = \<open>\<lambda> f. foldM_spmf (?go_with_flag f)\<close>
 
   have
-    \<open>map_spmf snd (?fold_with_flag f (flag, val)) = foldM_spmf' f xs val\<close>
+    \<open>map_spmf snd (?fold_with_flag f xs (flag, val)) = foldM_spmf' f xs val\<close>
     for f flag val
     apply (induction xs arbitrary: flag val)
     by (auto
@@ -430,8 +430,8 @@ using assms proof -
       simp add: map_spmf_bind_spmf map_spmf_conv_bind_spmf)
 
   then have \<open>?L =
-    \<bar>\<P>(x in measure_spmf <| ?fold_with_flag f (False, val). P (snd x))
-      - \<P>(x in measure_spmf <| ?fold_with_flag f' (False, val). P (snd x))\<bar>\<close>
+    \<bar>\<P>(flag_val in measure_spmf <| ?fold_with_flag f xs (False, val). P (snd flag_val))
+      - \<P>(flag_val in measure_spmf <| ?fold_with_flag f' xs (False, val). P (snd flag_val))\<bar>\<close>
     apply (simp add:
       if_distrib if_distribR map_spmf_bind_spmf comp_def
       measure_map_spmf[
@@ -439,14 +439,16 @@ using assms proof -
         simplified vimage_def, simplified, symmetric])
     unfolding map_spmf_bind_spmf comp_def bind_map_spmf .
 
-  also have \<open>\<dots> \<le> \<P>(x in measure_spmf <| ?fold_with_flag f (False, val). fst x)\<close>
+  also have \<open>\<dots> \<le>
+    \<P>(flag_val in measure_spmf <| ?fold_with_flag f xs (False, val). fst flag_val)\<close>
+    (is \<open>_ \<le> ?L xs val\<close>)
   proof -
     let ?invariant = \<open>\<lambda> (flag, y) (flag', y').
       (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y')\<close>
 
     have \<open>\<turnstile>spmf
       \<lbrace>?invariant\<rbrace>
-      \<langle>?fold_with_flag f | ?fold_with_flag f'\<rangle>
+      \<langle>?fold_with_flag f xs | ?fold_with_flag f' xs\<rangle>
       \<lbrace>?invariant\<rbrace>\<close>
       apply (simp add: case_prod_beta')
       apply (intro Utils_SPMF_Relational.loop[where offset = 0])
@@ -464,9 +466,23 @@ using assms proof -
         simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
   qed
 
-  show ?thesis
-    apply (simp add: algebra_simps measure_spmf_bind)
-    sorry
+  also have \<open>\<dots> \<le> p * length xs\<close> (is \<open>_ \<le> ?R\<close>)
+  proof (induction xs arbitrary: val)
+    case Nil
+    then show ?case
+      apply simp
+      by (metis indicator_simps(2) measure_return_pmf measure_spmf_spmf_of_pmf mem_Collect_eq nle_le prod.sel(1) spmf_of_pmf_return_pmf)
+  next
+    case (Cons x xs)
+    then show ?case
+      unfolding spmf_map_pred_true_eq_prob[symmetric]
+      apply (simp add:
+        algebra_simps map_spmf_bind_spmf comp_def spmf_bind spmf_map vimage_def)
+      thm pmf_bind_spmf_None
+      sorry
+  qed
+
+  finally show ?thesis .
 qed
 
 (* Old, deprecated experiments below. *)
