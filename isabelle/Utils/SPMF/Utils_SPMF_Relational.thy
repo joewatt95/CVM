@@ -286,8 +286,8 @@ proof -
   let ?kleisli_spmf_p = \<open>(>=>) \<lblot>p\<rblot>\<close>
   let ?go_with_flag = \<open>\<lambda> f x.
     if cond x
-    then pair_spmf (return_spmf True) (f x)
-    else pair_spmf (return_spmf False) (g x)\<close>
+    then map_spmf (Pair True) (f x)
+    else map_spmf (Pair False) (g x)\<close>
 
   note [simp] = space_measure_spmf
 
@@ -299,7 +299,9 @@ proof -
       measure_map_spmf[
         of snd, where A = \<open>Collect P\<close>,
         simplified vimage_def, simplified, symmetric])
-    unfolding map_snd_pair_spmf weight_return_spmf scale_spmf_1 ..
+    unfolding
+      map_spmf_bind_spmf comp_def bind_map_spmf spmf.map_comp snd_conv
+      spmf.map_ident ..
 
   also have \<open>\<dots> \<le> \<P>(x in measure_spmf <| p \<bind> ?go_with_flag f. fst x)\<close>
   proof -
@@ -307,7 +309,7 @@ proof -
       \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
       \<langle>?kleisli_spmf_p (?go_with_flag f) | ?kleisli_spmf_p (?go_with_flag f')\<rangle>
       \<lbrace>(\<lambda> (flag, y) (flag', y'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
-      unfolding pair_spmf_alt_def
+      unfolding SPMF.pair_spmf_return_spmf1[symmetric] pair_spmf_alt_def
       apply (subst bind_commute_spmf)
       apply (intro
         Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
@@ -330,7 +332,7 @@ proof -
       \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>
       \<langle>?kleisli_spmf_p (?go_with_flag f) | ?kleisli_spmf_p return_spmf\<rangle>
       \<lbrace>(\<lambda> (flag, _) x'. flag \<longleftrightarrow> cond x')\<rbrace>\<close>
-      unfolding pair_spmf_alt_def
+      unfolding SPMF.pair_spmf_return_spmf1[symmetric] pair_spmf_alt_def
       by (fastforce intro:
         Utils_SPMF_Relational.seq[where S = \<open>(=)\<close>]
         Utils_SPMF_Hoare.if_then_else Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
@@ -391,15 +393,98 @@ thm SPMF.rel_spmf_bindI[
 
 lemma
   fixes h cond g xs val P
-  assumes \<open>\<And> x val. \<P>(val in measure_pmf <| h x val. cond val) \<le> p\<close>
-  defines [simp] :
-    \<open>prob \<equiv> \<lambda> f xs.
-      \<P>(val in measure_spmf <| foldM_spmf (\<lambda> x val. bind_pmf (h x val) (\<lambda> val. if cond val then f val else g val)) xs val. P val)\<close>
-  shows \<open>\<bar>prob f xs - prob f' xs\<bar> \<le> p * length xs\<close>
-proof -
+  assumes
+    \<open>\<And> x val. \<P>(val in measure_spmf <| h x val. cond val) \<le> p\<close> and
+    [simp] :
+      \<open>\<And> val. lossless_spmf <| f val\<close>
+      \<open>\<And> val. lossless_spmf <| f' val\<close>
+      \<open>\<And> val. lossless_spmf <| g val\<close>
+      \<open>\<And> x val. lossless_spmf <| h x val\<close>
+  defines
+    [simp] :
+      \<open>foldM_spmf' \<equiv> \<lambda> f xs val.
+        foldM_spmf (\<lambda> x val. bind_spmf (h x val) (\<lambda> val. if cond val then f val else g val)) xs val\<close> and
+    [simp] : \<open>prob \<equiv> \<lambda> p. \<P>(x in measure_spmf p. P x)\<close>
+  shows
+    \<open>\<bar>prob (foldM_spmf' f xs val) - prob (foldM_spmf' f' xs val)\<bar> \<le> p * length xs\<close>
+    (is \<open>?L xs val \<le> _\<close>)
+using assms proof (induction xs arbitrary: val)
+  case Nil
+  then show ?case by simp
+next
+  note [simp] = space_measure_spmf
 
-  show ?thesis sorry
+  case (Cons x xs)
 
+  (* let ?kleisli_spmf_p = \<open>(>=>) \<lblot>p\<rblot>\<close> *)
+
+  let ?xs' = \<open>x # xs\<close>
+
+  let ?go_with_flag = \<open>\<lambda> f x (flag, val). do {
+    val \<leftarrow> h x val;
+    if cond val
+    then map_spmf (Pair True) (f val)
+    else map_spmf (Pair False) (g val) }\<close>
+
+  let ?fold_with_flag = \<open>\<lambda> f xs flag val.
+    foldM_spmf (?go_with_flag f) xs (flag, val)\<close>
+
+  have
+    \<open>map_spmf snd (?fold_with_flag f xs flag val) = foldM_spmf' f xs val\<close>
+    for f xs flag val
+    apply (induction xs arbitrary: flag val)
+    by (auto
+      intro: bind_spmf_cong
+      simp add: map_spmf_bind_spmf map_spmf_conv_bind_spmf)
+
+  then have \<open>?L ?xs' val =
+    \<bar>\<P>(x in measure_spmf <| ?fold_with_flag f ?xs' False val. P (snd x))
+      - \<P>(x in measure_spmf <| ?fold_with_flag f' ?xs' False val. P (snd x))\<bar>\<close>
+    apply (simp add:
+      if_distrib if_distribR map_spmf_bind_spmf comp_def
+      measure_map_spmf[
+        of snd, where A = \<open>Collect P\<close>,
+        simplified vimage_def, simplified, symmetric])
+    unfolding map_spmf_bind_spmf comp_def bind_map_spmf
+    by presburger
+
+  also have \<open>\<dots> \<le> \<P>(x in measure_spmf <| ?fold_with_flag f ?xs' False val. fst x)\<close>
+  proof -
+    have \<open>\<turnstile>spmf
+      \<lbrace>(=)\<rbrace>
+      \<langle>(?fold_with_flag f ?xs' False) | (?fold_with_flag f' ?xs' False)\<rangle>
+      \<lbrace>(\<lambda> (flag, y) (flag', y'). (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> y = y'))\<rbrace>\<close>
+      unfolding SPMF.pair_spmf_return_spmf1[symmetric] pair_spmf_alt_def
+      apply (subst bind_commute_spmf)
+      apply simp
+      apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+      apply simp
+      apply (intro Utils_SPMF_Relational.if_then_else)
+      apply simp
+      apply (intro Utils_SPMF_Relational.seq'[where S = \<open>curry snd\<close>])
+      apply simp
+      apply auto
+      sorry
+      (* apply (subst bind_commute_spmf)
+      apply (intro
+        Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
+        Utils_SPMF_Relational.if_then_else
+        Utils_SPMF_Relational.seq'[where S = \<open>curry snd\<close>])
+      by (auto intro: Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>]) *)
+
+    with SPMF.fundamental_lemma[
+      where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>,
+      where ?bad1.0 = fst, where ?bad2.0 = fst]
+    show ?thesis
+      sorry
+      (* by (fastforce
+        intro: rel_spmf_mono
+        simp add: Utils_SPMF_Relational.relational_hoare_triple_def) *)
+  qed
+
+  show ?case
+    apply (simp add: algebra_simps measure_spmf_bind)
+    sorry
 qed
 
 (* Old, deprecated experiments below. *)

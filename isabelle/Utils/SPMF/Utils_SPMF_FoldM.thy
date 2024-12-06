@@ -61,4 +61,15 @@ lemma integrable_prob_fail_foldM_spmf :
     intro: measure_spmf.integrable_const_bound[where B = 1]
     simp add: prob_fail_def pmf_le_1)
 
+(* Adapted from: 
+https://search.isabelle.in.tum.de/#details/default_Isabelle2024_AFP2024/Constructive_Cryptography_CM.Fold_Spmf.1483.1876
+*)
+lemma map_foldM_spmf_eq_foldM_map_spmf :
+  assumes [simp] : \<open>\<And> x. h (f x) = x\<close> \<open>\<And> x. f (h x) = x\<close>
+  shows
+    \<open>map_spmf h (foldM_spmf g xs <| f val) =
+      foldM_spmf (\<lambda> x val. map_spmf h (g x <| f val)) xs val\<close> 
+  apply (rule sym, induction xs arbitrary: val)
+  by (simp_all add: spmf.map_comp map_spmf_bind_spmf bind_map_spmf comp_def)
+
 end
