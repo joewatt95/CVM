@@ -264,7 +264,8 @@ proof -
       simp add: fail_spmf_def[symmetric])
 
   then show ?thesis_1
-    by (simp, metis (mono_tags, lifting) Utils_SPMF_Hoare.postcond_weaken)
+    apply simp
+    by (metis (mono_tags) Utils_SPMF_Hoare.postcond_weaken)
 qed
 
 lemma integral_mono_of_hoare_triple :
