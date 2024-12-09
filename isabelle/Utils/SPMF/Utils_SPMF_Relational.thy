@@ -7,6 +7,19 @@ imports
 
 begin
 
+lemma rel_spmf_True :
+  assumes \<open>weight_spmf p = weight_spmf q\<close>
+  shows \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q\<close>
+  using assms
+  by (auto
+    intro!:
+      rel_spmfI[of
+        \<open>scale_spmf (weight_spmf p) <|
+          pair_spmf (mk_lossless p) (mk_lossless q)\<close>]
+    simp add:
+      mk_lossless_def map_scale_spmf weight_mk_lossless scale_scale_spmf
+      weight_scale_spmf weight_spmf_eq_0 field_simps)
+
 (*
 Roughly,`ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
 (viewed as probabilistic programs), operating over the same source of
@@ -82,6 +95,16 @@ lemma postcond_weaken :
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S'\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def)
+
+lemma postcond_true :
+  assumes \<open>\<And> x x'. R x x' \<Longrightarrow> weight_spmf (f x) = weight_spmf (f' x')\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>\<close>
+  by (simp add: rel_spmf_True assms relational_hoare_triple_def)
+
+lemma postcond_true' [simp] :
+  assumes \<open>\<And> x. lossless_spmf <| f x\<close> \<open>\<And> x. lossless_spmf <| f' x\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>\<close>
+  by (simp add: postcond_true assms lossless_weight_spmfD)
 
 lemma refl_eq [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrace>(=)\<rbrace>\<close>
@@ -483,6 +506,94 @@ using assms proof -
   qed
 
   finally show ?thesis .
+qed
+
+lemma
+  assumes \<open>\<And> x. \<turnstile>spmf
+    \<lbrace>(=)\<rbrace>
+    \<langle>f x | f' x\<rangle>
+    \<lbrace>(\<lambda> val val'. (P val \<longleftrightarrow> P val') \<and> (\<not> P val \<longrightarrow> val = val'))\<rbrace>\<close>
+  defines
+    [simp] :
+      \<open>f_with_flag \<equiv> \<lambda> f x (flag, val). (
+        f x val |> map_spmf (\<lambda> val'. (flag \<or> P val', val')))\<close> and
+    [simp] :
+      \<open>invariant \<equiv> \<lambda> (flag, val) (flag', val').
+        (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> val = val')\<close>
+  shows \<open>\<turnstile>spmf
+    \<lbrace>invariant\<rbrace>
+    \<langle>foldM_spmf (f_with_flag f) xs | foldM_spmf (f_with_flag f') xs\<rangle>
+    \<lbrace>invariant\<rbrace>\<close>
+    (is \<open>?thesis_0 (foldM_spmf (_ f) _) (foldM_spmf (_ f') _)\<close>)
+proof -
+  from assms(1)
+  have \<open>?thesis_0 (f_with_flag f x) (f_with_flag f' x)\<close> for x
+    apply (simp add: case_prod_beta' map_spmf_conv_bind_spmf if_distrib)
+    apply (intro seq'[where S = \<open>\<lambda> val val'. True\<close>])
+
+    (* Add lossless assms to deal with this *)
+    subgoal sorry
+
+    apply auto
+    sorry
+
+  show ?thesis sorry
+qed
+
+thm SPMF.fundamental_lemma[
+  where p = \<open>foldM_spmf (\<lambda> x (flag, val). map_spmf (\<lambda> val'. (flag \<or> P val', val')) (f x val)) xs (flag, val)\<close>,
+  where q = \<open>foldM_spmf (\<lambda> x (flag, val). map_spmf (\<lambda> val'. (flag \<or> P val', val')) (f' x val)) xs (flag', val)\<close>,
+  where ?bad1.0 = fst, where ?bad2.0 = fst,
+  where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>]
+
+lemma
+  assumes
+    \<open>\<not> flag \<Longrightarrow> val = val'\<close>
+    \<open>\<And> x val. rel_spmf (\<lambda> a b. (P a \<longleftrightarrow> P b) \<and> (\<not> P a \<longrightarrow> a = b)) (f x val) (f' x val)\<close>
+  shows
+    \<open>\<bar>Sigma_Algebra.measure (measure_spmf (foldM (\<bind>) return_spmf (\<lambda>x (flag, val). map_spmf (\<lambda>val'. (flag \<or> P val', val')) (f x val)) xs (flag, val))) {x. P (snd x)} -
+      Sigma_Algebra.measure (measure_spmf (foldM (\<bind>) return_spmf (\<lambda>x (flag, val). map_spmf (\<lambda>val'. (flag \<or> P val', val')) (f' x val)) xs (flag, val'))) {y. P (snd y)}\<bar>
+    \<le> Sigma_Algebra.measure (measure_spmf (foldM (\<bind>) return_spmf (\<lambda>x (flag, val). map_spmf (\<lambda>val'. (flag \<or> P val', val')) (f x val)) xs (flag, val))) {x. fst x}\<close>
+  apply (intro SPMF.fundamental_lemma[of fst fst])
+  using assms(1)
+proof (induction xs arbitrary: flag val val')
+  case Nil
+  then show ?case
+    by auto
+next
+  case (Cons x xs)
+  show ?case
+    apply (cases flag)
+
+    subgoal
+      apply simp
+      apply (intro rel_spmf_bindI[where R = \<open>\<lambda> x y. fst x \<and> fst y\<close>])
+      apply (simp add: spmf_rel_map)
+      apply (intro rel_spmfI[where pq = \<open>pair_spmf (f x val) (f x val')\<close>])
+      apply simp
+
+      (* Add lossless assms for these *)
+      find_theorems "map_spmf _ (pair_spmf _ _ )"
+      subgoal sorry
+      subgoal sorry
+
+      sorry
+
+    subgoal
+      using Cons(2)
+      apply simp
+      unfolding map_spmf_conv_bind_spmf bind_spmf_assoc
+      apply (intro rel_spmf_bindI[OF assms(2)])
+      subgoal for x y
+        apply (intro rel_spmf_bindI[
+          where R = \<open>\<lambda> xx yy. xx = (P x, x) \<and> yy = (P y, y)\<close>])
+        apply simp
+        apply (elim conjE)
+        apply (simp add: case_prod_beta')
+        apply (intro Cons(1)[simplified case_prod_beta' map_spmf_conv_bind_spmf])
+        by auto
+      done
+    done
 qed
 
 (* Old, deprecated experiments below. *)
