@@ -9,6 +9,8 @@ imports
 
 begin
 
+hide_const (open) Misc_CryptHOL.coin_pmf
+
 type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
 context with_threshold_pos
