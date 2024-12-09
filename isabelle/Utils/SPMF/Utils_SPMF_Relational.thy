@@ -1,24 +1,25 @@
 theory Utils_SPMF_Relational
 
 imports
+  ABY3_Protocols.Spmf_Common
   CVM.Utils_SPMF_Hoare
   CVM.Utils_PMF_Relational
   CVM.Utils_SPMF_FoldM
 
 begin
 
-lemma rel_spmf_True :
-  assumes \<open>weight_spmf p = weight_spmf q\<close>
-  shows \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q\<close>
-  using assms
-  by (auto
-    intro!:
+lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
+  \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q \<longleftrightarrow> weight_spmf p = weight_spmf q\<close>
+  using mk_lossless_back_eq[of p] mk_lossless_back_eq[of q]
+  by (fastforce
+    intro:
       rel_spmfI[of
         \<open>scale_spmf (weight_spmf p) <|
           pair_spmf (mk_lossless p) (mk_lossless q)\<close>]
+    dest: rel_spmf_weightD
     simp add:
-      mk_lossless_def map_scale_spmf weight_mk_lossless scale_scale_spmf
-      weight_scale_spmf weight_spmf_eq_0 field_simps)
+      map_scale_spmf weight_mk_lossless scale_scale_spmf
+      weight_scale_spmf weight_spmf_eq_0)
 
 (*
 Roughly,`ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
@@ -99,7 +100,7 @@ lemma postcond_weaken :
 lemma postcond_true :
   assumes \<open>\<And> x x'. R x x' \<Longrightarrow> weight_spmf (f x) = weight_spmf (f' x')\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>\<close>
-  by (simp add: rel_spmf_True assms relational_hoare_triple_def)
+  by (simp add: assms relational_hoare_triple_def)
 
 lemma postcond_true' [simp] :
   assumes \<open>\<And> x. lossless_spmf <| f x\<close> \<open>\<And> x. lossless_spmf <| f' x\<close>
@@ -569,14 +570,6 @@ next
       apply simp
       apply (intro rel_spmf_bindI[where R = \<open>\<lambda> x y. fst x \<and> fst y\<close>])
       apply (simp add: spmf_rel_map)
-      apply (intro rel_spmfI[where pq = \<open>pair_spmf (f x val) (f x val')\<close>])
-      apply simp
-
-      (* Add lossless assms for these *)
-      find_theorems "map_spmf _ (pair_spmf _ _ )"
-      subgoal sorry
-      subgoal sorry
-
       sorry
 
     subgoal
