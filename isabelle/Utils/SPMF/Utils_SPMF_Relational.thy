@@ -17,9 +17,7 @@ lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
         \<open>scale_spmf (weight_spmf p) <|
           pair_spmf (mk_lossless p) (mk_lossless q)\<close>]
     dest: rel_spmf_weightD
-    simp add:
-      map_scale_spmf weight_mk_lossless scale_scale_spmf weight_scale_spmf
-      weight_spmf_eq_0)
+    simp add: map_scale_spmf weight_mk_lossless)
 
 (*
 Roughly,`ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
