@@ -54,7 +54,7 @@ proof -
       chi \<rightarrow> {True}\<close>
     if \<open>finite chi\<close> for chi :: \<open>'a set\<close>
     using that
-    apply (intro set_eqI)
+    apply (intro Set.set_eqI)
     apply (simp add: Pi_iff)
     by (metis card_mono card_seteq finite_filter member_filter subsetI)
 
