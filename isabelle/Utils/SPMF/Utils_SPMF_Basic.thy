@@ -39,6 +39,14 @@ proof -
     by (metis UNIV_I finite_measure.finite_measure_subadditive measure_measure_spmf_conv_measure_pmf measure_pmf.prob_space_axioms pmf.rep_eq prob_space_def sets_measure_pmf singleton_conv)
 qed
 
+lemma measure_spmf_eq_measure_pmf_succeeds_and_satisfies :
+  \<open>\<P>(x in measure_spmf p. P x) =
+    \<P>(x in measure_pmf p. succeeds_and_satisfies P x)\<close>
+  by (auto
+    intro: arg_cong[where f = \<open>measure_pmf.prob p\<close>]
+    split: option.splits
+    simp add: space_measure_spmf measure_measure_spmf_conv_measure_pmf)
+
 abbreviation (input) kleisli_compose_left ::
   \<open>('a \<Rightarrow> 'b spmf) \<Rightarrow> ('b \<Rightarrow> 'c spmf) \<Rightarrow> 'a \<Rightarrow> 'c spmf\<close>
   (infixl \<open>>=>\<close> 50) where
