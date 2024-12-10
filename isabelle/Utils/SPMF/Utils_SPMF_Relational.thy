@@ -576,7 +576,7 @@ proof -
       simp add: if_distrib if_distribR)
 qed
 
-lemma
+(* lemma
   fixes xs bad_flag
   assumes \<open>\<not> bad_flag \<Longrightarrow> val = val'\<close>
   defines
@@ -590,7 +590,38 @@ lemma
   unfolding case_prod_beta 
   apply (simp add: relational_hoare_triple_def)
   apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
-  by (smt (verit) rel_spmf_mono)
+  by (smt (verit) rel_spmf_mono) *)
+
+lemma
+  assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close>
+  shows
+    \<open>\<P>(flag_val in measure_spmf <| foldM_spmf_with_bad_flag f xs (False, val).
+      fst flag_val)
+    \<le> real (length xs) * p\<close>
+    (is \<open>?L xs \<le> ?R xs\<close>)
+proof (induction xs)
+  case Nil
+  then show ?case by (simp add: measure_return measure_spmf_return_spmf)
+next
+  case (Cons x xs)
+  let ?xs' = \<open>x # xs\<close>
+
+  have \<open>?L (x # xs)=
+    spmf (map_spmf fst <| foldM_spmf_with_bad_flag f ?xs' (False, val)) True\<close>
+    by (simp add: spmf_map_pred_true_eq_prob)
+
+  also have \<open>\<dots> \<le> length ?xs' * spmf (map_spmf bad_event <| f x val) True\<close>
+    using assms Cons.IH 
+    apply (simp add:
+      map_spmf_bind_spmf comp_def spmf_bind spmf_map vimage_def algebra_simps
+      f_with_bad_flag_def if_distrib if_distribR)
+    thm pmf_bind_spmf_None
+    sorry
+
+  also from assms have \<open>\<dots> \<le> ?R ?xs'\<close> by (simp add: spmf_map_pred_true_eq_prob)
+
+  finally show ?case .
+qed
 
 lemma
   fixes xs val
@@ -627,13 +658,34 @@ proof -
     apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
     by (smt (verit) rel_spmf_mono)
 
-  (* also have \<open>\<dots> = prob_fail (
+  (* also have \<open>\<dots> \<le> prob_fail (
     let go = \<lambda> x val. do {
       val \<leftarrow> f x val;
       if bad_event val then fail_spmf else return_spmf val }
     in foldM_spmf go xs val)\<close>
-    (is \<open>_ = ?R_0 val\<close>)
-  proof (induction xs)
+    (is \<open>_ \<le> prob_fail (let go = ?go in ?foldM_spmf go)\<close>)
+
+    thm rel_pmf_measureD[
+      where p = \<open>foldM_spmf_with_bad_flag f xs (False, val)\<close>,
+      where q = \<open>?foldM_spmf ?go\<close>,
+      where R = \<open>\<lambda> flag_val val'.
+        fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
+      where A = \<open>Collect <| fails_or_satisfies fst\<close>,
+      simplified Let_def, simplified]
+
+    thm rel_pmf_measureD[
+      where p = \<open>?go x val\<close>,
+      where q = \<open>f_with_bad_flag f x (bad_flag, val)\<close>,
+      where R = \<open>\<lambda> val' flag_val.
+        val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
+      where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
+      simplified Let_def, simplified]
+    
+    thm prob_fails_or_satisfies_le_prob_fail_plus_prob[simplified]
+
+    sorry *)
+
+  (* proof (induction xs)
     case Nil
     then show ?case
       by (simp add: prob_fail_def measure_return measure_spmf_return_spmf)
@@ -649,8 +701,11 @@ proof -
         sorry
     qed *)
 
-  also have \<open>\<dots> \<le> ?R\<close>
-  proof (induction xs)
+  also from assms(1) have \<open>\<dots> \<le> ?R\<close>
+    apply (simp add: f_with_bad_flag_def if_distrib if_distribR)
+    thm pmf_bind_spmf_None
+    sorry
+  (* proof (induction xs)
     case Nil
     then show ?case by (simp add: measure_return measure_spmf_return_spmf)
   next
@@ -661,7 +716,7 @@ proof -
           f_with_bad_flag_def if_distrib if_distribR
           measure_spmf_bind comp_def algebra_simps)
       sorry
-  qed
+  qed *)
 
   finally show ?thesis .
 qed
