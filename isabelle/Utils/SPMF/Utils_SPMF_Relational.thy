@@ -616,6 +616,9 @@ next
       map_spmf_bind_spmf comp_def spmf_bind spmf_map vimage_def algebra_simps
       f_with_bad_flag_def if_distrib if_distribR)
     thm pmf_bind_spmf_None
+    find_theorems "nn_integral" "map_spmf"
+    thm nn_integral_map_spmf
+    (* TODO: Split up integral into the cases when `bad_event` is True and False *)
     sorry
 
   also from assms have \<open>\<dots> \<le> ?R ?xs'\<close> by (simp add: spmf_map_pred_true_eq_prob)
