@@ -95,15 +95,16 @@ lemma postcond_weaken :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
   by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def)
 
-lemma postcond_true :
-  assumes \<open>\<And> x x'. R x x' \<Longrightarrow> weight_spmf (f x) = weight_spmf (f' x')\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>\<close>
-  by (simp add: assms relational_hoare_triple_def)
-
-lemma postcond_true' [simp] :
-  assumes \<open>\<And> x. lossless_spmf <| f x\<close> \<open>\<And> x. lossless_spmf <| f' x\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>\<close>
-  by (simp add: postcond_true assms lossless_weight_spmfD)
+lemma postcond_true [simp] :
+  fixes R f f'
+  defines [simp] :
+    \<open>relational_hoare_triple_true \<equiv> \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace>\<close>
+  shows
+    \<open>relational_hoare_triple_true \<longleftrightarrow> (
+      \<forall> x x'. R x x' \<longrightarrow> weight_spmf (f x) = weight_spmf (f' x'))\<close>
+    \<open>\<lbrakk>\<And> x. lossless_spmf <| f x; \<And> x. lossless_spmf <| f' x\<rbrakk> \<Longrightarrow>
+      relational_hoare_triple_true\<close>
+  by (simp_all add: relational_hoare_triple_def lossless_weight_spmfD)
 
 lemma refl_eq [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrace>(=)\<rbrace>\<close>
@@ -507,37 +508,167 @@ using assms proof -
   finally show ?thesis .
 qed
 
-lemma
-  assumes \<open>\<And> x. \<turnstile>spmf
-    \<lbrace>(=)\<rbrace>
-    \<langle>f x | f' x\<rangle>
-    \<lbrace>(\<lambda> val val'. (P val \<longleftrightarrow> P val') \<and> (\<not> P val \<longrightarrow> val = val'))\<rbrace>\<close>
+context
+  fixes bad_event :: \<open>'a \<Rightarrow> bool\<close>
+begin
+
+definition
+  \<open>eq_up_to_bad \<equiv> \<lambda> val val'.
+    (bad_event val \<longleftrightarrow> bad_event val') \<and> (\<not> bad_event val \<longrightarrow> val = val')\<close>
+
+context
+  fixes f f' :: \<open>'b \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close>
+  notes [simp] = case_prod_beta' space_measure_spmf
+  assumes
+    same_weight_spmf : \<open>\<And> x val val'.
+      weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
+    preserves_eq_up_to_bad : \<open>\<And> x.
+      \<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>eq_up_to_bad\<rbrace>\<close>
+begin
+
+definition
+  \<open>f_with_bad_flag \<equiv> \<lambda> f x (bad_flag, val). (
+    f x val |> map_spmf (
+      if bad_flag
+      then Pair True
+      else (\<lambda> val'. (bad_event val', val'))))\<close>
+
+abbreviation \<open>foldM_spmf_with_bad_flag \<equiv> foldM_spmf <<< f_with_bad_flag\<close>
+
+lemma foldM_spmf_eq_up_to_bad_invariant :
   defines
-    [simp] :
-      \<open>f_with_flag \<equiv> \<lambda> f x (flag, val). (
-        f x val |> map_spmf (\<lambda> val'. (flag \<or> P val', val')))\<close> and
-    [simp] :
-      \<open>invariant \<equiv> \<lambda> (flag, val) (flag', val').
-        (flag \<longleftrightarrow> flag') \<and> (\<not> flag \<longrightarrow> val = val')\<close>
+    \<open>eq_up_to_bad_with_flag \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
+      (bad_flag = bad_flag') \<and> (\<not> bad_flag \<longrightarrow> val = val')\<close>
   shows \<open>\<turnstile>spmf
-    \<lbrace>invariant\<rbrace>
-    \<langle>foldM_spmf (f_with_flag f) xs | foldM_spmf (f_with_flag f') xs\<rangle>
-    \<lbrace>invariant\<rbrace>\<close>
-    (is \<open>?thesis_0 (foldM_spmf (_ f) _) (foldM_spmf (_ f') _)\<close>)
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>
+    \<langle>foldM_spmf_with_bad_flag f xs | foldM_spmf_with_bad_flag f' xs\<rangle>
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close>
 proof -
-  from assms(1)
-  have \<open>?thesis_0 (f_with_flag f x) (f_with_flag f' x)\<close> for x
-    apply (simp add: case_prod_beta' map_spmf_conv_bind_spmf if_distrib)
-    apply (intro seq'[where S = \<open>\<lambda> val val'. True\<close>])
+  let ?precond = \<open>\<lambda> f flag_val flag'_val'.
+    f (fst flag_val) \<and> eq_up_to_bad_with_flag flag_val flag'_val'\<close>
 
-    (* Add lossless assms to deal with this *)
-    subgoal sorry
+  let ?mk_branch = \<open>\<lambda> branch f x. snd >>> f x >>> map_spmf branch\<close> 
+  let ?if_branch = \<open>?mk_branch <| Pair True\<close>
+  let ?else_branch = \<open>?mk_branch <| \<lambda> val'. (bad_event val', val')\<close>
 
-    apply auto
-    sorry
+  note [simp] = assms f_with_bad_flag_def
 
-  show ?thesis sorry
+  from same_weight_spmf have \<open>\<turnstile>spmf
+    \<lbrace>?precond id\<rbrace>
+    \<langle>?if_branch f x | ?if_branch f' x\<rangle>
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
+    by (auto
+      intro: seq[where S = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>]
+      simp add: map_spmf_conv_bind_spmf)
+
+  moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
+    \<lbrace>?precond Not\<rbrace>
+    \<langle>?else_branch f x | ?else_branch f' x\<rangle>
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
+    apply (simp add: map_spmf_conv_bind_spmf)
+    apply (intro seq[where S = eq_up_to_bad])
+    by (auto simp only:
+      eq_up_to_bad_def skip' prod.sel relational_hoare_triple_def)
+
+  ultimately show ?thesis
+    by (fastforce
+      intro: loop_unindexed if_then_else
+      simp add: if_distrib if_distribR)
 qed
+
+lemma
+  fixes xs bad_flag
+  assumes \<open>\<not> bad_flag \<Longrightarrow> val = val'\<close>
+  defines
+    \<open>prob \<equiv> \<lambda> P f val.
+      \<P>(flag_val in measure_spmf <| foldM_spmf f xs (bad_flag, val). P flag_val)\<close>
+  shows
+    \<open>\<bar>prob (P <<< snd) (f_with_bad_flag f) val
+      - prob (P <<< snd) (f_with_bad_flag f') val'\<bar>
+    \<le> prob fst (f_with_bad_flag f) val\<close>
+  using assms foldM_spmf_eq_up_to_bad_invariant
+  unfolding case_prod_beta 
+  apply (simp add: relational_hoare_triple_def)
+  apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
+  by (smt (verit) rel_spmf_mono)
+
+lemma
+  fixes xs val
+  assumes
+    \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close>
+  defines [simp] :
+    \<open>prob \<equiv> \<lambda> P f.
+      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
+  shows
+    \<open>\<bar>prob P f - prob P f'\<bar> \<le> real (length xs) * p\<close>
+    (is \<open>?L \<le> ?R\<close>)
+proof -
+  let ?prob_with_flag = \<open>\<lambda> P f.
+    \<P>(flag_val in measure_spmf <|
+        foldM_spmf_with_bad_flag f xs (False, val).
+      P flag_val)\<close>
+
+  have
+    \<open>map_spmf snd (foldM_spmf_with_bad_flag f xs (flag, val)) =
+      foldM_spmf f xs val\<close> for f flag val
+    apply (induction xs arbitrary: flag val)
+    by (auto
+      intro!: bind_spmf_cong
+      simp add: f_with_bad_flag_def map_spmf_bind_spmf map_spmf_conv_bind_spmf)
+
+  then have \<open>?L =
+    \<bar>?prob_with_flag (P <<< snd) f - ?prob_with_flag (P <<< snd) f'\<bar>\<close>
+    apply simp
+    by (metis (no_types, lifting) measure_map_spmf vimage_Collect)
+
+  also from assms(1) foldM_spmf_eq_up_to_bad_invariant
+  have \<open>\<dots> \<le> ?prob_with_flag fst f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
+    apply (simp add: eq_up_to_bad_def relational_hoare_triple_def)
+    apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
+    by (smt (verit) rel_spmf_mono)
+
+  (* also have \<open>\<dots> = prob_fail (
+    let go = \<lambda> x val. do {
+      val \<leftarrow> f x val;
+      if bad_event val then fail_spmf else return_spmf val }
+    in foldM_spmf go xs val)\<close>
+    (is \<open>_ = ?R_0 val\<close>)
+  proof (induction xs)
+    case Nil
+    then show ?case
+      by (simp add: prob_fail_def measure_return measure_spmf_return_spmf)
+    next
+      case (Cons x xs)
+      then show ?case
+        apply (simp add:
+          prob_fail_def pmf_bind_spmf_None fail_spmf_def
+          Let_def if_distrib if_distribR)
+        unfolding
+          fail_spmf_def return_bind_spmf return_None_bind_spmf
+          pmf_return_pmf_1
+        sorry
+    qed *)
+
+  also have \<open>\<dots> \<le> ?R\<close>
+  proof (induction xs)
+    case Nil
+    then show ?case by (simp add: measure_return measure_spmf_return_spmf)
+  next
+    case (Cons x xs)
+    then show ?case
+      apply (simp
+        add:
+          f_with_bad_flag_def if_distrib if_distribR
+          measure_spmf_bind comp_def algebra_simps)
+      sorry
+  qed
+
+  finally show ?thesis .
+qed
+
+end
+
+end
 
 thm SPMF.fundamental_lemma[
   where p = \<open>foldM_spmf (\<lambda> x (flag, val). map_spmf (\<lambda> val'. (flag \<or> P val', val')) (f x val)) xs (flag, val)\<close>,
