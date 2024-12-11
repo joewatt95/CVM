@@ -576,30 +576,69 @@ proof -
       simp add: if_distrib if_distribR)
 qed
 
-(* lemma
-  fixes xs bad_flag
-  assumes \<open>\<not> bad_flag \<Longrightarrow> val = val'\<close>
-  defines
-    \<open>prob \<equiv> \<lambda> P f val.
-      \<P>(flag_val in measure_spmf <| foldM_spmf f xs (bad_flag, val). P flag_val)\<close>
-  shows
-    \<open>\<bar>prob (P <<< snd) (f_with_bad_flag f) val
-      - prob (P <<< snd) (f_with_bad_flag f') val'\<bar>
-    \<le> prob fst (f_with_bad_flag f) val\<close>
-  using assms foldM_spmf_eq_up_to_bad_invariant
-  unfolding case_prod_beta 
-  apply (simp add: relational_hoare_triple_def)
-  apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
-  by (smt (verit) rel_spmf_mono) *)
-
 lemma
+  fixes xs val
   assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close>
+  defines
+    \<open>prob \<equiv> \<lambda> P f.
+      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close> and
+
+    \<open>f_fail_on_bad_event \<equiv> \<lambda> x val. do {
+      val \<leftarrow> f x val;
+      bind_spmf
+        (assert_spmf <| \<not> bad_event val)
+        \<lblot>return_spmf val\<rblot> }\<close>
   shows
-    \<open>\<P>(flag_val in measure_spmf <| foldM_spmf_with_bad_flag f xs (False, val).
-      fst flag_val)
-    \<le> real (length xs) * p\<close>
-    (is \<open>?L xs \<le> ?R xs\<close>)
-proof (induction xs)
+    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf f_fail_on_bad_event xs val)\<close>
+    (is \<open>?L \<le> ?R\<close>)
+proof -
+  let ?prob_with_flag = \<open>\<lambda> P f.
+    \<P>(flag_val in measure_spmf <|
+        foldM_spmf_with_bad_flag f xs (False, val).
+      P flag_val)\<close>
+
+  have
+    \<open>map_spmf snd (foldM_spmf_with_bad_flag f xs (flag, val)) =
+      foldM_spmf f xs val\<close> for f flag val
+    apply (induction xs arbitrary: flag val)
+    by (auto
+      intro: bind_spmf_cong
+      simp add: f_with_bad_flag_def map_spmf_bind_spmf map_spmf_conv_bind_spmf)
+
+  then have \<open>?L =
+    \<bar>?prob_with_flag (P <<< snd) f - ?prob_with_flag (P <<< snd) f'\<bar>\<close>
+    apply (simp add: prob_def)
+    by (metis (no_types, lifting) measure_map_spmf vimage_Collect)
+
+  also from assms(1) foldM_spmf_eq_up_to_bad_invariant
+  have \<open>\<dots> \<le> ?prob_with_flag fst f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
+    apply (simp add: eq_up_to_bad_def relational_hoare_triple_def)
+    apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
+    by (smt (verit) rel_spmf_mono)
+
+  also have \<open>\<dots> \<le> ?R\<close>
+    thm rel_pmf_measureD[
+      where p = \<open>foldM_spmf_with_bad_flag f xs (False, val)\<close>,
+      where q = \<open>foldM_spmf f_fail_on_bad_event xs val\<close>,
+      where R = \<open>\<lambda> flag_val val'.
+        fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
+      where A = \<open>Collect <| fails_or_satisfies fst\<close>,
+      simplified Let_def, simplified]
+
+    (* thm rel_pmf_measureD[
+      where p = \<open>f_fail_on_bad_event x val\<close>,
+      where q = \<open>foldM_spmf f_with_bad_flag x (bad_flag, val)\<close>,
+      where R = \<open>\<lambda> val' flag_val.
+        val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
+      where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
+      simplified Let_def, simplified] *)
+
+    sorry
+
+  finally show ?thesis .
+qed
+
+(* proof (induction xs)
   case Nil
   then show ?case by (simp add: measure_return measure_spmf_return_spmf)
 next
@@ -617,164 +656,20 @@ next
       f_with_bad_flag_def if_distrib if_distribR)
     thm pmf_bind_spmf_None
     find_theorems "nn_integral" "map_spmf"
+    thm integral_map_pmf
     thm nn_integral_map_spmf
     (* TODO: Split up integral into the cases when `bad_event` is True and False *)
+    term measure_pmf.expectation
     sorry
 
   also from assms have \<open>\<dots> \<le> ?R ?xs'\<close> by (simp add: spmf_map_pred_true_eq_prob)
 
   finally show ?case .
-qed
-
-lemma
-  fixes xs val
-  assumes
-    \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close>
-  defines [simp] :
-    \<open>prob \<equiv> \<lambda> P f.
-      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
-  shows
-    \<open>\<bar>prob P f - prob P f'\<bar> \<le> real (length xs) * p\<close>
-    (is \<open>?L \<le> ?R\<close>)
-proof -
-  let ?prob_with_flag = \<open>\<lambda> P f.
-    \<P>(flag_val in measure_spmf <|
-        foldM_spmf_with_bad_flag f xs (False, val).
-      P flag_val)\<close>
-
-  have
-    \<open>map_spmf snd (foldM_spmf_with_bad_flag f xs (flag, val)) =
-      foldM_spmf f xs val\<close> for f flag val
-    apply (induction xs arbitrary: flag val)
-    by (auto
-      intro!: bind_spmf_cong
-      simp add: f_with_bad_flag_def map_spmf_bind_spmf map_spmf_conv_bind_spmf)
-
-  then have \<open>?L =
-    \<bar>?prob_with_flag (P <<< snd) f - ?prob_with_flag (P <<< snd) f'\<bar>\<close>
-    apply simp
-    by (metis (no_types, lifting) measure_map_spmf vimage_Collect)
-
-  also from assms(1) foldM_spmf_eq_up_to_bad_invariant
-  have \<open>\<dots> \<le> ?prob_with_flag fst f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
-    apply (simp add: eq_up_to_bad_def relational_hoare_triple_def)
-    apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
-    by (smt (verit) rel_spmf_mono)
-
-  (* also have \<open>\<dots> \<le> prob_fail (
-    let go = \<lambda> x val. do {
-      val \<leftarrow> f x val;
-      if bad_event val then fail_spmf else return_spmf val }
-    in foldM_spmf go xs val)\<close>
-    (is \<open>_ \<le> prob_fail (let go = ?go in ?foldM_spmf go)\<close>)
-
-    thm rel_pmf_measureD[
-      where p = \<open>foldM_spmf_with_bad_flag f xs (False, val)\<close>,
-      where q = \<open>?foldM_spmf ?go\<close>,
-      where R = \<open>\<lambda> flag_val val'.
-        fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
-      where A = \<open>Collect <| fails_or_satisfies fst\<close>,
-      simplified Let_def, simplified]
-
-    thm rel_pmf_measureD[
-      where p = \<open>?go x val\<close>,
-      where q = \<open>f_with_bad_flag f x (bad_flag, val)\<close>,
-      where R = \<open>\<lambda> val' flag_val.
-        val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
-      where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
-      simplified Let_def, simplified]
-    
-    thm prob_fails_or_satisfies_le_prob_fail_plus_prob[simplified]
-
-    sorry *)
-
-  (* proof (induction xs)
-    case Nil
-    then show ?case
-      by (simp add: prob_fail_def measure_return measure_spmf_return_spmf)
-    next
-      case (Cons x xs)
-      then show ?case
-        apply (simp add:
-          prob_fail_def pmf_bind_spmf_None fail_spmf_def
-          Let_def if_distrib if_distribR)
-        unfolding
-          fail_spmf_def return_bind_spmf return_None_bind_spmf
-          pmf_return_pmf_1
-        sorry
-    qed *)
-
-  also from assms(1) have \<open>\<dots> \<le> ?R\<close>
-    apply (simp add: f_with_bad_flag_def if_distrib if_distribR)
-    thm pmf_bind_spmf_None
-    sorry
-  (* proof (induction xs)
-    case Nil
-    then show ?case by (simp add: measure_return measure_spmf_return_spmf)
-  next
-    case (Cons x xs)
-    then show ?case
-      apply (simp
-        add:
-          f_with_bad_flag_def if_distrib if_distribR
-          measure_spmf_bind comp_def algebra_simps)
-      sorry
-  qed *)
-
-  finally show ?thesis .
-qed
+qed *)
 
 end
 
 end
-
-thm SPMF.fundamental_lemma[
-  where p = \<open>foldM_spmf (\<lambda> x (flag, val). map_spmf (\<lambda> val'. (flag \<or> P val', val')) (f x val)) xs (flag, val)\<close>,
-  where q = \<open>foldM_spmf (\<lambda> x (flag, val). map_spmf (\<lambda> val'. (flag \<or> P val', val')) (f' x val)) xs (flag', val)\<close>,
-  where ?bad1.0 = fst, where ?bad2.0 = fst,
-  where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>]
-
-lemma
-  assumes
-    \<open>\<not> flag \<Longrightarrow> val = val'\<close>
-    \<open>\<And> x val. rel_spmf (\<lambda> a b. (P a \<longleftrightarrow> P b) \<and> (\<not> P a \<longrightarrow> a = b)) (f x val) (f' x val)\<close>
-  shows
-    \<open>\<bar>Sigma_Algebra.measure (measure_spmf (foldM (\<bind>) return_spmf (\<lambda>x (flag, val). map_spmf (\<lambda>val'. (flag \<or> P val', val')) (f x val)) xs (flag, val))) {x. P (snd x)} -
-      Sigma_Algebra.measure (measure_spmf (foldM (\<bind>) return_spmf (\<lambda>x (flag, val). map_spmf (\<lambda>val'. (flag \<or> P val', val')) (f' x val)) xs (flag, val'))) {y. P (snd y)}\<bar>
-    \<le> Sigma_Algebra.measure (measure_spmf (foldM (\<bind>) return_spmf (\<lambda>x (flag, val). map_spmf (\<lambda>val'. (flag \<or> P val', val')) (f x val)) xs (flag, val))) {x. fst x}\<close>
-  apply (intro SPMF.fundamental_lemma[of fst fst])
-  using assms(1)
-proof (induction xs arbitrary: flag val val')
-  case Nil
-  then show ?case
-    by auto
-next
-  case (Cons x xs)
-  show ?case
-    apply (cases flag)
-
-    subgoal
-      apply simp
-      apply (intro rel_spmf_bindI[where R = \<open>\<lambda> x y. fst x \<and> fst y\<close>])
-      apply (simp add: spmf_rel_map)
-      sorry
-
-    subgoal
-      using Cons(2)
-      apply simp
-      unfolding map_spmf_conv_bind_spmf bind_spmf_assoc
-      apply (intro rel_spmf_bindI[OF assms(2)])
-      subgoal for x y
-        apply (intro rel_spmf_bindI[
-          where R = \<open>\<lambda> xx yy. xx = (P x, x) \<and> yy = (P y, y)\<close>])
-        apply simp
-        apply (elim conjE)
-        apply (simp add: case_prod_beta')
-        apply (intro Cons(1)[simplified case_prod_beta' map_spmf_conv_bind_spmf])
-        by auto
-      done
-    done
-qed
 
 (* Old, deprecated experiments below. *)
 
