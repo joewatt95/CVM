@@ -81,13 +81,15 @@ lemma lossless_estimate_distinct_while [simp] :
   by (simp add: estimate_distinct_while_def run_steps_then_estimate_def)
 
 lemma
-  shows
-    \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
-      - \<P>(state in measure_spmf <| estimate_distinct_while xs. P state)\<bar>
-    \<le> prob_fail (estimate_distinct xs)\<close>
-    (is \<open>?L \<le> ?R\<close>)
+  \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
+    - \<P>(state in measure_spmf <| estimate_distinct_while xs. P state)\<bar>
+  \<le> prob_fail (estimate_distinct xs)\<close>
+  (is \<open>?L \<le> ?R\<close>)
 proof -
   note [simp] = space_measure_spmf
+
+  (* have \<open>?L = \<bar>\<bar>\<close>
+    sorry *)
 
   have \<open>?L \<le> prob_fail (foldM_spmf (f_fail_on_bad_event cond step_no_fail_spmf) xs initial_state)\<close>
     apply (simp
@@ -110,13 +112,6 @@ proof -
           flip: bind_spmf_of_pmf
           add: spmf_of_pmf_bind loop_spmf.while.simps)
         apply (rule Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
-        apply (auto
-          simp add: relational_hoare_triple_def Set.remove_def map_pmf_comp
-          simp flip: map_spmf_conv_bind_spmf)
-        apply (metis card.infinite card.insert_remove card_Diff1_le not_less_eq order_less_asym threshold_pos verit_comp_simplify1(3))
-        apply (metis Suc_lessD card.infinite card_Diff_singleton_if card_insert_disjoint insert_absorb less_imp_diff_less threshold_pos)
-        apply (metis card.infinite card_Diff1_le card_insert_if not_less_eq order_less_le threshold_pos verit_comp_simplify1(3))
-        apply (metis (no_types, lifting) card.infinite card.insert_remove finite.emptyI finite.insertI finite_Diff2 not_less_eq order_less_asym threshold_pos)
         sorry
       done
 

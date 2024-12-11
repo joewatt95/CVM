@@ -8,6 +8,9 @@ imports
 
 begin
 
+abbreviation ord_spmf_eq (infix \<open>\<sqsubseteq>\<close> 60) where
+  \<open>(\<sqsubseteq>) \<equiv> ord_spmf (=)\<close>
+
 lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
   \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q \<longleftrightarrow> weight_spmf p = weight_spmf q\<close>
   using mk_lossless_back_eq[of p] mk_lossless_back_eq[of q]
@@ -523,6 +526,13 @@ definition
       then Pair True
       else (\<lambda> val'. (bad_event val', val'))))\<close>
 
+definition
+  \<open>f_fail_on_bad_event \<equiv> \<lambda> f x val. bind_spmf
+    (f x val) (\<lambda> val.
+    bind_spmf
+      (assert_spmf <| \<not> bad_event val)
+      \<lblot>return_spmf val\<rblot>)\<close>
+
 abbreviation
   \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> f xs flag val.
     foldM_spmf (f_with_bad_flag <<< f) xs (flag, val)\<close>
@@ -538,34 +548,34 @@ lemma foldM_spmf_eq_map_foldM_spmf_with_bad_flag :
   by (auto simp add:
     f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf comp_def)
 
+(* To show that 2 while loops are equal, we appeal to their domain-theoretic
+denotational semantics as least fixed points of transfinite iteration
+sequences, and show, via transfinite induction, that they are upper bounds
+of each other's sequences.
+
+Can we abstract this proof pattern out and provide a simpler API, perhaps
+extending the existing probabilistic relational Hoare logic? *)
 lemma while_spmf_eq_map_while_spmf_with_bad_flag :
   \<open>loop_spmf.while cond body val =
     map_spmf snd (while_spmf_with_bad_flag cond body flag val)\<close>
- (* To show that 2 while loops are equal, we appeal to their domain-theoretic
-  denotational semantics as least fixed points of transfinite iteration
-  sequences, and show, via transfinite induction, that they are upper bounds
-  of each other's sequences.
+  (is \<open>?L = ?R\<close>)
+proof (rule spmf.leq_antisym)
+  note [intro] = ord_spmf_bind_reflI
+  note [simp] =
+    f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf loop_spmf.while_simps
 
-  Can we abstract this proof pattern out and provide a simpler API, perhaps
-  extending the existing probabilistic relational Hoare logic? *)
-  apply (rule spmf.leq_antisym) 
-
-  subgoal
+  show \<open>?L \<sqsubseteq> ?R\<close>
     apply (induction
       arbitrary: flag val
       rule: loop_spmf.while_fixp_induct[where guard = cond])
-    by (auto
-      intro: ord_spmf_bind_reflI
-      simp add: f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
+    by auto
 
-  subgoal
+  show \<open>?R \<sqsubseteq> ?L\<close>
     apply (induction
       arbitrary: flag val
       rule: loop_spmf.while_fixp_induct[where guard = \<open>cond <<< snd\<close>])
-    by (auto
-      intro: ord_spmf_bind_reflI
-      simp add: f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
-  done
+    by auto
+qed
 
 context
   fixes f f' :: \<open>'b \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close>
@@ -613,13 +623,6 @@ proof -
       simp add: if_distrib if_distribR)
 qed
 
-definition
-  \<open>f_fail_on_bad_event \<equiv> \<lambda> x val. do {
-    val \<leftarrow> f x val;
-    bind_spmf
-      (assert_spmf <| \<not> bad_event val)
-      \<lblot>return_spmf val\<rblot> }\<close>
-
 lemma aux :
   fixes xs val
   (* assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close> *)
@@ -627,7 +630,7 @@ lemma aux :
     \<open>prob \<equiv> \<lambda> P f.
       \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
-    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf f_fail_on_bad_event xs val)\<close>
+    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P f.
@@ -657,7 +660,7 @@ proof -
   also have \<open>\<dots> \<le> ?R\<close>
     thm rel_pmf_measureD[
       where p = \<open>foldM_spmf_with_bad_flag f xs False val\<close>,
-      where q = \<open>foldM_spmf f_fail_on_bad_event xs val\<close>,
+      where q = \<open>foldM_spmf (f_fail_on_bad_event f) xs val\<close>,
       where R = \<open>\<lambda> flag_val val'.
         fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
       where A = \<open>Collect <| fails_or_satisfies fst\<close>,
