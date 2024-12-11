@@ -59,6 +59,17 @@ lemma if_then_else :
     \<lbrakk>S\<rbrakk>\<close>
   using assms by (simp add: relational_hoare_triple_def)
 
+lemma if_then_else' :
+  assumes
+    \<open>\<And> x x'. R x x' \<Longrightarrow> f x \<longleftrightarrow> \<not> f' x'\<close>
+    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. f x \<and> R x x')\<rbrakk> \<langle>g | g'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. \<not> f x \<and> R x x')\<rbrakk> \<langle>h | h'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf
+    \<lbrakk>R\<rbrakk>
+    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then h' x else g' x)\<rangle>
+    \<lbrakk>S\<rbrakk>\<close>
+  using assms by (simp add: relational_hoare_triple_def)
+
 lemma seq :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>

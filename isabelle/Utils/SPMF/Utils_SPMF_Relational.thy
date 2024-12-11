@@ -168,6 +168,17 @@ lemma if_then_else :
     \<lbrace>S\<rbrace>\<close>
   using assms by (simp add: relational_hoare_triple_def)
 
+lemma if_then_else' :
+  assumes
+    \<open>\<And> x x'. R x x' \<Longrightarrow> f x \<longleftrightarrow> \<not> f' x'\<close>
+    \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. f x \<and> R x x')\<rbrace> \<langle>g | g'\<rangle> \<lbrace>S\<rbrace>\<close>
+    \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. \<not> f x \<and> R x x')\<rbrace> \<langle>h | h'\<rangle> \<lbrace>S\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf
+    \<lbrace>R\<rbrace>
+    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then h' x else g' x)\<rangle>
+    \<lbrace>S\<rbrace>\<close>
+  using assms by (simp add: relational_hoare_triple_def)
+
 lemma seq :
   assumes
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
@@ -521,17 +532,14 @@ definition
 
 definition
   \<open>f_with_bad_flag \<equiv> \<lambda> f (bad_flag, val). (
-    f val |> map_spmf (
-      if bad_flag
-      then Pair True
-      else (\<lambda> val'. (bad_event val', val'))))\<close>
+    if bad_flag \<or> bad_event val
+    then map_spmf (Pair True) (f val)
+    else map_spmf (Pair False) (f val))\<close>
 
 definition
-  \<open>f_fail_on_bad_event \<equiv> \<lambda> f x val. bind_spmf
-    (f x val) (\<lambda> val.
-    bind_spmf
-      (assert_spmf <| \<not> bad_event val)
-      \<lblot>return_spmf val\<rblot>)\<close>
+  \<open>f_fail_on_bad_event \<equiv> \<lambda> f val. bind_spmf
+    (assert_spmf <| \<not> bad_event val)
+    \<lblot>f val\<rblot>\<close>
 
 abbreviation
   \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> f xs flag val.
@@ -583,22 +591,26 @@ context
   assumes
     same_weight_spmf : \<open>\<And> x val val'.
       weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
-    preserves_eq_up_to_bad : \<open>\<And> x.
-      \<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f_with_bad_flag (f x) | f_with_bad_flag (f' x)\<rangle> \<lbrace>eq_up_to_bad\<rbrace>\<close>
+    f_eq_f'_up_to_bad : \<open>\<And> x. \<turnstile>spmf
+      \<lbrace>(\<lambda> val val'. val = val' \<and> \<not> bad_event val)\<rbrace>
+      \<langle>f x | f' x\<rangle>
+      \<lbrace>(=)\<rbrace>\<close>
 begin
 
 lemma foldM_spmf_eq_up_to_bad_invariant :
   \<open>\<turnstile>spmf
     \<lbrace>eq_up_to_bad\<rbrace>
-    \<langle>uncurry (foldM_spmf_with_bad_flag f xs) | uncurry (foldM_spmf_with_bad_flag f' xs)\<rangle>
+    \<langle>uncurry (foldM_spmf_with_bad_flag f xs) |
+      uncurry (foldM_spmf_with_bad_flag f' xs)\<rangle>
     \<lbrace>eq_up_to_bad\<rbrace>\<close>
 proof -
   let ?precond = \<open>\<lambda> f flag_val flag'_val'.
-    f (fst flag_val) \<and> eq_up_to_bad flag_val flag'_val'\<close>
+    f (fst flag_val \<or> bad_event (snd flag_val)) \<and>
+    eq_up_to_bad flag_val flag'_val'\<close>
 
-  let ?mk_branch = \<open>\<lambda> branch f x. snd >>> f x >>> map_spmf branch\<close> 
-  let ?if_branch = \<open>?mk_branch <| Pair True\<close>
-  let ?else_branch = \<open>?mk_branch <| \<lambda> val'. (bad_event val', val')\<close>
+  let ?mk_branch = \<open>\<lambda> bool f x. snd >>> f x >>> map_spmf (Pair bool)\<close> 
+  let ?if_branch = \<open>?mk_branch True\<close>
+  let ?else_branch = \<open>?mk_branch False\<close>
 
   note [simp] = eq_up_to_bad_def f_with_bad_flag_def
 
@@ -610,17 +622,16 @@ proof -
       intro: seq[where S = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>]
       simp add: map_spmf_conv_bind_spmf)
 
-  moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
+  moreover from f_eq_f'_up_to_bad have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
     \<langle>?else_branch f x | ?else_branch f' x\<rangle>
     \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
-    apply (simp add: relational_hoare_triple_def)
-    by (smt (verit, ccfv_SIG))
+    by (auto simp add: relational_hoare_triple_def spmf_rel_map)
 
   ultimately show ?thesis
     by (fastforce
-      intro: loop_unindexed if_then_else
-      simp add: if_distrib if_distribR)
+      intro!: loop_unindexed if_then_else
+      simp add: map_spmf_conv_bind_spmf)
 qed
 
 lemma aux :
@@ -630,7 +641,7 @@ lemma aux :
     \<open>prob \<equiv> \<lambda> P f.
       \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
-    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event f) xs val)\<close>
+    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event <<< f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P f.
@@ -660,7 +671,7 @@ proof -
   also have \<open>\<dots> \<le> ?R\<close>
     thm rel_pmf_measureD[
       where p = \<open>foldM_spmf_with_bad_flag f xs False val\<close>,
-      where q = \<open>foldM_spmf (f_fail_on_bad_event f) xs val\<close>,
+      where q = \<open>foldM_spmf (f_fail_on_bad_event <<< f) xs val\<close>,
       where R = \<open>\<lambda> flag_val val'.
         fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
       where A = \<open>Collect <| fails_or_satisfies fst\<close>,

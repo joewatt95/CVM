@@ -88,10 +88,7 @@ lemma
 proof -
   note [simp] = space_measure_spmf
 
-  (* have \<open>?L = \<bar>\<bar>\<close>
-    sorry *)
-
-  have \<open>?L \<le> prob_fail (foldM_spmf (f_fail_on_bad_event cond step_no_fail_spmf) xs initial_state)\<close>
+  have \<open>?L \<le> prob_fail (foldM_spmf (f_fail_on_bad_event cond <<< step_no_fail_spmf) xs initial_state)\<close>
     apply (simp
       add:
         estimate_distinct_no_fail_def estimate_distinct_while_def
@@ -112,6 +109,14 @@ proof -
           flip: bind_spmf_of_pmf
           add: spmf_of_pmf_bind loop_spmf.while.simps)
         apply (rule Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+        apply (metis (mono_tags, lifting) Utils_SPMF_Relational.precond_strengthen Utils_SPMF_Relational.refl_eq(2))
+        apply (simp add: if_distrib)
+        apply (rule Utils_SPMF_Relational.if_then_else')
+
+        subgoal sorry
+
+        apply auto
+
         sorry
       done
 
