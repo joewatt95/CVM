@@ -81,6 +81,52 @@ lemma lossless_estimate_distinct_while [simp] :
   by (simp add: estimate_distinct_while_def run_steps_then_estimate_def)
 
 lemma
+  shows
+    \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
+      - \<P>(state in measure_spmf <| estimate_distinct_while xs. P state)\<bar>
+    \<le> prob_fail (estimate_distinct xs)\<close>
+    (is \<open>?L \<le> ?R\<close>)
+proof -
+  note [simp] = space_measure_spmf
+
+  have \<open>?L \<le> prob_fail (foldM_spmf (f_fail_on_bad_event cond step_no_fail_spmf) xs initial_state)\<close>
+    apply (simp
+      add:
+        estimate_distinct_no_fail_def estimate_distinct_while_def
+        estimate_distinct_def run_steps_then_estimate_def initial_state_def
+        compute_estimate_def measure_map_spmf
+      flip: map_spmf_of_pmf foldM_spmf_of_pmf_eq)
+
+    thm aux[simplified f_with_bad_flag_def]
+
+    apply (intro aux[simplified])
+      subgoal using lossless_spmf_def by fastforce
+      subgoal
+        unfolding
+          cond_def body_def step_no_fail_def step_while_def eq_up_to_bad_def
+          f_with_bad_flag_def map_spmf_conv_bind_spmf case_prod_beta
+          map_pmf_def[symmetric] Let_def
+        apply (simp
+          flip: bind_spmf_of_pmf
+          add: spmf_of_pmf_bind loop_spmf.while.simps)
+        apply (rule Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+        apply (auto
+          simp add: relational_hoare_triple_def Set.remove_def map_pmf_comp
+          simp flip: map_spmf_conv_bind_spmf)
+        apply (metis card.infinite card.insert_remove card_Diff1_le not_less_eq order_less_asym threshold_pos verit_comp_simplify1(3))
+        apply (metis Suc_lessD card.infinite card_Diff_singleton_if card_insert_disjoint insert_absorb less_imp_diff_less threshold_pos)
+        apply (metis card.infinite card_Diff1_le card_insert_if not_less_eq order_less_le threshold_pos verit_comp_simplify1(3))
+        apply (metis (no_types, lifting) card.infinite card.insert_remove finite.emptyI finite.insertI finite_Diff2 not_less_eq order_less_asym threshold_pos)
+        sorry
+      done
+
+  also have \<open>\<dots> \<le> ?R\<close>
+    sorry
+
+  finally show ?thesis .
+qed
+
+(* lemma
   \<open>\<bar>\<P>(x in measure_spmf <| estimate_distinct_while xs. P x)
     - \<P>(x in measure_spmf <| estimate_distinct xs. P x)\<bar>
   \<le> length xs / 2 ^ threshold\<close>
@@ -90,7 +136,7 @@ lemma
     step_def step_while_def initial_state_def
     measure_map_spmf vimage_def space_measure_spmf Let_def)
   unfolding Let_def Set.filter_def Set.remove_def if_distribR
-  sorry
+  sorry *)
 
 (* lemma aux :
   fixes state

@@ -513,8 +513,59 @@ context
 begin
 
 definition
-  \<open>eq_up_to_bad \<equiv> \<lambda> val val'.
-    (bad_event val \<longleftrightarrow> bad_event val') \<and> (\<not> bad_event val \<longrightarrow> val = val')\<close>
+  \<open>eq_up_to_bad \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
+    (bad_flag = bad_flag') \<and> (\<not> bad_flag \<longrightarrow> val = val')\<close>
+
+definition
+  \<open>f_with_bad_flag \<equiv> \<lambda> f (bad_flag, val). (
+    f val |> map_spmf (
+      if bad_flag
+      then Pair True
+      else (\<lambda> val'. (bad_event val', val'))))\<close>
+
+abbreviation
+  \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> f xs flag val.
+    foldM_spmf (f_with_bad_flag <<< f) xs (flag, val)\<close>
+
+abbreviation
+  \<open>while_spmf_with_bad_flag cond body flag val \<equiv>
+    loop_spmf.while (cond <<< snd) (f_with_bad_flag body) (flag, val)\<close>
+
+lemma foldM_spmf_eq_map_foldM_spmf_with_bad_flag :
+  \<open>foldM_spmf f xs val =
+    map_spmf snd (foldM_spmf_with_bad_flag f xs flag val)\<close>
+  apply (induction xs arbitrary: flag val)
+  by (auto simp add:
+    f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf comp_def)
+
+lemma while_spmf_eq_map_while_spmf_with_bad_flag :
+  \<open>loop_spmf.while cond body val =
+    map_spmf snd (while_spmf_with_bad_flag cond body flag val)\<close>
+ (* To show that 2 while loops are equal, we appeal to their domain-theoretic
+  denotational semantics as least fixed points of transfinite iteration
+  sequences, and show, via transfinite induction, that they are upper bounds
+  of each other's sequences.
+
+  Can we abstract this proof pattern out and provide a simpler API, perhaps
+  extending the existing probabilistic relational Hoare logic? *)
+  apply (rule spmf.leq_antisym) 
+
+  subgoal
+    apply (induction
+      arbitrary: flag val
+      rule: loop_spmf.while_fixp_induct[where guard = cond])
+    by (auto
+      intro: ord_spmf_bind_reflI
+      simp add: f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
+
+  subgoal
+    apply (induction
+      arbitrary: flag val
+      rule: loop_spmf.while_fixp_induct[where guard = \<open>cond <<< snd\<close>])
+    by (auto
+      intro: ord_spmf_bind_reflI
+      simp add: f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
+  done
 
 context
   fixes f f' :: \<open>'b \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close>
@@ -523,40 +574,28 @@ context
     same_weight_spmf : \<open>\<And> x val val'.
       weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
     preserves_eq_up_to_bad : \<open>\<And> x.
-      \<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>eq_up_to_bad\<rbrace>\<close>
+      \<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f_with_bad_flag (f x) | f_with_bad_flag (f' x)\<rangle> \<lbrace>eq_up_to_bad\<rbrace>\<close>
 begin
 
-definition
-  \<open>f_with_bad_flag \<equiv> \<lambda> f x (bad_flag, val). (
-    f x val |> map_spmf (
-      if bad_flag
-      then Pair True
-      else (\<lambda> val'. (bad_event val', val'))))\<close>
-
-abbreviation \<open>foldM_spmf_with_bad_flag \<equiv> foldM_spmf <<< f_with_bad_flag\<close>
-
 lemma foldM_spmf_eq_up_to_bad_invariant :
-  defines
-    \<open>eq_up_to_bad_with_flag \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
-      (bad_flag = bad_flag') \<and> (\<not> bad_flag \<longrightarrow> val = val')\<close>
-  shows \<open>\<turnstile>spmf
-    \<lbrace>eq_up_to_bad_with_flag\<rbrace>
-    \<langle>foldM_spmf_with_bad_flag f xs | foldM_spmf_with_bad_flag f' xs\<rangle>
-    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close>
+  \<open>\<turnstile>spmf
+    \<lbrace>eq_up_to_bad\<rbrace>
+    \<langle>uncurry (foldM_spmf_with_bad_flag f xs) | uncurry (foldM_spmf_with_bad_flag f' xs)\<rangle>
+    \<lbrace>eq_up_to_bad\<rbrace>\<close>
 proof -
   let ?precond = \<open>\<lambda> f flag_val flag'_val'.
-    f (fst flag_val) \<and> eq_up_to_bad_with_flag flag_val flag'_val'\<close>
+    f (fst flag_val) \<and> eq_up_to_bad flag_val flag'_val'\<close>
 
   let ?mk_branch = \<open>\<lambda> branch f x. snd >>> f x >>> map_spmf branch\<close> 
   let ?if_branch = \<open>?mk_branch <| Pair True\<close>
   let ?else_branch = \<open>?mk_branch <| \<lambda> val'. (bad_event val', val')\<close>
 
-  note [simp] = assms f_with_bad_flag_def
+  note [simp] = eq_up_to_bad_def f_with_bad_flag_def
 
   from same_weight_spmf have \<open>\<turnstile>spmf
     \<lbrace>?precond id\<rbrace>
     \<langle>?if_branch f x | ?if_branch f' x\<rangle>
-    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
+    \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
     by (auto
       intro: seq[where S = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>]
       simp add: map_spmf_conv_bind_spmf)
@@ -564,11 +603,9 @@ proof -
   moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
     \<langle>?else_branch f x | ?else_branch f' x\<rangle>
-    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
-    apply (simp add: map_spmf_conv_bind_spmf)
-    apply (intro seq[where S = eq_up_to_bad])
-    by (auto simp only:
-      eq_up_to_bad_def skip' prod.sel relational_hoare_triple_def)
+    \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
+    apply (simp add: relational_hoare_triple_def)
+    by (smt (verit, ccfv_SIG))
 
   ultimately show ?thesis
     by (fastforce
@@ -576,29 +613,30 @@ proof -
       simp add: if_distrib if_distribR)
 qed
 
-lemma
+definition
+  \<open>f_fail_on_bad_event \<equiv> \<lambda> x val. do {
+    val \<leftarrow> f x val;
+    bind_spmf
+      (assert_spmf <| \<not> bad_event val)
+      \<lblot>return_spmf val\<rblot> }\<close>
+
+lemma aux :
   fixes xs val
-  assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close>
+  (* assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close> *)
   defines
     \<open>prob \<equiv> \<lambda> P f.
-      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close> and
-
-    \<open>f_fail_on_bad_event \<equiv> \<lambda> x val. do {
-      val \<leftarrow> f x val;
-      bind_spmf
-        (assert_spmf <| \<not> bad_event val)
-        \<lblot>return_spmf val\<rblot> }\<close>
+      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
     \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf f_fail_on_bad_event xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P f.
     \<P>(flag_val in measure_spmf <|
-        foldM_spmf_with_bad_flag f xs (False, val).
+        foldM_spmf_with_bad_flag f xs False val.
       P flag_val)\<close>
 
   have
-    \<open>map_spmf snd (foldM_spmf_with_bad_flag f xs (flag, val)) =
+    \<open>map_spmf snd (foldM_spmf_with_bad_flag f xs flag val) =
       foldM_spmf f xs val\<close> for f flag val
     apply (induction xs arbitrary: flag val)
     by (auto
@@ -618,7 +656,7 @@ proof -
 
   also have \<open>\<dots> \<le> ?R\<close>
     thm rel_pmf_measureD[
-      where p = \<open>foldM_spmf_with_bad_flag f xs (False, val)\<close>,
+      where p = \<open>foldM_spmf_with_bad_flag f xs False val\<close>,
       where q = \<open>foldM_spmf f_fail_on_bad_event xs val\<close>,
       where R = \<open>\<lambda> flag_val val'.
         fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
@@ -706,19 +744,11 @@ proof -
     apply (intro bind_spmf_cong)
     apply blast
 
-    (* To show that 2 while loops are equal, we appeal to their domain-theoretic
-    denotational semantics as least fixed points of transfinite iteration
-    sequences, and show, via transfinite induction, that they are upper bounds
-    of each other's sequences.
-
-    TODO: Try to derive a relational Hoare logic proof rule that provides a
-    simpler API by abstracting away all this domain-theoretic fiddling.
-    For reference, see ch5 of http://publications.rwth-aachen.de/record/814578/files/814578.pdf *)
     apply (intro spmf.leq_antisym)
     subgoal for x'
       apply (induction arbitrary: flag x x' rule: loop_spmf.while_fixp_induct[where guard = \<open>\<lambda> (x, _). cond x\<close>])
       by (auto
-        intro!: ord_spmf_bind_reflI
+        intro: ord_spmf_bind_reflI
         simp add: map_spmf_bind_spmf bind_map_spmf pair_spmf_alt_def loop_spmf.while_simps)
 
     subgoal for x'
