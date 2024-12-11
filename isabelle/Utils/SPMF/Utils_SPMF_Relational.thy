@@ -523,12 +523,16 @@ using assms proof -
 qed
 
 context
-  fixes bad_event :: \<open>'a \<Rightarrow> bool\<close>
+  fixes
+    bad_event :: \<open>'a \<Rightarrow> bool\<close> and
+    invariant :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close>
 begin
 
 definition
   \<open>eq_up_to_bad \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
-    (bad_flag = bad_flag') \<and> (\<not> bad_flag \<longrightarrow> val = val')\<close>
+    bad_flag = bad_flag' \<and>
+    invariant val val' \<and>
+    (\<not> bad_flag \<longrightarrow> val = val')\<close>
 
 definition
   \<open>f_with_bad_flag \<equiv> \<lambda> f (bad_flag, val). (
@@ -592,9 +596,11 @@ context
     same_weight_spmf : \<open>\<And> x val val'.
       weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
     f_eq_f'_up_to_bad : \<open>\<And> x. \<turnstile>spmf
-      \<lbrace>(\<lambda> val val'. val = val' \<and> \<not> bad_event val)\<rbrace>
+      \<lbrace>(\<lambda> val val'. val = val' \<and> invariant val val \<and> \<not> bad_event val)\<rbrace>
       \<langle>f x | f' x\<rangle>
-      \<lbrace>(=)\<rbrace>\<close>
+      \<lbrace>(\<lambda> val val'. val = val' \<and> invariant val val)\<rbrace>\<close> and
+    invariant : \<open>\<And> x. \<turnstile>spmf
+      \<lbrace>invariant\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>invariant\<rbrace>\<close>
 begin
 
 lemma foldM_spmf_eq_up_to_bad_invariant :
@@ -614,19 +620,20 @@ proof -
 
   note [simp] = eq_up_to_bad_def f_with_bad_flag_def
 
-  from same_weight_spmf have \<open>\<turnstile>spmf
+  from same_weight_spmf invariant have \<open>\<turnstile>spmf
     \<lbrace>?precond id\<rbrace>
     \<langle>?if_branch f x | ?if_branch f' x\<rangle>
     \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
-    by (auto
-      intro: seq[where S = \<open>\<lblot>\<lblot>True\<rblot>\<rblot>\<close>]
-      simp add: map_spmf_conv_bind_spmf)
+    apply (simp add: map_spmf_conv_bind_spmf)
+    apply (intro seq[where S = invariant])
+    by (simp_all add: Utils_SPMF_Relational.relational_hoare_triple_def)
 
   moreover from f_eq_f'_up_to_bad have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
     \<langle>?else_branch f x | ?else_branch f' x\<rangle>
     \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
-    by (auto simp add: relational_hoare_triple_def spmf_rel_map)
+    apply (simp add: relational_hoare_triple_def spmf_rel_map)
+    by (smt (verit, best) rel_spmf_mono)
 
   ultimately show ?thesis
     by (fastforce
@@ -636,6 +643,7 @@ qed
 
 lemma aux :
   fixes xs val
+  assumes \<open>invariant val val\<close>
   (* assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close> *)
   defines
     \<open>prob \<equiv> \<lambda> P f.

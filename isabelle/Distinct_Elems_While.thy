@@ -86,7 +86,7 @@ lemma
   \<le> prob_fail (estimate_distinct xs)\<close>
   (is \<open>?L \<le> ?R\<close>)
 proof -
-  note [simp] = space_measure_spmf
+  note [simp] = space_measure_spmf well_formed_state_def Let_def Set.remove_def
 
   have \<open>?L \<le> prob_fail (foldM_spmf (f_fail_on_bad_event cond <<< step_no_fail_spmf) xs initial_state)\<close>
     apply (simp
@@ -96,10 +96,12 @@ proof -
         compute_estimate_def measure_map_spmf
       flip: map_spmf_of_pmf foldM_spmf_of_pmf_eq)
 
-    thm aux[simplified f_with_bad_flag_def]
-
-    apply (intro aux[simplified])
+    apply (intro aux[
+      where invariant = \<open>\<lambda> state state'.
+        finite (state_chi state) \<and> (state' ok)\<close>,
+      simplified])
       subgoal using lossless_spmf_def by fastforce
+
       subgoal
         unfolding
           cond_def body_def step_no_fail_def step_while_def eq_up_to_bad_def
@@ -111,14 +113,21 @@ proof -
         apply (rule Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
         apply (metis (mono_tags, lifting) Utils_SPMF_Relational.precond_strengthen Utils_SPMF_Relational.refl_eq(2))
         apply (simp add: if_distrib)
+
+        (* TODO *)
         apply (rule Utils_SPMF_Relational.if_then_else')
+          subgoal
+            apply simp
+            by (metis (lifting) ext Suc_lessI card.insert_remove card_Diff1_le less_not_refl order.strict_trans1)
 
-        subgoal sorry
+          apply simp
 
-        apply auto
+          apply (auto simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
 
-        sorry
-      done
+          sorry
+
+      subgoal sorry
+      using threshold_pos by simp
 
   also have \<open>\<dots> \<le> ?R\<close>
     sorry

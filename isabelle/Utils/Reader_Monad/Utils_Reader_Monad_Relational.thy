@@ -90,6 +90,17 @@ lemma if_then_else :
     \<lbrakk>S\<rbrakk>\<close>
   using assms by (simp add: relational_hoare_triple_def)
 
+lemma if_then_else' :
+  assumes
+    \<open>\<And> \<phi> x \<phi>' x'. R \<phi> x \<phi>' x' \<Longrightarrow> f x \<longleftrightarrow> \<not> f' x'\<close>
+    \<open>\<turnstile>rd \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. f x \<and> R \<phi> x \<phi>' x')\<rbrakk> \<langle>g | g'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+    \<open>\<turnstile>rd \<lbrakk>(\<lambda> \<phi> x \<phi>' x'. \<not> f x \<and> R \<phi> x \<phi>' x')\<rbrakk> \<langle>h | h'\<rangle> \<lbrakk>S\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd
+    \<lbrakk>R\<rbrakk>
+    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then h' x else g' x)\<rangle>
+    \<lbrakk>S\<rbrakk>\<close>
+  using assms by (simp add: relational_hoare_triple_def)
+
 lemma seq :
   assumes
     \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
