@@ -22,7 +22,7 @@ lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
     dest: rel_spmf_weightD
     simp add: map_scale_spmf weight_mk_lossless)
 
-lemma rel_spmf_conj_iff_ae_measure_spmf_conj [simp] :
+lemma rel_spmf_conj_iff_ae_measure_spmf_conj :
   \<open>rel_spmf (\<lambda> x y. P x \<and> Q y) p q \<longleftrightarrow> (
     (weight_spmf p = weight_spmf q) \<and>
     (AE x in measure_spmf p. P x) \<and>
@@ -130,7 +130,9 @@ lemma conj :
     \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> \<open>\<turnstile>spmf \<lbrace>P'\<rbrace> f' \<lbrace>Q'\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. P x \<and> P' x')\<rbrace> \<langle>f | f'\<rangle> \<lbrace>(\<lambda> x x'. Q x \<and> Q' x')\<rbrace>\<close>
   using assms
-  by (auto simp add: relational_hoare_triple_def hoare_triple_def)
+  by (auto simp add:
+    relational_hoare_triple_def hoare_triple_def
+    rel_spmf_conj_iff_ae_measure_spmf_conj)
 
 lemma refl_eq [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrace>(=)\<rbrace>\<close>
@@ -658,7 +660,7 @@ proof -
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
     apply (intro seq[where S = \<open>\<lambda> val val'. invariant val \<and> invariant' val'\<close>])
-    by (auto simp only: skip' relational_hoare_triple_def prod.sel)
+    by (auto simp add: relational_hoare_triple_def)
 
   moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
@@ -666,8 +668,7 @@ proof -
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
     apply (intro seq[where S = eq_up_to_bad])
-    by (auto simp only:
-      eq_up_to_bad_def skip' prod.sel hoare_triple_def relational_hoare_triple_def)
+    by (auto simp only: eq_up_to_bad_def skip' relational_hoare_triple_def prod.sel)
 
   ultimately show ?thesis
     by (auto
