@@ -296,8 +296,8 @@ lemma prob_fail_le_of_relational_hoare_triple :
     simp add: hoare_ord_option_iff_ord_spmf  prob_fail_def chain_empty)
 
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
-  assumes \<open>\<And> x val. ord_spmf (=) (f x val) (f' x val)\<close>
-  shows \<open>ord_spmf (=) (foldM_spmf f xs val) (foldM_spmf f' xs val)\<close>
+  assumes \<open>\<And> x val. f x val \<sqsubseteq> f' x val\<close>
+  shows \<open>foldM_spmf f xs val \<sqsubseteq> foldM_spmf f' xs val\<close>
 proof -
   let ?go = \<open>\<lambda> f x. case_option fail_spmf (f x)\<close>
 
@@ -450,9 +450,6 @@ lemma measure_spmf_dist_while_while_le :
     where g = return_spmf, where cond = cond]
   by (simp add: loop_spmf.while.simps[symmetric])
 
-thm SPMF.rel_spmf_bindI[
-  THEN SPMF.fundamental_lemma]
-
 lemma
   fixes h cond g xs val P
   assumes
@@ -554,13 +551,12 @@ context
     invariant' :: \<open>'a \<Rightarrow> bool\<close>
 begin
 
-definition
+abbreviation (input)
   \<open>eq_up_to_bad \<equiv> \<lambda> val val'.
     bad_event val = bad_event val' \<and>
-    invariant val \<and> invariant' val' \<and>
     (\<not> bad_event val \<longrightarrow> val = val')\<close>
 
-definition
+abbreviation (input)
   \<open>eq_up_to_bad_with_flag \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
     bad_flag = bad_flag' \<and>
     invariant val \<and> invariant' val' \<and>
@@ -573,10 +569,11 @@ definition
       then Pair True
       else (\<lambda> val. (bad_event val, val))))\<close>
 
-definition
-  \<open>f_fail_on_bad_event \<equiv> \<lambda> f val. bind_spmf
+definition f_fail_on_bad_event :: \<open>('a \<Rightarrow> 'a spmf) \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close> where
+  \<open>f_fail_on_bad_event \<equiv> \<lambda> f val. do {
+    val \<leftarrow> f val; bind_spmf
     (assert_spmf <| \<not> bad_event val)
-    \<lblot>f val\<rblot>\<close>
+    \<lblot>return_spmf val\<rblot> }\<close>
 
 abbreviation
   \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> f xs flag val.
@@ -652,7 +649,7 @@ proof -
   let ?if_branch = \<open>?mk_branch <| Pair True\<close>
   let ?else_branch = \<open>?mk_branch <| \<lambda> val. (bad_event val, val)\<close>
 
-  note [simp] = eq_up_to_bad_def eq_up_to_bad_with_flag_def f_with_bad_flag_def
+  note [simp] = f_with_bad_flag_def
 
   from invariants have \<open>\<turnstile>spmf
     \<lbrace>?precond id\<rbrace>
@@ -662,13 +659,18 @@ proof -
     apply (intro seq[where S = \<open>\<lambda> val val'. invariant val \<and> invariant' val'\<close>])
     by (auto simp add: relational_hoare_triple_def)
 
-  moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
+  moreover from
+    preserves_eq_up_to_bad
+    invariant[THEN hoare_tripleE] invariant'[THEN hoare_tripleE] 
+  have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
     \<langle>?else_branch f x | ?else_branch f' x\<rangle>
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
-    apply (intro seq[where S = eq_up_to_bad])
-    by (auto simp only: eq_up_to_bad_def skip' relational_hoare_triple_def prod.sel)
+    apply (intro seq[where S = \<open>\<lambda> val val'.
+      eq_up_to_bad val val' \<and> invariant val \<and> invariant' val'\<close>])
+    unfolding skip' prod.sel relational_hoare_triple_def
+    by (smt (verit, best) rel_spmf_mono_strong)+
 
   ultimately show ?thesis
     by (auto
@@ -707,9 +709,9 @@ proof -
 
   also from assms invariants foldM_spmf_eq_up_to_bad_invariant
   have \<open>\<dots> \<le> ?prob_with_flag fst f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
-    apply (simp add: eq_up_to_bad_def eq_up_to_bad_with_flag_def relational_hoare_triple_def)
+    apply (simp add: relational_hoare_triple_def)
     apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
-    by (smt (verit, ccfv_threshold) rel_spmf_mono)
+    by (smt (verit, best) rel_spmf_mono)
 
   also have \<open>\<dots> \<le> ?R\<close>
     thm rel_pmf_measureD[

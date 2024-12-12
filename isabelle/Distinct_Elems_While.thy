@@ -95,16 +95,21 @@ proof -
         estimate_distinct_def run_steps_then_estimate_def initial_state_def
         compute_estimate_def measure_map_spmf
       flip: map_spmf_of_pmf foldM_spmf_of_pmf_eq)
+    
+    thm aux
 
     apply (intro aux[
-      where invariant = \<open>\<lambda> state state'.
-        finite (state_chi state) \<and> (state' ok)\<close>,
+      where invariant = \<open>finite <<< state_chi\<close>,
+      where invariant' = well_formed_state,
       simplified])
       subgoal using lossless_spmf_def by fastforce
 
+      subgoal sorry
+      subgoal sorry
+
       subgoal
         unfolding
-          cond_def body_def step_no_fail_def step_while_def eq_up_to_bad_def
+          cond_def body_def step_no_fail_def step_while_def
           f_with_bad_flag_def map_spmf_conv_bind_spmf case_prod_beta
           map_pmf_def[symmetric] Let_def
         apply (simp
@@ -122,12 +127,9 @@ proof -
 
           apply simp
 
-          apply (auto simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
-
           sorry
 
-      subgoal sorry
-      using threshold_pos by simp
+      using threshold_pos by simp_all
 
   also have \<open>\<dots> \<le> ?R\<close>
     sorry
