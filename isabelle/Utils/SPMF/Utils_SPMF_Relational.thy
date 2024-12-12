@@ -22,6 +22,21 @@ lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
     dest: rel_spmf_weightD
     simp add: map_scale_spmf weight_mk_lossless)
 
+lemma rel_spmf_conj_iff_ae_measure_spmf_conj [simp] :
+  \<open>rel_spmf (\<lambda> x y. P x \<and> Q y) p q \<longleftrightarrow> (
+    (weight_spmf p = weight_spmf q) \<and>
+    (AE x in measure_spmf p. P x) \<and>
+    (AE y in measure_spmf q. Q y))\<close>
+  using mk_lossless_back_eq[of p] mk_lossless_back_eq[of q]
+  by (auto
+    intro!:
+      rel_spmfI[of
+        \<open>scale_spmf (weight_spmf p) <|
+          pair_spmf (mk_lossless p) (mk_lossless q)\<close>]
+    elim!: rel_spmfE
+    split: if_splits
+    simp add: map_scale_spmf weight_mk_lossless set_scale_spmf)
+
 (*
 Roughly,`ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
 (viewed as probabilistic programs), operating over the same source of
@@ -63,7 +78,7 @@ then the probability that a successful output of `p` satisfies `P` is \<le> that
 *)
 lemma prob_le_prob_of_ord_spmf_eq :
   fixes P p p'
-  assumes \<open>ord_spmf (=) p p'\<close>
+  assumes \<open>p \<sqsubseteq> p'\<close>
   defines \<open>prob p'' \<equiv> \<P>(\<omega> in measure_spmf p''. P \<omega>)\<close>
   shows \<open>prob p \<le> prob p'\<close>
   using assms
@@ -108,6 +123,14 @@ lemma postcond_true [simp] :
     \<open>\<lbrakk>\<And> x. lossless_spmf <| f x; \<And> x. lossless_spmf <| f' x\<rbrakk> \<Longrightarrow>
       relational_hoare_triple_true\<close>
   by (simp_all add: relational_hoare_triple_def lossless_weight_spmfD)
+
+lemma conj :
+  assumes
+    \<open>\<And> x x'. \<lbrakk>P x; P' x'\<rbrakk> \<Longrightarrow> weight_spmf (f x) = weight_spmf (f' x')\<close>
+    \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close> \<open>\<turnstile>spmf \<lbrace>P'\<rbrace> f' \<lbrace>Q'\<rbrace>\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. P x \<and> P' x')\<rbrace> \<langle>f | f'\<rangle> \<lbrace>(\<lambda> x x'. Q x \<and> Q' x')\<rbrace>\<close>
+  using assms
+  by (auto simp add: relational_hoare_triple_def hoare_triple_def)
 
 lemma refl_eq [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrace>(=)\<rbrace>\<close>
@@ -525,20 +548,28 @@ qed
 context
   fixes
     bad_event :: \<open>'a \<Rightarrow> bool\<close> and
-    invariant :: \<open>'a \<Rightarrow> 'a \<Rightarrow> bool\<close>
+    invariant :: \<open>'a \<Rightarrow> bool\<close> and
+    invariant' :: \<open>'a \<Rightarrow> bool\<close>
 begin
 
 definition
-  \<open>eq_up_to_bad \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
+  \<open>eq_up_to_bad \<equiv> \<lambda> val val'.
+    bad_event val = bad_event val' \<and>
+    invariant val \<and> invariant' val' \<and>
+    (\<not> bad_event val \<longrightarrow> val = val')\<close>
+
+definition
+  \<open>eq_up_to_bad_with_flag \<equiv> \<lambda> (bad_flag, val) (bad_flag', val').
     bad_flag = bad_flag' \<and>
-    invariant val val' \<and>
+    invariant val \<and> invariant' val' \<and>
     (\<not> bad_flag \<longrightarrow> val = val')\<close>
 
 definition
   \<open>f_with_bad_flag \<equiv> \<lambda> f (bad_flag, val). (
-    if bad_flag \<or> bad_event val
-    then map_spmf (Pair True) (f val)
-    else map_spmf (Pair False) (f val))\<close>
+    f val |> map_spmf (
+      if bad_flag
+      then Pair True
+      else (\<lambda> val. (bad_event val, val))))\<close>
 
 definition
   \<open>f_fail_on_bad_event \<equiv> \<lambda> f val. bind_spmf
@@ -557,16 +588,10 @@ lemma foldM_spmf_eq_map_foldM_spmf_with_bad_flag :
   \<open>foldM_spmf f xs val =
     map_spmf snd (foldM_spmf_with_bad_flag f xs flag val)\<close>
   apply (induction xs arbitrary: flag val)
-  by (auto simp add:
-    f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf comp_def)
+  by (auto
+    intro: bind_spmf_cong
+    simp add: f_with_bad_flag_def map_spmf_bind_spmf bind_map_spmf)
 
-(* To show that 2 while loops are equal, we appeal to their domain-theoretic
-denotational semantics as least fixed points of transfinite iteration
-sequences, and show, via transfinite induction, that they are upper bounds
-of each other's sequences.
-
-Can we abstract this proof pattern out and provide a simpler API, perhaps
-extending the existing probabilistic relational Hoare logic? *)
 lemma while_spmf_eq_map_while_spmf_with_bad_flag :
   \<open>loop_spmf.while cond body val =
     map_spmf snd (while_spmf_with_bad_flag cond body flag val)\<close>
@@ -595,55 +620,65 @@ context
   assumes
     same_weight_spmf : \<open>\<And> x val val'.
       weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
-    f_eq_f'_up_to_bad : \<open>\<And> x. \<turnstile>spmf
-      \<lbrace>(\<lambda> val val'. val = val' \<and> invariant val val \<and> \<not> bad_event val)\<rbrace>
+
+    invariant : \<open>\<And> x. \<turnstile>spmf \<lbrace>invariant\<rbrace> f x \<lbrace>invariant\<rbrace>\<close> and
+    invariant' : \<open>\<And> x. \<turnstile>spmf \<lbrace>invariant'\<rbrace> f' x \<lbrace>invariant'\<rbrace>\<close> and
+
+    preserves_eq_up_to_bad : \<open>\<And> x. \<turnstile>spmf
+      \<lbrace>(\<lambda> val val'. val = val' \<and> invariant val \<and> invariant' val)\<rbrace>
       \<langle>f x | f' x\<rangle>
-      \<lbrace>(\<lambda> val val'. val = val' \<and> invariant val val)\<rbrace>\<close> and
-    invariant : \<open>\<And> x. \<turnstile>spmf
-      \<lbrace>invariant\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>invariant\<rbrace>\<close>
+      \<lbrace>eq_up_to_bad\<rbrace>\<close>
 begin
+
+lemma invariants :
+  defines \<open>invs \<equiv> (\<lambda> x x'. invariant x \<and> invariant' x')\<close>
+  shows \<open>\<turnstile>spmf \<lbrace>invs\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>invs\<rbrace>\<close>
+  unfolding assms
+  by (rule conj[OF same_weight_spmf invariant invariant'])
 
 lemma foldM_spmf_eq_up_to_bad_invariant :
   \<open>\<turnstile>spmf
-    \<lbrace>eq_up_to_bad\<rbrace>
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>
     \<langle>uncurry (foldM_spmf_with_bad_flag f xs) |
       uncurry (foldM_spmf_with_bad_flag f' xs)\<rangle>
-    \<lbrace>eq_up_to_bad\<rbrace>\<close>
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close>
 proof -
   let ?precond = \<open>\<lambda> f flag_val flag'_val'.
-    f (fst flag_val \<or> bad_event (snd flag_val)) \<and>
-    eq_up_to_bad flag_val flag'_val'\<close>
+    f (fst flag_val) \<and> eq_up_to_bad_with_flag flag_val flag'_val'\<close>
 
-  let ?mk_branch = \<open>\<lambda> bool f x. snd >>> f x >>> map_spmf (Pair bool)\<close> 
-  let ?if_branch = \<open>?mk_branch True\<close>
-  let ?else_branch = \<open>?mk_branch False\<close>
+  let ?mk_branch = \<open>\<lambda> branch f x. snd >>> f x >>> map_spmf branch\<close> 
+  let ?if_branch = \<open>?mk_branch <| Pair True\<close>
+  let ?else_branch = \<open>?mk_branch <| \<lambda> val. (bad_event val, val)\<close>
 
-  note [simp] = eq_up_to_bad_def f_with_bad_flag_def
+  note [simp] = eq_up_to_bad_def eq_up_to_bad_with_flag_def f_with_bad_flag_def
 
-  from same_weight_spmf invariant have \<open>\<turnstile>spmf
+  from invariants have \<open>\<turnstile>spmf
     \<lbrace>?precond id\<rbrace>
     \<langle>?if_branch f x | ?if_branch f' x\<rangle>
-    \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
-    apply (intro seq[where S = invariant])
-    by (simp_all add: Utils_SPMF_Relational.relational_hoare_triple_def)
+    apply (intro seq[where S = \<open>\<lambda> val val'. invariant val \<and> invariant' val'\<close>])
+    by (auto simp add:
+      relational_hoare_triple_def hoare_triple_def)
 
-  moreover from f_eq_f'_up_to_bad have \<open>\<turnstile>spmf
+  moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
     \<langle>?else_branch f x | ?else_branch f' x\<rangle>
-    \<lbrace>eq_up_to_bad\<rbrace>\<close> for x
-    apply (simp add: relational_hoare_triple_def spmf_rel_map)
-    by (smt (verit, best) rel_spmf_mono)
+    \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
+    apply (simp add: map_spmf_conv_bind_spmf)
+    apply (intro seq[where S = eq_up_to_bad])
+    by (auto simp only:
+      eq_up_to_bad_def skip' prod.sel hoare_triple_def relational_hoare_triple_def)
 
   ultimately show ?thesis
-    by (fastforce
+    by (auto
       intro!: loop_unindexed if_then_else
-      simp add: map_spmf_conv_bind_spmf)
+      simp add: if_distrib if_distribR)
 qed
 
 lemma aux :
   fixes xs val
-  assumes \<open>invariant val val\<close>
+  assumes \<open>invariant val\<close> \<open>invariant' val\<close>
   (* assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close> *)
   defines
     \<open>prob \<equiv> \<lambda> P f.
@@ -670,11 +705,11 @@ proof -
     apply (simp add: prob_def)
     by (metis (no_types, lifting) measure_map_spmf vimage_Collect)
 
-  also from assms(1) foldM_spmf_eq_up_to_bad_invariant
+  also from assms invariants foldM_spmf_eq_up_to_bad_invariant
   have \<open>\<dots> \<le> ?prob_with_flag fst f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
-    apply (simp add: eq_up_to_bad_def relational_hoare_triple_def)
+    apply (simp add: eq_up_to_bad_def eq_up_to_bad_with_flag_def relational_hoare_triple_def)
     apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
-    by (smt (verit) rel_spmf_mono)
+    by (smt (verit, ccfv_threshold) rel_spmf_mono)
 
   also have \<open>\<dots> \<le> ?R\<close>
     thm rel_pmf_measureD[
