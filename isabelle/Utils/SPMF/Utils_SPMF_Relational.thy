@@ -631,7 +631,7 @@ context
 begin
 
 lemma invariants :
-  defines \<open>invs \<equiv> (\<lambda> x x'. invariant x \<and> invariant' x')\<close>
+  defines \<open>invs \<equiv> \<lambda> x x'. invariant x \<and> invariant' x'\<close>
   shows \<open>\<turnstile>spmf \<lbrace>invs\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>invs\<rbrace>\<close>
   unfolding assms
   by (rule conj[OF same_weight_spmf invariant invariant'])
@@ -658,8 +658,7 @@ proof -
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
     apply (intro seq[where S = \<open>\<lambda> val val'. invariant val \<and> invariant' val'\<close>])
-    by (auto simp add:
-      relational_hoare_triple_def hoare_triple_def)
+    by (auto simp only: skip' relational_hoare_triple_def prod.sel)
 
   moreover from preserves_eq_up_to_bad have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
