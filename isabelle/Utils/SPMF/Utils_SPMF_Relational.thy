@@ -571,9 +571,8 @@ definition
 
 definition f_fail_on_bad_event :: \<open>('a \<Rightarrow> 'a spmf) \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close> where
   \<open>f_fail_on_bad_event \<equiv> \<lambda> f val. do {
-    val \<leftarrow> f val; bind_spmf
-    (assert_spmf <| \<not> bad_event val)
-    \<lblot>return_spmf val\<rblot> }\<close>
+    val \<leftarrow> f val;
+    map_spmf \<lblot>val\<rblot> (assert_spmf <| \<not> bad_event val) }\<close>
 
 abbreviation
   \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> f xs flag val.
@@ -659,17 +658,14 @@ proof -
     apply (intro seq[where S = \<open>\<lambda> val val'. invariant val \<and> invariant' val'\<close>])
     by (auto simp add: relational_hoare_triple_def)
 
-  moreover from
-    preserves_eq_up_to_bad
-    invariant[THEN hoare_tripleE] invariant'[THEN hoare_tripleE] 
-  have \<open>\<turnstile>spmf
+  moreover from preserves_eq_up_to_bad invariant invariant' have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
     \<langle>?else_branch f x | ?else_branch f' x\<rangle>
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
     apply (intro seq[where S = \<open>\<lambda> val val'.
       eq_up_to_bad val val' \<and> invariant val \<and> invariant' val'\<close>])
-    unfolding skip' prod.sel relational_hoare_triple_def
+    unfolding skip' prod.sel relational_hoare_triple_def hoare_triple_def
     by (smt (verit, best) rel_spmf_mono_strong)+
 
   ultimately show ?thesis
