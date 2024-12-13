@@ -16,18 +16,19 @@ record 'a state =
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
-definition compute_estimate :: \<open>'a state \<Rightarrow> nat\<close> where
+definition compute_estimate :: \<open>('a, 'b) state_scheme \<Rightarrow> nat\<close> where
   \<open>compute_estimate state \<equiv> card (state_chi state) * 2 ^ (state_k state)\<close>
 
 context
   fixes
-    foldM :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'd \<Rightarrow> 'e state \<Rightarrow> 'f\<close> and
-    map :: \<open>('e state \<Rightarrow> nat) \<Rightarrow> 'f \<Rightarrow> 'g\<close> and
+    foldM :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'd \<Rightarrow> ('e, 'h) state_scheme \<Rightarrow> 'f\<close> and
+    map :: \<open>(('e, 'h) state_scheme \<Rightarrow> nat) \<Rightarrow> 'f \<Rightarrow> 'g\<close> and
     step :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'c\<close>
 begin
 
-definition run_steps_then_estimate :: \<open>'d \<Rightarrow> 'g\<close> where
-  \<open>run_steps_then_estimate \<equiv>
+definition run_steps_then_estimate ::
+  \<open>('e, 'h) state_scheme \<Rightarrow> 'd \<Rightarrow> 'g\<close> where
+  \<open>run_steps_then_estimate \<equiv> \<lambda> initial_state.
     flip (foldM step) initial_state >>> map compute_estimate\<close>
 
 end
@@ -72,7 +73,7 @@ abbreviation
     run_steps_then_estimate foldM_spmf map_spmf\<close>
 
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
-  \<open>estimate_distinct \<equiv> run_steps_then_estimate_spmf step\<close>
+  \<open>estimate_distinct \<equiv> run_steps_then_estimate_spmf step initial_state\<close>
 
 end
 

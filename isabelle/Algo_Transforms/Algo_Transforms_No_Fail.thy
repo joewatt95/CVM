@@ -11,7 +11,8 @@ begin
 context with_threshold_pos
 begin
 
-definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
+definition step_no_fail ::
+  \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_no_fail x state \<equiv> do {
     let k = state_k state;
     let chi = state_chi state;
@@ -27,25 +28,38 @@ definition step_no_fail :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a sta
     then return_pmf (state\<lparr>state_chi := chi\<rparr>)
     else do {
       keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-        Pi_pmf chi undefined \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+        prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
 
       let chi = Set.filter keep_in_chi chi;
 
-      return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr> }}\<close>
+      return_pmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>) }}\<close>
 
 definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
-  \<open>estimate_distinct_no_fail \<equiv> run_steps_then_estimate_pmf step_no_fail\<close>
+  \<open>estimate_distinct_no_fail \<equiv>
+    run_steps_then_estimate_pmf step_no_fail initial_state\<close>
 
 abbreviation \<open>step_no_fail_spmf \<equiv> (\<lambda> x. spmf_of_pmf <<< step_no_fail x)\<close>
 
 abbreviation \<open>estimate_distinct_no_fail_spmf \<equiv>
   spmf_of_pmf <<< estimate_distinct_no_fail\<close>
 
-definition well_formed_state :: \<open>'a state \<Rightarrow> bool\<close>
+definition well_formed_state :: \<open>('a, 'b) state_scheme \<Rightarrow> bool\<close>
   (\<open>_ ok\<close> [20] 60) where
   \<open>state ok \<equiv> (
     let chi = state_chi state
     in finite chi \<and> card chi < threshold)\<close>
+
+lemma well_formed_state_card_le_threshold :
+  assumes \<open>state ok\<close>
+  defines \<open>chi \<equiv> state_chi state\<close>
+  shows
+    \<open>card (Set.remove x chi) < threshold\<close>
+    \<open>\<not> card (insert x chi) < threshold \<longleftrightarrow> card (insert x chi) = threshold\<close>
+  using
+    assms
+    Diff_insert0[of x "state_chi state" "{}"]
+    insert_absorb[of x "state_chi state"]
+  by (fastforce simp add: well_formed_state_def Let_def Set.remove_def)+
 
 lemma initial_state_well_formed :
   \<open>initial_state ok\<close>
@@ -117,26 +131,11 @@ qed
 lemma prob_fail_step_le :
   assumes \<open>state ok\<close>
   shows \<open>prob_fail (step x state) \<le> 1 / 2 ^ threshold\<close>
-proof -
-  let ?chi = \<open>state_chi state\<close>
-  let ?chi' = \<open>insert x ?chi\<close>
-
-  have
-    \<open>card (Set.remove x ?chi) < threshold\<close>
-    \<open>\<not> card ?chi' < threshold \<longleftrightarrow> card ?chi' = threshold\<close>
-    using
-      assms
-      Diff_insert0[of x "state_chi state" "{}"]
-      insert_absorb[of x "state_chi state"]
-    by (fastforce simp add: well_formed_state_def Let_def Set.remove_def)+
-
-  then show ?thesis
-    using assms
-    apply (simp add: step_def well_formed_state_def Let_def)
-    by (simp add:
-      spmf_bind_filter_chi_eq_map prob_fail_def pmf_prod_pmf
-      pmf_bind pmf_map measure_pmf_single vimage_def field_simps)
-qed
+  using well_formed_state_card_le_threshold[OF assms] assms
+  apply (simp add: step_def well_formed_state_def Let_def)
+  by (simp add:
+    spmf_bind_filter_chi_eq_map prob_fail_def pmf_prod_pmf
+    pmf_bind pmf_map measure_pmf_single vimage_def field_simps)
 
 lemma prob_fail_estimate_size_le :
   \<open>prob_fail (estimate_distinct xs) \<le> length xs / 2 ^ threshold\<close>

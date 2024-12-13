@@ -7,13 +7,20 @@ imports
 
 begin
 
+record 'a state_with_bad_flag = \<open>'a state\<close> +
+  state_bad_flag :: bool
+
+definition initial_state_with_bad_flag :: \<open>'a state_with_bad_flag\<close> where
+  \<open>initial_state_with_bad_flag \<equiv>
+    state.extend initial_state \<lparr>state_bad_flag = False\<rparr>\<close>
+
 context with_threshold
 begin
 
-definition cond :: \<open>'a state \<Rightarrow> bool\<close> where
-  \<open>cond \<equiv> \<lambda> state. card (state_chi state) = threshold\<close>
+definition cond :: \<open>('a, 'b) state_scheme \<Rightarrow> bool\<close> where
+  \<open>cond \<equiv> \<lambda> state. card (state_chi state) \<ge> threshold\<close>
 
-definition body :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
+definition body :: \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
  \<open>body \<equiv> \<lambda> state. do {
   let chi = state_chi state;
 
@@ -23,11 +30,12 @@ definition body :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   let chi = Set.filter keep_in_chi chi;
   let k = state_k state + 1;
 
-  return_pmf \<lparr>state_k = k, state_chi = chi\<rparr>}\<close>
+  return_pmf (state\<lparr>state_k := k, state_chi := chi\<rparr>)}\<close>
 
 abbreviation \<open>body_spmf \<equiv> spmf_of_pmf <<< body\<close>
 
-definition step_while :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
+definition step_while ::
+  \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme spmf\<close> where
   \<open>step_while x state \<equiv> do {
     insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ (state_k state);
 
@@ -40,17 +48,152 @@ definition step_while :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state
     loop_spmf.while cond body_spmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition estimate_distinct_while :: \<open>'a list \<Rightarrow> nat spmf\<close> where
-  \<open>estimate_distinct_while \<equiv> run_steps_then_estimate_spmf step_while\<close>
+  \<open>estimate_distinct_while \<equiv>
+    run_steps_then_estimate_spmf step_while initial_state\<close>
+
+(* Note that this unrolls the while loop _twice_ in order to match the structure
+of `step` and `step_no_fail`. *)
+definition step_while_with_bad_flag ::
+  \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
+  \<open>step_while_with_bad_flag x state \<equiv> do {
+    let bad_flag = state_bad_flag state;
+    let state = state.truncate state;
+
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ (state_k state);
+
+    let chi = (state
+      |> state_chi
+      |> if insert_x_into_chi
+        then insert x
+        else Set.remove x);
+
+    let state = state\<lparr>state_chi := chi\<rparr>;
+
+    if card chi < threshold
+    then return_spmf (state.extend state \<lparr>state_bad_flag = bad_flag\<rparr>)
+    else do {
+      state \<leftarrow> body state;
+      if card (state_chi state) < threshold
+      then return_spmf (state.extend state \<lparr>state_bad_flag = bad_flag\<rparr>)
+      else (state
+        |> loop_spmf.while cond body_spmf
+        |> map_spmf (flip state.extend \<lparr>state_bad_flag = True\<rparr>)) }}\<close>
+
+definition estimate_distinct_while_with_bad_flag :: \<open>'a list \<Rightarrow> nat spmf\<close> where
+  \<open>estimate_distinct_while_with_bad_flag \<equiv>
+    run_steps_then_estimate_spmf
+      step_while_with_bad_flag initial_state_with_bad_flag\<close>
+
+(* definition step_with_bad_flag ::
+  \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag pmf\<close> where
+  \<open>step_with_bad_flag x state \<equiv> do {
+    let bad_flag = state_bad_flag state;
+    let state = state.truncate state;
+
+    let k = state_k state;
+    let chi = state_chi state;
+
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
+
+    let chi = (chi |>
+      if insert_x_into_chi
+      then insert x
+      else Set.remove x);
+
+    let state = state\<lparr>state_chi := chi\<rparr>;
+
+    if card chi < threshold
+    then return_pmf (state.extend state \<lparr>state_bad_flag = bad_flag\<rparr>)
+    else (\<lblot>bernoulli_pmf <| 1 / 2\<rblot>
+      |> prod_pmf chi
+      |> map_pmf (\<lambda> keep_in_chi. (
+        \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr>
+          |> flip state.extend
+            \<lparr>state_bad_flag = bad_flag \<or> card chi \<ge> threshold\<rparr>))) }\<close> *)
+
 end
 
 context with_threshold_pos
 begin
 
-lemma lossless_step_while_loop [simp] :
-  \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
+definition step_with_bad_flag ::
+  \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag pmf\<close> where
+  \<open>step_with_bad_flag x \<equiv>
+    step_no_fail x
+      >>> map_pmf (\<lambda> state. state\<lparr>state_bad_flag := False\<rparr>)\<close>
+
+definition estimate_distinct_with_bad_flag :: \<open>'a list \<Rightarrow> nat pmf\<close> where
+  \<open>estimate_distinct_with_bad_flag \<equiv>
+    run_steps_then_estimate_pmf
+      step_with_bad_flag initial_state_with_bad_flag\<close>
+
+lemma step_while_eq_step_while_with_bad_flag :
+  \<open>step_while x (state.truncate state) = (
+    state
+      |> step_while_with_bad_flag x
+      |> map_spmf state.truncate)\<close>
+proof -
+  have [intro!] : \<open>p = map_spmf f p\<close> if \<open>\<And> x. f x = x\<close> for f and p :: \<open>'c spmf\<close>
+    using that by (simp add: map_spmf_idI)
+
+  show ?thesis
+    by (fastforce
+      intro!: bind_spmf_cong
+      simp flip: bind_spmf_of_pmf
+      simp add:
+        state.defs comp_def Let_def well_formed_state_def
+        step_while_def step_while_with_bad_flag_def with_threshold.cond_def
+        loop_spmf.while_simps map_spmf_bind_spmf bind_map_spmf spmf.map_comp)
+qed
+
+(* lemma
+  \<open>estimate_distinct_while x (state.truncate state) = (
+    state
+      |> estimate_distinct_while_with_bad_flag x
+      |> map_spmf state.truncate)\<close>
+  sorry *)
+
+lemma step_no_fail_eq_step_with_bad_flag :
+  \<open>step_no_fail x (state.truncate state) = (
+    state
+      |> step_with_bad_flag x
+      |> map_pmf state.truncate)\<close>
+  by (fastforce
+    intro: bind_pmf_cong
+    simp flip: map_pmf_def
+    simp add:
+      state.defs Let_def if_distrib map_bind_pmf bind_map_pmf map_pmf_comp
+      step_no_fail_def step_with_bad_flag_def)
+
+lemma
+  \<open>step x (state.truncate state) = (
+    state
+      |> f_fail_on_bad_event (\<lambda> state. card (state_chi state) \<ge> threshold)
+        (spmf_of_pmf <<< step_with_bad_flag x)
+      |> map_spmf state.truncate)\<close>
+  by (auto
+    intro!: bind_spmf_cong
+    simp flip: bind_spmf_of_pmf map_spmf_of_pmf
+    simp add:
+      f_fail_on_bad_event_def step_with_bad_flag_def step_def step_no_fail_def
+      Let_def state.defs spmf_of_pmf_bind fail_spmf_def well_formed_state_def 
+      map_spmf_bind_spmf bind_map_spmf comp_def spmf.map_comp)
+
+thm
+  step_def
+  step_while_with_bad_flag_def[
+    simplified
+      body_def Let_def spmf_of_pmf_bind spmf_of_pmf_return_pmf
+      bind_spmf_of_pmf[symmetric] map_bind_spmf bind_map_spmf comp_def
+      map_spmf_conv_bind_spmf[symmetric],
+    simplified bind_spmf_of_pmf, simplified]
+
+lemma lossless_step_while_loop :
+  assumes \<open>finite (state_chi state)\<close> \<open>card (state_chi state) \<le> threshold\<close>
+  shows \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
 proof -
   have
-    \<open>{keep_in_chi. card (Set.filter keep_in_chi chi) = card chi} =
+    \<open>{keep_in_chi. card (Set.filter keep_in_chi chi) \<ge> card chi} =
       chi \<rightarrow> {True}\<close>
     if \<open>finite chi\<close> for chi :: \<open>'a set\<close>
     using that
@@ -60,25 +203,74 @@ proof -
 
   with threshold_pos have
     \<open>\<P>(state in body state. cond state) = 1 / 2 ^ threshold\<close>
-    if \<open>cond state\<close> for state :: \<open>'a state\<close>
+    if
+      \<open>cond state\<close> \<open>finite (state_chi state)\<close>
+      \<open>card (state_chi state) \<le> threshold\<close>
+    for state :: \<open>('a, 'b) state_scheme\<close>
     using that
-    by (fastforce simp add:
-      cond_def body_def card_ge_0_finite Let_def vimage_def field_simps
-      map_pmf_def[symmetric] measure_Pi_pmf_Pi measure_pmf_single)
-
-  then show ?thesis
     by (auto
-      intro: loop_spmf.termination_0_1_immediate
-      simp add: pmf_map_pred_true_eq_prob pmf_False_conv_True threshold_pos)
+      simp flip: map_pmf_def
+      simp add:
+        well_formed_state_def with_threshold.cond_def body_def card_ge_0_finite
+        Let_def vimage_def measure_Pi_pmf_Pi measure_pmf_single field_simps)
+
+  with assms threshold_pos show ?thesis
+    by (auto
+      intro!: termination_0_1_immediate_invar[
+        where p = \<open>1 / 2 ^ threshold\<close>,
+        where I = \<open>\<lambda> state.
+          finite (state_chi state) \<and> card (state_chi state) \<le> threshold\<close>]
+      simp add:
+      body_def
+        well_formed_state_def Let_def with_threshold.cond_def self_le_power
+        pmf_map_pred_true_eq_prob pmf_False_conv_True card_mono subset_iff)
 qed
 
-lemma lossless_step_while [simp] :
-  \<open>lossless_spmf <| step_while x state\<close>
-  by (simp add: step_while_def)
+lemma lossless_step_while :
+  assumes \<open>state ok\<close>
+  shows \<open>lossless_spmf <| step_while x state\<close>
+  using assms lossless_step_while_loop well_formed_state_card_le_threshold[OF assms]
+  apply (simp add: step_while_def well_formed_state_def Let_def Set.remove_def)
+  by (smt (verit, ccfv_threshold) finite_Diff finite_insert less_le lossless_step_while_loop order.refl state.select_convs(2) state.surjective state.update_convs(2)
+    well_formed_state_def)
 
 lemma lossless_estimate_distinct_while [simp] :
   \<open>lossless_spmf <| estimate_distinct_while xs\<close>
-  by (simp add: estimate_distinct_while_def run_steps_then_estimate_def)
+proof -
+    let ?inv = \<open>\<lambda> state.
+      let chi = state_chi state
+      in finite chi \<and> card chi \<le> threshold\<close>
+
+  have \<open>\<turnstile>spmf
+    \<lbrace>?inv\<rbrace>
+    loop_spmf.while cond body_spmf
+    \<lbrace>(\<lambda> state. \<not> cond state \<and> ?inv state)\<rbrace>\<close>
+    apply (intro while)
+    apply (simp
+      add: Let_def cond_def body_def spmf_of_pmf_bind
+      flip: spmf_of_pmf_bind map_spmf_of_pmf map_pmf_def)
+    unfolding map_spmf_conv_bind_spmf
+    apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
+    by (auto simp add: card_mono subset_iff)
+
+  with well_formed_state_card_le_threshold have \<open>\<turnstile>spmf
+    \<lbrace>well_formed_state\<rbrace> step_while x \<lbrace>well_formed_state\<rbrace>\<close> for x :: 'a
+    unfolding
+      well_formed_state_def step_while_def Let_def with_threshold.cond_def
+      bind_spmf_of_pmf[symmetric]
+    apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
+    apply simp
+    apply (simp add: Utils_SPMF_Hoare.hoare_triple_def)
+
+    sorry
+
+  then show ?thesis
+    by (auto
+      intro!:
+        lossless_foldM_spmf[where P = well_formed_state]
+        lossless_step_while initial_state_well_formed
+      simp add: estimate_distinct_while_def run_steps_then_estimate_def)
+qed
 
 lemma
   \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
@@ -95,8 +287,6 @@ proof -
         estimate_distinct_def run_steps_then_estimate_def initial_state_def
         compute_estimate_def measure_map_spmf
       flip: map_spmf_of_pmf foldM_spmf_of_pmf_eq)
-    
-    thm aux
 
     apply (intro aux[
       where invariant = \<open>finite <<< state_chi\<close>,

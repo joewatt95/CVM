@@ -547,13 +547,14 @@ qed
 context
   fixes
     bad_event :: \<open>'a \<Rightarrow> bool\<close> and
+    bad_event' :: \<open>'a \<Rightarrow> bool\<close> and
     invariant :: \<open>'a \<Rightarrow> bool\<close> and
     invariant' :: \<open>'a \<Rightarrow> bool\<close>
 begin
 
 abbreviation (input)
   \<open>eq_up_to_bad \<equiv> \<lambda> val val'.
-    bad_event val = bad_event val' \<and>
+    (bad_event val \<longleftrightarrow> bad_event' val') \<and>
     (\<not> bad_event val \<longrightarrow> val = val')\<close>
 
 abbreviation (input)
@@ -563,28 +564,29 @@ abbreviation (input)
     (\<not> bad_flag \<longrightarrow> val = val')\<close>
 
 definition
-  \<open>f_with_bad_flag \<equiv> \<lambda> f (bad_flag, val). (
+  \<open>f_with_bad_flag \<equiv> \<lambda> bad_event f (bad_flag, val). (
     f val |> map_spmf (
       if bad_flag
       then Pair True
       else (\<lambda> val. (bad_event val, val))))\<close>
 
-definition f_fail_on_bad_event :: \<open>('a \<Rightarrow> 'a spmf) \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close> where
-  \<open>f_fail_on_bad_event \<equiv> \<lambda> f val. do {
+definition f_fail_on_bad_event ::
+  \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a spmf) \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close> where
+  \<open>f_fail_on_bad_event \<equiv> \<lambda> bad_event f val. do {
     val \<leftarrow> f val;
     map_spmf \<lblot>val\<rblot> (assert_spmf <| \<not> bad_event val) }\<close>
 
 abbreviation
-  \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> f xs flag val.
-    foldM_spmf (f_with_bad_flag <<< f) xs (flag, val)\<close>
+  \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> bad_event f xs flag val.
+    foldM_spmf (f_with_bad_flag bad_event <<< f) xs (flag, val)\<close>
 
 abbreviation
-  \<open>while_spmf_with_bad_flag cond body flag val \<equiv>
-    loop_spmf.while (cond <<< snd) (f_with_bad_flag body) (flag, val)\<close>
+  \<open>while_spmf_with_bad_flag cond body bad_event'' flag val \<equiv>
+    loop_spmf.while (cond <<< snd) (f_with_bad_flag bad_event'' body) (flag, val)\<close>
 
 lemma foldM_spmf_eq_map_foldM_spmf_with_bad_flag :
   \<open>foldM_spmf f xs val =
-    map_spmf snd (foldM_spmf_with_bad_flag f xs flag val)\<close>
+    map_spmf snd (foldM_spmf_with_bad_flag bad_event'' f xs flag val)\<close>
   apply (induction xs arbitrary: flag val)
   by (auto
     intro: bind_spmf_cong
@@ -592,7 +594,7 @@ lemma foldM_spmf_eq_map_foldM_spmf_with_bad_flag :
 
 lemma while_spmf_eq_map_while_spmf_with_bad_flag :
   \<open>loop_spmf.while cond body val =
-    map_spmf snd (while_spmf_with_bad_flag cond body flag val)\<close>
+    map_spmf snd (while_spmf_with_bad_flag cond body bad_event'' flag val)\<close>
   (is \<open>?L = ?R\<close>)
 proof (rule spmf.leq_antisym)
   note [intro] = ord_spmf_bind_reflI
@@ -637,8 +639,8 @@ lemma invariants :
 lemma foldM_spmf_eq_up_to_bad_invariant :
   \<open>\<turnstile>spmf
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>
-    \<langle>uncurry (foldM_spmf_with_bad_flag f xs) |
-      uncurry (foldM_spmf_with_bad_flag f' xs)\<rangle>
+    \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
+      uncurry (foldM_spmf_with_bad_flag bad_event' f' xs)\<rangle>
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close>
 proof -
   let ?precond = \<open>\<lambda> f flag_val flag'_val'.
@@ -646,7 +648,7 @@ proof -
 
   let ?mk_branch = \<open>\<lambda> branch f x. snd >>> f x >>> map_spmf branch\<close> 
   let ?if_branch = \<open>?mk_branch <| Pair True\<close>
-  let ?else_branch = \<open>?mk_branch <| \<lambda> val. (bad_event val, val)\<close>
+  let ?else_branch = \<open>\<lambda> bad_event. (?mk_branch <| \<lambda> val. (bad_event val, val))\<close>
 
   note [simp] = f_with_bad_flag_def
 
@@ -660,7 +662,7 @@ proof -
 
   moreover from preserves_eq_up_to_bad invariant invariant' have \<open>\<turnstile>spmf
     \<lbrace>?precond Not\<rbrace>
-    \<langle>?else_branch f x | ?else_branch f' x\<rangle>
+    \<langle>?else_branch bad_event f x | ?else_branch bad_event' f' x\<rangle>
     \<lbrace>eq_up_to_bad_with_flag\<rbrace>\<close> for x
     apply (simp add: map_spmf_conv_bind_spmf)
     apply (intro seq[where S = \<open>\<lambda> val val'.
@@ -682,37 +684,39 @@ lemma aux :
     \<open>prob \<equiv> \<lambda> P f.
       \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
-    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event <<< f) xs val)\<close>
+    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
-  let ?prob_with_flag = \<open>\<lambda> P f.
+  let ?prob_with_flag = \<open>\<lambda> P bad_event f.
     \<P>(flag_val in measure_spmf <|
-        foldM_spmf_with_bad_flag f xs False val.
+        foldM_spmf_with_bad_flag bad_event f xs False val.
       P flag_val)\<close>
 
   have
-    \<open>map_spmf snd (foldM_spmf_with_bad_flag f xs flag val) =
-      foldM_spmf f xs val\<close> for f flag val
+    \<open>map_spmf snd (foldM_spmf_with_bad_flag bad_event f xs flag val) =
+      foldM_spmf f xs val\<close> for bad_event f flag val
     apply (induction xs arbitrary: flag val)
     by (auto
       intro: bind_spmf_cong
       simp add: f_with_bad_flag_def map_spmf_bind_spmf map_spmf_conv_bind_spmf)
 
-  then have \<open>?L =
-    \<bar>?prob_with_flag (P <<< snd) f - ?prob_with_flag (P <<< snd) f'\<bar>\<close>
+  from this[of bad_event f] this[of bad_event' f']
+  have \<open>?L =
+    \<bar>?prob_with_flag (P <<< snd) bad_event f
+      - ?prob_with_flag (P <<< snd) bad_event' f'\<bar>\<close>
     apply (simp add: prob_def)
     by (metis (no_types, lifting) measure_map_spmf vimage_Collect)
 
   also from assms invariants foldM_spmf_eq_up_to_bad_invariant
-  have \<open>\<dots> \<le> ?prob_with_flag fst f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
+  have \<open>\<dots> \<le> ?prob_with_flag fst bad_event f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
     apply (simp add: relational_hoare_triple_def)
     apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
     by (smt (verit, best) rel_spmf_mono)
 
   also have \<open>\<dots> \<le> ?R\<close>
     thm rel_pmf_measureD[
-      where p = \<open>foldM_spmf_with_bad_flag f xs False val\<close>,
-      where q = \<open>foldM_spmf (f_fail_on_bad_event <<< f) xs val\<close>,
+      where p = \<open>foldM_spmf_with_bad_flag bad_event f xs False val\<close>,
+      where q = \<open>foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val\<close>,
       where R = \<open>\<lambda> flag_val val'.
         fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
       where A = \<open>Collect <| fails_or_satisfies fst\<close>,
