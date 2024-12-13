@@ -618,11 +618,12 @@ context
   fixes f f' :: \<open>'b \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close>
   notes [simp] = case_prod_beta' space_measure_spmf
   assumes
-    same_weight_spmf : \<open>\<And> x val val'.
-      weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
-
     invariant : \<open>\<And> x. \<turnstile>spmf \<lbrace>invariant\<rbrace> f x \<lbrace>invariant\<rbrace>\<close> and
     invariant' : \<open>\<And> x. \<turnstile>spmf \<lbrace>invariant'\<rbrace> f' x \<lbrace>invariant'\<rbrace>\<close> and
+
+    same_weight_spmf : \<open>\<And> x val val'.
+      \<lbrakk>invariant val; invariant' val'\<rbrakk> \<Longrightarrow>
+      weight_spmf (f x val) = weight_spmf (f' x val')\<close> and
 
     preserves_eq_up_to_bad : \<open>\<And> x. \<turnstile>spmf
       \<lbrace>(\<lambda> val val'. val = val' \<and> invariant val \<and> invariant' val)\<rbrace>
@@ -634,7 +635,7 @@ lemma invariants :
   defines \<open>invs \<equiv> \<lambda> x x'. invariant x \<and> invariant' x'\<close>
   shows \<open>\<turnstile>spmf \<lbrace>invs\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>invs\<rbrace>\<close>
   unfolding assms
-  by (rule conj[OF same_weight_spmf invariant invariant'])
+  by (blast intro: conj same_weight_spmf invariant invariant')
 
 lemma foldM_spmf_eq_up_to_bad_invariant :
   \<open>\<turnstile>spmf

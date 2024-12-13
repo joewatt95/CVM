@@ -305,10 +305,11 @@ proof -
       where invariant = \<open>finite <<< state_chi\<close>,
       where invariant' = well_formed_state,
       simplified])
-      subgoal using lossless_spmf_def by fastforce
 
       subgoal sorry
       subgoal sorry
+
+      subgoal using lossless_spmf_def lossless_step_while by fastforce
 
       subgoal
         unfolding
