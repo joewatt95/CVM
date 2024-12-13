@@ -11,17 +11,6 @@ begin
 abbreviation ord_spmf_eq (infix \<open>\<sqsubseteq>\<close> 60) where
   \<open>(\<sqsubseteq>) \<equiv> ord_spmf (=)\<close>
 
-lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
-  \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q \<longleftrightarrow> weight_spmf p = weight_spmf q\<close>
-  using mk_lossless_back_eq[of p] mk_lossless_back_eq[of q]
-  by (fastforce
-    intro:
-      rel_spmfI[of
-        \<open>scale_spmf (weight_spmf p) <|
-          pair_spmf (mk_lossless p) (mk_lossless q)\<close>]
-    dest: rel_spmf_weightD
-    simp add: map_scale_spmf weight_mk_lossless)
-
 lemma rel_spmf_conj_iff_ae_measure_spmf_conj :
   \<open>rel_spmf (\<lambda> x y. P x \<and> Q y) p q \<longleftrightarrow> (
     (weight_spmf p = weight_spmf q) \<and>
@@ -36,6 +25,10 @@ lemma rel_spmf_conj_iff_ae_measure_spmf_conj :
     elim!: rel_spmfE
     split: if_splits
     simp add: map_scale_spmf weight_mk_lossless set_scale_spmf)
+
+lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
+  \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q \<longleftrightarrow> weight_spmf p = weight_spmf q\<close>
+  using rel_spmf_conj_iff_ae_measure_spmf_conj[of \<open>\<lblot>True\<rblot>\<close>] by auto
 
 (*
 Roughly,`ord_spmf (R) p p'` allows us to compare the outputs of `p` and `p'`
@@ -651,8 +644,6 @@ proof -
   let ?if_branch = \<open>?mk_branch <| Pair True\<close>
   let ?else_branch = \<open>\<lambda> bad_event. (?mk_branch <| \<lambda> val. (bad_event val, val))\<close>
 
-  note [simp] = f_with_bad_flag_def
-
   from invariants have \<open>\<turnstile>spmf
     \<lbrace>?precond id\<rbrace>
     \<langle>?if_branch f x | ?if_branch f' x\<rangle>
@@ -674,7 +665,7 @@ proof -
   ultimately show ?thesis
     by (auto
       intro!: loop_unindexed if_then_else
-      simp add: if_distrib if_distribR)
+      simp add: f_with_bad_flag_def if_distrib if_distribR)
 qed
 
 lemma aux :
@@ -695,7 +686,7 @@ proof -
 
   have
     \<open>map_spmf snd (foldM_spmf_with_bad_flag bad_event f xs flag val) =
-      foldM_spmf f xs val\<close> for bad_event f flag val
+      foldM_spmf f xs val\<close> for f flag val and bad_event :: \<open>'c \<Rightarrow> bool\<close>
     apply (induction xs arbitrary: flag val)
     by (auto
       intro: bind_spmf_cong
@@ -715,23 +706,42 @@ proof -
     by (smt (verit, best) rel_spmf_mono)
 
   also have \<open>\<dots> \<le> ?R\<close>
-    thm rel_pmf_measureD[
+  proof -
+    have [simp] : \<open>Ex (fails_or_satisfies fst)\<close>
+      using option.simps(4)[of True fst] by blast
+
+    have \<open>\<turnstile>pmf
+      \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
+      \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
+        foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
+      \<lbrakk>(\<lambda> flag_val val'.
+        fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None)\<rbrakk>\<close>
+      apply simp
+      sorry
+
+    from rel_pmf_measureD[
       where p = \<open>foldM_spmf_with_bad_flag bad_event f xs False val\<close>,
       where q = \<open>foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val\<close>,
       where R = \<open>\<lambda> flag_val val'.
         fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
       where A = \<open>Collect <| fails_or_satisfies fst\<close>,
       simplified Let_def, simplified]
+    show ?thesis
+      apply (auto
+        dest!: rel_pmf_measureD
+        simp add:
+          prob_fail_def measure_pmf_single
+          Utils_PMF_Relational.relational_hoare_triple_def)
+      sorry
 
-    (* thm rel_pmf_measureD[
-      where p = \<open>f_fail_on_bad_event x val\<close>,
-      where q = \<open>foldM_spmf f_with_bad_flag x (bad_flag, val)\<close>,
-      where R = \<open>\<lambda> val' flag_val.
-        val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
-      where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
-      simplified Let_def, simplified] *)
-
-    sorry
+      (* thm rel_pmf_measureD[
+        where p = \<open>f_fail_on_bad_event x val\<close>,
+        where q = \<open>foldM_spmf f_with_bad_flag x (bad_flag, val)\<close>,
+        where R = \<open>\<lambda> val' flag_val.
+          val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
+        where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
+        simplified Let_def, simplified] *)
+  qed
 
   finally show ?thesis .
 qed
