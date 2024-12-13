@@ -173,10 +173,11 @@ proof -
     moreover have
       \<open>lazy_step (padding @ x # xs) (length padding) = step_no_fail x\<close>
       by (fastforce
-        intro: bind_pmf_cong
+        intro!: bind_pmf_cong map_pmf_cong
+        simp flip: map_pmf_def
         simp add:
           lazy_step_def lazy_step_1_def lazy_step_2_def step_no_fail_def
-          map_bind_pmf bind_map_pmf map_pmf_def[symmetric] map_pmf_comp Let_def)
+          map_bind_pmf bind_map_pmf map_pmf_comp Let_def)
 
     ultimately show ?case by (auto cong: bind_pmf_cong)
   qed
@@ -185,7 +186,3 @@ qed
 theorem estimate_distinct_no_fail_eq_lazy_algo :
   \<open>estimate_distinct_no_fail = lazy_algorithm >>> map_pmf compute_estimate\<close>
   unfolding estimate_distinct_no_fail_def run_steps_then_estimate_def lazy_algorithm_eq_run_step_no_fail ..
-
-end
-
-end

@@ -166,6 +166,15 @@ lemma step_no_fail_eq_step_with_bad_flag :
       step_no_fail_def step_with_bad_flag_def)
 
 lemma
+  \<open>estimate_distinct_no_fail xs = estimate_distinct_with_bad_flag xs\<close>
+  apply (simp
+    add:
+      estimate_distinct_no_fail_def estimate_distinct_with_bad_flag_def state.defs
+      run_steps_then_estimate_def initial_state_def initial_state_with_bad_flag_def)
+  unfolding compute_estimate_def
+  sorry
+
+lemma
   \<open>step x (state.truncate state) = (
     state
       |> f_fail_on_bad_event (\<lambda> state. card (state_chi state) \<ge> threshold)
