@@ -188,6 +188,40 @@ thm
       map_spmf_conv_bind_spmf[symmetric],
     simplified bind_spmf_of_pmf, simplified]
 
+lemma step_while_preserves_well_formedness :
+  \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step_while x \<lbrace>well_formed_state\<rbrace>\<close>
+proof -
+  let ?finite_chi = \<open>finite <<< state_chi\<close>
+
+  let ?hoare_triple = \<open>\<lambda> f. \<turnstile>spmf
+    \<lbrace>?finite_chi\<rbrace>
+    (\<lambda> state. return_spmf (state\<lparr>state_chi := f (state_chi state)\<rparr>))
+      >=> loop_spmf.while cond body_spmf
+    \<lbrace>(\<lambda> state. \<not> cond state \<and> finite (state_chi state))\<rbrace>\<close>
+
+  have \<open>?hoare_triple undefined id\<close>
+    by (auto
+      intro!: while Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>]
+      simp add:
+        cond_def body_def spmf_of_pmf_bind map_spmf_conv_bind_spmf Let_def
+        card_mono subset_iff
+      simp flip: bind_spmf_of_pmf map_spmf_of_pmf map_pmf_def)
+
+  from this[simplified] have
+    \<open>?hoare_triple undefined (insert x)\<close>
+    \<open>?hoare_triple undefined (Set.remove x)\<close> for x :: 'a
+    by (auto
+      intro: Utils_SPMF_Hoare.seq'[where Q = ?finite_chi]
+      simp add: Set.remove_def simp del: return_bind_spmf)
+
+  then show ?thesis
+    unfolding well_formed_state_def step_while_def bind_spmf_of_pmf[symmetric]
+    apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
+    apply (simp_all add:
+      Let_def cond_def not_le Utils_SPMF_Hoare.hoare_triple_def)
+    by blast
+qed
+
 lemma lossless_step_while_loop :
   assumes \<open>finite (state_chi state)\<close> \<open>card (state_chi state) \<le> threshold\<close>
   shows \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
@@ -221,9 +255,9 @@ proof -
         where I = \<open>\<lambda> state.
           finite (state_chi state) \<and> card (state_chi state) \<le> threshold\<close>]
       simp add:
-      body_def
-        well_formed_state_def Let_def with_threshold.cond_def self_le_power
-        pmf_map_pred_true_eq_prob pmf_False_conv_True card_mono subset_iff)
+        body_def well_formed_state_def Let_def with_threshold.cond_def
+        self_le_power pmf_map_pred_true_eq_prob pmf_False_conv_True
+        card_mono subset_iff)
 qed
 
 lemma lossless_step_while :
@@ -236,50 +270,11 @@ lemma lossless_step_while :
 
 lemma lossless_estimate_distinct_while [simp] :
   \<open>lossless_spmf <| estimate_distinct_while xs\<close>
-proof -
-  let ?inv = \<open>\<lambda> state.
-    let chi = state_chi state
-    in finite chi \<and> card chi \<le> threshold\<close>
-
-  let ?finite_chi = \<open>finite <<< state_chi\<close>
-
-  let ?hoare_triple = \<open>\<lambda> f. \<turnstile>spmf
-    \<lbrace>?finite_chi\<rbrace>
-    (\<lambda> state. return_spmf (state\<lparr>state_chi := f (state_chi state)\<rparr>))
-      >=> loop_spmf.while cond body_spmf
-    \<lbrace>(\<lambda> state. \<not> cond state \<and> finite (state_chi state))\<rbrace>\<close>
-
-  have \<open>?hoare_triple undefined id\<close>
-    apply (simp, intro while)
-    apply (simp
-      add: Let_def cond_def body_def spmf_of_pmf_bind
-      flip: spmf_of_pmf_bind map_spmf_of_pmf map_pmf_def)
-    unfolding map_spmf_conv_bind_spmf
-    apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
-    by (auto simp add: card_mono subset_iff)
-
-  from this[simplified] have
-    \<open>?hoare_triple undefined (insert x)\<close>
-    \<open>?hoare_triple undefined (Set.remove x)\<close> for x :: 'a
-    by (auto
-      intro: Utils_SPMF_Hoare.seq'[where Q = ?finite_chi]
-      simp add: Set.remove_def simp del: return_bind_spmf)
-
-  then have \<open>\<turnstile>spmf
-    \<lbrace>well_formed_state\<rbrace> step_while x \<lbrace>well_formed_state\<rbrace>\<close> for x :: 'a
-    unfolding well_formed_state_def step_while_def bind_spmf_of_pmf[symmetric]
-    apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>], simp)
-    apply (simp_all add:
-      Let_def cond_def not_le Utils_SPMF_Hoare.hoare_triple_def)
-    by blast
-
-  then show ?thesis
-    by (auto
-      intro!:
-        lossless_foldM_spmf[where P = well_formed_state]
-        lossless_step_while initial_state_well_formed
-      simp add: estimate_distinct_while_def run_steps_then_estimate_def)
-qed
+  by (auto
+    intro:
+      lossless_foldM_spmf lossless_step_while initial_state_well_formed
+      step_while_preserves_well_formedness
+    simp add: estimate_distinct_while_def run_steps_then_estimate_def)
 
 lemma
   \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
