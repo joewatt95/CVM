@@ -700,39 +700,58 @@ proof -
     by (metis (no_types, lifting) measure_map_spmf vimage_Collect)
 
   also from assms invariants foldM_spmf_eq_up_to_bad_invariant
-  have \<open>\<dots> \<le> ?prob_with_flag fst bad_event f\<close> (is \<open>_ \<le> ?L_0 False val\<close>)
+  have \<open>\<dots> \<le> ?prob_with_flag fst bad_event f\<close>
     apply (simp add: relational_hoare_triple_def)
     apply (intro SPMF.fundamental_lemma[where ?bad2.0 = fst])
     by (smt (verit, best) rel_spmf_mono)
 
+  also have \<open>\<dots> \<le>
+    \<P>(flag_val in foldM_spmf_with_bad_flag bad_event f xs False val.
+      fails_or_satisfies fst flag_val)\<close>
+    by (rule measure_spmf_le_measure_pmf_fails_or_satisfies)
+
   also have \<open>\<dots> \<le> ?R\<close>
   proof -
-    have [simp] : \<open>Ex (fails_or_satisfies fst)\<close>
-      using option.simps(4)[of True fst] by blast
+    have * : \<open>rel_pmf P p q\<close> if \<open>\<And> x y. P x y\<close> for P p q
+      using that by (metis pmf.rel_mono_strong rel_pmf_top top2I)
+
+    thm f_with_bad_flag_def f_fail_on_bad_event_def
 
     have \<open>\<turnstile>pmf
       \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
       \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
         foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
       \<lbrakk>(\<lambda> flag_val val'.
-        fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None)\<rbrakk>\<close>
-      apply simp
+        (fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None) \<and>
+        map_option snd flag_val = val')\<rbrakk>\<close>
+      (is \<open>\<turnstile>pmf \<lbrakk>_\<rbrakk> \<langle>_ | _ \<rangle> \<lbrakk>?inv\<rbrakk>\<close>)
+      apply (simp
+        add: foldM_spmf_eq_foldM_pmf_case[unfolded option.case_eq_if]
+        flip: bind_return_pmf[of \<open>Some _\<close> \<open>foldM_pmf _ _\<close>])
+      apply (intro
+        Utils_PMF_Relational.seq'[where S = ?inv]
+        Utils_PMF_Relational.loop_unindexed
+        Utils_PMF_Relational.if_then_else)
+      apply (auto
+        intro!: rel_pmf_bindI
+        simp add:
+          f_with_bad_flag_def f_fail_on_bad_event_def
+          fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def
+          map_spmf_conv_bind_spmf bind_spmf_def)
       sorry
 
-    from rel_pmf_measureD[
-      where p = \<open>foldM_spmf_with_bad_flag bad_event f xs False val\<close>,
-      where q = \<open>foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val\<close>,
-      where R = \<open>\<lambda> flag_val val'.
-        fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None\<close>,
-      where A = \<open>Collect <| fails_or_satisfies fst\<close>,
-      simplified Let_def, simplified]
-    show ?thesis
-      apply (auto
-        dest!: rel_pmf_measureD
-        simp add:
-          prob_fail_def measure_pmf_single
-          Utils_PMF_Relational.relational_hoare_triple_def)
-      sorry
+    then have \<open>\<turnstile>pmf
+      \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
+      \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
+        foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
+      \<lbrakk>(\<lambda> flag_val val'. fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None)\<rbrakk>\<close>
+      by (metis (no_types, lifting) Utils_PMF_Relational.postcond_weaken)
+
+    then show ?thesis
+      apply (simp
+        flip: measure_pmf_single
+        add: prob_fail_def Utils_PMF_Relational.relational_hoare_triple_def)
+      by (smt (verit, ccfv_SIG) Collect_cong mem_Collect_eq option.simps(4) rel_pmf_measureD singleton_conv)
 
       (* thm rel_pmf_measureD[
         where p = \<open>f_fail_on_bad_event x val\<close>,
