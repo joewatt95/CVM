@@ -14,6 +14,32 @@ definition initial_state_with_bad_flag :: \<open>'a state_with_bad_flag\<close> 
   \<open>initial_state_with_bad_flag \<equiv>
     state.extend initial_state \<lparr>state_bad_flag = False\<rparr>\<close>
 
+lemma compute_estimate_eq_compute_estimate_truncate :
+  \<open>compute_estimate =
+    (state.truncate :: 'a state_with_bad_flag \<Rightarrow> 'a state)
+      >>> compute_estimate\<close>
+  by (auto simp add: compute_estimate_def state.defs)
+
+lemma foldM_pmf_truncate_eq_map_truncate_foldM_pmf :
+  assumes
+    \<open>\<And> x state. f x (state.truncate state) = map_pmf state.truncate (g x state)\<close>
+  shows
+    \<open>foldM_pmf f xs (state.truncate state) =
+      map_pmf state.truncate (foldM_pmf g xs state)\<close>
+  using assms unfolding state.defs
+  apply (induction xs arbitrary: state)
+  by (auto intro: bind_pmf_cong simp add: map_bind_pmf bind_map_pmf)
+
+lemma foldM_spmf_truncate_eq_map_truncate_foldM_spmf :
+  assumes
+    \<open>\<And> x state. f x (state.truncate state) = map_spmf state.truncate (g x state)\<close>
+  shows
+    \<open>foldM_spmf f xs (state.truncate state) =
+      map_spmf state.truncate (foldM_spmf g xs state)\<close>
+  using assms unfolding state.defs
+  apply (induction xs arbitrary: state)
+  by (auto intro: bind_spmf_cong simp add: map_spmf_bind_spmf bind_map_spmf)
+
 context with_threshold
 begin
 
@@ -84,33 +110,6 @@ definition estimate_distinct_while_with_bad_flag :: \<open>'a list \<Rightarrow>
     run_steps_then_estimate_spmf
       step_while_with_bad_flag initial_state_with_bad_flag\<close>
 
-(* definition step_with_bad_flag ::
-  \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag pmf\<close> where
-  \<open>step_with_bad_flag x state \<equiv> do {
-    let bad_flag = state_bad_flag state;
-    let state = state.truncate state;
-
-    let k = state_k state;
-    let chi = state_chi state;
-
-    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
-
-    let chi = (chi |>
-      if insert_x_into_chi
-      then insert x
-      else Set.remove x);
-
-    let state = state\<lparr>state_chi := chi\<rparr>;
-
-    if card chi < threshold
-    then return_pmf (state.extend state \<lparr>state_bad_flag = bad_flag\<rparr>)
-    else (\<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-      |> prod_pmf chi
-      |> map_pmf (\<lambda> keep_in_chi. (
-        \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr>
-          |> flip state.extend
-            \<lparr>state_bad_flag = bad_flag \<or> card chi \<ge> threshold\<rparr>))) }\<close> *)
-
 end
 
 context with_threshold_pos
@@ -118,9 +117,14 @@ begin
 
 definition step_with_bad_flag ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag pmf\<close> where
-  \<open>step_with_bad_flag x \<equiv>
-    step_no_fail x
-      >>> map_pmf (\<lambda> state. state\<lparr>state_bad_flag := False\<rparr>)\<close>
+  \<open>step_with_bad_flag \<equiv> \<lambda> x.
+    step_no_fail x >>> map_pmf (state_bad_flag_update \<lblot>False\<rblot>)\<close>
+
+definition step_fail_on_bad_event ::
+  \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
+  \<open>step_fail_on_bad_event \<equiv> \<lambda> x. f_fail_on_bad_event
+    (\<lambda> state. card (state_chi state) \<ge> threshold)
+    (spmf_of_pmf <<< step_with_bad_flag x)\<close>
 
 definition estimate_distinct_with_bad_flag :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_with_bad_flag \<equiv>
@@ -146,12 +150,17 @@ proof -
         loop_spmf.while_simps map_spmf_bind_spmf bind_map_spmf spmf.map_comp)
 qed
 
-(* lemma
-  \<open>estimate_distinct_while x (state.truncate state) = (
-    state
-      |> estimate_distinct_while_with_bad_flag x
-      |> map_spmf state.truncate)\<close>
-  sorry *)
+lemma
+  \<open>estimate_distinct_while xs = estimate_distinct_while_with_bad_flag xs\<close>
+  apply (simp add:
+    estimate_distinct_while_def estimate_distinct_while_with_bad_flag_def state.defs
+    run_steps_then_estimate_def initial_state_def initial_state_with_bad_flag_def)
+  using
+    compute_estimate_eq_compute_estimate_truncate
+    foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
+      of step_while, OF step_while_eq_step_while_with_bad_flag,
+      simplified state.defs]
+   by (smt (verit) bind_pmf_cong map_option_cong map_pmf_def map_return_pmf option.map(2) spmf.map_comp state.select_convs(1,2))
 
 lemma step_no_fail_eq_step_with_bad_flag :
   \<open>step_no_fail x (state.truncate state) = (
@@ -167,26 +176,42 @@ lemma step_no_fail_eq_step_with_bad_flag :
 
 lemma
   \<open>estimate_distinct_no_fail xs = estimate_distinct_with_bad_flag xs\<close>
-  apply (simp
-    add:
-      estimate_distinct_no_fail_def estimate_distinct_with_bad_flag_def state.defs
-      run_steps_then_estimate_def initial_state_def initial_state_with_bad_flag_def)
-  unfolding compute_estimate_def
-  sorry
+  apply (simp add:
+    estimate_distinct_no_fail_def estimate_distinct_with_bad_flag_def state.defs
+    run_steps_then_estimate_def initial_state_def initial_state_with_bad_flag_def)
+  using
+    compute_estimate_eq_compute_estimate_truncate
+    foldM_pmf_truncate_eq_map_truncate_foldM_pmf[
+      of step_no_fail, OF step_no_fail_eq_step_with_bad_flag,
+      simplified state.defs]
+  by (metis (no_types, lifting) ext map_pmf_comp state.simps(1,2))
 
-lemma
+lemma step_eq_step_fail_on_bad_event :
   \<open>step x (state.truncate state) = (
     state
-      |> f_fail_on_bad_event (\<lambda> state. card (state_chi state) \<ge> threshold)
-        (spmf_of_pmf <<< step_with_bad_flag x)
+      |> step_fail_on_bad_event x 
       |> map_spmf state.truncate)\<close>
   by (auto
     intro!: bind_spmf_cong
     simp flip: bind_spmf_of_pmf map_spmf_of_pmf
     simp add:
-      f_fail_on_bad_event_def step_with_bad_flag_def step_def step_no_fail_def
-      Let_def state.defs spmf_of_pmf_bind fail_spmf_def well_formed_state_def 
-      map_spmf_bind_spmf bind_map_spmf comp_def spmf.map_comp)
+      step_fail_on_bad_event_def f_fail_on_bad_event_def step_with_bad_flag_def
+      step_def step_no_fail_def Let_def state.defs spmf_of_pmf_bind fail_spmf_def
+      well_formed_state_def map_spmf_bind_spmf bind_map_spmf comp_def spmf.map_comp)
+
+lemma
+  \<open>estimate_distinct xs =
+    run_steps_then_estimate_spmf
+      step_fail_on_bad_event initial_state_with_bad_flag xs\<close>
+  apply (simp add:
+    estimate_distinct_def estimate_distinct_with_bad_flag_def state.defs
+    run_steps_then_estimate_def initial_state_def initial_state_with_bad_flag_def)
+  using
+    compute_estimate_eq_compute_estimate_truncate
+    foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
+      of step, OF step_eq_step_fail_on_bad_event,
+      simplified state.defs]
+  by (smt (verit) bind_pmf_cong map_option_cong map_pmf_def map_return_pmf option.simps(9) spmf.map_comp state.select_convs(1,2))
 
 thm
   step_def

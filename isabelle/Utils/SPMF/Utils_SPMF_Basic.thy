@@ -31,7 +31,7 @@ lemma prob_fails_or_satisfies_le_prob_fail_plus_prob :
     \<le> prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
   have \<open>Collect (fails_or_satisfies P) = {None} \<union> Some ` Collect P\<close>
-    by (auto elim: case_optionE)
+    by (auto split: option.splits)
 
   then show ?thesis
     apply (simp add: prob_fail_def space_measure_spmf)
@@ -40,12 +40,18 @@ proof -
 qed
 
 lemma measure_spmf_eq_measure_pmf_succeeds_and_satisfies :
-  \<open>\<P>(x in measure_spmf p. P x) =
-    \<P>(x in measure_pmf p. succeeds_and_satisfies P x)\<close>
+  \<open>\<P>(x in measure_spmf p. P x) = \<P>(x in p. succeeds_and_satisfies P x)\<close>
   by (auto
     intro: arg_cong[where f = \<open>measure_pmf.prob p\<close>]
     split: option.splits
     simp add: space_measure_spmf measure_measure_spmf_conv_measure_pmf)
+
+lemma measure_spmf_le_measure_pmf_fails_or_satisfies :
+  \<open>\<P>(x in measure_spmf p. P x) \<le> \<P>(x in p. fails_or_satisfies P x)\<close>
+  by (auto
+    intro: measure_pmf.finite_measure_mono
+    split: option.splits
+    simp add: measure_spmf_eq_measure_pmf_succeeds_and_satisfies)
 
 abbreviation (input) kleisli_compose_left ::
   \<open>('a \<Rightarrow> 'b spmf) \<Rightarrow> ('b \<Rightarrow> 'c spmf) \<Rightarrow> 'a \<Rightarrow> 'c spmf\<close>
