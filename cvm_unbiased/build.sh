@@ -1,1 +1,1 @@
-latexmk -interaction=nonstopmode -pdf main.tex
+latexmk -bibtex -interaction=nonstopmode -pdf main.tex

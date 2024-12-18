@@ -1,11 +1,13 @@
 \documentclass{article}
 \usepackage[left=1.2in, right=1.2in]{geometry}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{algorithmicx}
+\usepackage{hyperref}
 \newcommand{\prob}{\mathcal P}
 \newcommand{\expectation}{\mathrm{E}}
 \newcommand{\eps}{\varepsilon}
@@ -13,13 +15,14 @@
 \theoremstyle{definition}
 \newtheorem{lemma}{Lemma}
 
+
 \begin{document}
 \title{Unbiased CVM Algorithm}
 \maketitle
 \section{Notation}
 For a finite set $S$, the probability space of uniformly sampling from the set is denoted by $U(S)$, i.e., for each $s \in S$ we have
 $\prob_{U(S)}({s}) = |S|^{-1}$.
-For the bernoulli probability space, over the set $\{\mathrm{true},\mathrm{false}\}$ we'll write $\mathrm{Ber}(p)$, i.e., $P_{\mathrm{Ber}(p)}(\{\mathrm{true}\}) = p$.
+For the bernoulli probability space, over the set $\{0,1\}$ we'll write $\mathrm{Ber}(p)$, i.e., $P_{\mathrm{Ber}(p)}(\{1\}) = p$.
 $I(P)$ is the indicator function for a predicate $P$, i.e., $I(\mathrm{true}) = 1$ and $I(\mathrm{false}) = 0$.
 \section{Algorithm}
 Let us fix
@@ -68,65 +71,90 @@ Also for the intermediate states, we have:
 \item $\chi(\omega) \subseteq \{a_1,\ldots,a_i\}$ a.s. for $\omega \in \Omega'_i$,
 \item $|\chi(\omega)| \leq n$ a.s. for $\omega \in \Omega'_i$.
 \end{itemize}
+Given a set $T$ with $n$ elements, we'll write $C(T)$ for the $nf$-subsets of $T$, i.e.:
+\[
+  C(T) = \{ \tau \subseteq T \, | \, |\tau| = nf \} \textrm{.}
+\]
+\begin{lemma}\label{le:samp_prod}
+Let $T$ be a set with $n$ elements, $S \subseteq T$ and $g: \{0,1\} \rightarrow \mathbb R^+$ then
+\[
+  \int_{U(C(T))} \prod_{s \in S} g(I(s \in \tau)) \leq \prod_{s \in S} \int_{\mathrm{Ber}(f)} g(\tau) d \tau
+\]
+\end{lemma}
+\begin{proof}
+We'll verify the cases $g(0) \leq g(1)$ and the converse seperately. For the case $g(0) \leq g(1)$:
+We want to use Theorem 2.11 by Joag-Dev and Proschan~\cite{joagdev1983}, which requires us to view $C(T)$ as a permutation distribution.
+
+Let us for that consider $P := U(\{f : T \rightarrow \{0,..,|T|-1\}, f \textrm{bij.}\})$, i.e., we are assigning randomly distinct positions from $0$ to $|T|-1$ to the elements
+of $T$. Then $P$ is clearly a permuation distribution and the random variables describing the positions of each element are negatively associated according to Theorem 2.11.
+
+Now we can represent $C(T)$ as the choice of all the elements whose associated position is greater or equal to $(1-f)n$, i.e.:
+\begin{equation*}
+  \int_{U(C(T))} \prod_{s \in S} g(I(s \in \tau)) = \int_P \prod_{s \in S} g(I(\tau(s) \geq (1-f)n)) \, d\tau := R
+\end{equation*}
+Now we can use the Property P2~\cite[Page 288]{joagdev1983} since the $\tau(s)$ are negatively associated:
+\begin{equation}\label{eq:samp_prod_2}
+  R \leq \prod_{s \in S} \int_P g(I(\tau(s) \geq (1-f)n)) \, d\tau
+\end{equation}
+Note that this works because $x \rightarrow g(I(x \geq (1-f)n))$ is a monotone increasing function.
+Moreover the right hand side of Eq.~\ref{eq:samp_prod_2} is easy to be seen to be equal to the right hand side of the lemma we want to show.
+
+For the case $g(0) > g(1)$ we can do a similar trick, except in this case we associate with the choice of $\tau$ the elements with positions $\{0,\ldots,nf-1\}$.
+\end{proof}
 
 \begin{lemma}
 \label{le:neg_cor}
-For all $k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$:
+Let $h : \mathbb R \rightarrow \mathbb R^+$ be a positive concave function, then for all 
+$k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$:
 \begin{align*}
-  \expectation_{\Omega_k}\left[ \prod_{s \in S} p^{-1} I(s \in \chi) \right] & \leq 1 &
-  \expectation_{\Omega'_k}\left[ \prod_{s \in S} p^{-1} I(s \in \chi) \right] & \leq 1
+  \expectation_{\Omega_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] & \leq h(1)^{|S|} &
+  \expectation_{\Omega'_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] & \leq h(1)^{|S|}
 \end{align*}
 \end{lemma}
 \begin{proof}
+Note because $h$ is concave we can use the reverse Jensen's inequality
+\begin{equation}\label{eq:rev_jensen}
+  E [ h(X(\omega)) ] \leq h(E X)
+\end{equation}
+for all integrable random variables and probability spaces. 
+
 We show the result using induction over $k$. Note that we show the statement for arbitrary $S$, e.g., the induction statements are:
 \begin{eqnarray*}
-P(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega_k}\left[p^{-|S|} I(S \subseteq \chi)\right] \leq 1\right) \\
-Q(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega'_k}\left[p^{-|S|} I(S \subseteq \chi)\right] \leq 1\right)
+P(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} \right) \\
+Q(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega'_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} \right)
 \end{eqnarray*}
 and we will show $P(0),Q(1),P(1),Q(2),P(2),\ldots,Q(l),P(l)$ successively.
 \paragraph{Induction start $P(0)$:} \phantom{.}\\
-We have $p=1$ $\chi=\emptyset$ and $S \subseteq \emptyset$, and hence
+We have $S \subseteq \emptyset$, and hence
 \[
-\expectation_{\Omega_0}\left[p^{-|S|} I(S \subseteq \chi)\right] = \expectation_{\Omega_0}\left[1^{-|\emptyset|} I(\emptyset \subseteq \emptyset))\right] = 1 \leq 1 \textrm{.}
+\expectation_{\Omega_0}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] = \expectation_{\Omega_0}\left[1\right] = 1 \leq h(1)^0 \textrm{.}
 \]
 \paragraph{Induction step $P(k) \rightarrow Q(k+1)$:} \phantom{.}\\
 Let $S \subseteq \{ a_1, \ldots, a_{k+1} \}$ and define $S' := S - \{ a_{k+1} \}$.
-Note that $\Omega’_{k+1}$ can be constructed from $\Omega_k$ as a compound distribution, where $a_{k+1}$ is included in the buffer, with the probability $p$, which is itself a random variable over the space $\Omega_k$.
+Note that $\Omega'_{k+1}$ can be constructed from $\Omega_k$ as a compound distribution, where $a_{k+1}$ is included in the buffer, with the probability $p$, which is itself a random variable over the space $\Omega_k$.
 
 In particular, for example:
 \[
-\prob_{\Omega'_{k+1}}( P(\chi, p) ) = \int_{\Omega_k} \int_{Ber(p(\omega))} P(\chi(\omega)-\{a_{k+1}\}\cup f(\tau), p(\omega)) \, d \tau \, d \omega
+\prob_{\Omega'_{k+1}}( P(\chi, p) ) = \int_{\Omega_k} \int_{\textrm{Ber}(p(\omega))} P(\chi(\omega)-\{a_{k+1}\}\cup f(\tau), p(\omega)) \, d \tau \, d \omega
 \]
-for all predicates $P$ where we define $f(\mathrm{true}) = \{a_{k+1}\}$ and $f(\mathrm{false}) = \emptyset$.
+for all predicates $P$ where we define $f(1) = \{a_{k+1}\}$ and $f(0) = \emptyset$.
 
-We distinguish the two cases $a_{k+1} \in S$ and $a_{k+1} \notin S$.\\
-
-If $a_{k+1} \in S$ then:
+We distinguish the two cases $a_{k+1} \in S$ and $a_{k+1} \notin S$. If $a_{k+1} \in S$:
 \begin{eqnarray*}
-  \expectation_{\Omega’_{k+1}}\left[\frac{I(S \subseteq \chi)}{p^{|S|}}\right] & = & \int_{\Omega_k} \frac{I(S' \subseteq \chi(\omega))}{ p(\omega)^{|S'|+1}}
-  \int_{\mathrm{Ber}(p(\omega))} I(\tau) \, d \tau \, d \omega \\
-  & = & \int_{\Omega_k} p(\omega)^{-(|S'|+1)} I(S' \subseteq \chi(\omega)) p(\omega) \, d \omega \\
-  & = & \expectation_{\Omega_k}\left[p^{-|S'|} I(S' \subseteq \chi)\right] \leq_{IH} 1
+  \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] & = & \int_{\Omega_k} \left(\prod_{s \in S'} h(p^{-1} I(s \in \chi))\right)
+  \int_{\mathrm{Ber}(p(\omega))} h(p^{-1} \tau) \, d \tau \, d \omega \\
+  & \underset{\textrm{Eq.~\ref{eq:rev_jensen}}}{\leq} & \int_{\Omega_k} \left( \prod_{s \in S'} h(p^{-1} I(s \in \chi)) \right)
+  h\left(\int_{\mathrm{Ber}(p(\omega))} p^{-1} \tau \, d \tau\right) \, d \omega \\
+  & = & \int_{\Omega_k} \left( \prod_{s \in S'} h(p^{-1} I(s \in \chi)) \right) h(1) \, d \omega \\
+  & \underset{\textrm{IH}}{\leq} & h(1)^{|S'|} h(1) = h(1)^{|S|}
 \end{eqnarray*}
 
-If $a_{k+1} \notin S$ then:
-\begin{eqnarray*}
-  \expectation_{\Omega’_{k+1}}\left[\frac{I(S \subseteq \chi)}{p^{|S|}}\right] & = & \int_{\Omega_k} \frac{I(S' \subseteq \chi(\omega))}{p(\omega)^{|S'|+1}}
-  \int_{\mathrm{Ber}(p(\omega))} 1 \, d \tau \, d \omega \\
-  & = & \int_{\Omega_k} p(\omega)^{-(|S'|)} I(S' \subseteq \chi(\omega)) \, d \omega \\
-  & = & \expectation_{\Omega_k}\left[p^{-|S'|} I(S' \subseteq \chi)\right] \leq_{IH} 1
-\end{eqnarray*}
+If $a_{k+1} \notin S$ then $S' = S$ and:
+\begin{equation}
+  \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] = \int_{\Omega_k} \prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \leq_{IH} h(1)^{|S'|} = h(1)^{|S|}
+\end{equation}
 \paragraph{Induction step $Q(k+1) \rightarrow P(k+1)$:} \phantom{.}\\
 Let $S \subseteq \{ a_1, \ldots, a_{k+1} \}$.
-Let us also introduce the abbreviation $C(X) := \{\tau \subset X \, | \, |\tau| = n f \}$, i.e., the set of $nf$-subsets of $X$.
-
-First we estimate the probability that $S$ is in a random subset of $C(T)$:
-\begin{equation}
-  \label{eq:prob_c_t}
-  \int_{U(C(T))} I(S \subseteq \tau) \, d \tau = I(S \subseteq T) \binom{|T-S|}{nf-|S|} \binom{|T|}{nf}^{-1} \leq I(S \subseteq T) \left(\frac{nf}{|T|}\right)^{|S|}
-\end{equation}
-For the above it is best to consider the two cases $S \subseteq T$ and the converse separately. Note that if $S \subseteq \tau$ for $\tau \in C(S)$ then it must be true that:
-$S \subseteq T$.
 
 Let us again note that $\Omega_{k+1}$ is a compound distribution over $\Omega_k$. In general, for all predicates $P$:
 \[
@@ -135,35 +163,26 @@ Let us again note that $\Omega_{k+1}$ is a compound distribution over $\Omega_k$
 
 With this we can can now verify the induction step:
 \begin{eqnarray*}
-&  & \textstyle\expectation_{\Omega_{k+1}}\left[p^{-|S|} I(S \subseteq \chi)\right]  \\
-& = &\textstyle \int_{\Omega'_{k+1}} \frac{I(|\chi(\omega)| < n)}{p(\omega)^{|S|}} I(S \subseteq \chi(\omega)) \, d \omega
-+ \int_{\Omega'_{k+1}} \frac{I(|\chi(\omega)| = n)}{(p(\omega)f)^{|S|}} \int_{U(C(\chi(\omega)))} I(S \subseteq \tau) d \tau \, d \omega  \\
-& \underset{\textrm{Eq.~\ref{eq:prob_c_t}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} \frac{I(|\chi(\omega)| < n)}{p(\omega)^{|S|}} I(S \subseteq \chi(\omega)) \, d \omega
-+ \int_{\Omega'_{k+1}} \frac{I(|\chi(\omega)| = n)}{(p(\omega)f)^{|S|}} I(S \subseteq \chi(\omega)) \left(\frac{nf}{|\chi(\omega)|}\right)^{|S|} \, d \omega  \\
-& = & \textstyle \int_{\Omega'_{k+1}} \frac{I(|\chi(\omega)| = n)+I(|\chi(\omega)| < n)}{p(\omega)^{|S|}} I(S \subseteq \chi(\omega)) \, d \omega \\
-& = & \textstyle \expectation_{\Omega'_{k+1}}\left[p^{-|S|} I(S \subseteq \chi) \right] \leq_{IH} 1
+&  & \textstyle\expectation_{\Omega_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi))\right]  \\
+& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \int_{U(C(\chi))} \prod_{s \in S \cap \chi} h((pf)^{-1}I(s \in \tau )) d \tau \, d \omega  \\
+& \underset{\textrm{Le.~\ref{le:samp_prod}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \prod_{s \in S \cap \chi} \int_{\mathrm{Ber(f)}} h((pf)^{-1}\tau) d \tau \, d \omega  \\
+& \underset{\textrm{Eq.~\ref{eq:rev_jensen}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \prod_{s \in S \cap \chi} h\left(\int_{\mathrm{Ber(f)}} (pf)^{-1}\tau d \tau\right) \, d \omega  \\
+& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \prod_{s \in S \cap \chi} h(p^{-1}) \, d \omega  \\
+& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega  \\
+& = & \textstyle \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \underset{\textrm{IH}}{\leq} h(1)^{|S|}
 \end{eqnarray*}
 
-\end{proof}
-The dual version of Lemma~\ref{le:neg_cor} would be: $\expectation[ (1-p)^{-|S|} I(S \cap \chi=\emptyset) ] \leq 1$, but this is somewhat undefined for $p=1$.
-This can easily be resolved, by taking into account that the first sub-sampling step happens deterministically, exactly at the iteration $k$, when $\{a_1,\ldots,a_k\} = n$,
-i.e., we have $p \leq f < 1$ a.s. for $\Omega_l$ if $\{a_1,\ldots,a_l\} \geq n$ and $p=1$ a.s. otherwise.
-
-\begin{lemma}
-\label{le:neg_cor_2}
-If $\{a_1,\ldots,a_l\} \geq n$, then for all $S \subseteq \{a_1,\ldots,a_l\}$:
-\[
-\expectation_{\Omega_l} \left[ (1-p)^{-|S|} I(S \cap \chi=\emptyset) \right] \leq 1 \textrm{.}
-\]
-\end{lemma}
-\begin{proof}
-The proof is analogous to the proof of Lemma~\ref{le:neg_cor} using induction (with special handling for the $p=1$ case).
 \end{proof}
 
 \section{Concentration}
 This section establishes that the result of the algorithm is concentrated around the cardinality of $A = \{ a_1, \ldots, a_l \}$. This will be done by Chernoff bounds for the probability that the estimate is above $(1+\eps)|A|$ (resp. below $(1-\eps)|A|$ assuming $p$ is not too small and a tail estimate for $p$ being too small.
 
-It should be noted that concentration is trivial, if $|A| \leq n$, i.e., if we never need to do sub-sampling.
+It should be noted that concentration is trivial, if $|A| < n$, i.e., if we never need to do sub-sampling.
 So we assume $|A| \geq n$.
 
 We define $q := n/(4|A|)$ - notice that $q \leq \frac{1}{4}$. Moreover we'll introduce the notation $\tilde{p} := \max(p,q)$.
@@ -181,28 +200,26 @@ For any $\Omega \in \{\Omega_0,\ldots,\Omega_l\} \cup \{\Omega'_1,\ldots,\Omega'
 By assumption there exists a $k$ such that $\Omega \in \{\Omega_k, \Omega'_k\}$. Let $A' = A \cap \{a_1,\ldots,a_k\}$.
 
 Moreover, we define
-\[
-  a(t) := \sup_{p \in (0,1]} p (e^{t/ \tilde{p}}-1) = q (e^{t/q}-1)
-\]
+\begin{align*}
+  t & := q \ln ( 1 + \frac{\eps}{1-q(1+\eps)}) \\
+  h(x) & := 1+qx(e^{t/q}-1)  
+\end{align*}
 
 To get a tail estimate, we use the Cram\'{e}r-Chernoff method:
 {\allowdisplaybreaks
 \begin{eqnarray*}
   \prob_{\Omega} \left( \tilde{p}^{-1} |\chi| \geq (1+\eps) |A| \right) & \leq & \prob_{\Omega} \left( \tilde{p}^{-1} |\chi| \geq (1+\eps) |A'| \right) \\
-  & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
+  & \underset{\textrm{Markov,}t>0}{\leq} & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
  & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
-  & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} (1 + I(s \in \chi) (e^{t \tilde{p}^{-1}}-1) ) \right] \\
- & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} \left(1 + \frac{a(t)}{p} I(s \in \chi) \right) \right] \\
- & = & \exp( -t (1+\eps) |A| ) \sum_{T \subseteq A'} a(t)^{|T|} \expectation_\Omega \left[ \prod_{s \in T} (p^{-1} I(s \in \chi) ) \right] \\
- & \underset{Lemma~\ref{le:neg_cor}}{\leq} & \exp( -t (1+\eps) |A| ) \sum_{T \subseteq A'} a(t)^{|T|} \\
- & = & \left(\exp( -t (1+\eps) |A| ) (1+a(t))\right)^{|A'|} \\ & \leq & \exp ( |A| (\ln(1+a(t))-t (1+\eps)))
+ & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} h( p^{-1} I(s \in \chi) ) \right] \\
+ & \underset{\textrm{Le.~\ref{le:neg_cor}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
+ & \underset{h(1)\geq 1}{\leq} & \left(\exp( \ln(h(1)) -t (1+\eps))\right) ^ {|A|} 
 \end{eqnarray*}}
-So we just need to show that (using $|A|=\frac{n}{4q}$) for some $t > 0$:
+So we just need to show that (using $|A|=\frac{n}{4q}$):
 \[
-  \ln(1+a(t))-t (1+\eps) \leq \frac{-q \eps^2}{3}
+  \ln(h(1))-t (1+\eps) \leq \frac{-q \eps^2}{3}
 \]
-which can be verified for $t = q \ln ( 1 + \frac{\eps}{1-q(1+\eps)}) > 0$.
-The latter can be established by analyzing the function $f(q,\eps) = -\ln (1+a(t)) +t (1+\eps) - \frac{q\eps^2}{3}$.
+The latter can be established by analyzing the function $f(q,\eps) = -\ln (h(1)) +t (1+\eps) - \frac{q\eps^2}{3}$.
 For which it is easy to check $f(q,0) = 0$ and the derivative with respect to $\eps$ is positive in the range $0 \leq q \leq 1/4$ and $0 < \eps \leq 1$, i.e.,
 $f(q,\eps) \geq 0$.
 \end{proof}
@@ -229,8 +246,8 @@ It can only happen if $|\chi|=n$, $p=f^j$ in $\Omega'_k$.
 Then
 \begin{eqnarray*}
   \prob_{\Omega'_k} ( |\chi| \geq n \wedge p=f^j) & \leq & \prob( \tilde{p}^{-1} |\chi| \geq f^{-j} n ) \\
-    & \underset{Eq.~\ref{eq:f_j}}{\leq} & \prob( \tilde{p}^{-1} |\chi| \geq 2|A| ) \\
-    & \underset{Lem.~\ref{le:helper}}{\leq} & \exp( - n/12)
+    & \underset{\textrm{Eq.~\ref{eq:f_j}}}{\leq} & \prob( \tilde{p}^{-1} |\chi| \geq 2|A| ) \\
+    & \underset{\textrm{Le.~\ref{le:helper}}}{\leq} & \exp( - n/12)
 \end{eqnarray*}
 
 The probability that this happens ever in the entire process is then at most $l$ times the above which proves the lemma.
@@ -247,12 +264,12 @@ Let $0 < \eps \leq 1$ then:
 \begin{eqnarray*}
   L & =&  \prob_{\Omega_l} ( \tilde{p}^{-1} |\chi| \geq (1+\eps)|A| \wedge p \geq q) \\
   & \leq & \prob_{\Omega_l} ( \tilde{p}^{-1} |\chi| \geq (1+\eps)|A| ) \\
-  & \underset{Lemma~\ref{le:helper}}{\leq}  &  \exp\left(-\frac{n}{12} \eps^2\right)
+  & \underset{\textrm{Le.~\ref{le:helper}}}{\leq}  &  \exp\left(-\frac{n}{12} \eps^2\right)
 \end{eqnarray*}
 \end{proof}
 
 \begin{lemma}\label{le:lower_tail}
-Let $0 < \eps \leq 1$ then:
+Let $0 < \eps < 1$ then:
 \[
   L := \prob_{\Omega_l} ( p^{-1} |\chi| \leq (1-\eps)|A| \wedge p \geq q) \leq \exp\left(-\frac{n}{12} \eps^2\right)
 \]
@@ -260,32 +277,25 @@ Let $0 < \eps \leq 1$ then:
 \begin{proof}
 Let us define
 \begin{align*}
-  a & := \frac{\eps}{1-\eps} &
-  t & := (1-q+\eps q) \ln \left(1 + \frac{\eps}{(1-q)(1-\eps)} \right) \\
-  f(p) & = \begin{cases} 1-p+\eps p & \textrm{ if } p \geq q \\ \frac{t}{\ln \left(1+\frac{3}{4}a\right)} & \textrm{ otherwise.} \end{cases}
+  t & := - q \ln\left( \frac{(1-\eps)^{-1}-q}{1-q}\right) < 0 \\
+  h(x) & := 1+q \min(x,q^{-1}) (e^{t/q}-1)  
 \end{align*}
-
-We first observe that $t > 0$. Moreover,
-\begin{equation}\label{eq:f_p}
-  \exp\left( \frac{t}{f(p)}\right)-1 \leq a (1-p) \textrm{ for } 0 < p < 1
-\end{equation}
 
 With these definitions we again follow the Cram\'{e}r-Chernoff method:
 {\allowdisplaybreaks
 \begin{eqnarray*}
-  L & = & \prob_{\Omega_l} \left( |A-\chi| \geq (1-(1-\eps)p) |A| \wedge p \geq q \right) \\
-    & = & \prob_{\Omega_l} \left( |A-\chi| \geq f(p)|A| \wedge p \geq q \right) \\
-    & \leq & \prob_{\Omega_l} \left( |A-\chi| \geq f(p)|A| \right)  \\
-    & \leq & \exp( -t |A| ) \expectation_{\Omega_l} \left[ \exp \left( \frac{t}{f(p)} |A-\chi| \right) \right] \\
-    & = & \exp( -t |A| ) \expectation_{\Omega_l} \left[ \prod_{s \in A} 1 + (e^{t/f(p)} - 1) I(s \notin \chi) \right] \\
-    & \underset{Eq.~\ref{eq:f_p}}{\leq}  & \exp( -t |A| ) \sum_{T \subseteq A} \expectation_{\Omega_l} \left[ \prod_{s \in T} \frac{a}{1-p} I(s \notin \chi) \right] \\
-    & \underset{Lemma~\ref{le:neg_cor_2}}{\leq} & \exp( -t |A| ) (1+a)^{|A|}
+  L & = & \prob_{\Omega_l} \left( \tilde{p}^{-1} |\chi| \leq (1-\eps)|A| \right) \\
+    & \underset{\textrm{Markov,}t<0}{\leq} & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
+    & = & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
+    & \leq & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} h( p^{-1} I(s \in \chi) ) \right] \\
+    & \underset{\textrm{Le.~\ref{le:neg_cor}}}{\leq} & \exp( -t (1-\eps) |A| ) (h(1))^{|A|} \\
+    & = & \exp( \ln(h(1)) -t (1-\eps) )^{|A|}
 \end{eqnarray*}
 }
 
-Substituting $t$ and $a$ and using $|A| = \frac{q}{4n}$, we can see that the lemma is true if
+Substituting $t$ and $h$ and using $|A| = \frac{n}{4q}$, we can see that the lemma is true if
 \[
-  f(q,\eps) = (1-q+\eps q) \ln\left(1+\frac{\eps}{(1-q)(1-\eps)}\right) - \ln\left(1+\frac{\eps}{1-\eps}\right) - \frac{q}{3} \eps^2
+  f(q,\eps) = t (1-\eps) - \ln(1+q(e^{t/q}-1)) - \frac{q}{3} \eps^2
 \]
 is non-negative for $0 \leq q \leq \frac{1}{4}$ and $0 < \eps < 1$.
 This can be verified by checking that $f(q,0) = 0$ and that the derivative with respect to $\eps$ is non-negative.
@@ -310,11 +320,18 @@ Note that the theorem is trivial if $|A| < n$. If not:
 \end{proof}
 
 \section{Unbiasedness}
-It is easy to conclude using Lemma~\ref{le:neg_cor} and \ref{le:neg_cor_2} that for each $s \in A$ that:
-$\expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = 1$.
+Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g. we can choose $M = f^{-l}$). Then we can derive from Lemma~\ref{le:neg_cor} using $h(x) = x$ and $h(x) = \max(M-x,0)$ that:
+\begin{eqnarray*}
+  \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] \leq 1
+  \expectation_{\Omega_l} [ M - p^{-1} I(s \in S) ] = \expectation_{\Omega_l} [ M - \max(0,p^{-1} I(s \in S)) ] \leq M-1  
+\end{eqnarray*}
+which implies $\expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = 1$.
 By linearity of expectation we can conclude that
 \[
   \expectation_{\Omega_l} [ p^{-1} |\chi| ] = \sum_{s \in A} \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = |A| \textrm{.}
 \]
+\bibliographystyle{plainurl}
+\bibliography{main} 
+
 \end{document}
 
