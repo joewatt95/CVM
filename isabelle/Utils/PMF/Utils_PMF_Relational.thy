@@ -5,6 +5,11 @@ imports
 
 begin
 
+lemmas rel_pmf_mono_strong = rel_spmf_mono_strong[
+  where f = \<open>spmf_of_pmf _\<close>,
+  where g = \<open>spmf_of_pmf _\<close>,
+  simplified]
+
 definition relational_hoare_triple ::
   \<open>['a \<Rightarrow> 'b \<Rightarrow> bool, 'a \<Rightarrow> 'c pmf, 'b \<Rightarrow> 'd pmf, 'c \<Rightarrow> 'd \<Rightarrow> bool] \<Rightarrow> bool\<close>
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where

@@ -712,20 +712,6 @@ proof -
 
   also have \<open>\<dots> \<le> ?R\<close>
   proof -
-    have * : \<open>rel_pmf P p q\<close> if \<open>\<And> x y. P x y\<close> for P p q
-      using that by (metis pmf.rel_mono_strong rel_pmf_top top2I)
-
-    have * :
-      \<open>map_spmf (\<lambda> val. (bad_event val, val)) (f x val) = do {
-        val \<leftarrow> f x val;
-        if \<not> bad_event val
-        then return_spmf (False, val)
-        else return_spmf (True, val) }\<close> for x val
-      sorry
-
-    have ** : \<open>map_spmf f (return_pmf None) = return_pmf None\<close> for f by simp
-    have *** : \<open>map_spmf (\<lambda>_. x) (return_spmf ()) = return_spmf x\<close> for x by simp
-
     have \<open>\<turnstile>pmf
       \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
       \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
@@ -735,49 +721,23 @@ proof -
         map_option snd flag_val = val')\<rbrakk>\<close>
       (is \<open>\<turnstile>pmf \<lbrakk>_\<rbrakk> \<langle>_ | _ \<rangle> \<lbrakk>?inv\<rbrakk>\<close>)
       apply (simp
-        add: foldM_spmf_eq_foldM_pmf_case
+        add: foldM_spmf_eq_foldM_pmf_case[unfolded option.case_eq_if]
         flip: bind_return_pmf[of \<open>Some _\<close> \<open>foldM_pmf _ _\<close>])
       apply (intro Utils_PMF_Relational.seq'[where S = ?inv])
       apply simp
       apply (intro Utils_PMF_Relational.loop_unindexed)
-      apply (simp_all add: fail_spmf_def)
-      apply (auto
-        simp add:
-          Utils_PMF_Relational.relational_hoare_triple_def
+
+      apply (intro Utils_PMF_Relational.if_then_else)
+        apply simp
+        apply (simp add: fail_spmf_def)
+        apply (simp add:
           f_with_bad_flag_def f_fail_on_bad_event_def
-          assert_spmf_def if_distrib * bind_spmf_def
-        split: option.splits)
-      apply (intro rel_pmf_bindI[where R = \<open>(=)\<close>])
-      apply simp
-      apply simp
-      unfolding ** ***
-
-      (* apply (auto simp add:
-        Utils_PMF_Relational.relational_hoare_triple_def
-        f_with_bad_flag_def f_fail_on_bad_event_def
-        pmf.rel_map bind_spmf_def option.map_comp)
-      unfolding comp_def prod.sel
-
-      apply (subst bind_return_pmf'[symmetric])
-      apply (intro rel_pmf_bindI[where R = \<open>(=)\<close>])
-      apply simp
-      apply (auto
-        split: option.splits
-        simp add: pmf.rel_map)
-      apply (simp only: assert_spmf_def)
-
-      thm f_with_bad_flag_def f_fail_on_bad_event_def *)
-
-      (* apply (intro
-        Utils_PMF_Relational.seq'[where S = ?inv]
-        Utils_PMF_Relational.loop_unindexed
-        Utils_PMF_Relational.if_then_else)
-      apply (auto
-        intro!: rel_pmf_bindI
-        simp add:
-          f_with_bad_flag_def f_fail_on_bad_event_def
-          fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def
-          map_spmf_conv_bind_spmf bind_spmf_def) *)
+          map_spmf_conv_bind_spmf bind_spmf_def)
+        apply (intro Utils_PMF_Relational.seq'[where S = \<open>(=)\<close>])
+        apply (auto
+          split: option.splits
+          simp add:
+            Utils_PMF_Relational.relational_hoare_triple_def assert_spmf_def)
 
       sorry
 
@@ -804,6 +764,56 @@ proof -
   qed
 
   finally show ?thesis .
+qed
+
+lemma aux' :
+   "(foldM_pmf (\<lambda> x. case_option (return_pmf None) (g x)) xs None) = return_pmf None"
+  apply (induction xs)
+  by (auto simp add: fail_spmf_def bind_return_pmf)
+
+lemma
+  "rel_pmf
+    (\<lambda> flag_val val'. \<not> flag \<longrightarrow> (case flag_val of
+      None \<Rightarrow> val' = None |
+      Some (True, val) \<Rightarrow> val' = None |
+      Some (False, val) \<Rightarrow> val' = Some val))
+    (foldM_spmf (f_with_bad_flag bad_event <<< f) xs (flag, val))
+    (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)"
+  (is \<open>rel_pmf (\<lambda> flag_val val'. _ \<longrightarrow> ?R flag_val val') _ _\<close>)
+proof (induction xs arbitrary: flag val)
+  case Nil
+  then show ?case by simp
+next
+  have [simp] : "(\<lambda> _ _. True) = \<top>" by blast
+
+  case (Cons x xs)
+
+  from Cons[of flag] show ?case
+    apply (cases flag)
+
+    subgoal by simp
+
+    apply (simp
+      add: foldM_spmf_eq_foldM_pmf_case
+      flip: bind_return_pmf[of \<open>Some _\<close> \<open>foldM_pmf _ _\<close>])
+    apply (intro rel_pmf_bindI[where R = \<open>?R\<close>])
+    apply (simp add:
+      f_with_bad_flag_def f_fail_on_bad_event_def
+      map_spmf_conv_bind_spmf bind_spmf_def)
+    apply (intro rel_pmf_bindI[where R = \<open>(=)\<close>])
+    apply (auto
+      simp add: assert_spmf_def bind_return_pmf fail_spmf_def aux' bool.case_eq_if
+      split: option.splits if_splits)
+
+    (* Prove monotonicity lemma that flag stays Some of True or becomes None
+    once it's set to True, so that Some False is no longer possible. *)
+    subgoal
+      apply (rule rel_pmf_mono_strong[where A = \<top>, simplified])
+      apply auto
+      sorry
+
+    apply (rule rel_pmf_mono_strong[where A = ?R])
+    by auto
 qed
 
 (* proof (induction xs)
