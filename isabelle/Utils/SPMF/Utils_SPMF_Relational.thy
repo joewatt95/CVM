@@ -155,14 +155,14 @@ lemma skip_right [simp] :
   by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf2)
 
 lemma skip' [simp] :
-  \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
+  \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f >>> return_spmf | f' >>> return_spmf\<rangle> \<lbrace>S\<rbrace>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
 
 lemma skip_left' [simp] :
   assumes \<open>\<And> x. lossless_spmf (f' x)\<close>
   shows
-    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. return_spmf (f x)) | f'\<rangle> \<lbrace>S\<rbrace>
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f >>> return_spmf | f'\<rangle> \<lbrace>S\<rbrace>
     \<longleftrightarrow> (\<forall> x. \<turnstile>spmf \<lbrace>R x\<rbrace> f' \<lbrace>S (f x)\<rbrace>)\<close>
   using assms
   by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf1)
@@ -170,7 +170,7 @@ lemma skip_left' [simp] :
 lemma skip_right' [simp] :
   assumes \<open>\<And> x. lossless_spmf (f x)\<close>
   shows
-    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | (\<lambda> x. return_spmf (f' x))\<rangle> \<lbrace>S\<rbrace>
+    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f' >>> return_spmf\<rangle> \<lbrace>S\<rbrace>
     \<longleftrightarrow> (\<forall> x'. \<turnstile>spmf \<lbrace>flip R x'\<rbrace> f \<lbrace>flip S (f' x')\<rbrace>)\<close>
   using assms
   by (auto simp add: relational_hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def SPMF.rel_spmf_return_spmf2)
@@ -668,15 +668,50 @@ proof -
       simp add: f_with_bad_flag_def if_distrib if_distribR)
 qed
 
+lemma rel_spmf_foldM_with_bad_flag_foldM_fail_on_bad_flag :
+  \<open>\<turnstile>pmf
+    \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
+    \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
+      foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
+    \<lbrakk>(\<lambda> flag_val val'. case flag_val of
+        Some (False, val) \<Rightarrow> val' = Some val |
+        _ \<Rightarrow> val' = None)\<rbrakk>\<close>
+  (is \<open>\<turnstile>pmf \<lbrakk>_\<rbrakk> \<langle>_ | _\<rangle> \<lbrakk>?inv\<rbrakk>\<close>)
+proof -
+  have [simp] :
+    \<open>rel_pmf R p (bind_spmf q f) =
+      rel_pmf R (p \<bind> return_pmf) (q \<bind> (case_option (return_pmf None) f))\<close>
+    for p f and R :: \<open>'c \<Rightarrow> 'd option \<Rightarrow> bool\<close> and q :: \<open>'e spmf\<close>
+    by (simp add: bind_return_pmf' bind_spmf_def)
+
+  show ?thesis
+    apply (simp
+      add: foldM_spmf_eq_foldM_pmf_case
+      flip: bind_return_pmf[of \<open>Some _\<close> \<open>foldM_pmf _ _\<close>])
+
+    apply (intro
+      Utils_PMF_Relational.seq'[where S = ?inv]
+      Utils_PMF_Relational.loop_unindexed)
+
+    by (auto
+      intro!:
+        rel_pmf_mono_strong[where A = \<top>, where uua = \<open>return_pmf None\<close>, simplified]
+        rel_pmf_bindI[where R = \<open>(=)\<close>]
+      split: option.splits
+      simp add:
+        Utils_PMF_Relational.relational_hoare_triple_def fail_spmf_def
+        f_with_bad_flag_def f_fail_on_bad_event_def assert_spmf_def
+        pmf.rel_map)
+qed
+
 lemma aux :
   fixes xs val
   assumes \<open>invariant val\<close> \<open>invariant' val\<close>
-  (* assumes \<open>\<And> x val. \<P>(val in measure_spmf <| f x val. bad_event val) \<le> p\<close> *)
   defines
-    \<open>prob \<equiv> \<lambda> P f.
-      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
+    \<open>prob \<equiv> \<lambda> P f. \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
-    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
+    \<open>\<bar>prob P f - prob P f'\<bar>
+    \<le> prob_fail (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P bad_event f.
@@ -710,130 +745,23 @@ proof -
       fails_or_satisfies fst flag_val)\<close>
     by (rule measure_spmf_le_measure_pmf_fails_or_satisfies)
 
-  also have \<open>\<dots> \<le> ?R\<close>
-  proof -
-    have * : \<open>rel_pmf P p q\<close> if \<open>\<And> x y. P x y\<close> for P p q
-      using that by (metis pmf.rel_mono_strong rel_pmf_top top2I)
+  (* thm rel_pmf_measureD[
+    where p = \<open>f_fail_on_bad_event x val\<close>,
+    where q = \<open>foldM_spmf f_with_bad_flag x (bad_flag, val)\<close>,
+    where R = \<open>\<lambda> val' flag_val.
+      val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
+    where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
+    simplified Let_def, simplified] *)
 
-    have * :
-      \<open>map_spmf (\<lambda> val. (bad_event val, val)) (f x val) = do {
-        val \<leftarrow> f x val;
-        if \<not> bad_event val
-        then return_spmf (False, val)
-        else return_spmf (True, val) }\<close> for x val
-      sorry
+  also from rel_spmf_foldM_with_bad_flag_foldM_fail_on_bad_flag
+  have \<open>\<dots> \<le> ?R\<close>
+    apply (simp
+      flip: measure_pmf_single
+      add: prob_fail_def Utils_PMF_Relational.relational_hoare_triple_def)
+    by (smt (verit, best) Collect_cong case_optionE mem_Collect_eq option.inject option.simps(4) rel_pmf_measureD singleton_conv2 split_beta')
 
-    have ** : \<open>map_spmf f (return_pmf None) = return_pmf None\<close> for f by simp
-    have *** : \<open>map_spmf (\<lambda>_. x) (return_spmf ()) = return_spmf x\<close> for x by simp
-
-    have \<open>\<turnstile>pmf
-      \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
-      \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
-        foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
-      \<lbrakk>(\<lambda> flag_val val'.
-        (fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None) \<and>
-        map_option snd flag_val = val')\<rbrakk>\<close>
-      (is \<open>\<turnstile>pmf \<lbrakk>_\<rbrakk> \<langle>_ | _ \<rangle> \<lbrakk>?inv\<rbrakk>\<close>)
-      apply (simp
-        add: foldM_spmf_eq_foldM_pmf_case
-        flip: bind_return_pmf[of \<open>Some _\<close> \<open>foldM_pmf _ _\<close>])
-      apply (intro Utils_PMF_Relational.seq'[where S = ?inv])
-      apply simp
-      apply (intro Utils_PMF_Relational.loop_unindexed)
-      apply (simp_all add: fail_spmf_def)
-      apply (auto
-        simp add:
-          Utils_PMF_Relational.relational_hoare_triple_def
-          f_with_bad_flag_def f_fail_on_bad_event_def
-          assert_spmf_def if_distrib * bind_spmf_def
-        split: option.splits)
-      apply (intro rel_pmf_bindI[where R = \<open>(=)\<close>])
-      apply simp
-      apply simp
-      unfolding ** ***
-
-      (* apply (auto simp add:
-        Utils_PMF_Relational.relational_hoare_triple_def
-        f_with_bad_flag_def f_fail_on_bad_event_def
-        pmf.rel_map bind_spmf_def option.map_comp)
-      unfolding comp_def prod.sel
-
-      apply (subst bind_return_pmf'[symmetric])
-      apply (intro rel_pmf_bindI[where R = \<open>(=)\<close>])
-      apply simp
-      apply (auto
-        split: option.splits
-        simp add: pmf.rel_map)
-      apply (simp only: assert_spmf_def)
-
-      thm f_with_bad_flag_def f_fail_on_bad_event_def *)
-
-      (* apply (intro
-        Utils_PMF_Relational.seq'[where S = ?inv]
-        Utils_PMF_Relational.loop_unindexed
-        Utils_PMF_Relational.if_then_else)
-      apply (auto
-        intro!: rel_pmf_bindI
-        simp add:
-          f_with_bad_flag_def f_fail_on_bad_event_def
-          fail_spmf_def Utils_PMF_Relational.relational_hoare_triple_def
-          map_spmf_conv_bind_spmf bind_spmf_def) *)
-
-      sorry
-
-    then have \<open>\<turnstile>pmf
-      \<lbrakk>(\<lambda> (bad_flag, val) val'. \<not> bad_flag \<and> val = val')\<rbrakk>
-      \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
-        foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
-      \<lbrakk>(\<lambda> flag_val val'. fails_or_satisfies fst flag_val \<longleftrightarrow> val' = None)\<rbrakk>\<close>
-      by (metis (no_types, lifting) Utils_PMF_Relational.postcond_weaken)
-
-    then show ?thesis
-      apply (simp
-        flip: measure_pmf_single
-        add: prob_fail_def Utils_PMF_Relational.relational_hoare_triple_def)
-      by (smt (verit, ccfv_SIG) Collect_cong mem_Collect_eq option.simps(4) rel_pmf_measureD singleton_conv)
-
-      (* thm rel_pmf_measureD[
-        where p = \<open>f_fail_on_bad_event x val\<close>,
-        where q = \<open>foldM_spmf f_with_bad_flag x (bad_flag, val)\<close>,
-        where R = \<open>\<lambda> val' flag_val.
-          val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
-        where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
-        simplified Let_def, simplified] *)
-  qed
-
-  finally show ?thesis .
+  finally show ?thesis . 
 qed
-
-(* proof (induction xs)
-  case Nil
-  then show ?case by (simp add: measure_return measure_spmf_return_spmf)
-next
-  case (Cons x xs)
-  let ?xs' = \<open>x # xs\<close>
-
-  have \<open>?L (x # xs)=
-    spmf (map_spmf fst <| foldM_spmf_with_bad_flag f ?xs' (False, val)) True\<close>
-    by (simp add: spmf_map_pred_true_eq_prob)
-
-  also have \<open>\<dots> \<le> length ?xs' * spmf (map_spmf bad_event <| f x val) True\<close>
-    using assms Cons.IH 
-    apply (simp add:
-      map_spmf_bind_spmf comp_def spmf_bind spmf_map vimage_def algebra_simps
-      f_with_bad_flag_def if_distrib if_distribR)
-    thm pmf_bind_spmf_None
-    find_theorems "nn_integral" "map_spmf"
-    thm integral_map_pmf
-    thm nn_integral_map_spmf
-    (* TODO: Split up integral into the cases when `bad_event` is True and False *)
-    term measure_pmf.expectation
-    sorry
-
-  also from assms have \<open>\<dots> \<le> ?R ?xs'\<close> by (simp add: spmf_map_pred_true_eq_prob)
-
-  finally show ?case .
-qed *)
 
 end
 
