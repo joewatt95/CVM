@@ -12,6 +12,7 @@
 \newcommand{\prob}{\mathcal P}
 \newcommand{\expectation}{\mathrm{E}}
 \newcommand{\eps}{\varepsilon}
+\renewcommand{\phi}{\varphi}
 \newtheorem{theorem}{Theorem}
 \theoremstyle{definition}
 \newtheorem{lemma}{Lemma}
@@ -76,7 +77,7 @@ Given a set $T$ with $n$ elements, we'll write $C(T)$ for the $nf$-subsets of $T
   C(T) = \{ \tau \subseteq T \, | \, |\tau| = nf \} \textrm{.}
 \]
 \begin{lemma}\label{le:samp_prod}
-Let $T$ be a set with $n$ elements, $S \subseteq T$ and $g: \{0,1\} \rightarrow \mathbb R^+$ then
+Let $T$ be a set with $n$ elements, $S \subseteq T$ and $g: \{0,1\} \rightarrow \mathbb R_{\geq 0}$ then
 \[
   \int_{U(C(T))} \prod_{s \in S} g(I(s \in \tau)) \leq \prod_{s \in S} \int_{\mathrm{Ber}(f)} g(\tau) d \tau
 \]
@@ -100,34 +101,34 @@ Note that this works because $x \rightarrow g(I(x \geq (1-f)n))$ is a monotone i
 Moreover the right hand side of Eq.~\ref{eq:samp_prod_2} is easy to be seen to be equal to the right hand side of the lemma we want to show.
 
 For the case $g(0) > g(1)$ we can do a similar trick, except in this case we associate with the choice of $\tau$ the elements with positions $\{0,\ldots,nf-1\}$.
+
+Important Note: In the paper by Joag-Dev and Proschan ``positive'' means non-negative. (See last paragraph of Section 1.)
 \end{proof}
 
 \begin{lemma}
-\label{le:neg_cor}
-Let $h : \mathbb R \rightarrow \mathbb R^+$ be a positive concave function, then for all 
-$k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$:
-\begin{align*}
-  \expectation_{\Omega_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] & \leq h(1)^{|S|} &
-  \expectation_{\Omega'_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] & \leq h(1)^{|S|}
-\end{align*}
+\label{le:neg_cor_prelim}
+Let $\phi : (0,1] \times {0,1} \rightarrow \mathbb R_{\geq 0}$ be function, fulfilling the following conditions:
+\begin{enumerate}
+\item \label{cond:phi_1} $(1-\alpha) \phi(x,0) + \alpha \phi(x,1) \leq \phi(x/\alpha,1)$ for all $0 < \alpha < 1$, $0 < x \leq 1$, and
+\item \label{cond:phi_2} $\phi(x,0) \leq \phi(y,0)$ for all $0 < x < y \leq 1$.
+\end{enumerate}
+Then for all 
+$k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Omega_k'\}$:
+\[
+  \expectation_{\Omega}\left[ \prod_{s \in S} \phi(p, I(s \in \chi)) \right] \leq \phi(1,1)^{|S|} 
+\]
 \end{lemma}
 \begin{proof}
-Note because $h$ is concave we can use the reverse Jensen's inequality
-\begin{equation}\label{eq:rev_jensen}
-  E [ h(X(\omega)) ] \leq h(E X)
-\end{equation}
-for all integrable random variables and probability spaces. 
-
-We show the result using induction over $k$. Note that we show the statement for arbitrary $S$, e.g., the induction statements are:
+We show the result using induction over $k$. Note that we show the statement for arbitrary $S$, i.e., the induction statements are:
 \begin{eqnarray*}
-P(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} \right) \\
-Q(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega'_k}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} \right)
+P(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega_k}\left[ \prod_{s \in S} \phi(p, I(s \in \chi)) \right] \leq \phi(1,1)^{|S|} \right) \\
+Q(k) & :\leftrightarrow & \left(\forall S \subseteq \{a_1,..,a_k\}. \; \expectation_{\Omega'_k}\left[ \prod_{s \in S} \phi(p, I(s \in \chi)) \right] \leq \phi(1,1)^{|S|} \right)
 \end{eqnarray*}
 and we will show $P(0),Q(1),P(1),Q(2),P(2),\ldots,Q(l),P(l)$ successively.
 \paragraph{Induction start $P(0)$:} \phantom{.}\\
 We have $S \subseteq \emptyset$, and hence
 \[
-\expectation_{\Omega_0}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] = \expectation_{\Omega_0}\left[1\right] = 1 \leq h(1)^0 \textrm{.}
+\expectation_{\Omega_0}\left[ \prod_{s \in S} \phi(p, I(s \in \chi)) \right] = \expectation_{\Omega_0}\left[1\right] = 1 \leq \phi(1,1)^0 \textrm{.}
 \]
 \paragraph{Induction step $P(k) \rightarrow Q(k+1)$:} \phantom{.}\\
 Let $S \subseteq \{ a_1, \ldots, a_{k+1} \}$ and define $S' := S - \{ a_{k+1} \}$.
@@ -141,17 +142,17 @@ for all predicates $P$ where we define $f(1) = \{a_{k+1}\}$ and $f(0) = \emptyse
 
 We distinguish the two cases $a_{k+1} \in S$ and $a_{k+1} \notin S$. If $a_{k+1} \in S$:
 \begin{eqnarray*}
-  \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] & = & \int_{\Omega_k} \left(\prod_{s \in S'} h(p^{-1} I(s \in \chi))\right)
-  \int_{\mathrm{Ber}(p(\omega))} h(p^{-1} \tau) \, d \tau \, d \omega \\
-  & \underset{\textrm{Eq.~\ref{eq:rev_jensen}}}{\leq} & \int_{\Omega_k} \left( \prod_{s \in S'} h(p^{-1} I(s \in \chi)) \right)
-  h\left(\int_{\mathrm{Ber}(p(\omega))} p^{-1} \tau \, d \tau\right) \, d \omega \\
-  & = & \int_{\Omega_k} \left( \prod_{s \in S'} h(p^{-1} I(s \in \chi)) \right) h(1) \, d \omega \\
-  & \underset{\textrm{IH}}{\leq} & h(1)^{|S'|} h(1) = h(1)^{|S|}
+  \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} \phi(p, I(s \in \chi)) \right] & = & \int_{\Omega_k} \left(\prod_{s \in S'} \phi(p, I(s \in \chi))\right)
+  \int_{\mathrm{Ber}(p(\omega))} \phi(p, \tau) \, d \tau \, d \omega \\
+  & = & \int_{\Omega_k} \left(\prod_{s \in S'} \phi(p, I(s \in \chi))\right) ((1-p) \phi(p,0) + p \phi(p,1)) \, d \omega\\
+  & \underset{\textrm{Cond~\ref{cond:phi_1}}}{\leq} & \int_{\Omega_k} \left( \prod_{s \in S'} \phi(p, I(s \in \chi)) \right)
+  \phi(1,1) \, d \omega \\
+  & \underset{\textrm{IH}}{\leq} & \phi(1,1)^{|S'|} \phi(1,1) = \phi(1,1)^{|S|}
 \end{eqnarray*}
 
 If $a_{k+1} \notin S$ then $S' = S$ and:
 \begin{equation}
-  \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] = \int_{\Omega_k} \prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \leq_{IH} h(1)^{|S'|} = h(1)^{|S|}
+  \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} \phi(p, I(s \in \chi)) \right] = \int_{\Omega_k} \prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega \leq_{IH} \phi(1,1)^{|S'|} = \phi(1,1)^{|S|}
 \end{equation}
 \paragraph{Induction step $Q(k+1) \rightarrow P(k+1)$:} \phantom{.}\\
 Let $S \subseteq \{ a_1, \ldots, a_{k+1} \}$.
@@ -163,20 +164,63 @@ Let us again note that $\Omega_{k+1}$ is a compound distribution over $\Omega_k$
 
 With this we can can now verify the induction step:
 \begin{eqnarray*}
-&  & \textstyle\expectation_{\Omega_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi))\right]  \\
-& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
-& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \int_{U(C(\chi))} \prod_{s \in S \cap \chi} h((pf)^{-1}I(s \in \tau )) d \tau \, d \omega  \\
-& \underset{\textrm{Le.~\ref{le:samp_prod}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
-& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \prod_{s \in S \cap \chi} \int_{\mathrm{Ber(f)}} h((pf)^{-1}\tau) d \tau \, d \omega  \\
-& \underset{\textrm{Eq.~\ref{eq:rev_jensen}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
-& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \prod_{s \in S \cap \chi} h\left(\int_{\mathrm{Ber(f)}} (pf)^{-1}\tau d \tau\right) \, d \omega  \\
-& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
-& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} h(0) \prod_{s \in S \cap \chi} h(p^{-1}) \, d \omega  \\
-& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega \\
-& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S} h(p^{-1} I(s \in \chi)) \, d \omega  \\
-& = & \textstyle \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \underset{\textrm{IH}}{\leq} h(1)^{|S|}
+&  & \textstyle\expectation_{\Omega_{k+1}}\left[\prod_{s \in S} \phi(p, I(s \in \chi))\right]  \\
+& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} \phi(pf,0) \int_{U(C(\chi))} \prod_{s \in S \cap \chi} \phi(pf,I(s \in \tau )) d \tau \, d \omega  \\
+& \underset{\textrm{Le.~\ref{le:samp_prod}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} \phi(pf,0) \prod_{s \in S \cap \chi} \int_{\mathrm{Ber(f)}} \phi(pf,\tau) d \tau \, d \omega  \\
+& \underset{\textrm{Cond~\ref{cond:phi_2}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} \phi(p,0) \prod_{s \in S \cap \chi} ((1-f)\phi(pf,0)+f\phi(pf,1)) \, d \omega  \\
+& \underset{\textrm{Cond~\ref{cond:phi_1}}}{\leq} & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S \setminus \chi(\omega)} \phi(p,0) \prod_{s \in S \cap \chi} \phi(p,1) \, d \omega \\
+& = & \textstyle \int_{\Omega'_{k+1}} I(|\chi| < n)\prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega \\
+& + & \textstyle \int_{\Omega'_{k+1}} I(|\chi| = n) \prod_{s \in S} \phi(p, I(s \in \chi)) \, d \omega  \\
+& = & \textstyle \expectation_{\Omega'_{k+1}}\left[\prod_{s \in S} \phi(p, I(s \in \chi)) \right] \underset{\textrm{IH}}{\leq} \phi(1,1)^{|S|}
 \end{eqnarray*}
 
+\end{proof}
+
+More practical versions of the previous lemma:
+\begin{lemma}\label{le:neg_cor_pos}
+Let $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$ be concave then for all 
+$k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Omega_k'\}$:
+\[
+  \expectation_{\Omega}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} 
+\]
+\end{lemma}
+\begin{proof}
+Follows from Lemma~\ref{le:neg_cor_prelim} for $\phi(p,\tau) := h(\tau p^{-1})$. We just need to check Conditions 1/2, Indeed
+\[
+  (1-\alpha) \phi(x,0) + \alpha \phi(x,1) = (1-\alpha) h(0) + \alpha h(x^{-1}) \leq h(\alpha x^{-1}) = \phi(x/\alpha,1)
+\]
+for $0 < \alpha < 1$ and $0< x \leq 1$, and
+\[
+  \phi(x,0) = h(0) \leq h(0) = \phi(y,0)
+\]
+for $0 < x < y \leq 1$.
+\end{proof}
+
+Unfortunately the above function is only applicable for monotone increasing functions, because a monotone decreasing function
+will eventually be negative. The following modified version is for that case:
+
+\begin{lemma}\label{le:neg_cor_neg}
+Let $q \leq 1$ and $h : \mathbb [0,q^{-1}] \rightarrow \mathbb R_{\geq 0}$ be concave then for all 
+$k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Omega_k'\}$:
+\[
+  \expectation_{\Omega}\left[ \prod_{s \in S} I(p > q) h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} 
+\]
+\end{lemma}
+\begin{proof}
+Follows from Lemma~\ref{le:neg_cor_prelim} for $\phi(p,\tau) := I(p > q) h(\tau p^{-1})$. We just need to check Conditions 1/2, Indeed
+\begin{eqnarray*}
+  (1-\alpha) \phi(x,0) + \alpha \phi(x,1) & = & (1-\alpha) I(x>q) h(0) + \alpha I(x > q) h(x^{-1}) \\
+   & \leq & I(x > q) h(\alpha x^{-1}) \leq I(x > q \alpha) h(\alpha x^{-1}) = \phi(x/\alpha,1)
+\end{eqnarray*}
+for $0 < \alpha < 1$ and $0< x \leq 1$, where we used that $x > q$ implies $x > q \alpha$. And
+\[
+  \phi(x,0) = I(x>q) h(0) \leq I(y > q) h(0) = \phi(y,0)
+\]
+for $0 < x < y \leq 1$, where we used that $x > q$ implies $y > q$.
 \end{proof}
 
 \section{Concentration}
@@ -212,7 +256,7 @@ To get a tail estimate, we use the Cram\'{e}r-Chernoff method:
   & \underset{\textrm{Markov,}t>0}{\leq} & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
  & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
  & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} h( p^{-1} I(s \in \chi) ) \right] \\
- & \underset{\textrm{Le.~\ref{le:neg_cor}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
+ & \underset{\textrm{Le.~\ref{le:neg_cor_pos}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
  & \underset{h(1)\geq 1}{\leq} & \left(\exp( \ln(h(1)) -t (1+\eps))\right) ^ {|A|} 
 \end{eqnarray*}}
 So we just need to show that (using $|A|=\frac{n}{4q}$):
@@ -278,17 +322,20 @@ Let $0 < \eps < 1$ then:
 Let us define
 \begin{align*}
   t & := - q \ln(1-\eps) < 0 \\
-  h(x) & := 1+q \min(x,q^{-1}) (e^{t/q}-1)  
+  h(x) & := 1+q x (e^{t/q}-1)  
 \end{align*}
+
+Note that $h(x) \geq 0$ for $0 \leq x \leq q^{-1}$ (can be checked by verifying it is true for $h(0)$ and $h(q^{-1})$ and the fact that the function is affine.)
 
 With these definitions we again follow the Cram\'{e}r-Chernoff method:
 {\allowdisplaybreaks
 \begin{eqnarray*}
-  L & = & \prob_{\Omega_l} \left( \tilde{p}^{-1} |\chi| \leq (1-\eps)|A| \right) \\
-    & \underset{\textrm{Markov,}t<0}{\leq} & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
-    & = & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
-    & \leq & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} h( p^{-1} I(s \in \chi) ) \right] \\
-    & \underset{\textrm{Le.~\ref{le:neg_cor}}}{\leq} & \exp( -t (1-\eps) |A| ) (h(1))^{|A|} \\
+  L & \underset{t<0}{=} & \prob_{\Omega_l} \left( \exp(t p^{-1} |\chi|) \geq exp(t (1-\eps)|A|) \wedge p \geq q \right) \\
+    & \leq & \prob_{\Omega_l} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq exp(t (1-\eps)|A|) \wedge p > q \right) \\
+    & \underset{\textrm{Markov}}{\leq} & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
+    & = & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
+    & \leq & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
+    & \underset{\textrm{Le.~\ref{le:neg_cor_neg}}}{\leq} & \exp( -t (1-\eps) |A| ) (h(1))^{|A|} \\
     & = & \exp( \ln(h(1)) -t (1-\eps) )^{|A|}
 \end{eqnarray*}
 }
@@ -314,16 +361,16 @@ Note that the theorem is trivial if $|A| < n$. If not:
     \prob_{\Omega_l} \left( | p^{-1} |\chi| \leq (1+\eps) |A| \wedge p \geq q \right) +
     \prob_{\Omega_l} \left( p < q \right) \\
     & \underset{Le.~\ref{le:low_p}-\ref{le:upper_tail}}{\leq} &
-    \exp\left( - \frac{n}{12} \eps^2 \right)  + \exp\left( - \frac{n}{12} \eps^2 \right) + l \exp\left( - \frac{n}{12} \right) \\
+    \exp\left( - \frac{n}{8} \eps^2 \right)  + \exp\left( - \frac{n}{12} \eps^2 \right) + l \exp\left( - \frac{n}{12} \right) \\
     & \leq & \frac{\delta}{3} + \frac{\delta}{3} + \frac{\delta}{3}
 \end{eqnarray*}
 \end{proof}
 
 \section{Unbiasedness}
-Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g. we can choose $M = f^{-l}$). Then we can derive from Lemma~\ref{le:neg_cor} using $h(x) = x$ and $h(x) = \max(M+1-x,1)$ that:
+Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g. we can choose $M = f^{-l}$). Then we can derive from Lemma~\ref{le:neg_cor_pos} using $h(x) = x$ and Lemma~\ref{le:neg_cor_neg} $h(x) = M+1-x$ that:
 \begin{eqnarray*}
   \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] & \leq 1 & \\
-  \expectation_{\Omega_l} [ M + 1 - p^{-1} I(s \in S) ] & = & \expectation_{\Omega_l} [ \max(M + 1 - p^{-1} I(s \in S),1) ] \leq M  
+  \expectation_{\Omega_l} [ M + 1 - p^{-1} I(s \in S) ] & = & \expectation_{\Omega_l} [ I(p \geq M^{-1}) (M + 1 - p^{-1} I(s \in S)) ] \leq M  
 \end{eqnarray*}
 which implies $\expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = 1$.
 By linearity of expectation we can conclude that
