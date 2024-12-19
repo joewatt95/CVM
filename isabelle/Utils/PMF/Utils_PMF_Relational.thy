@@ -10,6 +10,22 @@ lemmas rel_pmf_mono_strong = rel_spmf_mono_strong[
   where g = \<open>spmf_of_pmf _\<close>,
   simplified]
 
+lemmas rel_pmf_bindI1 = rel_spmf_bindI1[
+  where p = \<open>spmf_of_pmf _\<close>,
+  where q = \<open>spmf_of_pmf _\<close>,
+  where f = \<open>spmf_of_pmf <<< _\<close>,
+  simplified,
+  simplified spmf_of_pmf_bind[symmetric] rel_spmf_spmf_of_pmf
+]
+
+lemmas rel_pmf_bindI2 = rel_spmf_bindI2[
+  where p = \<open>spmf_of_pmf _\<close>,
+  where q = \<open>spmf_of_pmf _\<close>,
+  where f = \<open>spmf_of_pmf <<< _\<close>,
+  simplified,
+  simplified spmf_of_pmf_bind[symmetric] rel_spmf_spmf_of_pmf
+]
+
 definition relational_hoare_triple ::
   \<open>['a \<Rightarrow> 'b \<Rightarrow> bool, 'a \<Rightarrow> 'c pmf, 'b \<Rightarrow> 'd pmf, 'c \<Rightarrow> 'd \<Rightarrow> bool] \<Rightarrow> bool\<close>
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
@@ -49,9 +65,19 @@ lemma skip [simp] :
   by (simp add: relational_hoare_triple_def) 
 
 lemma skip' [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>(\<lambda> x. return_pmf (f x)) | (\<lambda> x. return_pmf (f' x))\<rangle> \<lbrakk>S\<rbrakk>
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f' >>> return_pmf\<rangle> \<lbrakk>S\<rbrakk>
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> S (f x) (f' x'))\<close>
   by (simp add: relational_hoare_triple_def)
+
+lemma skip_left' [simp] :
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f'\<rangle> \<lbrakk>S\<rbrakk>
+  \<longleftrightarrow> (\<forall> x. \<turnstile>pmf \<lbrakk>R x\<rbrakk> f' \<lbrakk>S (f x)\<rbrakk>)\<close>
+  by (auto simp add: relational_hoare_triple_def Utils_PMF_Hoare.hoare_triple_def rel_pmf_return_pmf1)
+
+lemma skip_right' [simp] :
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f' >>> return_pmf\<rangle> \<lbrakk>S\<rbrakk>
+  \<longleftrightarrow> (\<forall> x'. \<turnstile>pmf \<lbrakk>flip R x'\<rbrakk> f \<lbrakk>flip S (f' x')\<rbrakk>)\<close>
+  by (auto simp add: relational_hoare_triple_def Utils_PMF_Hoare.hoare_triple_def rel_pmf_return_pmf2)
 
 lemma if_then_else :
   assumes
