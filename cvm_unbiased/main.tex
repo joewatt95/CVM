@@ -8,13 +8,13 @@
 \usepackage{algpseudocode}
 \usepackage{algorithmicx}
 \usepackage{hyperref}
+
 \newcommand{\prob}{\mathcal P}
 \newcommand{\expectation}{\mathrm{E}}
 \newcommand{\eps}{\varepsilon}
 \newtheorem{theorem}{Theorem}
 \theoremstyle{definition}
 \newtheorem{lemma}{Lemma}
-
 
 \begin{document}
 \title{Unbiased CVM Algorithm}
@@ -201,7 +201,7 @@ By assumption there exists a $k$ such that $\Omega \in \{\Omega_k, \Omega'_k\}$.
 
 Moreover, we define
 \begin{align*}
-  t & := q \ln ( 1 + \frac{\eps}{1-q(1+\eps)}) \\
+  t & := q \ln( 1 + \eps) \\
   h(x) & := 1+qx(e^{t/q}-1)  
 \end{align*}
 
@@ -271,13 +271,13 @@ Let $0 < \eps \leq 1$ then:
 \begin{lemma}\label{le:lower_tail}
 Let $0 < \eps < 1$ then:
 \[
-  L := \prob_{\Omega_l} ( p^{-1} |\chi| \leq (1-\eps)|A| \wedge p \geq q) \leq \exp\left(-\frac{n}{12} \eps^2\right)
+  L := \prob_{\Omega_l} ( p^{-1} |\chi| \leq (1-\eps)|A| \wedge p \geq q) \leq \exp\left(-\frac{n}{8} \eps^2\right)
 \]
 \end{lemma}
 \begin{proof}
 Let us define
 \begin{align*}
-  t & := - q \ln\left( \frac{(1-\eps)^{-1}-q}{1-q}\right) < 0 \\
+  t & := - q \ln(1-\eps) < 0 \\
   h(x) & := 1+q \min(x,q^{-1}) (e^{t/q}-1)  
 \end{align*}
 
@@ -295,7 +295,7 @@ With these definitions we again follow the Cram\'{e}r-Chernoff method:
 
 Substituting $t$ and $h$ and using $|A| = \frac{n}{4q}$, we can see that the lemma is true if
 \[
-  f(q,\eps) = t (1-\eps) - \ln(1+q(e^{t/q}-1)) - \frac{q}{3} \eps^2
+  f(q,\eps) = t (1-\eps) - \ln(h(1)) - \frac{q}{2} \eps^2
 \]
 is non-negative for $0 \leq q \leq \frac{1}{4}$ and $0 < \eps < 1$.
 This can be verified by checking that $f(q,0) = 0$ and that the derivative with respect to $\eps$ is non-negative.
@@ -320,16 +320,17 @@ Note that the theorem is trivial if $|A| < n$. If not:
 \end{proof}
 
 \section{Unbiasedness}
-Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g. we can choose $M = f^{-l}$). Then we can derive from Lemma~\ref{le:neg_cor} using $h(x) = x$ and $h(x) = \max(M-x,0)$ that:
+Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g. we can choose $M = f^{-l}$). Then we can derive from Lemma~\ref{le:neg_cor} using $h(x) = x$ and $h(x) = \max(M+1-x,1)$ that:
 \begin{eqnarray*}
-  \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] \leq 1
-  \expectation_{\Omega_l} [ M - p^{-1} I(s \in S) ] = \expectation_{\Omega_l} [ M - \max(0,p^{-1} I(s \in S)) ] \leq M-1  
+  \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] & \leq 1 & \\
+  \expectation_{\Omega_l} [ M + 1 - p^{-1} I(s \in S) ] & = & \expectation_{\Omega_l} [ \max(M + 1 - p^{-1} I(s \in S),1) ] \leq M  
 \end{eqnarray*}
 which implies $\expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = 1$.
 By linearity of expectation we can conclude that
 \[
   \expectation_{\Omega_l} [ p^{-1} |\chi| ] = \sum_{s \in A} \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = |A| \textrm{.}
 \]
+
 \bibliographystyle{plainurl}
 \bibliography{main} 
 
