@@ -674,8 +674,8 @@ lemma rel_spmf_foldM_with_bad_flag_foldM_fail_on_bad_flag :
     \<langle>uncurry (foldM_spmf_with_bad_flag bad_event f xs) |
       foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs\<rangle>
     \<lbrakk>(\<lambda> flag_val val'. case flag_val of
-      Some (False, val) \<Rightarrow> val' = Some val |
-      _ \<Rightarrow> val' = None)\<rbrakk>\<close>
+        Some (False, val) \<Rightarrow> val' = Some val |
+        _ \<Rightarrow> val' = None)\<rbrakk>\<close>
   (is \<open>\<turnstile>pmf \<lbrakk>_\<rbrakk> \<langle>_ | _\<rangle> \<lbrakk>?inv\<rbrakk>\<close>)
 proof -
   have [simp] :
@@ -708,10 +708,10 @@ lemma aux :
   fixes xs val
   assumes \<open>invariant val\<close> \<open>invariant' val\<close>
   defines
-    \<open>prob \<equiv> \<lambda> P f.
-      \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
+    \<open>prob \<equiv> \<lambda> P f. \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
-    \<open>\<bar>prob P f - prob P f'\<bar> \<le> prob_fail (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
+    \<open>\<bar>prob P f - prob P f'\<bar>
+    \<le> prob_fail (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P bad_event f.
