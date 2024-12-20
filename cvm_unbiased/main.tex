@@ -181,28 +181,6 @@ With this we can can now verify the induction step:
 \end{proof}
 
 More practical versions of the previous lemma:
-\begin{lemma}\label{le:neg_cor_pos}
-Let $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$ be concave then for all 
-$k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Omega_k'\}$:
-\[
-  \expectation_{\Omega}\left[ \prod_{s \in S} h(p^{-1} I(s \in \chi)) \right] \leq h(1)^{|S|} 
-\]
-\end{lemma}
-\begin{proof}
-Follows from Lemma~\ref{le:neg_cor_prelim} for $\phi(p,\tau) := h(\tau p^{-1})$. We just need to check Conditions 1/2, Indeed
-\[
-  (1-\alpha) \phi(x,0) + \alpha \phi(x,1) = (1-\alpha) h(0) + \alpha h(x^{-1}) \leq h(\alpha x^{-1}) = \phi(x/\alpha,1)
-\]
-for $0 < \alpha < 1$ and $0< x \leq 1$, and
-\[
-  \phi(x,0) = h(0) \leq h(0) = \phi(y,0)
-\]
-for $0 < x < y \leq 1$.
-\end{proof}
-
-Unfortunately the above function is only applicable for monotone increasing functions, because a monotone decreasing function
-will eventually be negative. The following modified version is for that case:
-
 \begin{lemma}\label{le:neg_cor_neg}
 Let $q \leq 1$ and $h : \mathbb [0,q^{-1}] \rightarrow \mathbb R_{\geq 0}$ be concave then for all 
 $k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Omega_k'\}$:
@@ -229,15 +207,14 @@ This section establishes that the result of the algorithm is concentrated around
 It should be noted that concentration is trivial, if $|A| < n$, i.e., if we never need to do sub-sampling.
 So we assume $|A| \geq n$.
 
-We define $q := n/(4|A|)$ - notice that $q \leq \frac{1}{4}$. Moreover we'll introduce the notation $\tilde{p} := \max(p,q)$.
-Basically $\tilde{p}$ is a clamped version of $p$, and in particular, $\tilde{p}^{-1}$ is bounded from above by $q^{-1}$.
+We define $q := n/(4|A|)$ - notice that $q \leq \frac{1}{4}$. 
 
 The following is a helper lemma:
 \begin{lemma}
 \label{le:helper}
 For any $\Omega \in \{\Omega_0,\ldots,\Omega_l\} \cup \{\Omega'_1,\ldots,\Omega'_l\}$ and $0 < \eps \leq 1$:
 \[
-\prob_{\Omega} \left( \tilde{p}^{-1} |\chi| \geq (1+\eps) |A| \right) \leq \exp\left(-\frac{n}{12} \eps^2\right)
+\prob_{\Omega} \left( p^{-1} |\chi| \geq (1+\eps) |A| \right \wedge p \geq q) \leq \exp\left(-\frac{n}{12} \eps^2\right)
 \]
 \end{lemma}
 \begin{proof}
@@ -252,11 +229,12 @@ Moreover, we define
 To get a tail estimate, we use the Cram\'{e}r-Chernoff method:
 {\allowdisplaybreaks
 \begin{eqnarray*}
-  \prob_{\Omega} \left( \tilde{p}^{-1} |\chi| \geq (1+\eps) |A| \right) & \leq & \prob_{\Omega} \left( \tilde{p}^{-1} |\chi| \geq (1+\eps) |A'| \right) \\
-  & \underset{\textrm{Markov,}t>0}{\leq} & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
- & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
- & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} h( p^{-1} I(s \in \chi) ) \right] \\
- & \underset{\textrm{Le.~\ref{le:neg_cor_pos}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
+  \prob_{\Omega} \left( p^{-1} |\chi| \geq (1+\eps) |A| \right \wedge p \geq q) & \underset{t > 0}{\leq} & \prob_{\Omega} \left( \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A'|) \right \wedge p \geq q) \\
+  & \leq & \prob_{\Omega} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A|) \right) \\
+  & \underset{\textrm{Markov}}{\leq} & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t p^{-1} |\chi| ) \right] \\
+ & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
+ & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
+ & \underset{\textrm{Le.~\ref{le:neg_cor_neg}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
  & \underset{h(1)\geq 1}{\leq} & \left(\exp( \ln(h(1)) -t (1+\eps))\right) ^ {|A|} 
 \end{eqnarray*}}
 So we just need to show that (using $|A|=\frac{n}{4q}$):
@@ -289,9 +267,9 @@ It can only happen if $|\chi|=n$, $p=f^j$ in $\Omega'_k$.
 
 Then
 \begin{eqnarray*}
-  \prob_{\Omega'_k} ( |\chi| \geq n \wedge p=f^j) & \leq & \prob( \tilde{p}^{-1} |\chi| \geq f^{-j} n ) \\
-    & \underset{\textrm{Eq.~\ref{eq:f_j}}}{\leq} & \prob( \tilde{p}^{-1} |\chi| \geq 2|A| ) \\
-    & \underset{\textrm{Le.~\ref{le:helper}}}{\leq} & \exp( - n/12)
+  \prob_{\Omega'_k} ( |\chi| \geq n \wedge p=f^j) & \leq & \prob( p^{-1} |\chi| \geq f^{-j} n \wedge p \geq q) \\
+    & \underset{\textrm{Eq.~\ref{eq:f_j}}}{\leq} & \prob( \tilde{p}^{-1} |\chi| \geq 2|A| \wegde p \geq q ) \\
+    & \underset{\textrm{Le.~\ref{le:helper}}}{\leq} & \exp(- n/12)
 \end{eqnarray*}
 
 The probability that this happens ever in the entire process is then at most $l$ times the above which proves the lemma.
@@ -332,8 +310,8 @@ With these definitions we again follow the Cram\'{e}r-Chernoff method:
 \begin{eqnarray*}
   L & \underset{t<0}{=} & \prob_{\Omega_l} \left( \exp(t p^{-1} |\chi|) \geq exp(t (1-\eps)|A|) \wedge p \geq q \right) \\
     & \leq & \prob_{\Omega_l} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq exp(t (1-\eps)|A|) \wedge p > q \right) \\
-    & \underset{\textrm{Markov}}{\leq} & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t \tilde{p}^{-1} |\chi| ) \right] \\
-    & = & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) \exp ( t \tilde{p}^{-1} I(s \in \chi) ) \right] \\
+    & \underset{\textrm{Markov}}{\leq} & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t p^{-1} |\chi| ) \right] \\
+    & = & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
     & \leq & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
     & \underset{\textrm{Le.~\ref{le:neg_cor_neg}}}{\leq} & \exp( -t (1-\eps) |A| ) (h(1))^{|A|} \\
     & = & \exp( \ln(h(1)) -t (1-\eps) )^{|A|}
