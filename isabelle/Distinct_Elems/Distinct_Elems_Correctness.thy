@@ -3,8 +3,8 @@ theory Distinct_Elems_Correctness
 imports
   CVM.Utils_PMF_Bernoulli_Binomial
   CVM.Utils_PMF_Hoare
-  CVM.Error_Bounds_K_Exceeds_L
-  CVM.Error_Bounds_Est_Out_Of_Range
+  CVM.Distinct_Elems_Error_Bounds_K_Exceeds_L
+  CVM.Distinct_Elems_Error_Bounds_Est_Out_Of_Range
 
 begin
 

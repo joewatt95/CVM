@@ -1,9 +1,9 @@
-theory Algo_Transforms_Nondet
+theory Distinct_Elems_Algo_Transforms_Nondet
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
   CVM.Utils_Approx_Algo
-  CVM.Algo_Transforms_Eager
+  CVM.Distinct_Elems_Algo_Transforms_Eager
 
 begin
 

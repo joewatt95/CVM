@@ -2,7 +2,7 @@ theory Distinct_Elems_Codegen
 
 imports
   Executable_Randomized_Algorithms.Basic_Randomized_Algorithms
-  CVM.Distinct_Elems_Algo
+  CVM.Distinct_Elems_Original_Algo
 
 begin
 

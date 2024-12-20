@@ -1,11 +1,11 @@
-theory Error_Bounds_Est_Out_Of_Range
+theory Distinct_Elems_Error_Bounds_Est_Out_Of_Range
 
 imports
   "HOL-Library.Sum_of_Squares"
-  CVM.Error_Bounds_Common
-  CVM.Algo_Transforms_No_Fail
-  CVM.Algo_Transforms_Eager
-  CVM.Algo_Transforms_Binomial
+  CVM.Distinct_Elems_Error_Bounds_Common
+  CVM.Distinct_Elems_Algo_Transforms_No_Fail
+  CVM.Distinct_Elems_Algo_Transforms_Eager
+  CVM.Distinct_Elems_Algo_Transforms_Binomial
   CVM.Utils_Compat_Discrete
   CVM.Utils_Real
   CVM.Utils_Concentration_Inequalities

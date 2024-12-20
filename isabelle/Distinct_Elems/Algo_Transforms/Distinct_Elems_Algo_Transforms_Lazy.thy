@@ -1,10 +1,10 @@
-theory Algo_Transforms_Lazy
+theory Distinct_Elems_Algo_Transforms_Lazy
 
 imports
   CVM.Utils_List
   CVM.Utils_Reader_Monad_Basic
   CVM.Utils_PMF_Bernoulli_Binomial
-  CVM.Algo_Transforms_No_Fail
+  CVM.Distinct_Elems_Algo_Transforms_No_Fail
 
 begin
 
@@ -186,5 +186,7 @@ qed
 theorem estimate_distinct_no_fail_eq_lazy_algo :
   \<open>estimate_distinct_no_fail = lazy_algorithm >>> map_pmf compute_estimate\<close>
   unfolding estimate_distinct_no_fail_def run_steps_then_estimate_def lazy_algorithm_eq_run_step_no_fail ..
+
+end
 
 end

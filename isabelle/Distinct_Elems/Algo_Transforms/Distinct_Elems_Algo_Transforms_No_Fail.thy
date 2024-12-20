@@ -1,5 +1,5 @@
 section \<open> Analysis of algorithm TODO \<close>
-theory Algo_Transforms_No_Fail
+theory Distinct_Elems_Algo_Transforms_No_Fail
 
 imports
   CVM.Distinct_Elems_Algo

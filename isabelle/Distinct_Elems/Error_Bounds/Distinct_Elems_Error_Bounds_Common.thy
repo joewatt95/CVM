@@ -1,4 +1,4 @@
-theory Error_Bounds_Common
+theory Distinct_Elems_Error_Bounds_Common
 
 imports
   CVM.Distinct_Elems_Algo

@@ -1,11 +1,11 @@
-theory Algo_Transforms_Eager
+theory Distinct_Elems_Algo_Transforms_Eager
 
 imports
   CVM.Utils_List
   CVM.Utils_PMF_Lazify
   CVM.Utils_PMF_Bernoulli_Binomial
   CVM.Utils_Reader_Monad_Hoare
-  CVM.Algo_Transforms_Lazy
+  CVM.Distinct_Elems_Algo_Transforms_Lazy
 
 begin
 

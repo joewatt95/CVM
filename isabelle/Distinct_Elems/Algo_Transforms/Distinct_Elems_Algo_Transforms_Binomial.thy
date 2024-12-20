@@ -1,7 +1,7 @@
-theory Algo_Transforms_Binomial
+theory Distinct_Elems_Algo_Transforms_Binomial
 
 imports
-  CVM.Algo_Transforms_Nondet
+  CVM.Distinct_Elems_Algo_Transforms_Nondet
 
 begin
 
