@@ -567,7 +567,15 @@ definition f_fail_on_bad_event ::
   \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a spmf) \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close> where
   \<open>f_fail_on_bad_event \<equiv> \<lambda> bad_event f val. do {
     val \<leftarrow> f val;
-    map_spmf \<lblot>val\<rblot> (assert_spmf <| \<not> bad_event val) }\<close>
+    if bad_event val
+    then fail_spmf
+    else return_spmf val }\<close>
+
+(* definition f_fail_on_bad_event ::
+  \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a spmf) \<Rightarrow> 'a \<Rightarrow> 'a spmf\<close> where
+  \<open>f_fail_on_bad_event \<equiv> \<lambda> bad_event f val. do {
+    val \<leftarrow> f val;
+    map_spmf \<lblot>val\<rblot> (assert_spmf <| \<not> bad_event val) }\<close> *)
 
 abbreviation
   \<open>foldM_spmf_with_bad_flag \<equiv> \<lambda> bad_event f xs flag val.
@@ -679,9 +687,11 @@ lemma rel_spmf_foldM_with_bad_flag_foldM_fail_on_bad_flag :
   (is \<open>\<turnstile>pmf \<lbrakk>_\<rbrakk> \<langle>_ | _\<rangle> \<lbrakk>?inv\<rbrakk>\<close>)
 proof -
   have [simp] :
-    \<open>rel_pmf R p (bind_spmf q f) =
-      rel_pmf R (p \<bind> return_pmf) (q \<bind> (case_option (return_pmf None) f))\<close>
-    for p f and R :: \<open>'c \<Rightarrow> 'd option \<Rightarrow> bool\<close> and q :: \<open>'e spmf\<close>
+    \<open>rel_pmf R (f x val) (bind_spmf (f x val) fail_if_bad_event) =
+      rel_pmf R
+        (f x val \<bind> return_pmf)
+        (f x val \<bind> (case_option (return_pmf None) fail_if_bad_event))\<close>
+    for R :: \<open>'a option \<Rightarrow> 'c option \<Rightarrow> bool\<close> and x val fail_if_bad_event 
     by (simp add: bind_return_pmf' bind_spmf_def)
 
   show ?thesis
@@ -700,11 +710,10 @@ proof -
       split: option.splits
       simp add:
         Utils_PMF_Relational.relational_hoare_triple_def fail_spmf_def
-        f_with_bad_flag_def f_fail_on_bad_event_def assert_spmf_def
-        pmf.rel_map)
+        f_with_bad_flag_def f_fail_on_bad_event_def pmf.rel_map)
 qed
 
-lemma aux :
+lemma prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event :
   fixes xs val
   assumes \<open>invariant val\<close> \<open>invariant' val\<close>
   defines

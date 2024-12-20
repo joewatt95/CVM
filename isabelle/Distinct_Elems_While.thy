@@ -81,7 +81,7 @@ definition estimate_distinct_while :: \<open>'a list \<Rightarrow> nat spmf\<clo
 of `step` and `step_no_fail`. *)
 definition step_while_with_bad_flag ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
-  \<open>step_while_with_bad_flag x state \<equiv> do {
+  \<open>step_while_with_bad_flag \<equiv> \<lambda> x state. do {
     let bad_flag = state_bad_flag state;
     let state = state.truncate state;
 
@@ -122,16 +122,15 @@ definition step_with_bad_flag ::
 
 definition step_fail_on_bad_event ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
-  \<open>step_fail_on_bad_event \<equiv> \<lambda> x. f_fail_on_bad_event
-    (\<lambda> state. card (state_chi state) \<ge> threshold)
-    (spmf_of_pmf <<< step_with_bad_flag x)\<close>
+  \<open>step_fail_on_bad_event \<equiv> \<lambda> x.
+    f_fail_on_bad_event cond (spmf_of_pmf <<< step_with_bad_flag x)\<close>
 
 definition estimate_distinct_with_bad_flag :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_with_bad_flag \<equiv>
     run_steps_then_estimate_pmf
       step_with_bad_flag initial_state_with_bad_flag\<close>
 
-lemma step_while_eq_step_while_with_bad_flag :
+lemma step_while_eq_with_bad_flag :
   \<open>step_while x (state.truncate state) = (
     state
       |> step_while_with_bad_flag x
@@ -150,7 +149,7 @@ proof -
         loop_spmf.while_simps map_spmf_bind_spmf bind_map_spmf spmf.map_comp)
 qed
 
-lemma
+lemma estimate_distinct_while_eq_with_bad_flag :
   \<open>estimate_distinct_while xs = estimate_distinct_while_with_bad_flag xs\<close>
   apply (simp add:
     estimate_distinct_while_def estimate_distinct_while_with_bad_flag_def state.defs
@@ -158,11 +157,11 @@ lemma
   using
     compute_estimate_eq_compute_estimate_truncate
     foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
-      of step_while, OF step_while_eq_step_while_with_bad_flag,
+      of step_while, OF step_while_eq_with_bad_flag,
       simplified state.defs]
    by (smt (verit) bind_pmf_cong map_option_cong map_pmf_def map_return_pmf option.map(2) spmf.map_comp state.select_convs(1,2))
 
-lemma step_no_fail_eq_step_with_bad_flag :
+lemma step_no_fail_eq_with_bad_flag :
   \<open>step_no_fail x (state.truncate state) = (
     state
       |> step_with_bad_flag x
@@ -174,7 +173,7 @@ lemma step_no_fail_eq_step_with_bad_flag :
       state.defs Let_def if_distrib map_bind_pmf bind_map_pmf map_pmf_comp
       step_no_fail_def step_with_bad_flag_def)
 
-lemma
+lemma estimate_distinct_no_fail_eq_with_bad_flag :
   \<open>estimate_distinct_no_fail xs = estimate_distinct_with_bad_flag xs\<close>
   apply (simp add:
     estimate_distinct_no_fail_def estimate_distinct_with_bad_flag_def state.defs
@@ -182,11 +181,11 @@ lemma
   using
     compute_estimate_eq_compute_estimate_truncate
     foldM_pmf_truncate_eq_map_truncate_foldM_pmf[
-      of step_no_fail, OF step_no_fail_eq_step_with_bad_flag,
+      of step_no_fail, OF step_no_fail_eq_with_bad_flag,
       simplified state.defs]
   by (metis (no_types, lifting) ext map_pmf_comp state.simps(1,2))
 
-lemma step_eq_step_fail_on_bad_event :
+lemma step_eq_fail_on_bad_event :
   \<open>step x (state.truncate state) = (
     state
       |> step_fail_on_bad_event x 
@@ -195,11 +194,11 @@ lemma step_eq_step_fail_on_bad_event :
     intro!: bind_spmf_cong
     simp flip: bind_spmf_of_pmf map_spmf_of_pmf
     simp add:
-      step_fail_on_bad_event_def f_fail_on_bad_event_def step_with_bad_flag_def
+      step_fail_on_bad_event_def cond_def f_fail_on_bad_event_def step_with_bad_flag_def
       step_def step_no_fail_def Let_def state.defs spmf_of_pmf_bind fail_spmf_def
-      well_formed_state_def map_spmf_bind_spmf bind_map_spmf comp_def spmf.map_comp)
+      well_formed_state_def map_spmf_bind_spmf bind_map_spmf comp_def)
 
-lemma
+lemma estimate_distinct_eq_fail_on_bad_event :
   \<open>estimate_distinct xs =
     run_steps_then_estimate_spmf
       step_fail_on_bad_event initial_state_with_bad_flag xs\<close>
@@ -209,18 +208,25 @@ lemma
   using
     compute_estimate_eq_compute_estimate_truncate
     foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
-      of step, OF step_eq_step_fail_on_bad_event,
+      of step, OF step_eq_fail_on_bad_event,
       simplified state.defs]
   by (smt (verit) bind_pmf_cong map_option_cong map_pmf_def map_return_pmf option.simps(9) spmf.map_comp state.select_convs(1,2))
 
-thm
-  step_def
-  step_while_with_bad_flag_def[
-    simplified
-      body_def Let_def spmf_of_pmf_bind spmf_of_pmf_return_pmf
-      bind_spmf_of_pmf[symmetric] map_bind_spmf bind_map_spmf comp_def
-      map_spmf_conv_bind_spmf[symmetric],
-    simplified bind_spmf_of_pmf, simplified]
+lemma truncate_preserves_well_formed_state_iff :
+  \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> map_spmf state.truncate <<< f \<lbrace>well_formed_state\<rbrace> \<longleftrightarrow>
+    \<turnstile>spmf \<lbrace>well_formed_state\<rbrace> f \<lbrace>well_formed_state\<rbrace>\<close> (is ?thesis_0)
+  \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> g <<< state.truncate \<lbrace>well_formed_state\<rbrace> \<longleftrightarrow>
+    \<turnstile>spmf \<lbrace>well_formed_state\<rbrace> g \<lbrace>well_formed_state\<rbrace>\<close> (is ?thesis_1)
+proof - 
+  show ?thesis_0
+    by (fastforce
+      simp add: Utils_SPMF_Hoare.hoare_triple_def well_formed_state_def state.defs)
+  
+  show ?thesis_1
+    apply (simp add:
+      Utils_SPMF_Hoare.hoare_triple_def well_formed_state_def state.defs)
+    by (metis (mono_tags, lifting) state.cases state.select_convs(1,2))
+qed
 
 lemma step_while_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step_while x \<lbrace>well_formed_state\<rbrace>\<close>
@@ -314,54 +320,71 @@ lemma
   \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
     - \<P>(state in measure_spmf <| estimate_distinct_while xs. P state)\<bar>
   \<le> prob_fail (estimate_distinct xs)\<close>
-  (is \<open>?L \<le> ?R\<close>)
+  (is \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while \<le> ?R\<close>)
 proof -
   note [simp] = space_measure_spmf well_formed_state_def Let_def Set.remove_def
 
-  have \<open>?L \<le> prob_fail (foldM_spmf (f_fail_on_bad_event cond <<< step_no_fail_spmf) xs initial_state)\<close>
+  have
+    \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while =
+      ?L
+        (spmf_of_pmf <<< estimate_distinct_with_bad_flag)
+        estimate_distinct_while_with_bad_flag\<close>
+    by (simp add: estimate_distinct_no_fail_eq_with_bad_flag estimate_distinct_while_eq_with_bad_flag)
+
+  also have \<open>\<dots> \<le> prob_fail (foldM_spmf step_fail_on_bad_event xs initial_state_with_bad_flag)\<close>
     apply (simp
       add:
-        estimate_distinct_no_fail_def estimate_distinct_while_def
-        estimate_distinct_def run_steps_then_estimate_def initial_state_def
+        estimate_distinct_with_bad_flag_def estimate_distinct_while_with_bad_flag_def
+        estimate_distinct_def run_steps_then_estimate_def step_fail_on_bad_event_def 
         compute_estimate_def measure_map_spmf
       flip: map_spmf_of_pmf foldM_spmf_of_pmf_eq)
 
-    apply (intro aux[
+    apply (intro prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event[
       where invariant = \<open>finite <<< state_chi\<close>,
       where invariant' = well_formed_state,
+      where bad_event' = \<open>state_bad_flag\<close>,
       simplified])
 
-      subgoal sorry
-      subgoal sorry
-
-      subgoal using lossless_spmf_def lossless_step_while by fastforce
+      subgoal
+        apply (simp
+          add: step_with_bad_flag_def map_spmf_conv_bind_spmf
+          flip: map_spmf_of_pmf bind_spmf_of_pmf)
+        apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>finite <<< state_chi\<close>])
+        by (auto
+          intro!:
+            Utils_SPMF_Hoare.if_then_else
+            Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>]
+            Utils_SPMF_Hoare.postcond_true
+          simp flip: bind_spmf_of_pmf
+          simp add: step_no_fail_def spmf_of_pmf_bind if_distrib)
 
       subgoal
-        unfolding
-          cond_def body_def step_no_fail_def step_while_def
-          f_with_bad_flag_def map_spmf_conv_bind_spmf case_prod_beta
-          map_pmf_def[symmetric] Let_def
+        by (metis (no_types, lifting) ext step_while_eq_with_bad_flag step_while_preserves_well_formedness truncate_preserves_well_formed_state_iff(1,2))
+
+      subgoal
+        apply (simp flip: space_measure_spmf weight_spmf_def lossless_spmf_def)
+        using step_while_eq_with_bad_flag[unfolded state.defs]
+        by (metis (lifting) lossless_map_spmf lossless_step_while state.simps(2) well_formed_state_def)
+
+      subgoal
         apply (simp
-          flip: bind_spmf_of_pmf
-          add: spmf_of_pmf_bind loop_spmf.while.simps)
-        apply (rule Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
-        apply (metis (mono_tags, lifting) Utils_SPMF_Relational.precond_strengthen Utils_SPMF_Relational.refl_eq(2))
-        apply (simp add: if_distrib)
+          flip: map_spmf_of_pmf bind_spmf_of_pmf
+          add:
+            step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
+            map_spmf_conv_bind_spmf spmf_of_pmf_bind if_distrib if_distribR)
+        unfolding state.defs Let_def
+        apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
+        apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
+        apply (intro Utils_SPMF_Relational.if_then_else)
+        apply simp
+        apply (auto simp add: if_distrib cond_def)
+        sorry
 
-        (* TODO *)
-        apply (rule Utils_SPMF_Relational.if_then_else')
-          subgoal
-            apply simp
-            by (metis (lifting) ext Suc_lessI card.insert_remove card_Diff1_le less_not_refl order.strict_trans1)
+      using threshold_pos
+      by (simp_all add: initial_state_with_bad_flag_def initial_state_def state.defs)
 
-          apply simp
-
-          sorry
-
-      using threshold_pos by simp_all
-
-  also have \<open>\<dots> \<le> ?R\<close>
-    sorry
+  also have \<open>\<dots> = ?R\<close>
+    by (simp add: estimate_distinct_eq_fail_on_bad_event prob_fail_map_spmf_eq run_steps_then_estimate_def)
 
   finally show ?thesis .
 qed

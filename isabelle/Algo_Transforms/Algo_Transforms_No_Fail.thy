@@ -147,7 +147,7 @@ lemma prob_fail_estimate_size_le :
     prob_fail_map_spmf_eq)
 
 lemma step_ord_spmf_eq :
-  \<open>ord_spmf (=) (step x state) (spmf_of_pmf <| step_no_fail x state)\<close>
+  \<open>step x state \<sqsubseteq> spmf_of_pmf (step_no_fail x state)\<close>
   by (fastforce
     intro: ord_spmf_bind_reflI
     simp add:
@@ -155,16 +155,14 @@ lemma step_ord_spmf_eq :
       spmf_of_pmf_def bind_spmf_of_pmf[symmetric] map_bind_pmf)
 
 lemma estimate_distinct_ord_spmf_eq :
-  \<open>ord_spmf (=)
-    (estimate_distinct xs)
-    (spmf_of_pmf <| estimate_distinct_no_fail xs)\<close>
+  \<open>estimate_distinct xs \<sqsubseteq> spmf_of_pmf (estimate_distinct_no_fail xs)\<close>
   apply (simp
     del: map_spmf_of_pmf
     add:
       estimate_distinct_def estimate_distinct_no_fail_def
       run_steps_then_estimate_def
       map_spmf_of_pmf[symmetric] ord_spmf_map_spmf)
-  by (metis (mono_tags, lifting) foldM_spmf_of_pmf_eq foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD step_ord_spmf_eq)
+  by (metis (mono_tags, lifting) foldM_spmf_of_pmf_eq(2) foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_pmf_increaseI ord_spmf_eq_leD step_ord_spmf_eq)
 
 (* Think of P as event that `estimate` is the wrong count *)
 theorem prob_estimate_distinct_fails_or_satisfies_le :
