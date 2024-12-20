@@ -227,6 +227,21 @@ proof -
     by (metis (mono_tags, lifting) state.cases state.select_convs(1,2))
 qed
 
+lemma step_with_bad_flag_preserves_finiteness :
+  \<open>\<turnstile>spmf
+    \<lbrace>finite <<< state_chi\<rbrace>
+    spmf_of_pmf <<< step_with_bad_flag x
+    \<lbrace>finite <<< state_chi\<rbrace>\<close>
+  by (fastforce
+    intro:
+      Utils_SPMF_Hoare.if_then_else
+      Utils_SPMF_Hoare.seq'
+      Utils_SPMF_Hoare.postcond_true
+    simp flip: map_spmf_of_pmf bind_spmf_of_pmf
+    simp add:
+      step_with_bad_flag_def step_no_fail_def map_spmf_conv_bind_spmf Let_def
+      spmf_of_pmf_bind if_distrib if_distribR space_measure_spmf Set.remove_def)
+
 lemma step_while_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step_while x \<lbrace>well_formed_state\<rbrace>\<close>
 proof -
@@ -260,6 +275,10 @@ proof -
       Let_def cond_def not_le Utils_SPMF_Hoare.hoare_triple_def)
     by blast
 qed
+
+lemma step_while_with_bad_flag_preserves_well_formedness :
+  \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step_while_with_bad_flag x \<lbrace>well_formed_state\<rbrace>\<close> 
+  by (metis (no_types, lifting) ext step_while_eq_with_bad_flag step_while_preserves_well_formedness truncate_preserves_well_formed_state_iff(1,2))
 
 lemma lossless_step_while_loop :
   assumes \<open>finite (state_chi state)\<close> \<open>card (state_chi state) \<le> threshold\<close>
@@ -307,6 +326,12 @@ lemma lossless_step_while :
   by (smt (verit, ccfv_threshold) finite_Diff finite_insert less_le lossless_step_while_loop order.refl state.select_convs(2) state.surjective state.update_convs(2)
     well_formed_state_def)
 
+lemma lossless_step_while_with_bad_flag :
+  assumes \<open>state ok\<close>
+  shows \<open>lossless_spmf <| step_while_with_bad_flag x state\<close>
+  using assms step_while_eq_with_bad_flag[unfolded state.defs]
+  by (metis (lifting) lossless_map_spmf lossless_step_while state.simps(2) well_formed_state_def)
+
 lemma lossless_estimate_distinct_while [simp] :
   \<open>lossless_spmf <| estimate_distinct_while xs\<close>
   by (auto
@@ -321,8 +346,7 @@ lemma
   \<le> prob_fail (estimate_distinct xs)\<close>
   (is \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while \<le> ?R\<close>)
 proof -
-  note [simp] =
-    space_measure_spmf well_formed_state_def Let_def Set.remove_def
+  note [simp] = space_measure_spmf well_formed_state_def Let_def Set.remove_def
 
   have
     \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while =
@@ -346,25 +370,11 @@ proof -
       simplified])
 
       subgoal
-        apply (simp
-          add: step_with_bad_flag_def map_spmf_conv_bind_spmf
-          flip: map_spmf_of_pmf bind_spmf_of_pmf)
-        apply (intro Utils_SPMF_Hoare.seq'[where Q = \<open>finite <<< state_chi\<close>])
-        by (auto
-          intro!:
-            Utils_SPMF_Hoare.if_then_else
-            Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>]
-            Utils_SPMF_Hoare.postcond_true
-          simp flip: bind_spmf_of_pmf
-          simp add: step_no_fail_def spmf_of_pmf_bind if_distrib)
-
+        by (simp add: step_with_bad_flag_preserves_finiteness) 
       subgoal
-        by (metis (no_types, lifting) ext step_while_eq_with_bad_flag step_while_preserves_well_formedness truncate_preserves_well_formed_state_iff(1,2))
-
+        by (simp add: step_while_with_bad_flag_preserves_well_formedness)
       subgoal
-        apply (simp flip: space_measure_spmf weight_spmf_def lossless_spmf_def)
-        using step_while_eq_with_bad_flag[unfolded state.defs]
-        by (metis (lifting) lossless_map_spmf lossless_step_while state.simps(2) well_formed_state_def)
+        using lossless_spmf_def lossless_step_while_with_bad_flag by fastforce
 
       subgoal
         apply (simp
