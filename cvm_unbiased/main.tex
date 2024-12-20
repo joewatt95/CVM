@@ -214,7 +214,7 @@ Let us start with the upper tail bound:
 \label{le:upper_tail}
 For any $\Omega \in \{\Omega_0,\ldots,\Omega_l\} \cup \{\Omega'_1,\ldots,\Omega'_l\}$ and $0 < \eps \leq 1$:
 \[
-\prob_{\Omega} \left( p^{-1} |\chi| \geq (1+\eps) |A| \wedge p \geq q\right) \leq \exp\left(-\frac{n}{12} \eps^2\right)
+L := \prob_{\Omega} \left( p^{-1} |\chi| \geq (1+\eps) |A| \wedge p \geq q\right) \leq \exp\left(-\frac{n}{12} \eps^2\right)
 \]
 \end{lemma}
 \begin{proof}
@@ -229,7 +229,7 @@ Moreover, we define
 To get a tail estimate, we use the Cram\'{e}r-Chernoff method:
 {\allowdisplaybreaks
 \begin{eqnarray*}
-  \prob_{\Omega} \left( p^{-1} |\chi| \geq (1+\eps) |A| \wedge p \geq q\right) & \underset{t > 0}{\leq} & \prob_{\Omega} \left( \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A|) \wedge p \geq q \right) \\
+  L & \underset{t > 0}{\leq} & \prob_{\Omega} \left( \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A|) \wedge p \geq q \right) \\
   & \leq & \prob_{\Omega} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A|) \right) \\
   & \underset{\textrm{Markov}}{\leq} & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t p^{-1} |\chi| ) \right] \\
  & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
@@ -241,12 +241,15 @@ So we just need to show that (using $|A|=\frac{n}{4q}$):
 \[
   \ln(h(1))-t (1+\eps) \leq \frac{-q \eps^2}{3}
 \]
-The latter can be established by analyzing the function $f(q,\eps) = -\ln (h(1)) +t (1+\eps) - \frac{q\eps^2}{3}$.
-For which it is easy to check $f(q,0) = 0$ and the derivative with respect to $\eps$ is positive in the range $0 \leq q \leq 1/4$ and $0 < \eps \leq 1$, i.e.,
-$f(q,\eps) \geq 0$.
+The latter can be established by analyzing the function
+\[
+  f(\eps) := -\ln(1+q \eps) + q \ln(1+\eps) (1+\eps) - \frac{q \eps^2}{3} = -\ln (h(1)) +t (1+\eps) - \frac{q\eps^2}{3} \textrm{.}
+\]
+For which it is easy to check $f(0) = 0$ and the derivative with respect to $\eps$ is non-negative in the range $0 \leq q \leq 1/4$ and $0 < \eps \leq 1$, i.e.,
+$f(\eps) \geq 0$.
 \end{proof}
 
-Using the previous we can estimate bounds for $p$ becoming too small, as well as, an upper tail bound.
+Using the previous we can estimate bounds for $p$ becoming too small:
 \begin{lemma}\label{le:low_p}
 \[
 \prob_{\Omega_l}(p < q) \leq l \exp\left( - \frac{n}{12}\right)
@@ -254,27 +257,20 @@ Using the previous we can estimate bounds for $p$ becoming too small, as well as
 \end{lemma}
 \begin{proof}
 We'll use a similar strategy as in the $\mathrm{Bad}_2$ bound in the original CVM paper.
-Let $j$ be maximal, s.t., $q \leq f^j$.
-
-Hence $f^{j+1} < q$ and:
+Let $j$ be maximal, s.t., $q \leq f^j$. Hence $f^{j+1} < q$ and:
 \begin{equation}
 \label{eq:f_j}
   f^j \leq 2f f^j < 2q = \frac{n}{2|A|} \textrm{.}
 \end{equation}
-
 First, we bound the probability of jumping from $p=f^j$ to $p=f^{j+1}$ at a specific point in the algorithm, e.g., after processing $k$ stream elements.
-It can only happen if $|\chi|=n$, $p=f^j$ in $\Omega'_k$.
-
-Then
+It can only happen if $|\chi|=n$, $p=f^j$ in $\Omega'_k$. Then
 \begin{eqnarray*}
   \prob_{\Omega'_k} ( |\chi| \geq n \wedge p=f^j) & \leq & \prob( p^{-1} |\chi| \geq f^{-j} n \wedge p \geq q) \\
-    & \underset{\textrm{Eq.~\ref{eq:f_j}}}{\leq} & \prob( \tilde{p}^{-1} |\chi| \geq 2|A| \wedge p \geq q ) \\
+    & \underset{\textrm{Eq.~\ref{eq:f_j}}}{\leq} & \prob( p^{-1} |\chi| \geq 2|A| \wedge p \geq q ) \\
     & \underset{\textrm{Le.~\ref{le:upper_tail}}}{\leq} & \exp(- n/12)
 \end{eqnarray*}
-
 The probability that this happens ever in the entire process is then at most $l$ times the above which proves the lemma.
 \end{proof}
-
 
 \begin{lemma}\label{le:lower_tail}
 Let $0 < \eps < 1$ then:
@@ -285,7 +281,7 @@ Let $0 < \eps < 1$ then:
 \begin{proof}
 Let us define
 \begin{align*}
-  t & := - q \ln(1-\eps) < 0 \\
+  t & := q \ln(1-\eps) < 0 \\
   h(x) & := 1+q x (e^{t/q}-1)  
 \end{align*}
 
@@ -294,8 +290,8 @@ Note that $h(x) \geq 0$ for $0 \leq x \leq q^{-1}$ (can be checked by verifying 
 With these definitions we again follow the Cram\'{e}r-Chernoff method:
 {\allowdisplaybreaks
 \begin{eqnarray*}
-  L & \underset{t<0}{=} & \prob_{\Omega_l} \left( \exp(t p^{-1} |\chi|) \geq exp(t (1-\eps)|A|) \wedge p \geq q \right) \\
-    & \leq & \prob_{\Omega_l} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq exp(t (1-\eps)|A|) \wedge p > q \right) \\
+  L & \underset{t<0}{=} & \prob_{\Omega_l} \left( \exp(t p^{-1} |\chi|) \geq \exp(t (1-\eps)|A|) \wedge p \geq q \right) \\
+    & \leq & \prob_{\Omega_l} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq \exp(t (1-\eps)|A|) \wedge p > q \right) \\
     & \underset{\textrm{Markov}}{\leq} & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t p^{-1} |\chi| ) \right] \\
     & = & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
     & \leq & \exp( -t (1-\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
@@ -303,13 +299,12 @@ With these definitions we again follow the Cram\'{e}r-Chernoff method:
     & = & \exp( \ln(h(1)) -t (1-\eps) )^{|A|}
 \end{eqnarray*}
 }
-
 Substituting $t$ and $h$ and using $|A| = \frac{n}{4q}$, we can see that the lemma is true if
 \[
-  f(q,\eps) = t (1-\eps) - \ln(h(1)) - \frac{q}{2} \eps^2
+  f(\eps) := -q \ln(1-\eps) (1-\eps) -\ln(1 - q \eps) - \frac{q}{2}\eps^2 = t (1-\eps) - \ln(h(1)) - \frac{q}{2} \eps^2
 \]
 is non-negative for $0 \leq q \leq \frac{1}{4}$ and $0 < \eps < 1$.
-This can be verified by checking that $f(q,0) = 0$ and that the derivative with respect to $\eps$ is non-negative.
+This can be verified by checking that $f(0) = 0$ and that the derivative with respect to $\eps$ is non-negative.
 \end{proof}
 We can now establish the concentration result:
 \begin{theorem}
@@ -322,7 +317,7 @@ Let $0 < \eps < 1$ and $0 < \delta < 1$ and $n \geq \frac{12}{\eps^2} \ln\left(\
 Note that the theorem is trivial if $|A| < n$. If not:
 \begin{eqnarray*}
   L & \leq & \prob_{\Omega_l} \left( | p^{-1} |\chi| \leq (1-\eps) |A| \wedge p \geq q \right) +
-    \prob_{\Omega_l} \left( | p^{-1} |\chi| \leq (1+\eps) |A| \wedge p \geq q \right) +
+    \prob_{\Omega_l} \left( | p^{-1} |\chi| \geq (1+\eps) |A| \wedge p \geq q \right) +
     \prob_{\Omega_l} \left( p < q \right) \\
     & \underset{Le.~\ref{le:upper_tail}-\ref{le:lower_tail}}{\leq} &
     \exp\left( - \frac{n}{8} \eps^2 \right)  + \exp\left( - \frac{n}{12} \eps^2 \right) + l \exp\left( - \frac{n}{12} \right) \\
