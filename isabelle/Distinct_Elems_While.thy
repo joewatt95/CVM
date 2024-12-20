@@ -82,7 +82,6 @@ of `step` and `step_no_fail`. *)
 definition step_while_with_bad_flag ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
   \<open>step_while_with_bad_flag \<equiv> \<lambda> x state. do {
-    let bad_flag = state_bad_flag state;
     let state = state.truncate state;
 
     insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ (state_k state);
@@ -96,11 +95,11 @@ definition step_while_with_bad_flag ::
     let state = state\<lparr>state_chi := chi\<rparr>;
 
     if card chi < threshold
-    then return_spmf (state.extend state \<lparr>state_bad_flag = bad_flag\<rparr>)
+    then return_spmf (state.extend state \<lparr>state_bad_flag = False\<rparr>)
     else do {
       state \<leftarrow> body state;
       if card (state_chi state) < threshold
-      then return_spmf (state.extend state \<lparr>state_bad_flag = bad_flag\<rparr>)
+      then return_spmf (state.extend state \<lparr>state_bad_flag = False\<rparr>)
       else (state
         |> loop_spmf.while cond body_spmf
         |> map_spmf (flip state.extend \<lparr>state_bad_flag = True\<rparr>)) }}\<close>
@@ -322,7 +321,8 @@ lemma
   \<le> prob_fail (estimate_distinct xs)\<close>
   (is \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while \<le> ?R\<close>)
 proof -
-  note [simp] = space_measure_spmf well_formed_state_def Let_def Set.remove_def
+  note [simp] =
+    space_measure_spmf well_formed_state_def Let_def Set.remove_def
 
   have
     \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while =
@@ -371,14 +371,23 @@ proof -
           flip: map_spmf_of_pmf bind_spmf_of_pmf
           add:
             step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
-            map_spmf_conv_bind_spmf spmf_of_pmf_bind if_distrib if_distribR)
-        unfolding state.defs Let_def
+            map_spmf_conv_bind_spmf spmf_of_pmf_bind if_distrib)
+        unfolding state.defs Let_def if_distribR
         apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
         apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
         apply (intro Utils_SPMF_Relational.if_then_else)
+        apply (auto
+          intro!: rel_spmf_bindI[where R = \<open>(=)\<close>]
+          simp flip: map_spmf_of_pmf bind_spmf_of_pmf
+          simp add:
+            cond_def body_def spmf_of_pmf_bind
+            Utils_SPMF_Relational.relational_hoare_triple_def
+            spmf_rel_map rel_spmf_return_spmf1)
         apply simp
-        apply (auto simp add: if_distrib cond_def)
-        sorry
+        apply (intro lossless_step_while_loop[simplified cond_def body_def Let_def spmf_of_pmf_bind, simplified])
+        apply simp
+        apply (metis card_insert_if card_mono finite_insert linorder_neqE_nat member_filter not_less_eq state.select_convs(2) subsetI)
+        by (meson card_Diff1_le order.strict_trans1)
 
       using threshold_pos
       by (simp_all add: initial_state_with_bad_flag_def initial_state_def state.defs)
@@ -388,49 +397,6 @@ proof -
 
   finally show ?thesis .
 qed
-
-(* lemma
-  \<open>\<bar>\<P>(x in measure_spmf <| estimate_distinct_while xs. P x)
-    - \<P>(x in measure_spmf <| estimate_distinct xs. P x)\<bar>
-  \<le> length xs / 2 ^ threshold\<close>
-  apply (induction xs)
-  apply (simp_all add:
-    estimate_distinct_while_def estimate_distinct_def run_steps_then_estimate_def
-    step_def step_while_def initial_state_def
-    measure_map_spmf vimage_def space_measure_spmf Let_def)
-  unfolding Let_def Set.filter_def Set.remove_def if_distribR
-  sorry *)
-
-(* lemma aux :
-  fixes state
-  defines \<open>chi \<equiv> state_chi state\<close>
-  assumes \<open>finite chi\<close> \<open>card chi \<le> threshold\<close>
-  shows
-    \<open>fix_state_while state = (
-      if card (state_chi state) < threshold
-      then return_spmf state
-      else do {
-        keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-          prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
-
-        let chi = Set.filter keep_in_chi chi;
-        let k = state_k state + 1;
-
-        fix_state_while \<lparr>state_k = k, state_chi = chi\<rparr> } )\<close>
-  unfolding fix_state_while_def Let_def
-  apply (subst bind_spmf_of_pmf[symmetric])+
-  apply (subst loop_spmf.while.simps)
-  apply (subst bind_spmf_assoc)
-  using assms by simp *)
-
-(* thm SPMF.fundamental_lemma[
-  where p = \<open>spmf_of_pmf (step_no_fail x state)\<close>,
-  where q = \<open>step_while x state\<close>,
-  where A = P, where B = P,
-  of
-    \<open>\<lambda> state'. card (state_chi state') \<ge> threshold\<close>
-    (* \<open>\<lambda> state'. state_k state' > state_k state + 1\<close> *)
-] *)
 
 end
 
