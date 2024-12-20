@@ -362,8 +362,8 @@ proof -
         apply simp
         apply (intro lossless_step_while_loop[simplified cond_def body_def Let_def spmf_of_pmf_bind, simplified])
         apply simp
-        apply (metis card_insert_if card_mono finite_insert linorder_neqE_nat member_filter not_less_eq state.select_convs(2) subsetI)
-        by (meson card_Diff1_le order.strict_trans1)
+        apply (metis card_mono finite.insertI member_filter state.select_convs(2) subsetI well_formed_state_card_le_threshold(2) well_formed_state_def)
+        using well_formed_state_card_le_threshold(1) by fastforce
 
       using threshold_pos
       by (simp_all add: initial_state_with_bad_flag_def initial_state_def state.defs)
