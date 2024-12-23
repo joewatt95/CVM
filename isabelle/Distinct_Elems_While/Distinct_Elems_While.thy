@@ -20,31 +20,39 @@ lemma compute_estimate_eq_compute_estimate_truncate :
       >>> compute_estimate\<close>
   by (auto simp add: compute_estimate_def state.defs)
 
-lemma foldM_pmf_truncate_eq_map_truncate_foldM_pmf :
-  assumes
-    \<open>\<And> x state. f x (state.truncate state) = map_pmf state.truncate (g x state)\<close>
-  shows
-    \<open>foldM_pmf f xs (state.truncate state) =
-      map_pmf state.truncate (foldM_pmf g xs state)\<close>
-  using assms unfolding state.defs
-  apply (induction xs arbitrary: state)
-  by (auto intro: bind_pmf_cong simp add: map_bind_pmf bind_map_pmf)
-
 lemma foldM_spmf_truncate_eq_map_truncate_foldM_spmf :
   assumes
     \<open>\<And> x state. f x (state.truncate state) = map_spmf state.truncate (g x state)\<close>
   shows
     \<open>foldM_spmf f xs (state.truncate state) =
       map_spmf state.truncate (foldM_spmf g xs state)\<close>
-  using assms unfolding state.defs
+  using assms
   apply (induction xs arbitrary: state)
   by (auto intro: bind_spmf_cong simp add: map_spmf_bind_spmf bind_map_spmf)
+
+lemma foldM_pmf_truncate_eq_map_truncate_foldM_pmf :
+  assumes
+    \<open>\<And> x state. f x (state.truncate state) = map_pmf state.truncate (g x state)\<close>
+  shows
+    \<open>foldM_pmf f xs (state.truncate state) =
+      map_pmf state.truncate (foldM_pmf g xs state)\<close>
+  using foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
+    where f = \<open>\<lambda> x. spmf_of_pmf <<< f x\<close>,
+    where g = \<open>\<lambda> x. spmf_of_pmf <<< g x\<close>]
+  by (simp add: assms foldM_spmf_of_pmf_eq(2))
 
 context with_threshold
 begin
 
-(* Note that this unrolls the while loop _twice_ in order to match the structure
-of `step` and `step_no_fail`. *)
+text
+  \<open>Note that:
+    1. This unrolls the while loop _twice_ in order to match the structure
+       of `step` and `step_no_fail.
+    2. We truncate state at the start so as to simplify proofs later on when we
+       want to relate it back to `step_while`.
+       In particular, this helps to avoid tedious transfinite induction proofs
+       about being able to push `state.truncate` via `map_spmf` through
+       `loop_spmf.while`.\<close>
 definition step_while_with_bad_flag ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
   \<open>step_while_with_bad_flag \<equiv> \<lambda> x state. do {
@@ -83,12 +91,13 @@ begin
 definition step_with_bad_flag ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag pmf\<close> where
   \<open>step_with_bad_flag \<equiv> \<lambda> x.
-    step_no_fail x >>> map_pmf (state_bad_flag_update \<lblot>False\<rblot>)\<close>
+    step_no_fail x >>>
+      map_pmf (\<lambda> state. state\<lparr>state_bad_flag := cond state\<rparr>)\<close>
 
 definition step_fail_on_bad_event ::
   \<open>'a \<Rightarrow> 'a state_with_bad_flag \<Rightarrow> 'a state_with_bad_flag spmf\<close> where
   \<open>step_fail_on_bad_event \<equiv> \<lambda> x.
-    f_fail_on_bad_event cond (spmf_of_pmf <<< step_with_bad_flag x)\<close>
+    f_fail_on_bad_event state_bad_flag (spmf_of_pmf <<< step_with_bad_flag x)\<close>
 
 definition estimate_distinct_with_bad_flag :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_with_bad_flag \<equiv>
@@ -124,7 +133,7 @@ lemma estimate_distinct_while_eq_with_bad_flag :
     foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
       of step_while, OF step_while_eq_with_bad_flag,
       simplified state.defs]
-   by (smt (verit) bind_pmf_cong map_option_cong map_pmf_def map_return_pmf option.map(2) spmf.map_comp state.select_convs(1,2))
+  by (smt (verit) bind_pmf_cong map_option_cong map_pmf_def map_return_pmf option.map(2) spmf.map_comp state.select_convs(1,2))
 
 lemma step_no_fail_eq_with_bad_flag :
   \<open>step_no_fail x (state.truncate state) = (
@@ -306,6 +315,40 @@ lemma lossless_estimate_distinct_while [simp] :
       step_while_preserves_well_formedness
     simp add: estimate_distinct_while_def run_steps_then_estimate_def)
 
+lemma step_step_while_with_bad_flag_preserves_eq_up_to_bad :
+  \<open>\<turnstile>spmf
+    \<lbrace>(\<lambda> val val'.
+      val = val' \<and> finite (state_chi val) \<and> card (state_chi val) < threshold)\<rbrace>
+    \<langle>spmf_of_pmf <<< step_with_bad_flag x | step_while_with_bad_flag x\<rangle>
+    \<lbrace>(\<lambda> val val'.
+      state_bad_flag val = state_bad_flag val' \<and>
+      (\<not> state_bad_flag val \<longrightarrow> val = val')) \<rbrace>\<close>
+proof -
+  note [simp add] =
+    cond_def body_def state.defs
+    spmf_of_pmf_bind bind_spmf_of_pmf[symmetric] map_spmf_of_pmf[symmetric]
+    space_measure_spmf well_formed_state_def Let_def Set.remove_def
+
+  note [simp del] = map_spmf_of_pmf bind_spmf_of_pmf
+
+  show ?thesis
+    apply (simp add:
+      step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
+      map_spmf_conv_bind_spmf if_distrib)
+    unfolding if_distribR
+    apply (
+      intro
+        Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
+        Utils_SPMF_Relational.if_then_else,
+      simp_all)+
+    apply (simp_all add:
+      Utils_SPMF_Relational.relational_hoare_triple_def rel_spmf_return_spmf1)
+    using
+      lossless_step_while_loop[simplified]
+      well_formed_state_card_le_threshold[simplified]
+    by (smt (verit, ccfv_threshold) card_mono finite.insertI finite_filter member_filter remove_def state.simps(2) subsetI)
+qed
+
 lemma
   \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
     - \<P>(state in measure_spmf <| estimate_distinct_while xs. P state)\<bar>
@@ -322,51 +365,25 @@ proof -
     by (simp add: estimate_distinct_no_fail_eq_with_bad_flag estimate_distinct_while_eq_with_bad_flag)
 
   also have \<open>\<dots> \<le> prob_fail (foldM_spmf step_fail_on_bad_event xs initial_state_with_bad_flag)\<close>
+    (* First simp our defns away and convert foldM_pmf into foldM_spmf *)
     apply (simp
       add:
         estimate_distinct_with_bad_flag_def estimate_distinct_while_with_bad_flag_def
         estimate_distinct_def run_steps_then_estimate_def step_fail_on_bad_event_def 
         compute_estimate_def measure_map_spmf
       flip: map_spmf_of_pmf foldM_spmf_of_pmf_eq)
-
-    apply (intro prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event[
-      where invariant = \<open>finite <<< state_chi\<close>,
-      where invariant' = well_formed_state,
-      where bad_event' = \<open>state_bad_flag\<close>,
-      simplified])
-
-      subgoal
-        by (simp add: step_with_bad_flag_preserves_finiteness) 
-      subgoal
-        by (simp add: step_while_with_bad_flag_preserves_well_formedness)
-      subgoal
-        using lossless_spmf_def lossless_step_while_with_bad_flag by fastforce
-
-      subgoal
-        apply (simp
-          flip: map_spmf_of_pmf bind_spmf_of_pmf
-          add:
-            step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
-            map_spmf_conv_bind_spmf spmf_of_pmf_bind if_distrib)
-        unfolding state.defs Let_def if_distribR
-        apply (intro Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>])
-        apply (simp add: Utils_SPMF_Relational.relational_hoare_triple_def)
-        apply (intro Utils_SPMF_Relational.if_then_else)
-        apply (auto
-          intro!: rel_spmf_bindI[where R = \<open>(=)\<close>]
-          simp flip: map_spmf_of_pmf bind_spmf_of_pmf
-          simp add:
-            cond_def body_def spmf_of_pmf_bind
-            Utils_SPMF_Relational.relational_hoare_triple_def
-            spmf_rel_map rel_spmf_return_spmf1)
-        apply simp
-        apply (intro lossless_step_while_loop[simplified cond_def body_def Let_def spmf_of_pmf_bind, simplified])
-        apply simp
-        apply (metis card_mono finite.insertI member_filter state.select_convs(2) subsetI well_formed_state_card_le_threshold(2) well_formed_state_def)
-        using well_formed_state_card_le_threshold(1) by fastforce
-
-      using threshold_pos
-      by (simp_all add: initial_state_with_bad_flag_def initial_state_def state.defs)
+    using lossless_step_while_with_bad_flag
+    by (fastforce
+      intro:
+        prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event[
+          where invariant = \<open>finite <<< state_chi\<close>,
+          where invariant' = well_formed_state,
+          where bad_event' = \<open>state_bad_flag\<close>, simplified]
+      simp add:
+        step_with_bad_flag_preserves_finiteness threshold_pos
+        step_while_with_bad_flag_preserves_well_formedness lossless_spmf_def
+        step_step_while_with_bad_flag_preserves_eq_up_to_bad state.defs
+        initial_state_with_bad_flag_def initial_state_def)
 
   also have \<open>\<dots> = ?R\<close>
     by (simp add: estimate_distinct_eq_fail_on_bad_event prob_fail_map_spmf_eq run_steps_then_estimate_def)

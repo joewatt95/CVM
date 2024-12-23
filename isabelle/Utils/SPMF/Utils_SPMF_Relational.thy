@@ -131,6 +131,7 @@ lemma refl_eq [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrace>(=)\<rbrace>\<close>
   \<open>\<turnstile>spmf \<lbrace>(=)\<rbrace> \<langle>f | f\<rangle> \<lbrace>(=)\<rbrace>\<close>
   \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. S x x' \<and> x = x')\<rbrace> \<langle>f | f\<rangle> \<lbrace>(=)\<rbrace>\<close>
+  \<open>\<turnstile>spmf \<lbrace>(\<lambda> x x'. x = x' \<and> S x x')\<rbrace> \<langle>f | f\<rangle> \<lbrace>(=)\<rbrace>\<close>
   by (simp_all add: relational_hoare_triple_def spmf_rel_eq)
 
 lemma skip [simp] :

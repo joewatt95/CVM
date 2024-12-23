@@ -1,10 +1,15 @@
 theory Utils_SPMF_Basic
 
 imports
+  CryptHOL.Misc_CryptHOL
   "HOL-Probability.SPMF"
   CVM.Utils_Function
 
 begin
+
+lemma spmf_of_pmf_eq_iff_eq [simp] :
+  \<open>spmf_of_pmf p = spmf_of_pmf q \<longleftrightarrow> p = q\<close>
+  using map_the_spmf_of_pmf[of p] by fastforce
 
 definition fail_spmf :: \<open>'a spmf\<close> where
   \<open>fail_spmf \<equiv> return_pmf None\<close>
