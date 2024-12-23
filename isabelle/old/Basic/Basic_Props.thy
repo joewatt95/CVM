@@ -55,7 +55,8 @@ lemma step_ord_spmf_eq :
   by (auto
       intro!: ord_spmf_bind_reflI
       simp del: bind_spmf_of_pmf
-      simp add: step_def fail_spmf_def bind_spmf_of_pmf[symmetric] Let_def)
+      simp flip: bind_spmf_of_Pm
+      simp add: step_def Let_def)
 
 lemma estimate_distinct_ord_spmf_eq :
   \<open>ord_spmf (=)

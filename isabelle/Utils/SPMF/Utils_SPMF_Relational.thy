@@ -81,7 +81,7 @@ lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
   using assms
-  by (simp add: pmf_None_eq_weight_spmf prob_fail_def rel_spmf_weightD)
+  by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
 
 definition relational_hoare_triple ::
   \<open>['a \<Rightarrow> 'b \<Rightarrow> bool, 'a \<Rightarrow> 'c spmf, 'b \<Rightarrow> 'd spmf, 'c \<Rightarrow> 'd \<Rightarrow> bool] \<Rightarrow> bool\<close>
@@ -287,7 +287,7 @@ lemma prob_fail_le_of_relational_hoare_triple :
   using assms
   by (auto
     intro!: ord_spmf_eqD_pmf_None[where Y = \<open>{}\<close>] 
-    simp add: hoare_ord_option_iff_ord_spmf  prob_fail_def chain_empty)
+    simp add: hoare_ord_option_iff_ord_spmf chain_empty)
 
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
   assumes \<open>\<And> x val. f x val \<sqsubseteq> f' x val\<close>
@@ -301,7 +301,7 @@ proof -
     \<lbrakk>ord_option (=)\<rbrakk>\<close>
     by (fastforce
       intro: Utils_PMF_Relational.loop_unindexed
-      simp add: assms hoare_ord_option_iff_ord_spmf fail_spmf_def
+      simp add: assms hoare_ord_option_iff_ord_spmf
       split: option.splits)
 
   then show ?thesis
@@ -710,7 +710,7 @@ proof -
         rel_pmf_bindI[where R = \<open>(=)\<close>]
       split: option.splits
       simp add:
-        Utils_PMF_Relational.relational_hoare_triple_def fail_spmf_def
+        Utils_PMF_Relational.relational_hoare_triple_def
         f_with_bad_flag_def f_fail_on_bad_event_def pmf.rel_map)
 qed
 
@@ -767,7 +767,7 @@ proof -
   have \<open>\<dots> \<le> ?R\<close>
     apply (simp
       flip: measure_pmf_single
-      add: prob_fail_def Utils_PMF_Relational.relational_hoare_triple_def)
+      add: Utils_PMF_Relational.relational_hoare_triple_def)
     by (smt (verit, best) Collect_cong case_optionE mem_Collect_eq option.inject option.simps(4) rel_pmf_measureD singleton_conv2 split_beta')
 
   finally show ?thesis . 

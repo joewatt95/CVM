@@ -11,15 +11,13 @@ lemma spmf_of_pmf_eq_iff_eq [simp] :
   \<open>spmf_of_pmf p = spmf_of_pmf q \<longleftrightarrow> p = q\<close>
   using map_the_spmf_of_pmf[of p] by fastforce
 
-definition fail_spmf :: \<open>'a spmf\<close> where
-  \<open>fail_spmf \<equiv> return_pmf None\<close>
+abbreviation \<open>fail_spmf \<equiv> return_pmf None\<close>
 
-definition prob_fail :: \<open>'a spmf \<Rightarrow> real\<close> where
-  \<open>prob_fail \<equiv> flip pmf None\<close>
+abbreviation \<open>prob_fail \<equiv> flip pmf None\<close>
 
 lemma prob_fail_map_spmf_eq :
   \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
-  by (simp add: prob_fail_def pmf_None_eq_weight_spmf)
+  by (simp add: pmf_None_eq_weight_spmf)
 
 lemma spmf_map_pred_true_eq_prob :
   \<open>spmf (map_spmf P p) True = \<P>(x in measure_spmf p. P x)\<close>
@@ -31,17 +29,17 @@ abbreviation fails_or_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 
 abbreviation succeeds_and_satisfies :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
   \<open>succeeds_and_satisfies \<equiv> case_option False\<close>
 
-lemma prob_fails_or_satisfies_le_prob_fail_plus_prob :
-  \<open>\<P>(x in measure_pmf p. x |> fails_or_satisfies P)
-    \<le> prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
+lemma prob_fails_or_satisfies_eq_prob_fail_plus_prob :
+  \<open>\<P>(x in measure_pmf p. x |> fails_or_satisfies P) =
+    prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
   have \<open>Collect (fails_or_satisfies P) = {None} \<union> Some ` Collect P\<close>
     by (auto split: option.splits)
 
   then show ?thesis
-    apply (simp add: prob_fail_def space_measure_spmf)
-    using insert_def
-    by (metis UNIV_I finite_measure.finite_measure_subadditive measure_measure_spmf_conv_measure_pmf measure_pmf.prob_space_axioms pmf.rep_eq prob_space_def sets_measure_pmf singleton_conv)
+    by (smt (verit, ccfv_SIG) Collect_cong Diff_insert0 None_notin_image_Some UNIV_I finite_measure.finite_measure_Union' measure_empty
+      measure_measure_spmf_conv_measure_pmf measure_pmf.finite_measure measure_pmf_single sets_measure_pmf space_measure_pmf space_measure_spmf
+      sup_bot_left)
 qed
 
 lemma measure_spmf_eq_measure_pmf_succeeds_and_satisfies :

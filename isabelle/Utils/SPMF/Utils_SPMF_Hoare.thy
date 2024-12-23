@@ -82,7 +82,7 @@ lemma postcond_true [simp] :
 
 lemma fail [simp] :
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> \<lblot>fail_spmf\<rblot> \<lbrace>Q\<rbrace>\<close>
-  by (metis fail_spmf_def empty_iff hoare_tripleI set_spmf_return_pmf_None)
+  by (metis empty_iff hoare_tripleI set_spmf_return_pmf_None)
 
 lemma skip [simp] :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
@@ -259,9 +259,7 @@ proof -
     apply simp
     apply (induction rule: loop_spmf.while_fixp_induct)
     using assms
-    by (auto
-      intro!: admissible_hoare_triple fail if_then_else seq'
-      simp add: fail_spmf_def[symmetric])
+    by (auto intro!: admissible_hoare_triple fail if_then_else seq')
 
   then show ?thesis_1
     apply simp
@@ -292,7 +290,7 @@ lemma prob_fail_foldM_spmf_le :
   shows \<open>prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close>
 using assms proof (induction xs arbitrary: val)
   case Nil
-  then show ?case by (simp add: prob_fail_def)
+  then show ?case by simp
 next
   case (Cons x xs)
 
@@ -303,7 +301,7 @@ next
     \<open>prob_fail (foldM_spmf f (x # xs) val) =
       prob_fail ?val' + \<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>'\<close>
     (is \<open>_ = _ + \<integral> val'. ?prob_fail val' \<partial> _\<close>)
-    by (simp add: prob_fail_def pmf_bind_spmf_None)
+    by (simp add: pmf_bind_spmf_None)
 
   also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
   proof -
@@ -320,7 +318,7 @@ next
 
   also have \<open>\<dots> \<le> p + length xs * p\<close>
     apply simp
-    by (metis assms(2) local.Cons(4) measure_spmf.subprob_measure_le_1 mult.commute mult_left_le mult_nonneg_nonneg of_nat_0_le_iff order_trans pmf_nonneg prob_fail_def)
+    by (metis assms(2) local.Cons(4) measure_spmf.subprob_measure_le_1 mult.commute mult_left_le mult_nonneg_nonneg of_nat_0_le_iff order_trans pmf_nonneg)
 
   finally show ?case by (simp add: algebra_simps)
 qed
@@ -332,7 +330,7 @@ lemma lossless_foldM_spmf :
     \<open>P val\<close>
   shows \<open>lossless_spmf <| foldM_spmf f xs val\<close>
   using assms prob_fail_foldM_spmf_le[of P f 0]
-  by (simp add: lossless_iff_pmf_None prob_fail_def)
+  by (simp add: lossless_iff_pmf_None)
 
 lemma lossless_foldM_spmf' [simp] :
   assumes \<open>\<And> x val. lossless_spmf <| f x val\<close>

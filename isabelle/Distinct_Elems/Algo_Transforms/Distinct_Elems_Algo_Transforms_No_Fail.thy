@@ -71,7 +71,7 @@ lemma step_preserves_well_formedness :
   by (fastforce
     intro: Utils_SPMF_Hoare.seq' hoare_tripleI
     split: if_splits
-    simp add: in_set_spmf fail_spmf_def well_formed_state_def remove_def Let_def)
+    simp add: in_set_spmf well_formed_state_def remove_def Let_def)
 
 lemma spmf_bind_filter_chi_eq_map :
   assumes
@@ -98,7 +98,7 @@ proof -
   have [simp] :
     \<open>(if b then return_spmf e else fail_spmf)
       = return_pmf (if b then Some e else None)\<close>
-    for b and e :: 'c by (simp add: fail_spmf_def)
+    for b and e :: 'c by simp
 
   (* This says that an indicator function keep_in_chi defined on chi,
     representing the coins we flip to throw things out, evaluates to True
@@ -134,7 +134,7 @@ lemma prob_fail_step_le :
   using well_formed_state_card_le_threshold[OF assms] assms
   apply (simp add: step_def well_formed_state_def Let_def)
   by (simp add:
-    spmf_bind_filter_chi_eq_map prob_fail_def pmf_prod_pmf
+    spmf_bind_filter_chi_eq_map pmf_prod_pmf
     pmf_bind pmf_map measure_pmf_single vimage_def field_simps)
 
 lemma prob_fail_estimate_size_le :
@@ -151,7 +151,7 @@ lemma step_ord_spmf_eq :
   by (fastforce
     intro: ord_spmf_bind_reflI
     simp add:
-      step_no_fail_def step_def fail_spmf_def Let_def
+      step_no_fail_def step_def Let_def
       spmf_of_pmf_def bind_spmf_of_pmf[symmetric] map_bind_pmf)
 
 lemma estimate_distinct_ord_spmf_eq :
@@ -169,7 +169,7 @@ theorem prob_estimate_distinct_fails_or_satisfies_le :
   \<open>\<P>(estimate in estimate_distinct xs. estimate |> fails_or_satisfies P)
   \<le> real (length xs) / 2 ^ threshold
     + \<P>(estimate in estimate_distinct_no_fail xs. P estimate)\<close>
-  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_fail_estimate_size_le prob_fails_or_satisfies_le_prob_fail_plus_prob prob_le_prob_of_ord_spmf_eq)
+  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_fail_estimate_size_le prob_fails_or_satisfies_eq_prob_fail_plus_prob prob_le_prob_of_ord_spmf_eq)
 
 end
 

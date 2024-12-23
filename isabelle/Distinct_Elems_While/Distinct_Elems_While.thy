@@ -169,7 +169,7 @@ lemma step_eq_fail_on_bad_event :
     simp flip: bind_spmf_of_pmf map_spmf_of_pmf
     simp add:
       step_fail_on_bad_event_def cond_def f_fail_on_bad_event_def step_with_bad_flag_def
-      step_def step_no_fail_def Let_def state.defs spmf_of_pmf_bind fail_spmf_def
+      step_def step_no_fail_def Let_def state.defs spmf_of_pmf_bind
       well_formed_state_def map_spmf_bind_spmf bind_map_spmf comp_def)
 
 lemma estimate_distinct_eq_fail_on_bad_event :
@@ -255,7 +255,7 @@ lemma step_while_with_bad_flag_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step_while_with_bad_flag x \<lbrace>well_formed_state\<rbrace>\<close> 
   by (metis (no_types, lifting) ext step_while_eq_with_bad_flag step_while_preserves_well_formedness truncate_preserves_well_formed_state_iff(1,2))
 
-lemma lossless_step_while_loop :
+lemma lossless_step_while_loop [simp] :
   assumes \<open>finite (state_chi state)\<close> \<open>card (state_chi state) \<le> threshold\<close>
   shows \<open>lossless_spmf <| loop_spmf.while cond body_spmf state\<close>
 proof -
@@ -293,7 +293,7 @@ proof -
         card_mono subset_iff)
 qed
 
-lemma lossless_step_while :
+lemma lossless_step_while [simp] :
   assumes \<open>state ok\<close>
   shows \<open>lossless_spmf <| step_while x state\<close>
   using assms lossless_step_while_loop well_formed_state_card_le_threshold[OF assms]
@@ -301,7 +301,7 @@ lemma lossless_step_while :
   by (smt (verit, ccfv_threshold) finite_Diff finite_insert less_le lossless_step_while_loop order.refl state.select_convs(2) state.surjective state.update_convs(2)
     well_formed_state_def)
 
-lemma lossless_step_while_with_bad_flag :
+lemma lossless_step_while_with_bad_flag [simp] :
   assumes \<open>state ok\<close>
   shows \<open>lossless_spmf <| step_while_with_bad_flag x state\<close>
   using assms step_while_eq_with_bad_flag[unfolded state.defs]
@@ -349,9 +349,9 @@ proof -
     by (smt (verit, ccfv_threshold) card_mono finite.insertI finite_filter member_filter remove_def state.simps(2) subsetI)
 qed
 
-lemma
-  \<open>\<bar>\<P>(state in measure_spmf <| estimate_distinct_no_fail_spmf xs. P state)
-    - \<P>(state in measure_spmf <| estimate_distinct_while xs. P state)\<bar>
+lemma diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail :
+  \<open>\<bar>\<P>(estimate in measure_spmf <| estimate_distinct_no_fail_spmf xs. P estimate)
+    - \<P>(estimate in measure_spmf <| estimate_distinct_while xs. P estimate)\<bar>
   \<le> prob_fail (estimate_distinct xs)\<close>
   (is \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while \<le> ?R\<close>)
 proof -
@@ -389,6 +389,31 @@ proof -
     by (simp add: estimate_distinct_eq_fail_on_bad_event prob_fail_map_spmf_eq run_steps_then_estimate_def)
 
   finally show ?thesis .
+qed
+
+lemma prob_estimate_distinct_while_fails_or_satisfies_le :
+  \<open>\<P>(estimate in estimate_distinct_while xs. fails_or_satisfies P estimate)
+  \<le> prob_fail (estimate_distinct xs) +
+    \<P>(estimate in estimate_distinct_no_fail xs. P estimate)\<close>
+  (is \<open>?L \<le> ?prob_fail + _\<close>)
+proof -
+  let ?L' = \<open>\<lambda> f.
+    \<P>(estimate in measure_spmf <| f xs. P estimate)\<close>
+
+  have \<open>?L = ?L' estimate_distinct_while\<close>
+    by (simp
+      flip: lossless_iff_pmf_None
+      add: prob_fails_or_satisfies_eq_prob_fail_plus_prob[simplified])
+
+  also have \<open>\<dots> \<le>
+    ?L' estimate_distinct_no_fail_spmf +
+    \<bar>?L' estimate_distinct_no_fail_spmf - ?L' estimate_distinct_while\<bar>\<close>
+    by simp
+
+  also with diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail
+  have \<open>\<dots> \<le> ?L' estimate_distinct_no_fail_spmf + ?prob_fail\<close> by simp
+
+  finally show ?thesis by simp
 qed
 
 end

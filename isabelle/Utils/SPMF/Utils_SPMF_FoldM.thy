@@ -30,11 +30,11 @@ proof -
   proof (induction xs)
     case Nil
     then show ?case
-      by (metis bind_return_pmf bind_return_spmf bind_spmf_def fail_spmf_def foldM_empty)
+      by (metis bind_return_pmf bind_return_spmf bind_spmf_def foldM_empty)
   next
     case (Cons _ _)
     then show ?case
-      by (metis (mono_tags, lifting) bind_spmf_def fail_spmf_def foldM.simps(2) not_None_eq option.case(1,2) return_None_bind_spmf)
+      by (metis (mono_tags, lifting) bind_spmf_def foldM.simps(2) not_None_eq option.case(1,2) return_None_bind_spmf)
   qed
 
   then show ?thesis by simp 
@@ -65,7 +65,7 @@ lemma pmf_foldM_spmf_cons :
         Some acc' \<Rightarrow> pmf (foldM_spmf f xs acc') a)
       \<partial> f x acc\<close>
   apply (simp add: bind_spmf_def pmf_bind)
-  by (metis fail_spmf_def option.case_eq_if)
+  by (metis (mono_tags, lifting) option.case_eq_if)
 
 lemma integrable_prob_fail_foldM_spmf :
   \<open>integrable
@@ -73,6 +73,6 @@ lemma integrable_prob_fail_foldM_spmf :
     prob_fail <<< foldM_spmf f xs\<close>
   by (auto
     intro: measure_spmf.integrable_const_bound[where B = 1]
-    simp add: prob_fail_def pmf_le_1)
+    simp add: pmf_le_1)
 
 end

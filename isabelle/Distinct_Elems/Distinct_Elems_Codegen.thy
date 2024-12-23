@@ -2,7 +2,7 @@ theory Distinct_Elems_Codegen
 
 imports
   Executable_Randomized_Algorithms.Basic_Randomized_Algorithms
-  CVM.Distinct_Elems_Original_Algo
+  CVM.Distinct_Elems_Algo
 
 begin
 
@@ -14,7 +14,7 @@ definition \<open>fail_ra \<equiv> lub_ra {}\<close>
 
 lemma
   \<open>spmf_of_ra fail_ra = fail_spmf\<close>
-  by (simp add: fail_ra_def fail_spmf_def spmf_of_ra_lub_ra_empty) 
+  by (simp add: fail_ra_def spmf_of_ra_lub_ra_empty) 
 
 (*
 Codegen from sets? What concrete data types and performance characteristics
