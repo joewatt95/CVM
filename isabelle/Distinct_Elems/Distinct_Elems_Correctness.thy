@@ -80,15 +80,14 @@ theorem estimate_distinct_error_bound :
   (is \<open>?L \<le> _\<close>)
 proof (cases \<open>xs = [] \<or> threshold > card (set xs)\<close>)
   case True
-  then have \<open>?L = 0\<close>
-    using assms zero_compare_simps(10)[of "\<bar>\<epsilon>\<bar>" "real (card (set xs))"]
+  with assms have \<open>?L = 0\<close>
+    using zero_compare_simps(10)[of "\<bar>\<epsilon>\<bar>" "real (card (set xs))"]
     by (simp add: with_threshold.estimate_distinct_correct_of_empty_or_threshold)
 
   then show ?thesis by (simp add: prob_bounds_defs)
 next
   case False
-  then have
-    \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close> by simp_all
+  then have \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close> by simp_all
 
   with assms interpret
     with_threshold_pos_r_l_\<epsilon>_xs threshold r l \<epsilon> xs
@@ -98,11 +97,11 @@ next
     \<open>run_with_bernoulli_matrix <|
       run_reader <<< eager_algorithm\<close>
 
+  from prob_estimate_distinct_fails_or_satisfies_le
   have \<open>?L \<le>
     prob_fail_bound +
     \<P>(estimate in estimate_distinct_no_fail xs.
       real estimate >[\<epsilon>] card (set xs))\<close>
-    using prob_estimate_distinct_fails_or_satisfies_le
     by (simp add: prob_bounds_defs)
 
   also have \<open>\<dots> \<le> (
@@ -128,17 +127,18 @@ end
 
 text \<open>As before, but stated outside of our locales, for convenience and clarity.\<close>
 theorem estimate_distinct_error_bound' :
- fixes
+  fixes
     \<epsilon> :: real and
     threshold l :: nat and
     xs :: \<open>'a list\<close>
+  defines \<open>card_xs \<equiv> card (set xs)\<close>
   assumes
     \<open>0 < \<epsilon>\<close>
-    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
+    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> card_xs\<rbrakk> \<Longrightarrow>
       \<epsilon> \<le> 1 \<and>
       r \<in> {2 .. threshold} \<and>
       \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
-      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
+      2 ^ l * threshold \<in> {r * card_xs .. 2 * r * card_xs}\<close>
   defines
    \<open>prob_fail_bound \<equiv>
       real (length xs) / 2 ^ threshold\<close> and
