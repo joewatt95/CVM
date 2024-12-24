@@ -404,6 +404,68 @@ proof -
   show ?thesis by simp
 qed
 
+lemma aux :
+  defines
+    \<open>step_1 \<equiv> \<lambda> x state. do {
+      insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ (state_k state);
+
+      let chi = (state
+        |> state_chi
+        |> if insert_x_into_chi
+          then insert x
+          else Set.remove x);
+      
+      return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close> and
+    \<open>aux \<equiv> \<lambda> x state.
+      indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
+  assumes
+    \<open>finite <| set_pmf state\<close>
+    \<open>measure_pmf.expectation state (aux x) = (1 :: real)\<close>
+  shows
+    \<open>measure_pmf.expectation (state \<bind> step_1 x) (aux x) = (1 :: real)\<close>
+  using assms
+  by (fastforce
+    simp flip: map_pmf_def
+    simp add: pmf_expectation_bind sum_pmf_eq_1)
+  (*
+  apply (subst integral_bind_pmf)
+
+  subgoal
+    apply simp
+    find_theorems "bounded"
+    sorry
+
+  by simp *)
+
+lemma aux' :
+  defines
+  \<open>step_2 \<equiv> \<lambda> state.
+    let chi = state_chi state
+    in if card chi < threshold
+      then return_pmf (state\<lparr>state_chi := chi\<rparr>)
+      else do {
+        keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
+          prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+
+        let chi = Set.filter keep_in_chi chi;
+
+        return_pmf (state\<lparr>state_k := (state_k state) + 1, state_chi := chi\<rparr>) }\<close> and
+
+    \<open>aux \<equiv> \<lambda> x state.
+      indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
+  assumes
+    \<open>AE state in measure_pmf state. finite (state_chi state)\<close>
+    \<open>finite <| set_pmf state\<close>
+    \<open>measure_pmf.expectation state (aux x) = (1 :: real)\<close>
+  shows
+    \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = (1 :: real)\<close>
+  using assms
+  unfolding Let_def
+  apply simp
+  apply (subst pmf_expectation_bind)
+  apply auto
+  sorry
+
 end
 
 end
