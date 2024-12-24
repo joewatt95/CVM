@@ -195,7 +195,7 @@ proof -
   show ?thesis_0
     by (fastforce
       simp add: Utils_SPMF_Hoare.hoare_triple_def well_formed_state_def state.defs)
-  
+
   show ?thesis_1
     apply (simp add:
       Utils_SPMF_Hoare.hoare_triple_def well_formed_state_def state.defs)
@@ -323,31 +323,27 @@ lemma step_step_while_with_bad_flag_preserves_eq_up_to_bad :
     \<lbrace>(\<lambda> val val'.
       state_bad_flag val = state_bad_flag val' \<and>
       (\<not> state_bad_flag val \<longrightarrow> val = val')) \<rbrace>\<close>
-proof -
-  note [simp add] =
+  supply [simp] =
     cond_def body_def state.defs
     spmf_of_pmf_bind bind_spmf_of_pmf[symmetric] map_spmf_of_pmf[symmetric]
     space_measure_spmf well_formed_state_def Let_def Set.remove_def
+  supply [simp del] = map_spmf_of_pmf bind_spmf_of_pmf
 
-  note [simp del] = map_spmf_of_pmf bind_spmf_of_pmf
-
-  show ?thesis
-    apply (simp add:
-      step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
-      map_spmf_conv_bind_spmf if_distrib)
-    unfolding if_distribR
-    apply (
-      intro
-        Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
-        Utils_SPMF_Relational.if_then_else,
-      simp_all)+
-    apply (simp_all add:
-      Utils_SPMF_Relational.relational_hoare_triple_def rel_spmf_return_spmf1)
-    using
-      lossless_step_while_loop[simplified]
-      well_formed_state_card_le_threshold[simplified]
-    by (smt (verit, ccfv_threshold) card_mono finite.insertI finite_filter member_filter remove_def state.simps(2) subsetI)
-qed
+  apply (simp add:
+    step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
+    map_spmf_conv_bind_spmf if_distrib)
+  unfolding if_distribR
+  apply (
+    intro
+      Utils_SPMF_Relational.seq'[where S = \<open>(=)\<close>]
+      Utils_SPMF_Relational.if_then_else,
+    simp_all)+
+  apply (simp_all add:
+    Utils_SPMF_Relational.relational_hoare_triple_def rel_spmf_return_spmf1)
+  using
+    lossless_step_while_loop[simplified]
+    well_formed_state_card_le_threshold[simplified]
+  by (smt (verit, ccfv_threshold) card_mono finite.insertI finite_filter member_filter remove_def state.simps(2) subsetI)
 
 lemma diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail :
   \<open>\<bar>\<P>(estimate in measure_spmf <| estimate_distinct_no_fail_spmf xs. P estimate)
@@ -395,25 +391,17 @@ lemma prob_estimate_distinct_while_fails_or_satisfies_le :
   \<open>\<P>(estimate in estimate_distinct_while xs. fails_or_satisfies P estimate)
   \<le> prob_fail (estimate_distinct xs) +
     \<P>(estimate in estimate_distinct_no_fail xs. P estimate)\<close>
-  (is \<open>?L \<le> ?prob_fail + _\<close>)
+  (is \<open>?L \<le> _\<close>)
 proof -
-  let ?L' = \<open>\<lambda> f.
-    \<P>(estimate in measure_spmf <| f xs. P estimate)\<close>
-
-  have \<open>?L = ?L' estimate_distinct_while\<close>
+  have
+    \<open>?L = \<P>(estimate in measure_spmf <| estimate_distinct_while xs. P estimate)\<close>
     by (simp
       flip: lossless_iff_pmf_None
       add: prob_fails_or_satisfies_eq_prob_fail_plus_prob[simplified])
 
-  also have \<open>\<dots> \<le>
-    ?L' estimate_distinct_no_fail_spmf +
-    \<bar>?L' estimate_distinct_no_fail_spmf - ?L' estimate_distinct_while\<bar>\<close>
-    by simp
-
-  also with diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail
-  have \<open>\<dots> \<le> ?L' estimate_distinct_no_fail_spmf + ?prob_fail\<close> by simp
-
-  finally show ?thesis by simp
+  (* Triangle inequality. *)
+  with diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail[of xs P]
+  show ?thesis by simp
 qed
 
 end
