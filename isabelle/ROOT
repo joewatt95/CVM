@@ -1,4 +1,4 @@
-session CVM = "HOL-Probability" +
+session CVM = "CryptHOL" +
   options [timeout = 300]
 
   sessions
