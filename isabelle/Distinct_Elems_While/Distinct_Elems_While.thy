@@ -414,19 +414,16 @@ lemma aux :
         |> if insert_x_into_chi
           then insert x
           else Set.remove x);
-      
+
       return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close> and
     \<open>aux \<equiv> \<lambda> x state.
       indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
   assumes
     \<open>finite <| set_pmf state\<close>
-    \<open>measure_pmf.expectation state (aux x) = (1 :: real)\<close>
-  shows
-    \<open>measure_pmf.expectation (state \<bind> step_1 x) (aux x) = (1 :: real)\<close>
+    \<open>measure_pmf.expectation state (aux x) = 1\<close>
+  shows \<open>measure_pmf.expectation (state \<bind> step_1 x) (aux x) = 1\<close>
   using assms
-  by (fastforce
-    simp flip: map_pmf_def
-    simp add: pmf_expectation_bind sum_pmf_eq_1)
+  by (simp flip: map_pmf_def add: pmf_expectation_bind sum_pmf_eq_1)
   (*
   apply (subst integral_bind_pmf)
 
@@ -456,9 +453,8 @@ lemma aux' :
   assumes
     \<open>AE state in measure_pmf state. finite (state_chi state)\<close>
     \<open>finite <| set_pmf state\<close>
-    \<open>measure_pmf.expectation state (aux x) = (1 :: real)\<close>
-  shows
-    \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = (1 :: real)\<close>
+    \<open>measure_pmf.expectation state (aux x) = 1\<close>
+  shows \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close>
   using assms
   unfolding Let_def
   apply simp
