@@ -416,8 +416,7 @@ lemma aux :
           else Set.remove x);
 
       return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close> and
-    \<open>aux \<equiv> \<lambda> x state.
-      indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
+    \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
   assumes
     \<open>finite <| set_pmf state\<close>
     \<open>measure_pmf.expectation state (aux x) = 1\<close>
@@ -448,8 +447,7 @@ lemma aux' :
 
         return_pmf (state\<lparr>state_k := (state_k state) + 1, state_chi := chi\<rparr>) }\<close> and
 
-    \<open>aux \<equiv> \<lambda> x state.
-      indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
+    \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
   assumes
     \<open>AE state in measure_pmf state. finite (state_chi state)\<close>
     \<open>finite <| set_pmf state\<close>
