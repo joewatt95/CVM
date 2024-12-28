@@ -6,22 +6,17 @@ imports
 begin
 
 lemmas rel_pmf_mono_strong = rel_spmf_mono_strong[
-  where f = \<open>spmf_of_pmf _\<close>,
-  where g = \<open>spmf_of_pmf _\<close>,
+  where f = \<open>spmf_of_pmf _\<close> and g = \<open>spmf_of_pmf _\<close>,
   simplified]
 
 lemmas rel_pmf_bindI1 = rel_spmf_bindI1[
-  where p = \<open>spmf_of_pmf _\<close>,
-  where q = \<open>spmf_of_pmf _\<close>,
-  where f = \<open>spmf_of_pmf <<< _\<close>,
+  where p = \<open>spmf_of_pmf _\<close> and q = \<open>spmf_of_pmf _\<close> and f = \<open>spmf_of_pmf <<< _\<close>,
   simplified,
   simplified spmf_of_pmf_bind[symmetric] rel_spmf_spmf_of_pmf
 ]
 
 lemmas rel_pmf_bindI2 = rel_spmf_bindI2[
-  where p = \<open>spmf_of_pmf _\<close>,
-  where q = \<open>spmf_of_pmf _\<close>,
-  where f = \<open>spmf_of_pmf <<< _\<close>,
+  where p = \<open>spmf_of_pmf _\<close> and q = \<open>spmf_of_pmf _\<close> and f = \<open>spmf_of_pmf <<< _\<close>,
   simplified,
   simplified spmf_of_pmf_bind[symmetric] rel_spmf_spmf_of_pmf
 ]
@@ -175,7 +170,7 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
-  using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
+  using loop[where ?R = \<open>\<lambda> _ x. R x\<close> and ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
 
 end

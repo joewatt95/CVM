@@ -161,7 +161,7 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
-  using loop[where ?P = \<open>curry <| snd >>> P\<close>, where ?offset = 0] assms
+  using loop[where ?P = \<open>curry <| snd >>> P\<close> and ?offset = 0] assms
   by (fastforce simp add: hoare_triple_def curry_def snd_def)
 
 (*

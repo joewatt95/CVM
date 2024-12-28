@@ -183,7 +183,7 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>rd \<lbrakk>R\<rbrakk> \<langle>foldM_rd f xs | foldM_rd f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
-  using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
+  using loop[where ?R = \<open>\<lambda> _ x. R x\<close> and ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
 
 end

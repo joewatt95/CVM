@@ -119,7 +119,7 @@ proof -
         intro: Utils_Reader_Monad_Hoare.seq')
 
     with Utils_Reader_Monad_Hoare.loop[
-      where offset = 0, where xs = \<open>[0 ..< length xs]\<close>]
+      where offset = 0 and xs = \<open>[0 ..< length xs]\<close>]
     show ?thesis unfolding run_steps_from_state_def by fastforce
   qed
 

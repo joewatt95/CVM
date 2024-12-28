@@ -110,7 +110,7 @@ lemma binomial_pmf_eq_map_sum_of_bernoullis :
   using p
   by (simp add:
     map_pmf_comp Collect_conj_eq lessThan_def
-    binomial_pmf_altdef'[where A = \<open>{..< n}\<close>, where dflt = undefined]
+    binomial_pmf_altdef'[where A = \<open>{..< n}\<close> and dflt = undefined]
     Pi_pmf_map'[where dflt' = undefined])
 
 lemma expectation_binomial_pmf :

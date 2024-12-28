@@ -270,7 +270,7 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
-  using loop[where ?R = \<open>\<lambda> _ x. R x\<close>, where ?offset = 0] assms
+  using loop[where ?R = \<open>\<lambda> _ x. R x\<close> and ?offset = 0] assms
   by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
 
 lemma hoare_ord_option_iff_ord_spmf :
@@ -374,8 +374,9 @@ proof -
       by (auto intro: Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>])
 
     with SPMF.fundamental_lemma[
-      where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>,
-      where ?bad1.0 = fst, where ?bad2.0 = fst]
+      where
+        A = \<open>P <<< snd\<close> and B = \<open>P <<< snd\<close> and
+        ?bad1.0 = fst and ?bad2.0 = fst]
     show ?thesis
       by (fastforce
         intro: rel_spmf_mono
@@ -411,7 +412,7 @@ lemma measure_spmf_dist_ite_le :
     \<open>\<bar>\<P>(x in measure_spmf <| do {x \<leftarrow> p; if cond x then f x else g x}. P x)
       - \<P>(x in measure_spmf <| p \<bind> g. P x)\<bar>
     \<le> \<P>(x in measure_spmf p. cond x)\<close>
-  using measure_spmf_dist_ite_ite_le[where f' = g, where g = g] by simp
+  using measure_spmf_dist_ite_ite_le[where f' = g and g = g] by simp
 
 lemma measure_spmf_dist_ite_while_le :
   assumes [simp] :
@@ -424,8 +425,9 @@ lemma measure_spmf_dist_ite_while_le :
       - \<P>(x in measure_spmf <| p \<bind> loop_spmf.while cond body. P x)\<bar>
     \<le> \<P>(x in measure_spmf p. cond x)\<close>
   using measure_spmf_dist_ite_ite_le[
-    where f' = \<open>body >=> loop_spmf.while cond body\<close>,
-    where g = return_spmf, where cond = cond]
+    where
+      f' = \<open>body >=> loop_spmf.while cond body\<close> and
+      g = return_spmf and cond = cond]
   by (simp add: loop_spmf.while.simps[symmetric])
 
 lemma measure_spmf_dist_while_while_le :
@@ -439,9 +441,10 @@ lemma measure_spmf_dist_while_while_le :
       - \<P>(x in measure_spmf <| p \<bind> loop_spmf.while cond body'. P x)\<bar>
     \<le> \<P>(x in measure_spmf p. cond x)\<close>
   using measure_spmf_dist_ite_ite_le[
-    where f = \<open>body >=> loop_spmf.while cond body\<close>,
-    where f' = \<open>body' >=> loop_spmf.while cond body'\<close>,
-    where g = return_spmf, where cond = cond]
+    where
+      f = \<open>body >=> loop_spmf.while cond body\<close> and
+      f' = \<open>body' >=> loop_spmf.while cond body'\<close> and
+      g = return_spmf and cond = cond]
   by (simp add: loop_spmf.while.simps[symmetric])
 
 lemma
@@ -511,8 +514,9 @@ using assms proof -
       sorry
 
     with SPMF.fundamental_lemma[
-      where A = \<open>P <<< snd\<close>, where B = \<open>P <<< snd\<close>,
-      where ?bad1.0 = fst, where ?bad2.0 = fst]
+      where
+        A = \<open>P <<< snd\<close> and B = \<open>P <<< snd\<close> and
+        ?bad1.0 = fst and ?bad2.0 = fst]
     show ?thesis
       by (fastforce
         intro: rel_spmf_mono
@@ -706,7 +710,7 @@ proof -
 
     by (auto
       intro!:
-        rel_pmf_mono_strong[where A = \<top>, where uua = \<open>return_pmf None\<close>, simplified]
+        rel_pmf_mono_strong[where A = \<top> and uua = \<open>return_pmf None\<close>, simplified]
         rel_pmf_bindI[where R = \<open>(=)\<close>]
       split: option.splits
       simp add:
@@ -855,7 +859,7 @@ proof -
   with SPMF.fundamental_lemma[
     where p = \<open>p \<bind> ?if_with_flag\<close>,
     where q = \<open>p \<bind> (?while_with_flag False)\<close>,
-    where A = \<open>P <<< fst\<close>, where B = \<open>P <<< fst\<close>,
+    where A = \<open>P <<< fst\<close> and B = \<open>P <<< fst\<close>,
     of snd snd]
   have
     \<open>\<bar>\<P>(x in measure_spmf <| p \<bind> ?if_with_flag. P (fst x))
@@ -885,7 +889,7 @@ proof -
 
   finally show ?thesis
     apply (simp add: space_measure_spmf while_with_flag_eq)
-    using measure_map_spmf[of fst, where A = \<open>{x. P x}\<close>, simplified vimage_def, simplified]
+    using measure_map_spmf[of fst, where A = \<open>Collect P\<close>, simplified vimage_def, simplified]
     by (smt (verit, best) bind_pmf_cong loop_spmf.while_simps(2) map_bind_pmf map_fst_pair_spmf pair_spmf_return_spmf scale_spmf_eq_same weight_return_spmf)
 qed
 

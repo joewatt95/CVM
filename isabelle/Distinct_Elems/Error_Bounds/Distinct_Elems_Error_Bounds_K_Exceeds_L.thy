@@ -135,7 +135,7 @@ next
       intro: sum.cong
       simp add:
         map_pmf_nondet_alg_eq_binomial[
-          where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
+          where m = \<open>length xs\<close> and n = \<open>length xs\<close>, symmetric]
         \<open>l \<le> length xs\<close>)
 
   also have \<open>\<dots> \<le> real (length xs) * ?exp_term\<close>

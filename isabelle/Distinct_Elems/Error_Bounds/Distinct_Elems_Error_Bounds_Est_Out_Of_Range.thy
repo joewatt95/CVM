@@ -114,7 +114,7 @@ next
       intro!: sum_mono intro: pmf_mono
       simp add:
         map_pmf_nondet_alg_eq_binomial[
-          where m = \<open>length xs\<close>, where n = \<open>length xs\<close>, symmetric]
+          where m = \<open>length xs\<close> and n = \<open>length xs\<close>, symmetric]
         field_simps)
 
   text \<open>Apply Chernoff bound to each term.\<close>
@@ -123,7 +123,7 @@ next
     fix k
     from
       binomial_distribution.chernoff_prob_abs_ge[
-        where n = \<open>card <| set xs\<close>, where p = \<open>1 / 2 ^ k\<close>, where \<delta> = \<epsilon>,
+        where n = \<open>card <| set xs\<close> and p = \<open>1 / 2 ^ k\<close> and \<delta> = \<epsilon>,
         simplified binomial_distribution_def]
       \<open>\<epsilon> > 0\<close>
     show \<open>?L k \<le> ?R k\<close> by (simp add: field_simps)

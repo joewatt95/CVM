@@ -37,8 +37,9 @@ lemma foldM_pmf_truncate_eq_map_truncate_foldM_pmf :
     \<open>foldM_pmf f xs (state.truncate state) =
       map_pmf state.truncate (foldM_pmf g xs state)\<close>
   using foldM_spmf_truncate_eq_map_truncate_foldM_spmf[
-    where f = \<open>\<lambda> x. spmf_of_pmf <<< f x\<close>,
-    where g = \<open>\<lambda> x. spmf_of_pmf <<< g x\<close>]
+    where
+      f = \<open>\<lambda> x. spmf_of_pmf <<< f x\<close> and
+      g = \<open>\<lambda> x. spmf_of_pmf <<< g x\<close>]
   by (simp add: assms foldM_spmf_of_pmf_eq(2))
 
 context with_threshold
@@ -284,9 +285,10 @@ proof -
   with assms threshold_pos show ?thesis
     by (auto
       intro!: termination_0_1_immediate_invar[
-        where p = \<open>1 / 2 ^ threshold\<close>,
-        where I = \<open>\<lambda> state.
-          finite (state_chi state) \<and> card (state_chi state) \<le> threshold\<close>]
+        where
+          p = \<open>1 / 2 ^ threshold\<close> and
+          I = \<open>\<lambda> state.
+            finite (state_chi state) \<and> card (state_chi state) \<le> threshold\<close>]
       simp add:
         body_def well_formed_state_def Let_def with_threshold.cond_def
         self_le_power pmf_map_pred_true_eq_prob pmf_False_conv_True
@@ -372,9 +374,10 @@ proof -
     by (fastforce
       intro:
         prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event[
-          where invariant = \<open>finite <<< state_chi\<close>,
-          where invariant' = well_formed_state,
-          where bad_event' = \<open>state_bad_flag\<close>, simplified]
+          where
+            invariant = \<open>finite <<< state_chi\<close> and
+            invariant' = well_formed_state and
+            bad_event' = \<open>state_bad_flag\<close>, simplified]
       simp add:
         step_with_bad_flag_preserves_finiteness threshold_pos
         step_while_with_bad_flag_preserves_well_formedness lossless_spmf_def

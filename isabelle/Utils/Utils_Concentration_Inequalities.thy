@@ -46,7 +46,7 @@ proof -
 
   ultimately show ?thesis
     using
-      bernstein_inequality[OF I, where X = ?Y, where t = t, where B = B]
+      bernstein_inequality[OF I, where X = ?Y and t = t and B = B]
       ind intsq assms B t
     by (force intro!: indep_vars_compose)
 qed
@@ -65,7 +65,7 @@ proof -
 
   moreover have \<open>\<P>(x in M. sum_mean_deviation X x \<ge> t) \<le> exp_bound\<close>
     using 
-      bernstein_inequality[OF I, where X = X, where t = t, where B = B]
+      bernstein_inequality[OF I, where X = X and t = t and B = B]
       ind intsq assms B t
     by force
 
