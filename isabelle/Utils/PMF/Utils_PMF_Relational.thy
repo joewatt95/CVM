@@ -171,6 +171,7 @@ lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close> and ?offset = 0] assms
-  by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
+  apply (simp add: relational_hoare_triple_def)
+  by blast
 
 end

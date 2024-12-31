@@ -27,7 +27,7 @@ lemma bind_spmfE :
   obtains y where
     \<open>\<turnstile>spmf f x \<Rightarrow>? y\<close>
     \<open>\<turnstile>spmf g y \<Rightarrow>? z\<close>
-  using assms by (auto simp add: set_bind_spmf)
+  using assms by auto
 
 definition hoare_triple ::
   \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
@@ -162,7 +162,8 @@ lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
   using loop[where ?P = \<open>curry <| snd >>> P\<close> and ?offset = 0] assms
-  by (fastforce simp add: hoare_triple_def curry_def snd_def)
+  apply (simp add: hoare_triple_def)
+  by blast
 
 (*
 In general, inductive data types and (partial) recursive functions can be

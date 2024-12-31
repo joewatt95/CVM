@@ -271,7 +271,8 @@ lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using loop[where ?R = \<open>\<lambda> _ x. R x\<close> and ?offset = 0] assms
-  by (fastforce simp add: relational_hoare_triple_def curry_def snd_def)
+  apply (simp add: relational_hoare_triple_def)
+  by blast
 
 lemma hoare_ord_option_iff_ord_spmf :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option S\<rbrakk>
@@ -892,6 +893,5 @@ proof -
     using measure_map_spmf[of fst, where A = \<open>Collect P\<close>, simplified vimage_def, simplified]
     by (smt (verit, best) bind_pmf_cong loop_spmf.while_simps(2) map_bind_pmf map_fst_pair_spmf pair_spmf_return_spmf scale_spmf_eq_same weight_return_spmf)
 qed
-
 
 end

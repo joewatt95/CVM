@@ -49,7 +49,7 @@ proof -
   show ?thesis_0
     apply (induction xs)
     by (simp_all add: spmf_of_pmf_bind)
-  
+
   then show ?thesis_1 by simp
 qed
 
