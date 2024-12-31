@@ -133,9 +133,8 @@ private abbreviation (input)
     R index val val'\<close>
 
 lemma loop_enumerate :
-  assumes
-    \<open>\<And> index x.
-      \<turnstile>pmf \<lbrakk>R' index x\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> index x.
+    \<turnstile>pmf \<lbrakk>R' index x\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>R offset\<rbrakk>
     \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
