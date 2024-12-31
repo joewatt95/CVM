@@ -15,9 +15,9 @@ locale benett_bernstein = prob_space +
 begin
 
 abbreviation (input)
-  \<open>sum_mean_deviation Y x \<equiv> (\<Sum> i \<in> I. Y i x - expectation (Y i))\<close>
+  \<open>sum_mean_deviation Y x \<equiv> \<Sum> i \<in> I. Y i x - expectation (Y i)\<close>
 
-abbreviation \<open>V \<equiv> (\<Sum>i \<in> I. expectation (\<lambda> x. (X i x)\<^sup>2))\<close>
+abbreviation \<open>V \<equiv> \<Sum>i \<in> I. expectation (\<lambda> x. (X i x)\<^sup>2)\<close>
 
 context
   fixes t B :: real
@@ -38,7 +38,8 @@ lemma bernstein_inequality_le :
 proof -
   let ?Y = \<open>\<lambda> i. uminus \<circ> X i\<close>
 
-  have \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. ?Y i x \<le> B\<close> using assms by fastforce 
+  from assms have
+    \<open>AE x in M. ?Y i x \<le> B\<close> if \<open>i \<in> I\<close> for i using that by fastforce 
 
   moreover have
     \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
