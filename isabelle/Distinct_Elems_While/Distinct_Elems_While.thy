@@ -432,10 +432,7 @@ proof -
   from assms have ?thesis_1 if \<open>x \<in> S\<close>
     apply (simp flip: map_pmf_def)
     apply (subst pmf_expectation_bind)
-    apply auto
-    (* apply (subst pmf_expectation_bind[of \<open>set_pmf state\<close>])
     apply (auto simp add: sum_pmf_eq_1)
-    thm pmf_expectation_bind *)
     sorry
 
   with assms show ?thesis_0 ?thesis_1
