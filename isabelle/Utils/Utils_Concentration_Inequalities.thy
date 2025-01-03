@@ -155,7 +155,7 @@ proof -
 
   let ?prob = \<open>\<lambda> R.
     \<P>(P in Pi_bernoulli_nat_pmf. R (\<Sum> i < n. real (P i) - p) (real n * p * \<delta>))\<close>
-  let ?t = \<open>real n * p * \<delta>\<close>
+  let ?t = \<open>n * p * \<delta>\<close>
 
   have lhs_eq :
     \<open>?L_le = ?prob (\<lambda> sum_mean_deviation np\<delta>. sum_mean_deviation \<le> -np\<delta>)\<close>
@@ -165,7 +165,7 @@ proof -
       binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
   have arithmetic_aux :
-    \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (real n * p) + 2 * (real n * p * \<delta> * B) / 3)
+    \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (n * p) + 2 * (n * p * \<delta> * B) / 3)
     = real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)\<close> for B
     apply (simp add: field_split_simps power_numeral_reduce)
     apply (simp only: Multiseries_Expansion.intyness_simps)
