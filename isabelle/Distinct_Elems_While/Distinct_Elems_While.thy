@@ -423,14 +423,26 @@ lemma aux :
     \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
   assumes
     \<open>finite <| set_pmf state\<close>
-    \<open>measure_pmf.expectation state (aux x) = 1\<close>
+    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
+    \<open>x \<in> S \<or> x = a\<close>
   shows
-    \<open>finite <| set_pmf state\<close>
-    \<open>measure_pmf.expectation (state \<bind> step_1 x) (aux x) = 1\<close>
-  using assms
-  (* thm pmf_expectation_bind
-  find_theorems "measure_pmf.expectation" "bind_pmf" *)
-  by (simp_all flip: map_pmf_def add: pmf_expectation_bind sum_pmf_eq_1)
+    \<open>finite <| set_pmf (state \<bind> step_1 a)\<close> (is ?thesis_0)
+    \<open>measure_pmf.expectation (state \<bind> step_1 a) (aux x) = 1\<close> (is ?thesis_1)
+proof -
+  from assms have ?thesis_1 if \<open>x \<in> S\<close>
+    apply (simp flip: map_pmf_def)
+    apply (subst pmf_expectation_bind)
+    apply auto
+    (* apply (subst pmf_expectation_bind[of \<open>set_pmf state\<close>])
+    apply (auto simp add: sum_pmf_eq_1)
+    thm pmf_expectation_bind *)
+    sorry
+
+  with assms show ?thesis_0 ?thesis_1
+    by (auto
+      simp flip: map_pmf_def
+      simp add: pmf_expectation_bind sum_pmf_eq_1)
+qed
 
   (*
   apply (subst integral_bind_pmf)
