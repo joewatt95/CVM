@@ -1,12 +1,12 @@
 section \<open>The FKG inequality\<close>
 
-text \<open>The FKG inequality~\cite{fortuin1971} 
+text \<open>The FKG inequality~\cite{fortuin1971}
 
 The proof follows the proof from the book the Probabilistic method by Alon et al.
 \<close>
 
 theory Negative_Association_FKG_Inequality
-  imports 
+  imports
     Negative_Association_Util
     "HOL-Probability.Probability_Mass_Function"
     Birkhoff_Finite_Distributive_Lattices.Birkhoff_Finite_Distributive_Lattices
@@ -16,7 +16,7 @@ theorem four_functions_helper:
   fixes \<phi> :: "nat \<Rightarrow> 'a set \<Rightarrow> real"
   assumes "finite I"
   assumes "\<And>i. i \<in> {0..3} \<Longrightarrow> \<phi> i \<in> Pow I \<rightarrow> {0..}"
-  assumes "\<And>A B. A \<subseteq> I \<Longrightarrow> B \<subseteq> I \<Longrightarrow> \<phi> 0 A * \<phi> 1 B \<le> \<phi> 2 (A \<union> B) * \<phi> 3 (A \<inter> B)" 
+  assumes "\<And>A B. A \<subseteq> I \<Longrightarrow> B \<subseteq> I \<Longrightarrow> \<phi> 0 A * \<phi> 1 B \<le> \<phi> 2 (A \<union> B) * \<phi> 3 (A \<inter> B)"
   shows "(\<Sum>A\<in>Pow I. \<phi> 0 A)*(\<Sum>B\<in>Pow I. \<phi> 1 B) \<le> (\<Sum>C\<in>Pow I. \<phi> 2 C)*(\<Sum>D\<in>Pow I. \<phi> 3 D)"
   using assms
 proof (induction I arbitrary:\<phi> rule:finite_induct)
@@ -36,19 +36,19 @@ next
     finally show ?thesis by simp
   qed
 
-  have \<phi>_int: "\<phi> 0 A * \<phi> 1 B \<le> \<phi> 2 C * \<phi> 3 D" 
-    if "C = A \<union> B" "D = A \<inter> B" "A \<subseteq> insert x I" "B \<subseteq> insert x I" for A B C D 
+  have \<phi>_int: "\<phi> 0 A * \<phi> 1 B \<le> \<phi> 2 C * \<phi> 3 D"
+    if "C = A \<union> B" "D = A \<inter> B" "A \<subseteq> insert x I" "B \<subseteq> insert x I" for A B C D
     using that insert(5) by auto
 
-  have \<phi>_nonneg: "\<phi> i A \<ge> 0" if "A \<subseteq> insert x I" "i \<in> {0..3}" for i A  
+  have \<phi>_nonneg: "\<phi> i A \<ge> 0" if "A \<subseteq> insert x I" "i \<in> {0..3}" for i A
     using that insert(4) by auto
 
   have "\<phi>' 0 A * \<phi>' 1 B \<le> \<phi>' 2 (A \<union> B) * \<phi>' 3 (A \<inter> B)" if "A \<subseteq> I" "B \<subseteq> I" for A B
   proof -
-    define a0 a1 where a: "a0 = \<phi> 0 A" "a1 = \<phi> 0 (insert x A)" 
-    define b0 b1 where b: "b0 = \<phi> 1 B" "b1 = \<phi> 1 (insert x B)" 
-    define c0 c1 where c: "c0 = \<phi> 2 (A \<union> B)" "c1 = \<phi> 2 (insert x (A \<union> B))" 
-    define d0 d1 where d: "d0 = \<phi> 3 (A \<inter> B)" "d1 = \<phi> 3 (insert x (A \<inter> B))" 
+    define a0 a1 where a: "a0 = \<phi> 0 A" "a1 = \<phi> 0 (insert x A)"
+    define b0 b1 where b: "b0 = \<phi> 1 B" "b1 = \<phi> 1 (insert x B)"
+    define c0 c1 where c: "c0 = \<phi> 2 (A \<union> B)" "c1 = \<phi> 2 (insert x (A \<union> B))"
+    define d0 d1 where d: "d0 = \<phi> 3 (A \<inter> B)" "d1 = \<phi> 3 (insert x (A \<inter> B))"
 
     have 0:"a0 * b0 \<le> c0 * d0" using that unfolding a b c d by (intro \<phi>_int) auto
     have 1:"a0 * b1 \<le> c1 * d0" using that insert(2) unfolding a b c d by (intro \<phi>_int) auto
@@ -62,16 +62,16 @@ next
     then have "(a0 + a1) * (b0 + b1) \<le> (c0 + c1) * (d0 + d1)"
     proof (cases)
       case a
-      hence "a0 * b1 = 0" "a1 * b0 = 0" "a1 * b1 = 0" 
+      hence "a0 * b1 = 0" "a1 * b0 = 0" "a1 * b1 = 0"
         using 1 2 3 by (intro order_antisym mult_nonneg_nonneg 4 5;simp_all)+
-      then show ?thesis unfolding distrib_left distrib_right 
-        using 0 4 5 by (metis add_mono mult_nonneg_nonneg) 
+      then show ?thesis unfolding distrib_left distrib_right
+        using 0 4 5 by (metis add_mono mult_nonneg_nonneg)
     next
       case b
-      hence "a0 * b0 = 0" "a0 * b1 = 0" "a1 * b0 = 0" 
+      hence "a0 * b0 = 0" "a0 * b1 = 0" "a1 * b0 = 0"
         using 0 1 2 by (intro order_antisym mult_nonneg_nonneg 4 5;simp_all)+
-      then show ?thesis unfolding distrib_left distrib_right 
-        using 3 4 5 by (metis add_mono mult_nonneg_nonneg) 
+      then show ?thesis unfolding distrib_left distrib_right
+        using 3 4 5 by (metis add_mono mult_nonneg_nonneg)
     next
       case c
       have "0 \<le> (c1*d0-a0*b1) * (c1*d0 - a1*b0)"
@@ -83,13 +83,13 @@ next
       also have "\<dots> \<le> (c0 + c1) * (d0 + d1)"
         using 0 3 c 4 5 by (intro mult_mono add_mono order.refl) (simp add:field_simps)+
       finally show ?thesis by simp
-    qed  
+    qed
 
     thus ?thesis unfolding \<phi>'_def a b c d by auto
   qed
 
-  moreover have "\<phi>' i \<in> Pow I \<rightarrow> {0..}" if "i \<in> {0..3}" for i 
-    using insert(4)[OF that] unfolding \<phi>'_def by (auto intro!:add_nonneg_nonneg) 
+  moreover have "\<phi>' i \<in> Pow I \<rightarrow> {0..}" if "i \<in> {0..3}" for i
+    using insert(4)[OF that] unfolding \<phi>'_def by (auto intro!:add_nonneg_nonneg)
   ultimately show ?case unfolding a by (intro insert(3)) auto
 qed
 
@@ -100,7 +100,7 @@ theorem four_functions:
   fixes \<alpha> \<beta> \<gamma> \<delta> :: "'a set \<Rightarrow> real"
   assumes "finite I"
   assumes "\<alpha> \<in> Pow I \<rightarrow> {0..}" "\<beta> \<in> Pow I \<rightarrow> {0..}" "\<gamma> \<in> Pow I \<rightarrow> {0..}" "\<delta> \<in> Pow I \<rightarrow> {0..}"
-  assumes "\<And>A B. A \<subseteq> I \<Longrightarrow> B \<subseteq> I \<Longrightarrow> \<alpha> A * \<beta> B \<le> \<gamma> (A \<union> B) * \<delta> (A \<inter> B)" 
+  assumes "\<And>A B. A \<subseteq> I \<Longrightarrow> B \<subseteq> I \<Longrightarrow> \<alpha> A * \<beta> B \<le> \<gamma> (A \<union> B) * \<delta> (A \<inter> B)"
   assumes "M \<subseteq> Pow I" "N \<subseteq> Pow I"
   shows "(\<Sum>A\<in>M. \<alpha> A)*(\<Sum>B\<in>N. \<beta> B) \<le> (\<Sum>C| \<exists>A\<in>M. \<exists>B\<in>N. C=A\<union>B. \<gamma> C)*(\<Sum>D| \<exists>A\<in>M. \<exists>B\<in>N. D=A\<inter>B. \<delta> D)"
     (is "?L \<le> ?R")
@@ -128,7 +128,7 @@ proof -
   next
     case False
     hence "?L1 = 0" unfolding \<alpha>'_def \<beta>'_def \<phi>_def by auto
-    also have "\<dots> \<le> ?R1" using \<phi>_nonneg[of "2"] \<phi>_nonneg[of "3"] that 
+    also have "\<dots> \<le> ?R1" using \<phi>_nonneg[of "2"] \<phi>_nonneg[of "3"] that
       by (intro mult_nonneg_nonneg) auto
     finally show ?thesis by simp
   qed
@@ -150,7 +150,7 @@ qed
 lemma four_functions_in_lattice:
   fixes \<alpha> \<beta> \<gamma> \<delta> :: "'a :: finite_distrib_lattice  \<Rightarrow> real"
   assumes "range \<alpha> \<subseteq> {0..}" "range \<beta> \<subseteq> {0..}" "range \<gamma> \<subseteq> {0..}" "range \<delta> \<subseteq> {0..}"
-  assumes "\<And>x y. \<alpha> x * \<beta> y \<le> \<gamma> (x \<squnion> y) * \<delta> (x \<sqinter> y)" 
+  assumes "\<And>x y. \<alpha> x * \<beta> y \<le> \<gamma> (x \<squnion> y) * \<delta> (x \<sqinter> y)"
   shows "(\<Sum>x\<in>M. \<alpha> x)*(\<Sum>y\<in>N. \<beta> y) \<le> (\<Sum>c| \<exists>x\<in>M. \<exists>y\<in>N. c=x\<squnion>y. \<gamma> c)*(\<Sum>d| \<exists>x\<in>M. \<exists>y\<in>N. d=x\<sqinter>y. \<delta> d)"
     (is "?L \<le> ?R")
 proof -
@@ -168,18 +168,18 @@ proof -
   have 1:"conv \<phi> \<in> Pow \<J> \<rightarrow> {0..}" if "range \<phi> \<subseteq> {(0::real)..}" for \<phi>
     using that unfolding conv_def by (intro Pi_I) auto
 
-  have 0:"\<alpha>' A * \<beta>' B \<le> \<gamma>' (A \<union> B) * \<delta>' (A \<inter> B)" if "A \<subseteq> \<J>" "B \<subseteq> \<J>" for A B 
+  have 0:"\<alpha>' A * \<beta>' B \<le> \<gamma>' (A \<union> B) * \<delta>' (A \<inter> B)" if "A \<subseteq> \<J>" "B \<subseteq> \<J>" for A B
   proof (cases "A \<in> \<O>\<J> \<and> B \<in> \<O>\<J>")
     case True
     define x y where xy: "x = ?f A" "y = ?f B"
 
     have p0:"?e (x \<squnion> y) = A \<union> B"
-      using True ran_e unfolding join_irreducibles_join_homomorphism xy 
+      using True ran_e unfolding join_irreducibles_join_homomorphism xy
       by (subst (1 2) f_the_inv_into_f[OF inj_e]) auto
     hence p1:"A \<union> B \<in> \<O>\<J>" using ran_e by auto
-     
-    have p2:"?e (x \<sqinter> y) = A \<inter> B" 
-      using True ran_e unfolding join_irreducibles_meet_homomorphism xy 
+
+    have p2:"?e (x \<sqinter> y) = A \<inter> B"
+      using True ran_e unfolding join_irreducibles_meet_homomorphism xy
       by (subst (1 2) f_the_inv_into_f[OF inj_e]) auto
     hence p3:"A \<inter> B \<in> \<O>\<J>" using ran_e by auto
 
@@ -198,8 +198,8 @@ proof -
     finally show ?thesis by simp
   qed
 
-  define M' where "M' = (\<lambda>x. \<lbrace> x \<rbrace>) ` M" 
-  define N' where "N' = (\<lambda>x. \<lbrace> x \<rbrace>) ` N" 
+  define M' where "M' = (\<lambda>x. \<lbrace> x \<rbrace>) ` M"
+  define N' where "N' = (\<lambda>x. \<lbrace> x \<rbrace>) ` N"
 
   have ran1: "M' \<subseteq> \<O>\<J>" "N' \<subseteq> \<O>\<J>" unfolding M'_def N'_def using ran_e by auto
   hence ran2: "M' \<subseteq> Pow \<J>" "N' \<subseteq> Pow \<J>" unfolding down_irreducibles_def by auto
@@ -209,9 +209,9 @@ proof -
     by (intro bij_betwI[where g="?e"] the_inv_f_f f_the_inv_into_f inj_e) auto
 
   have a: "{C. \<exists>A\<in>M'. \<exists>B\<in>N'. C = A \<union> B} = ?e ` {c. \<exists>x\<in>M. \<exists>y\<in>N. c=x\<squnion>y}"
-    unfolding M'_def N'_def bex_simps join_irreducibles_join_homomorphism[symmetric] by auto
+    unfolding M'_def N'_def Set.bex_simps join_irreducibles_join_homomorphism[symmetric] by auto
   have b: "{D. \<exists>A\<in>M'. \<exists>B\<in>N'. D = A \<inter> B} = ?e ` {c. \<exists>x\<in>M. \<exists>y\<in>N. c=x\<sqinter>y}"
-    unfolding M'_def N'_def bex_simps join_irreducibles_meet_homomorphism[symmetric] by auto
+    unfolding M'_def N'_def Set.bex_simps join_irreducibles_meet_homomorphism[symmetric] by auto
 
   have M'_N'_un_ran: "{C. \<exists>A\<in>M'. \<exists>B\<in>N'. C = A \<union> B} \<subseteq> \<O>\<J>"
     unfolding a using ran_e by auto
@@ -243,8 +243,8 @@ theorem fkg_inequality:
 proof -
   define \<alpha> where "\<alpha> x = \<mu> x * f x" for x
   define \<beta> where "\<beta> x = \<mu> x * g x" for x
-  define \<gamma> where "\<gamma> x = \<mu> x * f x * g x" for x 
-  define \<delta> where "\<delta> x = \<mu> x" for x 
+  define \<gamma> where "\<gamma> x = \<mu> x * f x * g x" for x
+  define \<delta> where "\<delta> x = \<mu> x" for x
 
   have 0:"f x \<ge> 0" if "range f \<subseteq> {0..}" for f :: "'a \<Rightarrow> real" and x
     using that by auto
@@ -258,7 +258,7 @@ proof -
       using assms(2,3) by (intro mult_right_mono assms(4) mult_nonneg_nonneg) auto
     also have "\<dots> \<le> (\<mu> (x \<squnion> y) * \<mu> (x \<sqinter> y)) * (f (x \<squnion> y) * g (x \<squnion> y))"
       using \<mu>fg_nonneg
-      by (intro mult_left_mono mult_mono monoD[OF assms(5)] monoD[OF assms(6)] mult_nonneg_nonneg) 
+      by (intro mult_left_mono mult_mono monoD[OF assms(5)] monoD[OF assms(6)] mult_nonneg_nonneg)
        simp_all
     also have "\<dots> = ?R1" unfolding \<gamma>_def \<delta>_def by simp
     finally show ?thesis by simp
@@ -276,7 +276,7 @@ qed
 
 theorem fkg_inequality_gen:
   fixes \<mu> :: "'a :: finite_distrib_lattice \<Rightarrow> real"
-  assumes "range \<mu> \<subseteq> {0..}" 
+  assumes "range \<mu> \<subseteq> {0..}"
   assumes "\<And>x y. \<mu> x * \<mu> y \<le> \<mu> (x \<squnion> y) * \<mu> (x \<sqinter> y)"
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<tau>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<sigma>\<^esub>) g"
   shows "(\<Sum>x\<in>UNIV. \<mu> x*f x) * (\<Sum>x\<in>UNIV. \<mu> x*g x) \<le>\<ge>\<^bsub>\<tau>*\<sigma>\<^esub> (\<Sum>x\<in>UNIV. \<mu> x*f x*g x) * sum \<mu> UNIV"
@@ -287,10 +287,10 @@ proof -
   define f' where "f' x = a + f x*(\<plusminus>\<^bsub>\<tau>\<^esub>)" for x
   define g' where "g' x = a + g x*(\<plusminus>\<^bsub>\<sigma>\<^esub>)" for x
 
-  have f'_mono: "mono f'" unfolding f'_def using monotoneD[OF assms(3)] 
+  have f'_mono: "mono f'" unfolding f'_def using monotoneD[OF assms(3)]
     by (intro monoI add_mono order.refl)  (cases \<tau>, auto simp:comp_def ac_simps)
 
-  have g'_mono: "mono g'" unfolding g'_def using monotoneD[OF assms(4)] 
+  have g'_mono: "mono g'" unfolding g'_def using monotoneD[OF assms(4)]
     by (intro monoI add_mono order.refl) (cases \<sigma>, auto simp:comp_def ac_simps)
 
   have f'_nonneg: "f' x \<ge> 0" for x
@@ -305,7 +305,7 @@ proof -
   let ?sum = "(\<lambda>f. (\<Sum>x\<in>UNIV. \<mu> x * f x))"
 
   have "(\<plusminus>\<^bsub>\<tau>*\<sigma>\<^esub>) * ?L = ?sum (\<lambda>x. f x*(\<plusminus>\<^bsub>\<tau>\<^esub>)) * ?sum (\<lambda>x. g x*(\<plusminus>\<^bsub>\<sigma>\<^esub>))"
-    by (simp add:ac_simps sum_distrib_left[symmetric] dir_mult_hom del:rel_dir_mult) 
+    by (simp add:ac_simps sum_distrib_left[symmetric] dir_mult_hom del:rel_dir_mult)
   also have "\<dots> = (?sum (\<lambda>x. (f x*(\<plusminus>\<^bsub>\<tau>\<^esub>)+a))-?M*a) * (?sum (\<lambda>x. (g x*(\<plusminus>\<^bsub>\<sigma>\<^esub>)+a))-?M*a)"
     by (simp add:algebra_simps sum.distrib sum_distrib_left)
   also have "\<dots> = (?sum f')*(?sum g') - ?M*a*?sum f'- ?M*a*?sum g' + ?M*?M*a*a"
@@ -327,7 +327,7 @@ theorem fkg_inequality_pmf:
   assumes "\<And>x y. pmf M x * pmf M y \<le> pmf M (x \<squnion> y) * pmf M (x \<sqinter> y)"
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<tau>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<sigma>\<^esub>) g"
   shows "(\<integral>x. f x \<partial>M) * (\<integral>x. g x \<partial>M)  \<le>\<ge>\<^bsub>\<tau> * \<sigma>\<^esub> (\<integral>x. f x * g x \<partial>M)"
-    (is "?L  \<le>\<ge>\<^bsub>_\<^esub> ?R") 
+    (is "?L  \<le>\<ge>\<^bsub>_\<^esub> ?R")
 proof -
   have 0:"?L = (\<Sum>a\<in>UNIV. pmf M a * f a) * (\<Sum>a\<in>UNIV. pmf M a * g a)"
     by (subst (1 2) integral_measure_pmf_real[where A="UNIV"]) (auto simp:ac_simps)

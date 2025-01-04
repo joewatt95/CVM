@@ -9,10 +9,10 @@ lemma bounded_const_min:
   shows "bounded ((\<lambda>x. min c (f x)) ` M)"
 proof -
   obtain h where "\<And>x. x \<in> M \<Longrightarrow> f x \<ge> h" using assms(1) unfolding bdd_below_def by auto
-  thus ?thesis by (intro boundedI[where B="max \<bar>c\<bar> \<bar>-h\<bar>"]) force 
+  thus ?thesis by (intro boundedI[where B="max \<bar>c\<bar> \<bar>-h\<bar>"]) force
 qed
 
-definition has_int_that where 
+definition has_int_that where
   "has_int_that M f P = (integrable M f \<and> (P (\<integral>\<omega>. f \<omega> \<partial>M)))"
 
 lemma true_eq_iff: "P \<Longrightarrow> True = P" by auto
@@ -46,7 +46,7 @@ proof -
   thus ?thesis unfolding depends_on_def by blast
 qed
 
-lemma depends_on_comp: 
+lemma depends_on_comp:
   assumes "depends_on f I"
   shows "depends_on (g \<circ> f) I"
   using assms unfolding depends_on_def by (metis o_apply)
@@ -68,7 +68,7 @@ lemma depends_onD2:
 
 lemma depends_on_empty:
   assumes "depends_on f {}"
-  shows "f \<omega> = f undefined" 
+  shows "f \<omega> = f undefined"
   by (intro depends_onD2[OF assms]) auto
 
 lemma depends_on_mono:
@@ -78,7 +78,7 @@ lemma depends_on_mono:
 
 abbreviation "square_integrable M f \<equiv> integrable M ((power2 :: real \<Rightarrow> real) \<circ> f)"
 
-(* 
+(*
   The following allows us to state theorems with multiple monotonicity variants.
 *)
 
@@ -87,27 +87,27 @@ datatype RelDirection = Fwd | Rev
 definition dir_le :: "RelDirection \<Rightarrow> (('d::order) \<Rightarrow> ('d :: order) \<Rightarrow> bool)"  (infixl "\<le>\<ge>\<index>" 60)
   where "dir_le \<eta> = (if \<eta> = Fwd then (\<le>) else (\<ge>))"
 
-lemma dir_le[simp]: 
-  "(\<le>\<ge>\<^bsub>Fwd\<^esub>) = (\<le>)" 
-  "(\<le>\<ge>\<^bsub>Rev\<^esub>) = (\<ge>)" 
+lemma dir_le[simp]:
+  "(\<le>\<ge>\<^bsub>Fwd\<^esub>) = (\<le>)"
+  "(\<le>\<ge>\<^bsub>Rev\<^esub>) = (\<ge>)"
   by (auto simp:dir_le_def)
 
 definition dir_sign :: "RelDirection \<Rightarrow> 'a::{one,uminus}" ("\<plusminus>\<index>")
   where "dir_sign \<eta> = (if \<eta> = Fwd then 1 else (-1))"
 
-lemma dir_sign[simp]: 
-  "(\<plusminus>\<^bsub>Fwd\<^esub>) = (1)" 
-  "(\<plusminus>\<^bsub>Rev\<^esub>) = (-1)" 
+lemma dir_sign[simp]:
+  "(\<plusminus>\<^bsub>Fwd\<^esub>) = (1)"
+  "(\<plusminus>\<^bsub>Rev\<^esub>) = (-1)"
   by (auto simp:dir_sign_def)
 
 lemma conv_rel_to_sign:
   fixes f :: "'a::order \<Rightarrow> real"
-  shows "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f = mono ((*)(\<plusminus>\<^bsub>\<eta>\<^esub>) \<circ> f)" 
+  shows "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f = mono ((*)(\<plusminus>\<^bsub>\<eta>\<^esub>) \<circ> f)"
   by (cases "\<eta>") (simp_all add:monotone_def)
 
 instantiation RelDirection :: times
 begin
-definition times_RelDirection :: "RelDirection \<Rightarrow> RelDirection \<Rightarrow> RelDirection" where 
+definition times_RelDirection :: "RelDirection \<Rightarrow> RelDirection \<Rightarrow> RelDirection" where
   times_RelDirection_def: "times_RelDirection x y = (if x = y then Fwd else Rev)"
 
 instance by standard
@@ -116,6 +116,47 @@ end
 lemmas rel_dir_mult[simp] = times_RelDirection_def
 
 lemma dir_mult_hom: "(\<plusminus>\<^bsub>\<sigma> * \<tau>\<^esub>) = (\<plusminus>\<^bsub>\<sigma>\<^esub>) * ((\<plusminus>\<^bsub>\<tau>\<^esub>)::real)"
-  unfolding dir_sign_def times_RelDirection_def by (cases \<sigma>,auto intro:RelDirection.exhaust) 
+  unfolding dir_sign_def times_RelDirection_def by (cases \<sigma>,auto intro:RelDirection.exhaust)
+
+lemma clamp_eqI2:
+  assumes "x \<in> {a..b::real}"
+  shows "x = clamp a b x"
+  using assms unfolding clamp_def by simp
+
+lemma clamp_eqI:
+  assumes "\<bar>x\<bar> \<le> (a::real)"
+  shows "x = clamp (-a) a x"
+  using assms by (intro clamp_eqI2) auto
+
+lemma clamp_real_def:
+  fixes x :: real
+  shows "clamp a b x = max a (min x b)"
+proof -
+  consider (i) "x < a" | (ii) "x \<ge> a" "x \<le> b" | (iii) "x > b" by linarith
+  thus ?thesis unfolding clamp_def by (cases) auto
+qed
+
+lemma bounded_clamp:
+  fixes a b :: real
+  shows "bounded ((clamp a b \<circ> f) ` S)"
+proof (cases "a \<le> b")
+  case True
+  have "(clamp a b \<circ> f) ` S \<subseteq> {a..b}" using True unfolding clamp_real_def by auto
+  thus ?thesis using bounded_closed_interval bounded_subset by blast
+next
+  case False
+  hence "clamp a b (f x) = a" for x unfolding clamp_def by (simp add: max_def)
+  hence "(clamp a b \<circ> f) ` S \<subseteq> {a..a}" by auto
+  thus ?thesis using bounded_subset bounded_closed_interval by metis
+qed
+
+lemma bounded_clamp_alt:
+  fixes a b :: real
+  shows "bounded ((\<lambda>x. clamp a b (f x)) ` S)"
+  using bounded_clamp by (auto simp:comp_def)
+
+lemma clamp_borel:
+  "clamp a (b::'a::{euclidean_space, linorder_topology,second_countable_topology}) \<in> borel_measurable borel"
+  unfolding clamp_def by measurable
 
 end

@@ -3,12 +3,12 @@ section \<open>Permutation Distributions\<close>
 text \<open>One of the fundamental examples for negatively associated random variables are permutation
 distributions.
 
-Let $x_1, \ldots, x_n$ be n (not-necessarily) distinct values from a totally ordered set, then we 
+Let $x_1, \ldots, x_n$ be n (not-necessarily) distinct values from a totally ordered set, then we
 choose a permutation $\sigma : \{0,\ldots,n-1\} \rightarrow \{0,\ldots,n-1\}$ uniformly at random
 Then the random variables defined by $X_i(\sigma) = x_{\sigma(i)}$ are negatively associated.
 
 An important special case is the case where use $1$ one and $(n-1)$ zeros, modelling randomly
-putting a ball into one of $n$ bins. Of course the process can be repeated independently, the 
+putting a ball into one of $n$ bins. Of course the process can be repeated independently, the
 resulting distribution is also referred to as the balls into bins process. Because of the closure
 properties established before, it is possible to conclude that the number of hit bins in such a
 process is also negatively associated.
@@ -20,7 +20,7 @@ missing a lot of details. In fact, we don't know whether it is correct, at least
 it steps.\<close>
 
 theory Negative_Association_Permtutation_Distributions
-  imports 
+  imports
     Negative_Association_Definition
     Negative_Association_FKG_Inequality
     Negative_Association_More_Lattices
@@ -43,8 +43,8 @@ definition le_ordered_set_lattice :: "('a::linorder) set \<Rightarrow> 'a set \<
 
 definition ordered_set_lattice :: "('a :: linorder) set \<Rightarrow> nat \<Rightarrow> 'a set gorder"
   where "ordered_set_lattice S n =
-    \<lparr> carrier = {T. T \<subseteq> S \<and> finite T \<and> card T = n}, 
-      eq = (=), 
+    \<lparr> carrier = {T. T \<subseteq> S \<and> finite T \<and> card T = n},
+      eq = (=),
       le = le_ordered_set_lattice \<rparr>"
 
 definition osl_repr ::  "('a :: linorder) set \<Rightarrow> nat \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> 'a"
@@ -67,12 +67,12 @@ lemma osl_list_repr_inj:
   assumes "finite S" "n \<le> card S"
   assumes "s \<in> carrier (ordered_set_lattice S n)"
   assumes "t \<in> carrier (ordered_set_lattice S n)"
-  assumes "\<And>i. osl_repr S n s i = osl_repr S n t i" 
+  assumes "\<And>i. osl_repr S n s i = osl_repr S n t i"
   shows "s = t"
 proof -
   note c1 = osl_carr_sorted_list_of_set[OF assms(1,2,3)]
   note c2 = osl_carr_sorted_list_of_set[OF assms(1,2,4)]
-  
+
   have "sorted_list_of_set s ! i = sorted_list_of_set t ! i " if "i < n" for i
     using assms(5) that unfolding osl_repr_def lessThan_iff restrict_def by metis
   hence "sorted_list_of_set s = sorted_list_of_set t"
@@ -109,9 +109,9 @@ proof -
   have ref:"x \<sqsubseteq>\<^bsub>?L\<^esub> x" if "x \<in> carrier ?L" for x
     using osl_leD that by auto
 
-  have antisym:"x = y" if "x \<sqsubseteq>\<^bsub>?L\<^esub> y" "y \<sqsubseteq>\<^bsub>?L\<^esub> x" "x \<in> carrier ?L" "y \<in> carrier ?L" for x y 
+  have antisym:"x = y" if "x \<sqsubseteq>\<^bsub>?L\<^esub> y" "y \<sqsubseteq>\<^bsub>?L\<^esub> x" "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
     using osl_leD osl_list_repr_inj that by (metis order_antisym)
- 
+
   have trans:"x \<sqsubseteq>\<^bsub>?L\<^esub> z"
     if "x \<sqsubseteq>\<^bsub>?L\<^esub> y" "y \<sqsubseteq>\<^bsub>?L\<^esub> z" "x \<in> carrier ?L" "y \<in> carrier ?L" "z \<in> carrier ?L"  for x y z
     using osl_leD that by (meson order_trans)
@@ -119,7 +119,7 @@ proof -
   have eq_eq: "(.= \<^bsub>?L\<^esub>) = (=)" unfolding ordered_set_lattice_def by simp
 
   show "partial_order ?L"
-    using ref antisym trans eq_eq by (unfold_locales) presburger+ 
+    using ref antisym trans eq_eq by (unfold_locales) presburger+
 qed
 
 lemma map2_max_mono:
@@ -175,7 +175,7 @@ proof -
 
   have "0 < (card S choose n)" by (intro zero_less_binomial assms(2))
   also have "\<dots> = card {T. T \<subseteq> S \<and> card T = n}" unfolding n_subsets[OF assms(1)] by simp
-  also have "\<dots> = card {T. T \<subseteq> S \<and> finite T \<and> card T = n}" 
+  also have "\<dots> = card {T. T \<subseteq> S \<and> finite T \<and> card T = n}"
     using assms(1) finite_subset by (intro arg_cong[where f="card"] Collect_cong) auto
   also have "\<dots> = card ?C" unfolding ordered_set_lattice_def by simp
   finally have "card ?C > 0" by simp
@@ -194,13 +194,13 @@ proof -
 
   interpret partial_order "?L" by (intro ordered_set_lattice_partial_order assms)
 
-  define lmax where "lmax x y = set (map2 max (sorted_list_of_set x) (sorted_list_of_set y))" 
+  define lmax where "lmax x y = set (map2 max (sorted_list_of_set x) (sorted_list_of_set y))"
     for x y :: "'a set"
 
   define lmin where "lmin x y = set (map2 min (sorted_list_of_set x) (sorted_list_of_set y))"
     for x y :: "'a set"
 
-  have lmax_1: 
+  have lmax_1:
     "osl_repr S n (lmax s t) i = max (osl_repr S n s i) (osl_repr S n t i)" (is "?L1 = ?R1")
     "lmax s t \<in> carrier ?L"
     if "s \<in> carrier ?L" "t \<in> carrier ?L" for s t i
@@ -210,7 +210,7 @@ proof -
 
     have s:"sorted_wrt (<) (map2 max (sorted_list_of_set s) (sorted_list_of_set t))"
       using s_carr t_carr by (intro map2_max_mono) auto
-    hence "?L1 = (\<lambda>i \<in> {..<n}. (map2 max (sorted_list_of_set s) (sorted_list_of_set t)) ! i) i" 
+    hence "?L1 = (\<lambda>i \<in> {..<n}. (map2 max (sorted_list_of_set s) (sorted_list_of_set t)) ! i) i"
       unfolding lmax_def osl_repr_def  strict_sorted_iff
       by (subst linorder_class.sorted_list_of_set.idem_if_sorted_distinct) auto
     also have "\<dots> = (\<lambda>i \<in> {..<n}. max (sorted_list_of_set s ! i) (sorted_list_of_set t ! i)) i"
@@ -220,14 +220,14 @@ proof -
 
     have "set (zip (sorted_list_of_set s) (sorted_list_of_set t)) \<subseteq> S \<times> S"
       using s_carr(3,5) t_carr(3,5) by (auto intro:set_zip_leftD set_zip_rightD)
-    hence "set (map2 max (sorted_list_of_set s) (sorted_list_of_set t)) \<subseteq> S" 
+    hence "set (map2 max (sorted_list_of_set s) (sorted_list_of_set t)) \<subseteq> S"
       by (auto simp:max_def)
     thus "lmax s t \<in> carrier ?L"
       using s_carr t_carr s unfolding lmax_def strict_sorted_iff
       by (intro ordered_set_lattice_carrier_intro[OF assms]) auto
   qed
 
-  have lmin_1: 
+  have lmin_1:
     "osl_repr S n (lmin s t) i = min (osl_repr S n s i) (osl_repr S n t i)" (is "?L1 = ?R1")
     "lmin s t \<in> carrier ?L"
     if "s \<in> carrier ?L" "t \<in> carrier ?L" for s t i
@@ -237,7 +237,7 @@ proof -
 
     have s:"sorted_wrt (<) (map2 min (sorted_list_of_set s) (sorted_list_of_set t))"
       using s_carr t_carr by (intro map2_min_mono) auto
-    hence "?L1 = (\<lambda>i \<in> {..<n}. (map2 min (sorted_list_of_set s) (sorted_list_of_set t)) ! i) i" 
+    hence "?L1 = (\<lambda>i \<in> {..<n}. (map2 min (sorted_list_of_set s) (sorted_list_of_set t)) ! i) i"
       unfolding lmin_def osl_repr_def  strict_sorted_iff
       by (subst linorder_class.sorted_list_of_set.idem_if_sorted_distinct) auto
     also have "\<dots> = (\<lambda>i \<in> {..<n}. min (sorted_list_of_set s ! i) (sorted_list_of_set t ! i)) i"
@@ -247,7 +247,7 @@ proof -
 
     have "set (zip (sorted_list_of_set s) (sorted_list_of_set t)) \<subseteq> S \<times> S"
       using s_carr(3,5) t_carr(3,5) by (auto intro:set_zip_leftD set_zip_rightD)
-    hence "set (map2 min (sorted_list_of_set s) (sorted_list_of_set t)) \<subseteq> S" 
+    hence "set (map2 min (sorted_list_of_set s) (sorted_list_of_set t)) \<subseteq> S"
       by (auto simp:min_def)
     thus "lmin s t \<in> carrier ?L"
       using s_carr t_carr s unfolding lmin_def strict_sorted_iff
@@ -255,40 +255,40 @@ proof -
   qed
 
   have lmax: "is_lub ?L (lmax x y) {x,y}" if "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
-    using that lmax_1 osl_leD by (intro least_UpperI) (auto simp:Upper_def) 
+    using that lmax_1 osl_leD by (intro least_UpperI) (auto simp:Upper_def)
   hence "\<exists>s. is_lub ?L s {x, y}" if "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
     using that by auto
   hence 1: "upper_semilattice ?L" by (unfold_locales) auto
 
   have lmin: "is_glb ?L (lmin x y) {x,y}" if "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
-    using that lmin_1 osl_leD by (intro greatest_LowerI) (auto simp:Lower_def) 
+    using that lmin_1 osl_leD by (intro greatest_LowerI) (auto simp:Lower_def)
   hence "\<exists>s. is_glb ?L s {x, y}" if "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
     using that by auto
   hence 2: "lower_semilattice ?L" by (unfold_locales) auto
 
-  have 4:"lattice ?L" using 1 2 unfolding lattice_def by auto 
+  have 4:"lattice ?L" using 1 2 unfolding lattice_def by auto
   interpret lattice ?L using 4 by simp
 
   have join_eq: "x \<sqinter>\<^bsub>?L\<^esub> y = lmin x y"  if "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
     by (intro glb_unique[symmetric] that lmin)
-  
+
   have meet_eq: "x \<squnion>\<^bsub>?L\<^esub> y = lmax x y"  if "x \<in> carrier ?L" "y \<in> carrier ?L" for x y
     by (intro lub_unique[symmetric] that lmax)
-  
+
   have "(x \<sqinter>\<^bsub>?L\<^esub> (y \<squnion>\<^bsub>?L\<^esub> z)) = (x \<sqinter>\<^bsub>?L\<^esub> y) \<squnion>\<^bsub>?L\<^esub> (x \<sqinter>\<^bsub>?L\<^esub> z)"
     if  "x \<in> carrier ?L" "y \<in> carrier ?L" "z \<in> carrier ?L" for x y z
   proof -
     have "osl_repr S n (lmin x (lmax y z)) i = osl_repr S n (lmax (lmin x y) (lmin x z)) i" for i
-      using lmax_1 that lmin_1 by (simp add:min_max_distrib2) 
+      using lmax_1 that lmin_1 by (simp add:min_max_distrib2)
     hence "lmin x (lmax y z) = lmax (lmin x y) (lmin x z)"
       by (intro osl_list_repr_inj lmax_1 lmin_1 that allI)
-    thus ?thesis using that by (simp add: meet_eq join_eq lmax_1 lmin_1) 
-  qed 
+    thus ?thesis using that by (simp add: meet_eq join_eq lmax_1 lmin_1)
+  qed
   thus ?thesis using 4 ordered_set_lattice_carrier_finite_ne[OF assms(1,2)] by (unfold_locales) auto
 qed
 
 lemma insort_eq:
-  fixes xs :: "('a :: linorder) list" 
+  fixes xs :: "('a :: linorder) list"
   assumes "sorted xs"
   shows "\<exists>ys zs. insort e xs = ys@e#zs \<and> ys@zs=xs \<and> set ys \<subseteq> {..<e} \<and> set zs \<subseteq> {e..}"
 proof -
@@ -310,24 +310,24 @@ lemma list_all2_insort:
   assumes "length xs = length ys" "sorted xs" "sorted ys"
   shows  "list_all2 (\<le>) xs ys \<longleftrightarrow> list_all2 (\<le>) (insort e xs) (insort e ys)"
 proof -
-  obtain x1 x3 where xs: 
+  obtain x1 x3 where xs:
     "xs = x1@x3" "insort e xs = x1@e#x3" "set x1 \<subseteq> {..<e}" "set x3 \<subseteq> {e..}"
     using insort_eq[OF assms(2)] by blast
-  obtain y1 y3 where ys: "ys = y1@y3" 
+  obtain y1 y3 where ys: "ys = y1@y3"
     "insort e ys = y1@e#y3" "set y1 \<subseteq> {..<e}" "set y3 \<subseteq> {e..}"
     using insort_eq[OF assms(3)] by blast
 
   have l: "length y1 + length y3 = length x1 + length x3" using assms(1) xs(1) ys(1) by simp
 
   have "list_all2 (\<le>) xs ys \<longleftrightarrow> list_all2 (\<le>) (x1@x3) (y1@y3)" by (simp add: xs ys)
-  also have "\<dots> \<longleftrightarrow> list_all2 (\<le>) (x1@e#x3) (y1@e#y3)" (is "?L \<longleftrightarrow> ?R") 
+  also have "\<dots> \<longleftrightarrow> list_all2 (\<le>) (x1@e#x3) (y1@e#y3)" (is "?L \<longleftrightarrow> ?R")
   proof (cases "length x1 < length y1")
     case True
     have "length x3 > 0" using l True by linarith
 
-    hence "(x1@x3) ! length x1 \<ge> e" 
+    hence "(x1@x3) ! length x1 \<ge> e"
       using xs(4) nth_mem in_mono unfolding nth_append by fastforce
-    moreover have "(y1@y3) ! length x1 < e" 
+    moreover have "(y1@y3) ! length x1 < e"
       using True ys(3) nth_mem unfolding nth_append by auto
     moreover have "length x1 < length (x1@x3)" using l True by auto
     ultimately have 1:"?L = False"
@@ -350,19 +350,19 @@ proof -
     let ?y3 = "drop (length x1-length y1) y3"
 
     have l2: "length x2 = length y2" using False l by simp
-    have set_x2: "set x2 \<subseteq> {..<e}" 
+    have set_x2: "set x2 \<subseteq> {..<e}"
       unfolding x2_def using xs(3) set_drop_subset subset_trans by metis
-    have set_y2: "set y2 \<subseteq> {e..}" 
+    have set_y2: "set y2 \<subseteq> {e..}"
       unfolding y2_def using ys(4) set_take_subset subset_trans by metis
 
     have "set (x2@[e]) \<subseteq> {..e}" "set (e#y2) \<subseteq> {e..}"
       using set_x2 set_y2 by auto
-    hence a':"list_all2 (\<lambda>x y. x \<le> e \<and> e \<le> y) (x2@[e]) (e#y2)" 
-      using l2  set_zip_leftD set_zip_rightD by (intro list_all2I conjI ballI case_prodI2) fastforce+ 
+    hence a':"list_all2 (\<lambda>x y. x \<le> e \<and> e \<le> y) (x2@[e]) (e#y2)"
+      using l2  set_zip_leftD set_zip_rightD by (intro list_all2I conjI ballI case_prodI2) fastforce+
     have a:"list_all2 (\<le>) (x2@[e]) (e#y2)" by (intro list_all2_mono[OF a']) auto
 
-    have b':"list_all2 (\<lambda>x y. x \<le> e \<and> e \<le> y) x2 y2" 
-      using l2 set_x2 set_y2  set_zip_leftD set_zip_rightD by (intro list_all2I conjI ballI case_prodI2) fastforce+ 
+    have b':"list_all2 (\<lambda>x y. x \<le> e \<and> e \<le> y) x2 y2"
+      using l2 set_x2 set_y2  set_zip_leftD set_zip_rightD by (intro list_all2I conjI ballI case_prodI2) fastforce+
     have b:"list_all2 (\<le>) x2 y2" by (intro list_all2_mono[OF b']) auto
 
     have "?L \<longleftrightarrow> list_all2 (\<le>) ((?x1@x2)@x3) (y1@y2@?y3)" by simp
@@ -398,11 +398,11 @@ proof -
 
   have disj: "S \<inter> u = {}" "S \<inter> v = {}" unfolding vars by auto
 
-  have cards: "card u = card v" unfolding vars  using assms 
+  have cards: "card u = card v" unfolding vars  using assms
     by (simp add: card_le_sym_Diff order_antisym)
 
   have "?le x y = ?le (u \<union> S) (v \<union> S)" unfolding vars by (intro arg_cong2[where f="?le"]) auto
-  also have "\<dots> = ?le u v" using fins(1) disj 
+  also have "\<dots> = ?le u v" using fins(1) disj
   proof (induction S rule:finite_induct)
     case empty thus ?case by simp
   next
@@ -412,7 +412,7 @@ proof -
     have "card (u \<union> F) = card u + card F" using insert fins by (intro card_Un_disjoint) auto
     also have "\<dots> = card v + card F" using cards by auto
     also have "\<dots> = card (v \<union> F)" using insert fins by (intro card_Un_disjoint[symmetric]) auto
-    finally have cards': "card (u \<union> F) = card (v \<union> F)" by simp 
+    finally have cards': "card (u \<union> F) = card (v \<union> F)" by simp
 
     have "?le (u \<union> insert x F) (v \<union> insert x F) = ?le (insert x (u \<union> F)) (insert x (v \<union> F))"
       by simp
@@ -440,27 +440,27 @@ lemma ordered_set_lattice_dual:
   assumes "finite S" "n \<le> card S"
   defines "L \<equiv> ordered_set_lattice S n"
   defines "M \<equiv> ordered_set_lattice S (card S - n)"
-  shows 
-    "\<And>x. x \<in> carrier L \<Longrightarrow> (S-x) \<in> carrier M" 
-    "\<And>x. x \<in> carrier M \<Longrightarrow> (S-x) \<in> carrier L" 
+  shows
+    "\<And>x. x \<in> carrier L \<Longrightarrow> (S-x) \<in> carrier M"
+    "\<And>x. x \<in> carrier M \<Longrightarrow> (S-x) \<in> carrier L"
     "\<And>x y. x \<in> carrier L \<and> y \<in> carrier L \<Longrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y \<longleftrightarrow> (S-y) \<sqsubseteq>\<^bsub>M\<^esub> (S-x)"
 proof (goal_cases)
   case (1 x)
-  thus ?case using assms(1,2) unfolding ordered_set_lattice_def M_def L_def 
+  thus ?case using assms(1,2) unfolding ordered_set_lattice_def M_def L_def
     by (auto intro:card_Diff_subset)
 next
   case (2 x)
-  thus ?case using assms(1,2) unfolding ordered_set_lattice_def M_def L_def 
-    by (auto simp:card_Diff_subset_Int Int_absorb1) 
+  thus ?case using assms(1,2) unfolding ordered_set_lattice_def M_def L_def
+    by (auto simp:card_Diff_subset_Int Int_absorb1)
 next
   case (3 x y)
   hence a:"finite x" "finite y" "card x = card y" "x \<subseteq> S" "y \<subseteq> S"
     unfolding ordered_set_lattice_def M_def L_def by auto
 
-  have b:"card (S - m) = card S - card m" if "m \<subseteq> S" for m 
+  have b:"card (S - m) = card S - card m" if "m \<subseteq> S" for m
     using that assms(1) card_Diff_subset finite_subset[OF _ assms(1)] by auto
 
-  have "le_ordered_set_lattice x y = le_ordered_set_lattice (x-y) (y-x)" 
+  have "le_ordered_set_lattice x y = le_ordered_set_lattice (x-y) (y-x)"
     by (intro le_ordered_set_lattice_diff a)
   also have "\<dots> = le_ordered_set_lattice ((S-y)-(S-x)) ((S-x)-(S-y))"
     using a by (intro arg_cong2[where f="le_ordered_set_lattice"]) auto
@@ -482,25 +482,25 @@ proof -
   let ?p1 = "the_inv_into {..<n} (\<lambda>i. ?xs ! i)"
   let ?p2 = "(\<lambda>i. ?ys ! i)"
 
-  have x: "card x = n" "finite x" using assms(4) unfolding L_def ordered_set_lattice_def by auto 
-  have y: "card y = n" "finite y" using assms(5) unfolding L_def ordered_set_lattice_def by auto 
+  have x: "card x = n" "finite x" using assms(4) unfolding L_def ordered_set_lattice_def by auto
+  have y: "card y = n" "finite y" using assms(5) unfolding L_def ordered_set_lattice_def by auto
   have l_xs: "length ?xs = n" using length_sorted_list_of_set x by simp
   have l_ys: "length ?ys = n" using length_sorted_list_of_set y by simp
 
-  have le: "?xs ! i \<le> ?ys ! i" if "i \<in> {..<n}" for i 
+  have le: "?xs ! i \<le> ?ys ! i" if "i \<in> {..<n}" for i
     using assms(6) l_xs l_ys that unfolding L_def ordered_set_lattice_def le_ordered_set_lattice_def
-    by (auto simp add:list_all2_conv_all_nth) 
+    by (auto simp add:list_all2_conv_all_nth)
 
-  have xs_strict_mono: "strict_mono_on {..<n} ((!) ?xs)" 
+  have xs_strict_mono: "strict_mono_on {..<n} ((!) ?xs)"
     using strict_sorted_list_of_set
     by (metis l_xs lessThan_iff sorted_wrt_iff_nth_less strict_mono_onI)
 
   hence inj_xs: "inj_on ((!) ?xs) {..<n}" using strict_mono_on_imp_inj_on by auto
   have "set ?xs = x" using set_sorted_list_of_set x by simp
-  hence ran_xs: "((!) ?xs) ` {..<n} = x" using set_conv_nth unfolding l_xs[symmetric] by fast 
+  hence ran_xs: "((!) ?xs) ` {..<n} = x" using set_conv_nth unfolding l_xs[symmetric] by fast
 
-  have "set ?ys = y"  using set_sorted_list_of_set y by simp 
-  hence ran_ys: "((!) ?ys) ` {..<n} = y" using set_conv_nth unfolding l_ys[symmetric] by fast 
+  have "set ?ys = y"  using set_sorted_list_of_set y by simp
+  hence ran_ys: "((!) ?ys) ` {..<n} = y" using set_conv_nth unfolding l_ys[symmetric] by fast
 
   have p1_strict_mono: "strict_mono_on x ?p1"
   proof (rule strict_mono_onI)
@@ -514,8 +514,8 @@ proof -
 
   have ran_p1: "?p1 ` x = {..<n}" using ran_xs the_inv_into_onto[OF inj_xs] by simp
 
-  have p2_strict_mono: "strict_mono_on {..<n} ?p2" 
-    using strict_sorted_list_of_set 
+  have p2_strict_mono: "strict_mono_on {..<n} ?p2"
+    using strict_sorted_list_of_set
     by (metis l_ys lessThan_iff sorted_wrt_iff_nth_less strict_mono_onI)
 
   define \<phi> where "\<phi> = (\<lambda>e. if e \<in> x then (?p2 (?p1 e)) else e)"
@@ -525,7 +525,7 @@ proof -
     fix r s assume a: "r \<in> x" "s \<in> x" "r < s"
     have "?p1 r < ?p1 s" using a strict_mono_onD[OF p1_strict_mono] by auto
     moreover have "?p1 r \<in> {..<n}" "?p1 s \<in> {..<n}" using a ran_p1 by auto
-    ultimately show "(?p2 \<circ> ?p1) r < (?p2 \<circ> ?p1) s" 
+    ultimately show "(?p2 \<circ> ?p1) r < (?p2 \<circ> ?p1) s"
       using strict_mono_onD[OF p2_strict_mono] by simp
   qed
 
@@ -539,7 +539,7 @@ proof -
   moreover have "\<phi> e \<ge> e" for e
   proof (cases "e \<in> x")
     case True
-    have "e = ?xs ! (?p1 e)" 
+    have "e = ?xs ! (?p1 e)"
       using True ran_xs by (intro f_the_inv_into_f[symmetric] inj_xs) auto
     also have "\<dots> \<le> ?p2 (?p1 e)" using ran_p1 True by (intro le) auto
     also have "\<dots> = \<phi> e" using True by (simp add:\<phi>_def)
@@ -555,7 +555,7 @@ qed
 definition "bij_pmf I F = pmf_of_set {f. bij_betw f I F \<and> f \<in> extensional I}"
 
 lemma card_bijections':
-  assumes "finite A" "finite B" "card A = card B" 
+  assumes "finite A" "finite B" "card A = card B"
   shows "card {f. bij_betw f A B \<and> f \<in> extensional A} = fact (card A)" (is "?L = ?R")
 proof -
   have "?L = card {f \<in> A \<rightarrow>\<^sub>E B. bij_betw f A B}"
@@ -578,9 +578,9 @@ qed
 
 lemma bij_pmf:
   assumes "finite I" "finite F" "card I = card F"
-  shows 
+  shows
     "set_pmf (bij_pmf I F) = {f. bij_betw f I F \<and> f \<in> extensional I}"
-    "finite (set_pmf (bij_pmf I F))" 
+    "finite (set_pmf (bij_pmf I F))"
   using bij_betw_non_empty_finite[OF assms] unfolding bij_pmf_def by auto
 
 lemma expectation_ge_eval_at_point:
@@ -598,11 +598,11 @@ qed
 
 lemma split_bij_pmf:
   assumes "finite I" "finite F" "card I = card F" "J \<subseteq> I"
-  shows "bij_pmf I F = 
+  shows "bij_pmf I F =
     do {
       S \<leftarrow> pmf_of_set {S. card S = card J \<and> S \<subseteq> F};
       \<phi> \<leftarrow> bij_pmf J S;
-      \<psi> \<leftarrow> bij_pmf (I-J) (F-S); 
+      \<psi> \<leftarrow> bij_pmf (I-J) (F-S);
       return_pmf (merge J (I-J) (\<phi>, \<psi>))
     }" (is "?L = ?R")
 proof (rule pmf_eq_iff_le)
@@ -632,13 +632,13 @@ proof (rule pmf_eq_iff_le)
 
     have T_F: "T \<subseteq> F" using bij_betw_imp_surj_on[OF a(1)] assms(4) unfolding T_def by auto
 
-    have f2: "finite T" using assms(2) T_F finite_subset by auto 
+    have f2: "finite T" using assms(2) T_F finite_subset by auto
     have f3: "finite (F - T)" using assms(2) T_F finite_subset by auto
-    have c1: "card J = card T" 
-      unfolding T_def using assms(4) inj_on_subset bij_betw_imp_inj_on[OF a(1)] 
+    have c1: "card J = card T"
+      unfolding T_def using assms(4) inj_on_subset bij_betw_imp_inj_on[OF a(1)]
       by (intro card_image[symmetric]) auto
     have c2: "card (I-J) = card (F-T)"
-      unfolding x_on_compl[symmetric] using inj_on_subset bij_betw_imp_inj_on[OF a(1)] 
+      unfolding x_on_compl[symmetric] using inj_on_subset bij_betw_imp_inj_on[OF a(1)]
       by (intro card_image[symmetric]) force
 
     have "restrict x (J \<union> (I - J)) = restrict x I" using assms(4) by force
@@ -650,7 +650,7 @@ proof (rule pmf_eq_iff_le)
 
     have "z ` (I-J) = (F-T)" using x_on_compl unfolding z_def by auto
     hence z: "z \<in> extensional (I-J)" "bij_betw z (I-J) (F-T)"
-      using a z_def unfolding bij_betw_def T_def by (auto intro:inj_on_diff) 
+      using a z_def unfolding bij_betw_def T_def by (auto intro:inj_on_diff)
 
     have pos_assms2: "{S. card S = card J \<and> S \<subseteq> F} \<noteq> {}" "finite {S. card S = card J \<and> S \<subseteq> F}"
       using T_F c1 by (auto intro!:  finite_subset[OF _ iffD2[OF finite_Pow_iff assms(2)]])
@@ -683,12 +683,12 @@ proof (rule pmf_eq_iff_le)
       by (simp add:conj_commute)
     also have "\<dots> = pmf ?p1 T * (pmf (?p2 T) y * (pmf (?p3 T) z * of_bool(merge J (I-J) (y, z) = x)))"
       unfolding y_def z_def merge_restrict merge_x_x_eq_restrict b by simp
-    also have "\<dots> \<le> pmf ?p1 T * (pmf (?p2 T) y * (\<integral>\<psi>. of_bool(merge J (I-J) (y, \<psi>) = x) \<partial>?p3 T))" 
-      by (intro mult_left_mono expectation_ge_eval_at_point integral_nonneg_AE AE_pmfI) simp_all 
-    also have "\<dots> \<le> pmf ?p1 T * (\<integral>\<phi>. (\<integral>\<psi>. of_bool(merge J (I-J) (\<phi>, \<psi>) = x) \<partial>?p3 T) \<partial>?p2 T)" 
+    also have "\<dots> \<le> pmf ?p1 T * (pmf (?p2 T) y * (\<integral>\<psi>. of_bool(merge J (I-J) (y, \<psi>) = x) \<partial>?p3 T))"
+      by (intro mult_left_mono expectation_ge_eval_at_point integral_nonneg_AE AE_pmfI) simp_all
+    also have "\<dots> \<le> pmf ?p1 T * (\<integral>\<phi>. (\<integral>\<psi>. of_bool(merge J (I-J) (\<phi>, \<psi>) = x) \<partial>?p3 T) \<partial>?p2 T)"
       by (intro mult_left_mono expectation_ge_eval_at_point integral_nonneg_AE AE_pmfI) simp_all
     also have "\<dots> \<le> (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. of_bool(merge J (I-J) (\<phi>, \<psi>) = x) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
-      by (intro expectation_ge_eval_at_point integral_nonneg_AE AE_pmfI) simp_all 
+      by (intro expectation_ge_eval_at_point integral_nonneg_AE AE_pmfI) simp_all
     also have "\<dots> = pmf ?R x" unfolding pmf_bind by (simp add:indicator_def)
     finally show ?thesis by simp
   next
@@ -708,15 +708,15 @@ proof-
   have h_bij: "bij_betw ?h (\<phi> ` F) F"
     using assms(4) by (simp add: bij_betw_the_inv_into inj_on_imp_bij_betw)
 
-  have "bij_betw  (\<lambda>f. (\<lambda>x\<in>I. \<phi>(f x))) 
+  have "bij_betw  (\<lambda>f. (\<lambda>x\<in>I. \<phi>(f x)))
     {f. bij_betw f I F \<and> f \<in> extensional I} {f. bij_betw f I (\<phi> ` F) \<and> f \<in> extensional I}"
   proof (intro bij_betwI[where g="(\<lambda>f. (\<lambda>x\<in>I. ?h(f x)))"], goal_cases)
-    case 1 thus ?case 
-      using bij_betw_trans[OF _ inj_on_imp_bij_betw[OF assms(4)], where A="I"] 
+    case 1 thus ?case
+      using bij_betw_trans[OF _ inj_on_imp_bij_betw[OF assms(4)], where A="I"]
       by (auto simp:comp_def)
   next
-    case 2 thus ?case 
-      using bij_betw_trans[OF _ h_bij, where A="I"] by (auto simp:comp_def) 
+    case 2 thus ?case
+      using bij_betw_trans[OF _ h_bij, where A="I"] by (auto simp:comp_def)
   next
     case (3 x)
     hence "x \<in> I \<rightarrow> F" "x \<in> extensional I" using bij_betw_imp_surj_on by auto
@@ -725,7 +725,7 @@ proof-
     thus ?case by auto
   next
     case (4 y)
-    hence "y \<in> I \<rightarrow> (\<phi> ` F)" "y \<in> extensional I" using bij_betw_imp_surj_on by blast+ 
+    hence "y \<in> I \<rightarrow> (\<phi> ` F)" "y \<in> extensional I" using bij_betw_imp_surj_on by blast+
     hence "(\<lambda>x\<in>I. \<phi> ((\<lambda>x\<in>I. the_inv_into F \<phi> (y x)) x)) \<omega> = y \<omega>" for \<omega>
       by (auto intro!:f_the_inv_into_f[OF assms(4)] simp: restrict_def extensional_def)
     thus ?case by auto
@@ -733,27 +733,6 @@ proof-
   thus ?thesis
     unfolding bij_pmf_def by (intro map_pmf_of_set_bij_betw bij_betw_non_empty_finite assms)
 qed
-
-definition clamp where "clamp a b f x = max a (min (f x) b)"  
-
-lemma bounded_clamp: 
-  fixes a :: "'a :: {linorder, ordered_euclidean_space}"
-  shows "bounded (clamp a b f ` S)" 
-proof (cases "a \<le> b")
-  case True
-  have "clamp a b f ` S \<subseteq> {a..b}" using True unfolding clamp_def by auto
-  thus ?thesis using bounded_closed_interval bounded_subset by blast
-next
-  case False
-  hence "clamp a b f x = a" for x unfolding clamp_def by (simp add: max_def)
-  hence "clamp a b f ` S \<subseteq> {a..a}" by auto
-  thus ?thesis using bounded_subset bounded_closed_interval by metis
-qed
-
-lemma clamp_eqI:
-  assumes "\<bar>f x\<bar> \<le> (a::real)"
-  shows "f x = clamp (-a) a f x"
-  using assms unfolding clamp_def by simp
 
 lemmas fkg_inequality_pmf_internalized = fkg_inequality_pmf[unoverload_type 'a]
 
@@ -786,25 +765,27 @@ next
   define f_max where "f_max = (MAX x \<in> set_pmf ?p0. \<bar>\<f> x\<bar>)"
   define g_max where "g_max = (MAX x \<in> set_pmf ?p0. \<bar>\<g> x\<bar>)"
 
-  define f where "f = clamp (-f_max) f_max \<f>"
-  define g where "g = clamp (-g_max) g_max \<g>" 
+  define f where "f = clamp (-f_max) f_max \<circ> \<f>"
+  define g where "g = clamp (-g_max) g_max \<circ> \<g>"
 
-  have f_cong: "f x = \<f> x" if "x \<in> set_pmf ?p0" for x 
-    unfolding f_def f_max_def using that 
+  have f_cong: "f x = \<f> x" if "x \<in> set_pmf ?p0" for x
+    unfolding f_def f_max_def comp_def using that
     by (intro clamp_eqI[symmetric] Max.coboundedI finite_imageI set_pmf_p0(2)) auto
 
   have g_cong: "g x = \<g> x" if "x \<in> set_pmf ?p0" for x
-    unfolding g_def g_max_def using that 
+    unfolding g_def g_max_def comp_def using that
     by (intro clamp_eqI[symmetric] Max.coboundedI finite_imageI set_pmf_p0(2)) auto
 
-  have dep_f: "depends_on f J" unfolding f_def clamp_def by (intro depends_on_comp_2[OF 2(2)])
-  have dep_g: "depends_on g (I-J)" unfolding g_def clamp_def by (intro depends_on_comp_2[OF 2(3)])
+  have dep_f: "depends_on f J" unfolding f_def by (intro depends_on_comp[OF 2(2)])
+  have dep_g: "depends_on g (I-J)" unfolding g_def by (intro depends_on_comp[OF 2(3)])
 
   have bounded_f: "bounded (f ` S)" for S unfolding f_def by (intro bounded_clamp)
   have bounded_g: "bounded (g ` S)" for S unfolding g_def by (intro bounded_clamp)
 
-  have mono_f: "mono f" using monoD[OF 2(4)] unfolding f_def clamp_def by (intro monoI) fastforce
-  have mono_g: "mono g" using monoD[OF 2(5)] unfolding g_def clamp_def by (intro monoI) fastforce
+  have mono_f: "mono f" using monoD[OF 2(4)]
+    unfolding f_def clamp_real_def by (intro monoI) fastforce
+  have mono_g: "mono g" using monoD[OF 2(5)]
+    unfolding g_def clamp_real_def by (intro monoI) fastforce
 
   let ?L = "ordered_set_lattice F k"
 
@@ -819,7 +800,7 @@ next
 
   have mono_f': "monotone_on (carrier ?L) (\<sqsubseteq>\<^bsub>?L\<^esub>) (\<le>) f'"
   proof (rule monotone_onI)
-    fix S T 
+    fix S T
     assume a:"S \<sqsubseteq>\<^bsub>?L\<^esub> T" "S \<in> carrier ?L" "T \<in> carrier ?L"
     then obtain \<rho> where \<rho>_bij: "bij_betw \<rho> S T" and \<rho>_inc: "\<And>e. \<rho> e \<ge> e"
       using bij_betw_ord_set_lattice_pairs[OF assms(1) k_le_F] by blast
@@ -833,11 +814,11 @@ next
     have "f' S = (\<integral>\<phi>. f (\<lambda>\<omega>\<in>J. \<phi> \<omega>) \<partial>?p2 S)" unfolding f'_def
       using set_pmf_p2 extensional_restrict by (intro integral_cong_AE AE_pmfI) force+
     also have "\<dots> \<le> (\<integral>\<phi>. f (\<lambda>\<omega>\<in>J. \<rho>(\<phi> \<omega>)) \<partial>?p2 S)" unfolding f'_def
-      using \<rho>_inc unfolding restrict_def 
+      using \<rho>_inc unfolding restrict_def
       by (intro integral_mono_AE AE_pmfI monoD[OF mono_f] int) (auto simp: le_fun_def)
     also have "\<dots> = (\<integral>\<phi>. f \<phi> \<partial>(map_pmf (\<lambda>\<phi>. (\<lambda>\<omega>\<in>J. \<rho>(\<phi> \<omega>))) (?p2 S)))" by simp
     also have "\<dots> = (\<integral>\<phi>. f \<phi> \<partial>(?p2 (\<rho> ` S)))"
-      using ordered_set_lattice_carrier[OF a(2)] k_def 
+      using ordered_set_lattice_carrier[OF a(2)] k_def
       by (intro arg_cong2[where f="measure_pmf.expectation"] map_bij_pmf refl
           bij_betw_imp_inj_on[OF \<rho>_bij] fin_J) auto
     also have "\<dots> = (\<integral>\<phi>. f \<phi> \<partial>?p2 T)" using bij_betw_imp_surj_on[OF \<rho>_bij] by simp
@@ -846,7 +827,7 @@ next
 
   have mono_g': "monotone_on (carrier ?L) (\<sqsubseteq>\<^bsub>?L\<^esub>) (\<le>) ((*)(-1) \<circ> g')"
   proof (rule monotone_onI)
-    fix S T 
+    fix S T
     let ?M = "ordered_set_lattice F (card F-k)"
     assume a:"S \<sqsubseteq>\<^bsub>?L\<^esub> T" "S \<in> carrier ?L" "T \<in> carrier ?L"
     hence a': "(F-T) \<sqsubseteq>\<^bsub>?M\<^esub> (F-S)" "(F-S) \<in> carrier ?M" "(F-T) \<in> carrier ?M"
@@ -856,17 +837,17 @@ next
     note T_carr = ordered_set_lattice_carrier[OF a'(3)]
 
     have c: "card (I-J) = card (F-T)"
-      using assms ordered_set_lattice_carrier[OF a(3)] k_def 2(1) fin_J 
+      using assms ordered_set_lattice_carrier[OF a(3)] k_def 2(1) fin_J
       by (simp add: card_Diff_subset)
     note set_pmf_p3 = bij_pmf[OF fin_I_J T_carr(1) c]
     note int = integrable_measure_pmf_finite[OF set_pmf_p3(2)]
 
     have "g' T = (\<integral>\<phi>. g (\<lambda>\<omega>\<in>I-J. \<phi> \<omega>) \<partial>?p3 T)" unfolding g'_def
       using set_pmf_p3 extensional_restrict by (intro integral_cong_AE AE_pmfI) force+
-    also have "\<dots> \<le> (\<integral>\<phi>. g (\<lambda>\<omega>\<in>I-J. \<rho>(\<phi> \<omega>)) \<partial>?p3 T)" unfolding g'_def restrict_def using \<rho>_inc 
+    also have "\<dots> \<le> (\<integral>\<phi>. g (\<lambda>\<omega>\<in>I-J. \<rho>(\<phi> \<omega>)) \<partial>?p3 T)" unfolding g'_def restrict_def using \<rho>_inc
       by (intro integral_mono_AE AE_pmfI monoD[OF mono_g] int) (auto simp: le_fun_def)
     also have "\<dots> = (\<integral>\<phi>. g \<phi> \<partial>(map_pmf (\<lambda>\<phi>. (\<lambda>\<omega>\<in>I-J. \<rho>(\<phi> \<omega>))) (?p3 T)))" by simp
-    also have "\<dots> = (\<integral>\<phi>. g \<phi> \<partial>(bij_pmf (I - J) (\<rho> ` (F-T))))" using assms 
+    also have "\<dots> = (\<integral>\<phi>. g \<phi> \<partial>(bij_pmf (I - J) (\<rho> ` (F-T))))" using assms
       by (intro arg_cong2[where f="measure_pmf.expectation"] map_bij_pmf refl
           bij_betw_imp_inj_on[OF \<rho>_bij] fin_J c) auto
     also have "\<dots> = (\<integral>\<phi>. g \<phi> \<partial>?p3 S)" using bij_betw_imp_surj_on[OF \<rho>_bij] by simp
@@ -877,7 +858,7 @@ next
   have "(\<integral>S. f' S * g' S \<partial>?p1) \<le> (\<integral>S. f' S \<partial>?p1) * (\<integral>S. g' S \<partial>?p1)"
     if td: "\<exists>(Rep :: 'x \<Rightarrow> 'a set) Abs. type_definition Rep Abs (carrier ?L)"
   proof -
-    obtain Rep :: "'x \<Rightarrow> 'a set" and Abs where td:"type_definition Rep Abs (carrier ?L)" 
+    obtain Rep :: "'x \<Rightarrow> 'a set" and Abs where td:"type_definition Rep Abs (carrier ?L)"
       using td by auto
     interpret type_definition Rep Abs "carrier ?L" using td by auto
 
@@ -925,17 +906,17 @@ next
   also have "\<dots> = (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f(merge J (I-J) (\<phi>,\<psi>))*g(merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
     unfolding k_def by (simp add:split_p0 bounded_intros bounded_f bounded_g integral_bind_pmf)
   also have "\<dots> = (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f \<phi>*g \<psi> \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
-    by (intro integral_cong_AE AE_pmfI arg_cong2[where f="(*)"] depends_onD2[OF dep_f] 
+    by (intro integral_cong_AE AE_pmfI arg_cong2[where f="(*)"] depends_onD2[OF dep_f]
         depends_onD2[OF dep_g]) simp_all
   also have "\<dots> = (\<integral>S. (\<integral>\<phi>. f \<phi> \<partial>?p2 S) * (\<integral>\<psi>. g \<psi> \<partial>?p3 S) \<partial>?p1)" by simp
   also have "\<dots> \<le> (\<integral>S. (\<integral>\<phi>. f \<phi> \<partial>?p2 S) \<partial>?p1) * (\<integral>S. (\<integral>\<phi>. g \<phi> \<partial>?p3 S) \<partial>?p1)"
     using core_result unfolding f'_def g'_def by simp
   also have "\<dots> = (\<integral>S.(\<integral>\<phi>.(\<integral>\<psi>. f \<phi> \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1) * (\<integral>S.(\<integral>\<phi>.(\<integral>\<psi>. g \<psi> \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
     by simp
-  also have "\<dots> = 
-    (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f (merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1) * 
+  also have "\<dots> =
+    (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f (merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1) *
     (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. g (merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
-    by (intro arg_cong2[where f="(*)"] integral_cong_AE AE_pmfI depends_onD2[OF dep_f] 
+    by (intro arg_cong2[where f="(*)"] integral_cong_AE AE_pmfI depends_onD2[OF dep_f]
         depends_onD2[OF dep_g]) simp_all
   also have "\<dots> = (\<integral>x. f x \<partial>?p0) * (\<integral>x. g x \<partial>?p0)"
     unfolding k_def by (simp add:split_p0 bounded_intros bounded_f bounded_g integral_bind_pmf)
