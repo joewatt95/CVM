@@ -328,14 +328,37 @@ Note that the theorem is trivial if $|A| < n$. If not:
 \section{Unbiasedness}
 Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g. we can choose $M = f^{-l}$). Then we can derive from Lemma~\ref{le:neg_cor_neg} using $h(x) = x$ and $h(x) = M+1-x$ that:
 \begin{eqnarray*}
-  \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] & = & \expectation_{\Omega_l} [ I(p \geq M^{-1}) p^{-1} I(s \in S) ] \leq 1 \\
-  \expectation_{\Omega_l} [ M + 1 - p^{-1} I(s \in S) ] & = & \expectation_{\Omega_l} [ I(p \geq M^{-1}) (M + 1 - p^{-1} I(s \in S)) ] \leq M  
+  \expectation_{\Omega_l} [ p^{-1} I(s \in \chi) ] & = & \expectation_{\Omega_l} [ I(p \geq M^{-1}) p^{-1} I(s \in \chi) ] \leq 1 \\
+  \expectation_{\Omega_l} [ M + 1 - p^{-1} I(s \in \chi) ] & = & \expectation_{\Omega_l} [ I(p \geq M^{-1}) (M + 1 - p^{-1} I(s \in \chi)) ] \leq M  
 \end{eqnarray*}
-which implies $\expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = 1$.
+which implies $\expectation_{\Omega_l} [ p^{-1} I(s \in \chi) ] = 1$.
 By linearity of expectation we can conclude that
 \[
-  \expectation_{\Omega_l} [ p^{-1} |\chi| ] = \sum_{s \in A} \expectation_{\Omega_l} [ p^{-1} I(s \in S) ] = |A| \textrm{.}
+  \expectation_{\Omega_l} [ p^{-1} |\chi| ] = \sum_{s \in A} \expectation_{\Omega_l} [ p^{-1} I(s \in \chi) ] = |A| \textrm{.}
 \]
+
+\section{Other approaches}
+Initially I had tried to show that the RV's $I(s \in \chi)$ might be negatively associated. Unfortunately that is wrong, and because of the closure properties of
+negative association the same is true of $p^{-1} I(s \in \chi)$.
+
+The best counter-example (so far) I have is: 
+\begin{itemize}
+\item $a_1 = 1, \ldots, a_{15} = 15$ 
+\item $n = 10$
+\item $f = \frac{1}{2}$
+\end{itemize}
+then the RV's $f(\chi) = I(|\chi \cap \{1,..,10\}| \geq 5)$ and $g(\chi) = |\chi \cap \{11,\ldots,15\}|$ then 
+\[
+  E f g > E f E g
+\]
+with
+\begin{eqnarray*}
+  E f E g & = & \frac{59537}{24576} < 2.4225667318 \\
+  E f g & = & \frac{78625}{32256} > 2.4375310019 
+\end{eqnarray*}
+
+Note: I verified this using Haskell with exact computation, i.e, we branch on every coin flip and big integer rational arithmetic. So these are exact values.
+
 
 \bibliographystyle{plainurl}
 \bibliography{main} 
