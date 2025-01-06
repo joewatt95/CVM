@@ -426,8 +426,8 @@ lemma aux :
     \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
     \<open>x \<in> S \<or> x = x'\<close>
   shows
-    \<open>finite <| set_pmf (state \<bind> step_1 x)\<close> (is ?thesis_0)
-    \<open>measure_pmf.expectation (state \<bind> step_1 x) (aux x') = 1\<close> (is ?thesis_1)
+    \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close> (is ?thesis_0)
+    \<open>measure_pmf.expectation (state \<bind> step_1 x') (aux x) = 1\<close> (is ?thesis_1)
 proof -
   from assms have \<open>(x \<in> S \<and> x \<noteq> x') \<or> x = x'\<close> by blast
 
@@ -435,10 +435,9 @@ proof -
   equal to the new element x'. *)
   moreover from assms have ?thesis_1 if \<open>x \<in> S\<close> \<open>x \<noteq> x'\<close>
     using that
-    apply (simp
-      flip: map_pmf_def
-      add: pmf_expectation_bind Set.remove_def)
-    sorry
+    apply (simp flip: map_pmf_def)
+    apply (subst integral_bind_pmf)
+    by (auto simp add: indicator_def algebra_simps)
 
   ultimately show ?thesis_0 ?thesis_1
     using assms
@@ -446,16 +445,6 @@ proof -
       simp flip: map_pmf_def
       simp add: pmf_expectation_bind sum_pmf_eq_1)
 qed
-
-  (*
-  apply (subst integral_bind_pmf)
-
-  subgoal
-    apply simp
-    find_theorems "bounded"
-    sorry
-
-  by simp *)
 
 lemma aux' :
   defines
@@ -473,15 +462,34 @@ lemma aux' :
 
     \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
   assumes
-    \<open>AE state in measure_pmf state. finite (state_chi state)\<close>
     \<open>finite <| set_pmf state\<close>
+    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
+    \<open>x \<in> S\<close>
     \<open>measure_pmf.expectation state (aux x) = 1\<close>
-  shows \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close>
+  shows
+    \<open>finite <| set_pmf <| state \<bind> step_2\<close>
+    \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close>
   using assms
   unfolding Let_def
-  apply simp
+  apply auto
+  apply (subst finite_UN)
+  apply auto 
+  apply (subst set_prod_pmf)
+  using not_less_iff_gr_or_eq threshold_pos apply fastforce
+  apply (simp add: image_def)
+  apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
+
   apply (subst pmf_expectation_bind)
   apply auto
+  apply (subst set_prod_pmf)
+  using not_less_iff_gr_or_eq threshold_pos apply fastforce
+  apply (subst finite_UN)
+  apply auto
+  apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
+
+  apply (subst (asm) integral_measure_pmf)
+  apply (auto simp add: algebra_simps)
+
   sorry
 
 end
