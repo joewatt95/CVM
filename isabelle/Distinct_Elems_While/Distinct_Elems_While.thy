@@ -424,18 +424,24 @@ lemma aux :
   assumes
     \<open>finite <| set_pmf state\<close>
     \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
-    \<open>x \<in> S \<or> x = a\<close>
+    \<open>x \<in> S \<or> x = x'\<close>
   shows
-    \<open>finite <| set_pmf (state \<bind> step_1 a)\<close> (is ?thesis_0)
-    \<open>measure_pmf.expectation (state \<bind> step_1 a) (aux x) = 1\<close> (is ?thesis_1)
+    \<open>finite <| set_pmf (state \<bind> step_1 x)\<close> (is ?thesis_0)
+    \<open>measure_pmf.expectation (state \<bind> step_1 x) (aux x') = 1\<close> (is ?thesis_1)
 proof -
-  from assms have ?thesis_1 if \<open>x \<in> S\<close>
-    apply (simp flip: map_pmf_def)
-    apply (subst pmf_expectation_bind)
-    apply (auto simp add: sum_pmf_eq_1)
+  from assms have \<open>(x \<in> S \<and> x \<noteq> x') \<or> x = x'\<close> by blast
+
+  (* x is an old element that has already been processed before, and is not
+  equal to the new element x'. *)
+  moreover from assms have ?thesis_1 if \<open>x \<in> S\<close> \<open>x \<noteq> x'\<close>
+    using that
+    apply (simp
+      flip: map_pmf_def
+      add: pmf_expectation_bind Set.remove_def)
     sorry
 
-  with assms show ?thesis_0 ?thesis_1
+  ultimately show ?thesis_0 ?thesis_1
+    using assms
     by (auto
       simp flip: map_pmf_def
       simp add: pmf_expectation_bind sum_pmf_eq_1)
