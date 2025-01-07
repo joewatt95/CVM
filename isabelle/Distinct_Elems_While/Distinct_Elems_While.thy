@@ -467,30 +467,39 @@ lemma aux' :
     \<open>x \<in> S\<close>
     \<open>measure_pmf.expectation state (aux x) = 1\<close>
   shows
-    \<open>finite <| set_pmf <| state \<bind> step_2\<close>
-    \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close>
-  using assms
-  unfolding Let_def
-  apply auto
-  apply (subst finite_UN)
-  apply auto 
-  apply (subst set_prod_pmf)
-  using not_less_iff_gr_or_eq threshold_pos apply fastforce
-  apply (simp add: image_def)
-  apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
+    \<open>finite <| set_pmf <| state \<bind> step_2\<close> (is ?thesis_0)
+    \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close> (is ?thesis_1)
+proof -
+  from threshold_pos linorder_not_le have
+    \<open>finite (set_pmf <| prod_pmf (state_chi state) \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)\<close>
+    if \<open>card (state_chi state) \<ge> threshold\<close> for state :: \<open>('a, 'b) state_scheme\<close>
+    using that
+    apply (subst set_prod_pmf)
+    by (fastforce intro!: finite_PiE)+
 
-  apply (subst pmf_expectation_bind)
-  apply auto
-  apply (subst set_prod_pmf)
-  using not_less_iff_gr_or_eq threshold_pos apply fastforce
-  apply (subst finite_UN)
-  apply auto
-  apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
+  with assms show ?thesis_0 by (auto simp add: Let_def)
 
-  apply (subst (asm) integral_measure_pmf)
-  apply (auto simp add: algebra_simps)
+  from assms show ?thesis_1
+    unfolding Let_def
+    apply (subst pmf_expectation_bind)
+    apply auto
+    apply (subst set_prod_pmf)
+    using not_less_iff_gr_or_eq threshold_pos apply fastforce
+    apply (subst finite_UN)
+    apply auto
+    apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
 
-  sorry
+    apply (subst (asm) integral_measure_pmf)
+    apply (auto
+      simp flip: map_pmf_def
+      simp add:
+        if_distrib if_distribR sum.If_cases uminus_set_def fun_Compl_def not_less
+        Set.filter_def algebra_simps)
+
+    find_theorems "measure_pmf.expectation" "Pi_pmf"
+
+    sorry
+qed
 
 end
 
