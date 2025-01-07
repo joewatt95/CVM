@@ -465,7 +465,6 @@ lemma aux' :
     \<open>finite <| set_pmf state\<close>
     \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
     \<open>x \<in> S\<close>
-    \<open>measure_pmf.expectation state (aux x) = 1\<close>
   shows
     \<open>finite <| set_pmf <| state \<bind> step_2\<close> (is ?thesis_0)
     \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close> (is ?thesis_1)
