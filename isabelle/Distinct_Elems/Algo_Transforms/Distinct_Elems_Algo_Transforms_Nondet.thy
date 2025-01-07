@@ -28,7 +28,7 @@ definition eager_state_inv ::
   "eager_state_inv xs \<phi> state \<equiv>
     state_chi state = nondet_alg_aux (state_k state) xs \<phi>"
 
-lemma eager_step_1_inv :
+lemma step_1_eager_inv :
   assumes
     \<open>i < length xs\<close>
     \<open>eager_state_inv (take i xs) \<phi> state\<close>
@@ -36,27 +36,27 @@ lemma eager_step_1_inv :
     \<open>eager_state_inv
       (take (i + 1) xs)
       \<phi>
-      (run_reader (eager_step_1 xs i state)  \<phi>)\<close>
+      (run_reader (step_1_eager xs i state)  \<phi>)\<close>
   using
     assms
     find_last_before_self_eq[OF \<open>i < length xs\<close>]
     find_last_before_eq_find_last_iff[OF \<open>i < length xs\<close>]
   by (fastforce simp add:
-    eager_step_1_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
+    step_1_eager_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
     find_last_before_def take_Suc_conv_app_nth)
 
-lemma eager_step_2_inv:
+lemma step_2_eager_inv:
   assumes
     "i < length xs"
     "eager_state_inv (take (i+1) xs) \<phi> state"
   shows "
     eager_state_inv (take (i+1) xs) \<phi>
-      (run_reader (eager_step_2 xs i state) \<phi>)"
+      (run_reader (step_2_eager xs i state) \<phi>)"
   using assms
   by (auto
     elim: less_SucE
     simp add:
-      eager_step_2_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
+      step_2_eager_def eager_state_inv_def nondet_alg_aux_def run_reader_simps
       find_last_before_def Let_def)
 
 lemma eager_step_inv:
@@ -66,7 +66,7 @@ lemma eager_step_inv:
   shows "
     eager_state_inv (take (i + 1) xs) \<phi>
       (run_reader (eager_step xs i state) \<phi>)"
-  by (metis assms eager_step_1_inv eager_step_2_inv eager_step_def run_reader_simps(3))
+  by (metis assms step_1_eager_inv step_2_eager_inv eager_step_def run_reader_simps(3))
 
 lemma eager_algorithm_inv:
   "eager_state_inv xs \<phi> (run_eager_algorithm xs \<phi>)"

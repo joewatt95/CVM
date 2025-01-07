@@ -18,7 +18,7 @@ definition
   eager_algorithm_then_step_1 ::
   \<open>nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> nat \<Rightarrow> bool) \<Rightarrow> 'a state\<close> where 
   \<open>eager_algorithm_then_step_1 i xs \<equiv>
-    run_reader (eager_algorithm (take i xs) \<bind> eager_step_1 xs i)\<close>
+    run_reader (eager_algorithm (take i xs) \<bind> step_1_eager xs i)\<close>
 
 lemma exists_index_threshold_exceeded_of_k_exceeds :
   assumes \<open>state_k (run_reader (eager_algorithm xs) \<phi>) > l\<close>
@@ -38,8 +38,8 @@ next
 
   case (snoc x xs)
   then have ih :
-    \<open>?P xs (length xs) \<Longrightarrow> state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close>
-    using not_le by blast
+    \<open>state_k (run_reader (eager_algorithm xs) \<phi>) \<le> l\<close>
+    if \<open>?P xs (length xs)\<close> using that not_le by blast
 
   show ?case
   proof (rule ccontr, simp add: not_le)
@@ -96,7 +96,7 @@ next
   let ?exp_term = \<open>exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
 
   (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
-    after running eager_step_1.
+    after running step_1_eager.
     TODO: can this me made cleaner with only eager_algorithm? *)
   have \<open>?L \<le>
     \<P>(\<phi> in fair_bernoulli_matrix (length xs) (length xs).
@@ -124,7 +124,7 @@ next
         real estimate \<ge> threshold))\<close>
     apply (rule sum_mono)
     apply (simp add: eager_algorithm_then_step_1_def nondet_alg_def Let_def)
-    by (smt (verit, best) eager_algorithm_inv eager_state_inv_def eager_step_1_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
+    by (smt (verit, best) eager_algorithm_inv eager_state_inv_def step_1_eager_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174))
 
   also have \<open>\<dots> = (
     \<Sum> i < length xs.

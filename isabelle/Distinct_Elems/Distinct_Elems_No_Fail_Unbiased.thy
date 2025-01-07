@@ -15,15 +15,13 @@ begin
 
 lemma step_1_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_1_no_fail x'\<close>
-  using state_finite_support
-  by (simp flip: map_pmf_def add: step_1_no_fail_def)
+  by (simp flip: map_pmf_def add: state_finite_support step_1_no_fail_def)
 
 lemma step_1_preserves_expectation_eq_1 :
   assumes
     \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
     \<open>x \<in> S \<or> x = x'\<close>
-  shows
-    \<open>measure_pmf.expectation (state \<bind> step_1_no_fail x') (aux x) = 1\<close>
+  shows \<open>measure_pmf.expectation (state \<bind> step_1_no_fail x') (aux x) = 1\<close>
 proof -
   from assms have \<open>(x \<in> S \<and> x \<noteq> x') \<or> x = x'\<close> by blast
 
@@ -71,8 +69,7 @@ lemma step_2_preserves_expectation_eq_1 :
   assumes
     \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
     \<open>x \<in> S\<close>
-  shows
-    \<open>measure_pmf.expectation (state \<bind> step_2_no_fail) (aux x) = 1\<close>
+  shows \<open>measure_pmf.expectation (state \<bind> step_2_no_fail) (aux x) = 1\<close>
 proof -
   from state_finite_support assms show ?thesis
     unfolding step_2_no_fail_def Let_def

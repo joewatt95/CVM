@@ -37,10 +37,10 @@ lemma initial_state_well_formed :
 lemma eager_step_preserves_finiteness :
   fixes xs i
   defines [simp] : ‹P f ≡ ⊢rd ⟦finite_state_chi⟧ f xs i ⟦finite_state_chi⟧ ›
-  shows ‹P eager_step_1› ‹P eager_step_2› ‹P eager_step›
+  shows ‹P step_1_eager› ‹P step_2_eager› ‹P eager_step›
 proof -
-  show ‹P eager_step_1› ‹P eager_step_2›
-    unfolding eager_step_1_def eager_step_2_def
+  show ‹P step_1_eager› ‹P step_2_eager›
+    unfolding step_1_eager_def step_2_eager_def
     by (auto
       intro!:
         Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.if_then_else Utils_Reader_Monad_Hoare.postcond_true
@@ -57,7 +57,7 @@ begin
 definition ‹ith_state i ≡ foldM_rd (eager_step (take i xs)) [0 ..< i]›
 
 definition
-  ‹ith_state_then_step_1 i ≡ ith_state i >=> eager_step_1 (take (Suc i) xs) i›
+  ‹ith_state_then_step_1 i ≡ ith_state i >=> step_1_eager (take (Suc i) xs) i›
 
 lemma ith_state_zero_eq :
   ‹ith_state 0 = return_rd›
@@ -81,14 +81,14 @@ lemma ith_state_preserves_same_states :
     [simp] : ‹P f ≡ ⊢rd ⟦same_states⟧ ⟨f i | f i⟩ ⟦same_states⟧› and
     [simp] : ‹eager_step' g j ≡ g (take (Suc j) xs) j›
   shows
-    ‹P (eager_step' eager_step_1)›
-    ‹P (eager_step' eager_step_2)›
+    ‹P (eager_step' step_1_eager)›
+    ‹P (eager_step' step_2_eager)›
     ‹P (eager_step' eager_step)›
     ‹P ith_state›
 proof -
   show
-    ‹P (eager_step' eager_step_1)›
-    ‹P (eager_step' eager_step_2)›
+    ‹P (eager_step' step_1_eager)›
+    ‹P (eager_step' step_2_eager)›
     by (simp, smt (verit, best) Utils_Reader_Monad_Hoare.hoare_tripleE Utils_Reader_Monad_Relational.relational_hoare_triple_def eager_step_preserves_finiteness rel_rd_def)+
 
   then show ‹P (eager_step' eager_step)›
@@ -110,14 +110,14 @@ proof -
   moreover have
     ‹⊢rd
       ⟦same_states φ state⟧
-      eager_step_1 xs i
+      step_1_eager xs i
       ⟦(λ _ state'. state_k state = state_k state')⟧›
     ‹⊢rd
       ⟦(λ _ state'. state_k state = state_k state')⟧
-      eager_step_2 xs i
+      step_2_eager xs i
       ⟦?S φ state⟧›
     for φ state i and xs :: ‹'a list›
-    unfolding eager_step_1_def eager_step_2_def Let_def map_rd_def
+    unfolding step_1_eager_def step_2_eager_def Let_def map_rd_def
     by (auto intro!: Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.if_then_else Utils_Reader_Monad_Hoare.postcond_true)
 
   ultimately show ?thesis
@@ -140,7 +140,7 @@ lemma threshold_exceeded_of_k_lt :
       Utils_Reader_Monad_Hoare.seq' Utils_Reader_Monad_Hoare.postcond_true
     simp add:
       ith_state_then_step_1_def
-      ith_state_Suc_eq[unfolded eager_step_def eager_step_2_def]
+      ith_state_Suc_eq[unfolded eager_step_def step_2_eager_def]
       Let_def map_rd_def)
   sorry
 
@@ -232,7 +232,7 @@ proof (rule exI)
       ⟨ith_state_then_step_1 i | ith_state j⟩
       ⟦(λ φ state φ' state'. state_k state < state_k state')⟧›
       using ‹?P i (=)› ‹?P j (>)›
-      by (auto simp add: ith_state_then_step_1_def eager_step_1_def Let_def relational_hoare_triple_def rel_rd_def Utils_Reader_Monad_Hoare.hoare_triple_def run_reader_simps)
+      by (auto simp add: ith_state_then_step_1_def step_1_eager_def Let_def relational_hoare_triple_def rel_rd_def Utils_Reader_Monad_Hoare.hoare_triple_def run_reader_simps)
 
     moreover have ‹⊢rd
       ⟦?are_initial_state⟧
@@ -249,7 +249,7 @@ proof (rule exI)
     qed
 
   ultimately show ‹?Q i›
-    unfolding eager_step_1_def ith_state_then_step_1_def Let_def
+    unfolding step_1_eager_def ith_state_then_step_1_def Let_def
     by (auto simp add: relational_hoare_triple_def rel_rd_def Utils_Reader_Monad_Hoare.hoare_triple_def run_reader_simps)
 qed
 
