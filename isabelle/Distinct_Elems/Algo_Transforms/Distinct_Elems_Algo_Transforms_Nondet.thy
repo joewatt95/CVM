@@ -18,7 +18,7 @@ definition nondet_alg_aux ::
 definition nondet_alg :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> nat \<Rightarrow> bool) \<Rightarrow> nat\<close> where
   \<open>nondet_alg k xs = nondet_alg_aux k xs >>> card\<close>
 
-context with_threshold_pos
+context with_threshold
 begin
 
 (* Given fixed xs and phi,

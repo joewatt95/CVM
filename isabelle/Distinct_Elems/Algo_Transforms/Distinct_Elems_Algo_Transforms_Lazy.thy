@@ -8,9 +8,6 @@ imports
 
 begin
 
-context with_threshold_pos
-begin
-
 definition lazy_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
   where "lazy_step_1 xs i state = do {
     let k = state_k state;
@@ -24,6 +21,9 @@ definition lazy_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Ri
 
     return_pmf (state \<lparr>state_chi := chi\<rparr>)
   }"
+
+context with_threshold
+begin
 
 definition lazy_step_2 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> 'a state pmf"
   where "lazy_step_2 xs i state = do {
@@ -125,7 +125,7 @@ next
   case (snoc x xs)
 
   have step:"lazy_step (xs @ [x]) (length xs) = step_no_fail x"
-    unfolding lazy_step_def step_no_fail_def Let_def
+    unfolding lazy_step_def step_1_no_fail_def step_2_no_fail_def Let_def
     by (intro ext bind_pmf_cong refl) (simp add:nth_append)
 
   show ?case
@@ -176,7 +176,8 @@ proof -
         intro!: bind_pmf_cong map_pmf_cong
         simp flip: map_pmf_def
         simp add:
-          lazy_step_def lazy_step_1_def lazy_step_2_def step_no_fail_def
+          lazy_step_def lazy_step_1_def lazy_step_2_def
+          step_1_no_fail_def step_2_no_fail_def
           map_bind_pmf bind_map_pmf map_pmf_comp Let_def)
 
     ultimately show ?case by (auto cong: bind_pmf_cong)

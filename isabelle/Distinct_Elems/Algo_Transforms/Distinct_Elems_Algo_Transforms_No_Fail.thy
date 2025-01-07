@@ -8,10 +8,40 @@ imports
 
 begin
 
-context with_threshold_pos
+definition step_1_no_fail ::
+  \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
+  \<open>step_1_no_fail \<equiv> \<lambda> x state. do {
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ (state_k state);
+
+    let chi = (state
+      |> state_chi
+      |> if insert_x_into_chi
+        then insert x
+        else Set.remove x);
+
+    return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
+
+context with_threshold
 begin
 
-definition step_no_fail ::
+definition step_2_no_fail ::
+  \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
+  \<open>step_2_no_fail \<equiv> \<lambda> state.
+    let chi = state_chi state
+    in if card chi < threshold
+      then return_pmf (state\<lparr>state_chi := chi\<rparr>)
+      else do {
+        keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
+          prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+
+        let chi = Set.filter keep_in_chi chi;
+
+        return_pmf (state\<lparr>state_k := (state_k state) + 1, state_chi := chi\<rparr>) }\<close>
+
+abbreviation \<open>step_no_fail \<equiv> \<lambda> x state.
+  step_1_no_fail x state \<bind> step_2_no_fail\<close>
+
+(* definition step_no_fail ::
   \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_no_fail x state \<equiv> do {
     let k = state_k state;
@@ -32,7 +62,7 @@ definition step_no_fail ::
 
       let chi = Set.filter keep_in_chi chi;
 
-      return_pmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>) }}\<close>
+      return_pmf (state\<lparr>state_k := k + 1, state_chi := chi\<rparr>) }}\<close> *)
 
 definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_no_fail \<equiv>
@@ -60,6 +90,11 @@ lemma well_formed_state_card_le_threshold :
     Diff_insert0[of x "state_chi state" "{}"]
     insert_absorb[of x "state_chi state"]
   by (fastforce simp add: well_formed_state_def Let_def Set.remove_def)+
+
+end
+
+context with_threshold_pos
+begin
 
 lemma initial_state_well_formed :
   \<open>initial_state ok\<close>
@@ -151,7 +186,7 @@ lemma step_ord_spmf_eq :
   by (fastforce
     intro: ord_spmf_bind_reflI
     simp add:
-      step_no_fail_def step_def Let_def
+      step_1_no_fail_def step_2_no_fail_def step_def Let_def
       spmf_of_pmf_def bind_spmf_of_pmf[symmetric] map_bind_pmf)
 
 lemma estimate_distinct_ord_spmf_eq :

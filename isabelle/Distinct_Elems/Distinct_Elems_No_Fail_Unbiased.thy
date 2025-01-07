@@ -1,0 +1,88 @@
+theory Distinct_Elems_No_Fail_Unbiased
+
+imports
+  CVM.Distinct_Elems_Algo_Transforms_No_Fail
+
+begin
+
+lemma aux :
+  defines
+    \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
+  assumes
+    \<open>finite <| set_pmf state\<close>
+    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
+  shows
+    \<open>finite <| set_pmf <| state \<bind> step_1_no_fail x'\<close> (is ?thesis_0)
+    \<open>\<And> x.
+      x \<in> S \<or> x = x' \<Longrightarrow>
+      measure_pmf.expectation (state \<bind> step_1_no_fail x') (aux x) = 1\<close>
+    (is \<open>\<And> x. ?thesis_1 x \<Longrightarrow> ?thesis_1' x\<close>)
+proof -
+  from assms have \<open>?thesis_1 x \<longleftrightarrow> (x \<in> S \<and> x \<noteq> x') \<or> x = x'\<close> for x by blast
+
+  (* x is an old element that has already been processed before, and is not
+  equal to the new element x'. *)
+  moreover from assms have \<open>?thesis_1' x\<close> if \<open>x \<in> S\<close> \<open>x \<noteq> x'\<close> for x
+    using that
+    apply (simp add: step_1_no_fail_def flip: map_pmf_def)
+    apply (subst integral_bind_pmf)
+    by (auto simp add: indicator_def algebra_simps)
+
+  ultimately show ?thesis_0 \<open>\<And> x. ?thesis_1 x \<Longrightarrow> ?thesis_1' x\<close>
+    using assms
+    by (auto
+      simp flip: map_pmf_def
+      simp add: step_1_no_fail_def pmf_expectation_bind sum_pmf_eq_1)
+qed
+
+context with_threshold_pos
+begin
+
+lemma aux' :
+  defines
+    \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
+  assumes
+    \<open>finite <| set_pmf state\<close>
+    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
+  shows
+    \<open>finite <| set_pmf <| state \<bind> step_2_no_fail\<close> (is ?thesis_0)
+    \<open>\<And> x.
+      x \<in> S \<Longrightarrow>
+      measure_pmf.expectation (state \<bind> step_2_no_fail) (aux x) = 1\<close>
+    (is \<open>\<And> x. ?thesis_1 x \<Longrightarrow> ?thesis_1' x\<close>)
+proof -
+  from threshold_pos linorder_not_le have
+    \<open>finite (set_pmf <| prod_pmf (state_chi state) \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)\<close>
+    if \<open>card (state_chi state) \<ge> threshold\<close> for state :: \<open>('a, 'b) state_scheme\<close>
+    using that
+    apply (subst set_prod_pmf)
+    by (fastforce intro!: finite_PiE)+
+
+  with assms show ?thesis_0 by (auto simp add: step_2_no_fail_def Let_def)
+
+  from assms show \<open>?thesis_1' x\<close> if \<open>?thesis_1 x\<close> for x
+    using that
+    unfolding step_2_no_fail_def Let_def
+    apply (subst pmf_expectation_bind)
+    apply auto
+    apply (subst set_prod_pmf)
+    using not_less_iff_gr_or_eq threshold_pos apply fastforce
+    apply (subst finite_UN)
+    apply auto
+    apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
+
+    apply (subst (asm) integral_measure_pmf)
+    apply (auto
+      simp flip: map_pmf_def
+      simp add:
+        if_distrib if_distribR sum.If_cases uminus_set_def fun_Compl_def not_less
+        Set.filter_def algebra_simps)
+
+    find_theorems "measure_pmf.expectation" "Pi_pmf"
+
+    sorry
+qed
+
+end
+
+end

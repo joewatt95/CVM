@@ -146,7 +146,7 @@ lemma step_no_fail_eq_with_bad_flag :
     simp flip: map_pmf_def
     simp add:
       state.defs Let_def if_distrib map_bind_pmf bind_map_pmf map_pmf_comp
-      step_no_fail_def step_with_bad_flag_def)
+      step_1_no_fail_def step_2_no_fail_def step_with_bad_flag_def)
 
 lemma estimate_distinct_no_fail_eq_with_bad_flag :
   \<open>estimate_distinct_no_fail xs = estimate_distinct_with_bad_flag xs\<close>
@@ -170,8 +170,8 @@ lemma step_eq_fail_on_bad_event :
     simp flip: bind_spmf_of_pmf map_spmf_of_pmf
     simp add:
       step_fail_on_bad_event_def cond_def f_fail_on_bad_event_def step_with_bad_flag_def
-      step_def step_no_fail_def Let_def state.defs spmf_of_pmf_bind
-      well_formed_state_def map_spmf_bind_spmf bind_map_spmf comp_def)
+      step_def step_1_no_fail_def step_2_no_fail_def Let_def state.defs
+      spmf_of_pmf_bind well_formed_state_def map_spmf_bind_spmf bind_map_spmf)
 
 lemma estimate_distinct_eq_fail_on_bad_event :
   \<open>estimate_distinct xs =
@@ -215,8 +215,9 @@ lemma step_with_bad_flag_preserves_finiteness :
       Utils_SPMF_Hoare.postcond_true
     simp flip: map_spmf_of_pmf bind_spmf_of_pmf
     simp add:
-      step_with_bad_flag_def step_no_fail_def map_spmf_conv_bind_spmf Let_def
-      spmf_of_pmf_bind if_distrib if_distribR space_measure_spmf Set.remove_def)
+      step_with_bad_flag_def step_1_no_fail_def step_2_no_fail_def
+      map_spmf_conv_bind_spmf Let_def spmf_of_pmf_bind if_distrib if_distribR
+      space_measure_spmf Set.remove_def)
 
 lemma step_while_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step_while x \<lbrace>well_formed_state\<rbrace>\<close>
@@ -332,8 +333,8 @@ lemma step_step_while_with_bad_flag_preserves_eq_up_to_bad :
   supply [simp del] = map_spmf_of_pmf bind_spmf_of_pmf
 
   apply (simp add:
-    step_with_bad_flag_def step_while_with_bad_flag_def step_no_fail_def
-    map_spmf_conv_bind_spmf if_distrib)
+    step_with_bad_flag_def step_while_with_bad_flag_def
+    step_1_no_fail_def step_2_no_fail_def map_spmf_conv_bind_spmf if_distrib)
   unfolding if_distribR
   apply (
     intro
@@ -405,99 +406,6 @@ proof -
   (* Triangle inequality. *)
   with diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail[of xs P]
   show ?thesis by simp
-qed
-
-lemma aux :
-  defines
-    \<open>step_1 \<equiv> \<lambda> x state. do {
-      insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ (state_k state);
-
-      let chi = (state
-        |> state_chi
-        |> if insert_x_into_chi
-          then insert x
-          else Set.remove x);
-
-      return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close> and
-
-    \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
-  assumes
-    \<open>finite <| set_pmf state\<close>
-    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
-    \<open>x \<in> S \<or> x = x'\<close>
-  shows
-    \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close> (is ?thesis_0)
-    \<open>measure_pmf.expectation (state \<bind> step_1 x') (aux x) = 1\<close> (is ?thesis_1)
-proof -
-  from assms have \<open>(x \<in> S \<and> x \<noteq> x') \<or> x = x'\<close> by blast
-
-  (* x is an old element that has already been processed before, and is not
-  equal to the new element x'. *)
-  moreover from assms have ?thesis_1 if \<open>x \<in> S\<close> \<open>x \<noteq> x'\<close>
-    using that
-    apply (simp flip: map_pmf_def)
-    apply (subst integral_bind_pmf)
-    by (auto simp add: indicator_def algebra_simps)
-
-  ultimately show ?thesis_0 ?thesis_1
-    using assms
-    by (auto
-      simp flip: map_pmf_def
-      simp add: pmf_expectation_bind sum_pmf_eq_1)
-qed
-
-lemma aux' :
-  defines
-    \<open>step_2 \<equiv> \<lambda> state.
-      let chi = state_chi state
-      in if card chi < threshold
-        then return_pmf (state\<lparr>state_chi := chi\<rparr>)
-        else do {
-          keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-            prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
-
-          let chi = Set.filter keep_in_chi chi;
-
-          return_pmf (state\<lparr>state_k := (state_k state) + 1, state_chi := chi\<rparr>) }\<close> and
-
-    \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
-  assumes
-    \<open>finite <| set_pmf state\<close>
-    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
-    \<open>x \<in> S\<close>
-  shows
-    \<open>finite <| set_pmf <| state \<bind> step_2\<close> (is ?thesis_0)
-    \<open>measure_pmf.expectation (state \<bind> step_2) (aux x) = 1\<close> (is ?thesis_1)
-proof -
-  from threshold_pos linorder_not_le have
-    \<open>finite (set_pmf <| prod_pmf (state_chi state) \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)\<close>
-    if \<open>card (state_chi state) \<ge> threshold\<close> for state :: \<open>('a, 'b) state_scheme\<close>
-    using that
-    apply (subst set_prod_pmf)
-    by (fastforce intro!: finite_PiE)+
-
-  with assms show ?thesis_0 by (auto simp add: Let_def)
-
-  from assms show ?thesis_1
-    unfolding Let_def
-    apply (subst pmf_expectation_bind)
-    apply auto
-    apply (subst set_prod_pmf)
-    using not_less_iff_gr_or_eq threshold_pos apply fastforce
-    apply (subst finite_UN)
-    apply auto
-    apply (metis card.infinite card_UNIV_bool finite_PiE semiring_norm(143) threshold_pos)
-
-    apply (subst (asm) integral_measure_pmf)
-    apply (auto
-      simp flip: map_pmf_def
-      simp add:
-        if_distrib if_distribR sum.If_cases uminus_set_def fun_Compl_def not_less
-        Set.filter_def algebra_simps)
-
-    find_theorems "measure_pmf.expectation" "Pi_pmf"
-
-    sorry
 qed
 
 end

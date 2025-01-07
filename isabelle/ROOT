@@ -26,6 +26,11 @@ session CVM = "CryptHOL" +
   theories
     "Distinct_Elems/Distinct_Elems_Algo"
 
+    "Distinct_Elems/Distinct_Elems_Correctness"
+    "Distinct_Elems/Distinct_Elems_Correctness_Example"
+
+    "Distinct_Elems/Distinct_Elems_No_Fail_Unbiased"
+
     "Distinct_Elems/Algo_Transforms/Distinct_Elems_Algo_Transforms_No_Fail"
     "Distinct_Elems/Algo_Transforms/Distinct_Elems_Algo_Transforms_Eager"
     "Distinct_Elems/Algo_Transforms/Distinct_Elems_Algo_Transforms_Lazy"
@@ -35,9 +40,6 @@ session CVM = "CryptHOL" +
     "Distinct_Elems/Error_Bounds/Distinct_Elems_Error_Bounds_Common"
     "Distinct_Elems/Error_Bounds/Distinct_Elems_Error_Bounds_K_Exceeds_L"
     "Distinct_Elems/Error_Bounds/Distinct_Elems_Error_Bounds_Est_Out_Of_Range"
-
-    "Distinct_Elems/Distinct_Elems_Correctness"
-    "Distinct_Elems/Distinct_Elems_Correctness_Example"
 
     "Distinct_Elems_While/Distinct_Elems_While_Algo"
     "Distinct_Elems_While/Distinct_Elems_While"

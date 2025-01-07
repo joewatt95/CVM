@@ -13,9 +13,6 @@ hide_const (open) Misc_CryptHOL.coin_pmf
 
 type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
-context with_threshold_pos
-begin
-
 definition eager_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
   where "eager_step_1 xs i state = do {
       let k = state_k state;
@@ -28,6 +25,9 @@ definition eager_step_1 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<R
         else Set.remove (xs ! i));
       return_rd (state \<lparr>state_chi := chi\<rparr>)
     }"
+
+context with_threshold
+begin
 
 definition eager_step_2 :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
   where "eager_step_2 xs i state = do {
