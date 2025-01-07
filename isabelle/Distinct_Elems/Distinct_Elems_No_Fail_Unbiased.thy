@@ -19,7 +19,7 @@ lemma step_1_preserves_finite_support :
 
 lemma step_1_preserves_expectation_eq_1 :
   assumes
-    \<open>measure_pmf.expectation state (aux x) = 1\<close>
+    \<open>\<And> x. x \<in> S \<Longrightarrow> measure_pmf.expectation state (aux x) = 1\<close>
     \<open>x \<in> S \<or> x = x'\<close>
   shows \<open>measure_pmf.expectation (state \<bind> step_1_no_fail x') (aux x) = 1\<close>
 proof -
