@@ -8,10 +8,6 @@ begin
 abbreviation (input)
   \<open>aux \<equiv> \<lambda> x state. indicat_real (state_chi state) x * 2 ^ (state_k state)\<close>
 
-locale state_finite_support =
-  fixes state :: \<open>('a, 'b) state_scheme pmf\<close>
-  assumes state_finite_support : \<open>finite <| set_pmf state\<close>
-
 context
   fixes state :: \<open>('a, 'b) state_scheme pmf\<close>
   assumes state_finite_support : \<open>finite <| set_pmf state\<close>
