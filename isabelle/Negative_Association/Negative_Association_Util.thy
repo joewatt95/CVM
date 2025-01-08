@@ -1,7 +1,8 @@
 theory Negative_Association_Util
-  imports "HOL-Probability.Probability"
+  imports 
+    "HOL-Probability.Probability"
+    Concentration_Inequalities.Concentration_Inequalities_Preliminary
 begin
-
 
 lemma bounded_const_min:
   fixes f :: "'a \<Rightarrow> real"
@@ -10,6 +11,30 @@ lemma bounded_const_min:
 proof -
   obtain h where "\<And>x. x \<in> M \<Longrightarrow> f x \<ge> h" using assms(1) unfolding bdd_below_def by auto
   thus ?thesis by (intro boundedI[where B="max \<bar>c\<bar> \<bar>-h\<bar>"]) force
+qed
+
+lemma bounded_prod:
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> real"
+  assumes "finite I"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> bounded (f i ` T)"
+  shows "bounded ((\<lambda>x. (\<Prod> i \<in> I. f i x)) ` T)"
+  using assms by (induction I) (auto intro:bounded_mult_comp bounded_const)
+
+lemma bounded_vec_mult_comp:
+  fixes f g :: "'a \<Rightarrow> real"
+  assumes "bounded (f ` T)" "bounded (g ` T)"
+  shows "bounded ((\<lambda>x. (f x) *\<^sub>R (g x)) ` T)"
+  using bounded_mult_comp[OF assms] by simp
+
+lemma bounded_max:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes "bounded ((\<lambda>x. f x) ` T)"
+  shows "bounded ((\<lambda>x. max c (f x)) ` T)"
+proof -
+  obtain m where "norm (f x) \<le> m" if "x \<in> T" for x
+    using assms unfolding bounded_iff by auto
+
+  thus ?thesis by (intro boundedI[where B="max m c"]) fastforce
 qed
 
 definition has_int_that where
@@ -136,13 +161,18 @@ proof -
   thus ?thesis unfolding clamp_def by (cases) auto
 qed
 
+lemma clamp_range:
+  assumes "a \<le> b"
+  shows "\<And>x. clamp a b x \<ge> a" "\<And>x. clamp a b x \<le> b" "range (clamp a b) \<subseteq> {a..b::real}"
+  using assms by (auto simp: clamp_real_def)
+
 lemma bounded_clamp:
   fixes a b :: real
   shows "bounded ((clamp a b \<circ> f) ` S)"
 proof (cases "a \<le> b")
   case True
-  have "(clamp a b \<circ> f) ` S \<subseteq> {a..b}" using True unfolding clamp_real_def by auto
-  thus ?thesis using bounded_closed_interval bounded_subset by blast
+  show ?thesis using clamp_range[OF True] bounded_closed_interval bounded_subset
+    by (metis image_comp image_mono subset_UNIV)
 next
   case False
   hence "clamp a b (f x) = a" for x unfolding clamp_def by (simp add: max_def)

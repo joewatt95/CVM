@@ -7,11 +7,11 @@ Let $x_1, \ldots, x_n$ be n (not-necessarily) distinct values from a totally ord
 choose a permutation $\sigma : \{0,\ldots,n-1\} \rightarrow \{0,\ldots,n-1\}$ uniformly at random
 Then the random variables defined by $X_i(\sigma) = x_{\sigma(i)}$ are negatively associated.
 
-An important special case is the case where use $1$ one and $(n-1)$ zeros, modelling randomly
-putting a ball into one of $n$ bins. Of course the process can be repeated independently, the
-resulting distribution is also referred to as the balls into bins process. Because of the closure
-properties established before, it is possible to conclude that the number of hit bins in such a
-process is also negatively associated.
+An important special case is the case where $x$ consists of $1$ one and $(n-1)$ zeros, modelling
+randomly putting a ball into one of $n$ bins. Of course the process can be repeated independently,
+the resulting distribution is also referred to as the balls into bins process. Because of the
+closure properties established before, it is possible to conclude that the number of hits of each
+bin in such a process are also negatively associated random variables.
 
 In this section, we will derive that permutation distributions are negatively associated.The proof
 follows Dubashi~\cite[Section 10]{dubashi1996} closely. A very short proof was presented
@@ -165,7 +165,6 @@ next
     using Cons(3,4) by (intro Cons(2)) auto
   ultimately show ?case by auto
 qed
-
 
 lemma ordered_set_lattice_carrier_finite_ne:
   assumes "finite S" "n \<le> card S"
@@ -429,7 +428,6 @@ proof -
   also have "\<dots> = ?le (x- y) (y-x)" unfolding vars by simp
   finally show ?thesis by simp
 qed
-
 
 lemma ordered_set_lattice_carrier:
   assumes "T \<in> carrier (ordered_set_lattice S n)"
@@ -734,6 +732,205 @@ proof-
     unfolding bij_pmf_def by (intro map_pmf_of_set_bij_betw bij_betw_non_empty_finite assms)
 qed
 
+find_theorems "size (?x :: 'a multiset)"
+
+lemma pmf_of_multiset_eq_pmf_of_setI:
+  assumes "c > 0"  "x \<noteq> {#}"
+  assumes "\<And>i. i \<in> y \<Longrightarrow> count x i = c"
+  assumes "\<And>i. i \<in># x \<Longrightarrow> i \<in> y"
+  shows "pmf_of_multiset x = pmf_of_set y"
+proof (rule pmf_eqI)
+  fix i
+
+  have a:"set_mset x = y" using assms(1,3,4) count_eq_zero_iff by force
+  hence y_ne: "y \<noteq> {}" "finite y" using assms(2) by auto
+
+  have "size x =  sum (count x) y" unfolding size_multiset_overloaded_eq a by simp
+  also have "\<dots> = sum (\<lambda>_. c) y" by (intro sum.cong refl assms(3)) auto
+  also have "\<dots> = c *card y" using y_ne by simp
+  finally have "c * card y = size x" by simp
+  hence rel: "real (size x)/real c = real (card y)"
+    using assms(1) by (simp add:field_simps flip:of_nat_mult)
+
+  have "pmf (pmf_of_multiset x) i = real (count x i) / real (size x)"
+    using assms(2) by simp
+  also have "\<dots> = real c * of_bool(i \<in> y) / real (size x)"
+    using assms by (auto simp:of_bool_def count_eq_zero_iff)
+  also have "\<dots> = of_bool(i \<in> y) / real (card y)"
+    unfolding rel[symmetric] by simp
+  also have "\<dots> = pmf (pmf_of_set y) i"
+    using y_ne by simp
+  finally show "pmf (pmf_of_multiset x) i = pmf (pmf_of_set y) i" by simp
+qed
+
+lemma card_multi_bij:
+  assumes "finite J"
+  assumes "I = \<Union>(A ` J)" "disjoint_family_on A J"
+  assumes "\<And>j. j \<in> J \<Longrightarrow> finite (A j) \<and> finite (B j) \<and> card (A j) = card (B j)"
+    shows "card {f. (\<forall>j\<in>J. bij_betw f (A j) (B j)) \<and> f\<in>extensional I} = (\<Prod>i\<in>J. fact (card (A i)))"
+      (is "card ?L = ?R")
+proof -
+  define g where "g i = (THE j. j \<in> J \<and> i \<in> A j)" for i
+  have g: "g i = j" if "i \<in> A j" "j \<in> J" for i j unfolding g_def
+  proof (rule the1_equality)
+    show "\<exists>!j. j \<in> J \<and> i \<in> A j"
+      using assms(3) that unfolding bex1_def disjoint_family_on_def by auto
+    show "j \<in> J \<and> i \<in> A j" using that by auto
+  qed
+
+  have "bij_betw (\<lambda>\<phi>. (\<lambda>i\<in>I. \<phi> (g i) i))
+    (PiE J (\<lambda>j. {f. bij_betw f (A j) (B j) \<and> f\<in>extensional (A j)})) ?L"
+  proof (intro bij_betwI[where g= "\<lambda>x. \<lambda>i\<in>J. restrict x (A i)"] Pi_I, goal_cases)
+    case (1 x)
+    have "bij_betw (\<lambda>i\<in>I. x (g i) i) (A j) (B j)" if "j \<in> J" for j
+    proof -
+      have last:"bij_betw (x j) (A j) (B j)" using that 1 by auto
+      have "A j \<subseteq> I" using that assms(2) by auto
+      thus ?thesis using g that by (intro iffD2[OF bij_betw_cong last]) auto
+    qed
+    thus ?case using 1 by auto
+  next
+    case (2 x)
+    thus ?case by (intro iffD2[OF restrict_PiE_iff] ballI) simp
+  next
+    case (3 x)
+    have "restrict (\<lambda>i\<in>I. x (g i) i) (A j) = x j" if "j \<in> J" for j
+    proof -
+      have "A j \<subseteq> I" using that assms(2) by auto
+      moreover have "x j \<in> extensional (A j)" using that 3 by auto
+      hence "restrict (\<lambda>i. x (g i) i) (A j) = x j"
+        using g that unfolding restrict_def extensional_def by auto
+      ultimately show ?thesis unfolding restrict_restrict using Int_absorb1 by metis
+    qed
+    thus ?case using 3 unfolding extensional_def PiE_def  by auto
+  next
+    case (4 y)
+    have "(\<lambda>j\<in>J. restrict y (A j)) (g i) i = y i" if that':"i \<in> I" for i
+    proof -
+      obtain j where "i \<in> A j" "j \<in> J" using that' assms(2) by auto
+      thus ?thesis using g by simp
+    qed
+    thus ?case using 4 unfolding extensional_def by auto
+  qed
+
+  hence "card ?L = card (PiE J (\<lambda>j. {f. bij_betw f (A j) (B j)\<and> f\<in>extensional (A j)}))"
+    using bij_betw_same_card[symmetric] by auto
+  also have "\<dots> = (\<Prod>i\<in>J. card {f. bij_betw f (A i) (B i) \<and> f \<in> extensional (A i)})"
+    unfolding card_PiE[OF assms(1)] by simp
+  also have "\<dots> = (\<Prod>i\<in>J. fact (card (A i)))"
+    using assms(4) by (intro prod.cong card_bijections') auto
+  finally show ?thesis by simp
+qed
+
+lemma map_bij_pmf_non_inj:
+  fixes I :: "'a set"
+  fixes F :: "'b set"
+  fixes \<phi> :: "'b \<Rightarrow> 'c"
+  assumes "finite I" "finite F" "card I = card F"
+  defines "q \<equiv> {f. f \<in> extensional I \<and> {#f x. x \<in># mset_set I#} = {#\<phi> x. x\<in># mset_set F#}}"
+  shows "map_pmf (\<lambda>f. (\<lambda>x\<in>I. \<phi>(f x))) (bij_pmf I F) = pmf_of_set q" (is "?L = _")
+proof -
+  let ?G = "{# \<phi> x. x \<in># mset_set F #}"
+  let ?G' = "set_mset ?G"
+  define c :: nat where "c = (\<Prod>i \<in> set_mset ?G. fact (count ?G i))"
+
+  note ne = bij_betw_non_empty_finite[OF assms(1-3)]
+  note cim = count_image_mset_eq_card_vimage
+
+  have "c \<ge> 1" unfolding c_def by (intro prod_ge_1) auto
+  hence c_gt_0: "c > 0" by simp
+
+  have "?L = pmf_of_multiset {#\<lambda>x\<in>I. \<phi> (f x). f \<in># mset_set {f. bij_betw f I F\<and>f\<in>extensional I}#}"
+    unfolding bij_pmf_def by (intro map_pmf_of_set[OF ne])
+  also have "\<dots> = pmf_of_set q" unfolding q_def
+  proof (rule pmf_of_multiset_eq_pmf_of_setI[OF c_gt_0],goal_cases)
+    case 1
+    have "card {f. bij_betw f I F \<and> f \<in> extensional I} > 0" using ne by fastforce
+    thus ?case by (simp add:nonempty_has_size)
+  next
+    case (2 f)
+
+    hence a: "image_mset f (mset_set I) = image_mset \<phi> (mset_set F)" by simp
+    hence "card {x \<in> F. \<phi> x = g} = card {x \<in> I. f x = g}" for g
+      using cim[OF assms(1)] cim[OF assms(2)] by metis
+    hence b: "card (\<phi> -` {g} \<inter> F) = card (f -` {g} \<inter> I)" for g
+      by (auto simp add:Int_def conj_commute)
+
+    have c:"bij_betw \<omega> I F \<and> (\<lambda>i\<in>I. \<phi> (\<omega> i))=f \<longleftrightarrow> (\<forall>g\<in>?G'. bij_betw \<omega> (f -`{g} \<inter>I) (\<phi>-`{g} \<inter>F))"
+      (is "?L1 = ?R1") for \<omega>
+    proof
+      assume ?L1
+      hence d:"bij_betw \<omega> I F" and e: "\<forall>i \<in> I. \<phi> (\<omega> i) = f i" by auto
+      have "bij_betw \<omega> (f -`{g} \<inter> I) (\<phi> -` {g} \<inter> F)" if "g \<in> ?G'" for g
+      proof -
+        have "card (\<phi> -` {g} \<inter> F) =  card (\<omega> ` (f -` {g} \<inter> I))"
+          unfolding b using d
+          by (intro card_image[symmetric]) (simp add: bij_betw_imp_inj_on inj_on_Int)
+        hence " \<omega> ` (f -` {g} \<inter> I) = \<phi> -` {g} \<inter> F"
+          using assms(2) e bij_betw_imp_surj_on[OF d] by (intro card_seteq image_subsetI) auto
+        thus ?thesis by (intro bij_betw_subset[OF d]) auto
+      qed
+      thus ?R1 by auto
+    next
+      assume f:?R1
+
+      have g: "\<phi> (\<omega> i) = f i" if "i \<in> I" for i
+      proof -
+        have "f i \<in> ?G'" unfolding a[symmetric] using that assms(1) by auto
+        hence "\<omega> ` (f -` {f i} \<inter> I) = (\<phi> -` {f i} \<inter> F)"
+          using bij_betw_imp_surj_on using f by metis
+        thus ?thesis using that by (auto simp add:vimage_def)
+      qed
+      have "x = y" if "x \<in> I" "y \<in> I" "\<omega> x = \<omega> y" for x y
+      proof -
+        have "f x \<in> ?G'" unfolding a[symmetric] using that assms(1) by auto
+        hence "inj_on \<omega> (f -` {f x} \<inter> I)" using f bij_betw_imp_inj_on by blast
+        moreover have "f x = f y" using that g by metis
+        ultimately show "x = y" using that(1,2,3) inj_onD[where f="\<omega>", OF _ that(3)] by fastforce
+      qed
+      hence h:"inj_on \<omega> I" by (rule inj_onI)
+
+      have i: "\<omega> ` I \<subseteq> F"
+      proof (rule image_subsetI)
+        fix x assume "x \<in> I"
+        hence "f x \<in> ?G'" "x \<in> (f -` {f x} \<inter> I)" using assms(1) unfolding a[symmetric] by auto
+        thus "\<omega> x \<in> F" using bij_betw_imp_surj_on f by fast
+      qed
+      have "bij_betw \<omega> I F"
+        using card_image[OF h] assms(3) unfolding bij_betw_def
+        by (intro conjI card_seteq i h assms) auto
+      thus ?L1 using g 2 unfolding restrict_def extensional_def by auto
+    qed
+
+    have j: "f ` I \<subseteq> \<phi> ` F" using a
+      by (metis assms(1,2) finite_set_mset_mset_set multiset.set_map set_eq_subset)
+
+    have "c = (\<Prod>g \<in> ?G'. fact (card (f -` {g} \<inter> I)))"
+      unfolding b[symmetric] c_def cim[OF assms(2)]
+      by (simp add:vimage_def Int_def conj_commute)
+    also have "\<dots> = card {\<omega>. (\<forall>g \<in> ?G'. bij_betw \<omega> (f-`{g} \<inter> I) (\<phi>-`{g} \<inter> F)) \<and> \<omega> \<in> extensional I}"
+      using assms(1,2) j b
+      by (intro card_multi_bij[symmetric]) (auto simp: vimage_def disjoint_family_on_def)
+    also have "\<dots> = card {\<omega>. bij_betw \<omega> I F \<and> \<omega> \<in> extensional I \<and> (\<lambda>i\<in>I. \<phi> (\<omega> i)) = f}"
+      using c by (intro arg_cong[where f="card"] Collect_cong) auto
+    finally show ?case using ne by (subst count_image_mset_eq_card_vimage) auto
+  next
+    case (3 f)
+    then obtain u where u_def:"bij_betw u I F" "u \<in> extensional I" "f = (\<lambda>x. \<lambda>xa\<in>I. \<phi> (x xa)) u"
+      using ne by auto
+
+    have "image_mset f (mset_set I) = image_mset \<phi> (image_mset u (mset_set I))"
+      using assms(1) unfolding u_def(3) multiset.map_comp by (intro image_mset_cong) auto
+    also have "\<dots> = image_mset \<phi> (mset_set F)" using image_mset_mset_set u_def(1)
+      unfolding bij_betw_def by (intro arg_cong2[where f="image_mset"] refl) auto
+    finally have "image_mset f (mset_set I) = image_mset \<phi> (mset_set F)" by simp
+
+    moreover have "f \<in> extensional I" unfolding u_def(3) by auto
+    ultimately show ?case by simp
+  qed
+  finally show ?thesis by simp
+qed
+
 lemmas fkg_inequality_pmf_internalized = fkg_inequality_pmf[unoverload_type 'a]
 
 lemma permutation_distributions_are_neg_associated:
@@ -925,6 +1122,55 @@ next
   finally have "(\<integral>x. \<f> x * \<g> x \<partial>?p0) \<le> (\<integral>x. \<f> x \<partial>?p0)*(\<integral>x. \<g> x \<partial>?p0)"
     by simp
   then show ?case by (subst measure_pmf.covariance_eq) (simp_all add:comp_def)
+qed
+
+lemma multiset_permutation_distributions_are_neg_associated:
+  fixes F :: "('a :: linorder_topology) multiset"
+  fixes I :: "'b set"
+  assumes "finite I" "card I = size F"
+  defines "p \<equiv> pmf_of_set {\<phi>. \<phi> \<in> extensional I \<and> image_mset \<phi> (mset_set I) = F}"
+  shows "measure_pmf.neg_assoc p (\<lambda>i \<omega>. \<omega> i) I"
+proof -
+  let ?xs = "sorted_list_of_multiset F"
+  define \<alpha> where "\<alpha> k = ?xs ! (min k (length ?xs -1))" for k
+
+  let ?N = "{..<size F}"
+  let ?h = "(\<lambda>f. (\<lambda>i\<in>I. \<alpha> (f i)))"
+
+  have sorted_xs: "sorted ?xs" by (induction F, auto simp:sorted_insort)
+
+  have mono_\<alpha>: "mono \<alpha>"
+  proof (cases "?xs = []")
+    case True thus ?thesis unfolding \<alpha>_def by simp
+  next
+    case False thus ?thesis unfolding \<alpha>_def
+      by (intro monoI sorted_nth_mono[OF sorted_xs]) (simp_all add: min.strict_coboundedI2)
+  qed
+
+  have l_xs: "length ?xs = size F" by (metis mset_sorted_list_of_multiset size_mset)
+
+  have "image_mset \<alpha> (mset_set {..<size F}) = image_mset ((!) ?xs) (mset_set {..<size F})"
+    unfolding \<alpha>_def l_xs[symmetric] by (intro image_mset_cong) auto
+  also have "\<dots> = mset ?xs" unfolding l_xs[symmetric]
+    by (metis map_nth mset_map mset_set_upto_eq_mset_upto)
+  also have "\<dots> = F" by simp
+  finally have 0:"image_mset \<alpha> (mset_set {..<size F}) = F" by simp
+
+  have "map_pmf (\<lambda>f. (\<lambda>i\<in>I. \<alpha> (f i))) (bij_pmf I ?N) =
+    pmf_of_set {f \<in> extensional I. image_mset f (mset_set I) = image_mset \<alpha> (mset_set {..<size F})}"
+    using assms by (intro map_bij_pmf_non_inj) auto
+  also have "\<dots> = p" unfolding p_def 0 by simp
+  finally have 1:"map_pmf (\<lambda>f. (\<lambda>i\<in>I. \<alpha> (f i))) (bij_pmf I ?N) = p" by simp
+
+  have 2:"measure_pmf.neg_assoc (bij_pmf I {..<size F}) (\<lambda>i \<omega>. \<omega> i) I"
+    using assms(1,2) by (intro permutation_distributions_are_neg_associated) auto
+
+  have "measure_pmf.neg_assoc (bij_pmf I {..<size F}) (\<lambda>i \<omega>. if i \<in> I then \<alpha>(\<omega> i) else undefined) I"
+    using mono_\<alpha> by (intro measure_pmf.neg_assoc_compose_simple[OF assms(1) 2, where \<eta>="Fwd"]
+    borel_measurable_continuous_onI) simp_all
+  hence "measure_pmf.neg_assoc (map_pmf (\<lambda>f. (\<lambda>i\<in>I. \<alpha>(f i))) (bij_pmf I {..<size F})) (\<lambda>i \<omega>. \<omega> i) I"
+    by (simp add:neg_assoc_map_pmf restrict_def if_distrib if_distribR)
+  thus ?thesis unfolding 1 by simp
 qed
 
 end
