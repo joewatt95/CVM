@@ -61,8 +61,8 @@ proof -
     apply (subst set_prod_pmf)
     by (fastforce intro!: finite_PiE)+
 
-  with state_finite_support show ?thesis
-    by (auto simp add: step_2_no_fail_def Let_def)
+  then show ?thesis
+    by (auto simp add: state_finite_support step_2_no_fail_def Let_def)
 qed
 
 lemma step_2_preserves_expectation_eq_1 :
