@@ -90,15 +90,28 @@ proof -
 
     apply (simp add: indicator_def)
 
-    thm expectation_Pi_pmf_slice[
-      where
-        I = \<open>state_chi _\<close> and
-        f = \<open>\<lambda> b. of_bool (x \<in> state_chi _ \<and> b)\<close> and
-        d = undefined, simplified]
+    subgoal premises prems
+    proof -
+      thm prems
 
-    find_theorems "measure_pmf.expectation" "Pi_pmf"
+      (* Restrict the summations to be taken over those `s \<in> set_pmf state`
+      where `x \<in> state_chi s`. This is ok because otherwise, `I(x \<in> X) = 0`.
+      Then simplify using the Lemma below. *)
+      thm expectation_Pi_pmf_slice[
+        where
+          I = \<open>state_chi _\<close> and
+          M = \<open>\<lblot>bernoulli_pmf <| 1 / 2\<rblot>\<close> and
+          f = \<open>\<lambda> b. of_bool (x \<in> state_chi _ \<and> b)\<close> and
+          d = undefined, simplified]
 
-    sorry
+      (* have
+        \<open>measure_pmf.expectation (prod_pmf (state_chi s) (\<lambda> _. bernoulli_pmf (1 / 2))) (\<lambda>xa. of_bool (x \<in> state_chi s \<and> xa x)) =
+        measure_pmf.expectation (bernoulli_pmf (1 / 2)) (\<lambda> b. of_bool (x \<in> state_chi s \<and> b))\<close>
+        sorry *)
+
+      show ?thesis sorry
+    qed
+    done
 qed
 
 end
