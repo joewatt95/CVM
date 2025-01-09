@@ -66,7 +66,9 @@ proof -
 qed
 
 lemma step_2_preserves_expectation_eq_1 :
-  assumes \<open>measure_pmf.expectation state (aux x) = 1\<close>
+  assumes
+    \<open>AE state in state. finite (state_chi state)\<close>
+    \<open>measure_pmf.expectation state (aux x) = 1\<close>
   shows \<open>measure_pmf.expectation (state \<bind> step_2_no_fail) (aux x) = 1\<close>
 proof -
   from state_finite_support assms show ?thesis
@@ -85,6 +87,14 @@ proof -
       simp add:
         if_distrib if_distribR sum.If_cases uminus_set_def fun_Compl_def not_less
         Set.filter_def algebra_simps)
+
+    apply (simp add: indicator_def)
+
+    thm expectation_Pi_pmf_slice[
+      where
+        I = \<open>state_chi _\<close> and
+        f = \<open>\<lambda> b. of_bool (x \<in> state_chi _ \<and> b)\<close> and
+        d = undefined, simplified]
 
     find_theorems "measure_pmf.expectation" "Pi_pmf"
 
