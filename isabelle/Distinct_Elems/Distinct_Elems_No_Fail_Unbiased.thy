@@ -124,7 +124,7 @@ proof -
     \<open>?L = (\<Sum> s \<in> set_pmf state.
       pmf state s * measure_pmf.expectation (step_2_no_fail s) (aux x))\<close>
     proof -
-      from assms have \<open>\<turnstile>pmf
+      from assms threshold_pos not_le have \<open>\<turnstile>pmf
         \<lbrakk>\<lblot>True\<rblot>\<rbrakk> \<lblot>state\<rblot>
         \<lbrakk>(\<lambda> state.
           let chi = state_chi state
@@ -137,17 +137,12 @@ proof -
         unfolding Let_def
         apply (intro Utils_PMF_Hoare.hoare_tripleI, safe)
         apply (subst set_prod_pmf)
-        using not_le threshold_pos apply fastforce
-        apply (subst finite_UN)
-        apply (intro finite_PiE)
-        using linorder_not_less threshold_pos apply fastforce
-        by simp_all
+        by (fastforce intro!: finite_UN_I finite_PiE)+
 
-      show ?thesis
+     with state_finite_support show ?thesis
         unfolding step_2_no_fail_def Let_def
         apply (subst pmf_expectation_bind)
-        apply auto
-        sorry
+        by (auto dest!: Utils_PMF_Hoare.hoare_tripleE)
     qed
 
   also have \<open>\<dots> = measure_pmf.expectation state (aux x)\<close>
