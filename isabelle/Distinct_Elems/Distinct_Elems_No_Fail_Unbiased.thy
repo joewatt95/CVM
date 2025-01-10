@@ -65,7 +65,7 @@ proof -
     by (auto simp add: state_finite_support step_2_no_fail_def Let_def)
 qed
 
-lemma step_2_preserves_expectation_eq_1 :
+lemma
   assumes
     \<open>AE state in state. finite (state_chi state)\<close>
     \<open>measure_pmf.expectation state (aux x) = 1\<close>
@@ -112,6 +112,48 @@ proof -
       show ?thesis sorry
     qed
     done
+qed
+
+lemma step_2_preserves_expectation_eq_1 :
+  assumes \<open>measure_pmf.expectation state (aux x) = 1\<close>
+  shows
+    \<open>measure_pmf.expectation (state \<bind> step_2_no_fail) (aux x) = 1\<close>
+    (is \<open>?L = _\<close>)
+proof -
+  have
+    \<open>?L = (\<Sum> s \<in> set_pmf state.
+      pmf state s * measure_pmf.expectation (step_2_no_fail s) (aux x))\<close>
+    proof -
+      from assms have \<open>\<turnstile>pmf
+        \<lbrakk>\<lblot>True\<rblot>\<rbrakk> \<lblot>state\<rblot>
+        \<lbrakk>(\<lambda> state.
+          let chi = state_chi state
+          in card chi \<ge> threshold \<longrightarrow>
+            finite (
+              \<Union> s \<in> set_pmf (prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>).
+                {state\<lparr>
+                  state_k := state_k state + 1,
+                  state_chi := Set.filter s chi\<rparr>}))\<rbrakk>\<close>
+        unfolding Let_def
+        apply (intro Utils_PMF_Hoare.hoare_tripleI, safe)
+        apply (subst set_prod_pmf)
+        using not_le threshold_pos apply fastforce
+        apply (subst finite_UN)
+        apply (intro finite_PiE)
+        using linorder_not_less threshold_pos apply fastforce
+        by simp_all
+
+      show ?thesis
+        unfolding step_2_no_fail_def Let_def
+        apply (subst pmf_expectation_bind)
+        apply auto
+        sorry
+    qed
+
+  also have \<open>\<dots> = measure_pmf.expectation state (aux x)\<close>
+    sorry
+
+  finally show ?thesis using assms by simp
 qed
 
 end
