@@ -66,8 +66,7 @@ proof -
 qed
 
 lemma step_2_preserves_expectation_eq_1 :
-  assumes
-    \<open>measure_pmf.expectation state (aux id x) = 1\<close>
+  assumes \<open>measure_pmf.expectation state (aux id x) = 1\<close>
   shows
     \<open>measure_pmf.expectation (state \<bind> step_2_no_fail) (aux id x) = 1\<close>
     (is \<open>?L = _\<close>)
@@ -91,11 +90,11 @@ proof -
         apply (subst set_prod_pmf)
         by (fastforce intro!: finite_UN_I finite_PiE)+
 
-     with state_finite_support show ?thesis
-      apply (subst pmf_expectation_bind)
-      by (auto
-        dest: Utils_PMF_Hoare.hoare_tripleE
-        simp add: step_2_no_fail_def Let_def)
+      with state_finite_support show ?thesis
+        apply (subst pmf_expectation_bind)
+        by (auto
+          dest: Utils_PMF_Hoare.hoare_tripleE
+          simp add: step_2_no_fail_def Let_def)
     qed
 
   also from state_finite_support have \<open>\<dots> = (
@@ -106,7 +105,7 @@ proof -
       measure_pmf.expectation
         (prod_pmf (state_chi s) \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)
         (\<lambda> s'. 2 * aux (Set.filter s') x s))\<close>
-    (is \<open>_ = sum ?f (?A (<)) + sum _ ?B\<close>)
+    (is \<open>_ = (\<Sum> s \<in> ?A (<). ?f s) + (\<Sum> _ \<in> ?B. _)\<close>)
     apply (simp
       flip: map_pmf_def
       add:
@@ -130,8 +129,8 @@ proof -
         unfolding add.left_cancel indicator_def
         apply (intro sum.cong, blast)
         apply (subst
-          expectation_Pi_pmf_slice[where
-            I = \<open>state_chi _\<close> and M = \<open>\<lblot>bernoulli_pmf <| 1 / 2\<rblot>\<close>, symmetric])
+          expectation_Pi_pmf_slice[symmetric, where
+            I = \<open>state_chi _\<close> and M = \<open>\<lblot>bernoulli_pmf _\<rblot>\<close>])
         by (auto simp add: integrable_measure_pmf_finite)
     qed
 
