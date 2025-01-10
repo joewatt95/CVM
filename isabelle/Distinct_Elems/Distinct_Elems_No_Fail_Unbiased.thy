@@ -140,12 +140,20 @@ proof -
         by (fastforce intro!: finite_UN_I finite_PiE)+
 
      with state_finite_support show ?thesis
-        unfolding step_2_no_fail_def Let_def
         apply (subst pmf_expectation_bind)
-        by (auto dest!: Utils_PMF_Hoare.hoare_tripleE)
+        by (auto
+          dest: Utils_PMF_Hoare.hoare_tripleE
+          simp add: step_2_no_fail_def Let_def)
     qed
 
-  also have \<open>\<dots> = measure_pmf.expectation state (aux x)\<close>
+  also from state_finite_support have
+    \<open>\<dots> = measure_pmf.expectation state (aux x)\<close>
+    unfolding step_2_no_fail_def Let_def
+    apply (simp
+      flip: map_pmf_def
+      add:
+        integral_measure_pmf if_distrib if_distribR sum.If_cases
+        uminus_set_def fun_Compl_def not_less)
     sorry
 
   finally show ?thesis using assms by simp
