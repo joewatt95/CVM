@@ -39,10 +39,10 @@ lemma step_1_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<Prod> x \<in> S. aux x) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_1 x) (prod aux S)
+    \<open>measure_pmf.expectation (state \<bind> step_1 x) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof - 
   show ?thesis sorry
@@ -54,7 +54,7 @@ lemma step_2_preserves_expectation_le :
     \<open>measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_2) (prod aux S)
+    \<open>measure_pmf.expectation (state \<bind> step_2) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof - 
   show ?thesis sorry
@@ -65,10 +65,10 @@ lemma step_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<Prod> x \<in> S. aux x) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> cvm_step x) (prod aux S)
+    \<open>measure_pmf.expectation (state \<bind> step x) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof - 
   show ?thesis sorry
@@ -82,7 +82,7 @@ lemma expectation_cvm:
       measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
   assumes \<open>S \<subseteq> set xs \<union> U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> run_steps xs) (prod aux S)
+    \<open>measure_pmf.expectation (state \<bind> run_steps xs) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof - 
   show ?thesis sorry
@@ -94,10 +94,10 @@ lemma run_steps_then_step_1_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And>S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation stp (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<Prod> x \<in> S. aux x) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x (set xs \<union> U)\<close>
   shows
-    \<open>measure_pmf.expectation (stp \<bind> run_steps xs \<bind> step_1 x) (prod aux S)
+    \<open>measure_pmf.expectation (state \<bind> run_steps xs \<bind> step_1 x) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
