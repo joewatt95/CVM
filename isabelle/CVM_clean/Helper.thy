@@ -1,5 +1,7 @@
 theory Helper
-  imports Main
+
+imports
+  Main
 
 begin
 

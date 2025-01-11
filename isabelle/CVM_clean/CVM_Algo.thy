@@ -1,7 +1,9 @@
 theory CVM_Algo
-  imports
-    Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-    Helper
+
+imports
+  Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  Helper
+
 begin
 
 record 'a state =
@@ -9,48 +11,46 @@ record 'a state =
   state_chi :: \<open>'a set\<close>
 
 locale cvm_algo =
-  fixes n::nat
-  fixes f::real
+  fixes n :: nat and f :: real
 begin
 
-definition step1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step1 x st \<equiv> do {
-    let k = state_k st;
-    let chi = state_chi st; 
-    coin \<leftarrow> bernoulli_pmf (f ^ k);
-    let chi =
-      (if coin
-      then insert x chi
-      else Set.remove x chi);
-    return_pmf \<lparr>state_k = k, state_chi = chi\<rparr>
-  }\<close>
+definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
+  \<open>step_1 \<equiv> \<lambda> x state. do {
+    let k = state_k state;
+    let chi = state_chi state; 
 
-definition subsample :: "'a set \<Rightarrow> 'a set pmf" where
-  \<open>subsample chi \<equiv>
-    pmf_of_set { S . S \<subseteq> chi \<and> real (card S) = real n * f }\<close>
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ k;
 
-definition step2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step2 st \<equiv> do {
-    let k = state_k st;
-    let chi = state_chi st;
-    if card chi = n then
-    do {
-      chi \<leftarrow> subsample chi;
-      return_pmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
-    }
-    else
-      return_pmf st
-  }\<close>
+    let chi = (chi |>
+      if insert_x_into_chi
+      then insert x
+      else Set.remove x);
 
-definition cvm_step :: "'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf" where
-  \<open>cvm_step x st \<equiv> step1 x st \<bind> step2\<close>
+    return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
+
+definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
+  \<open>subsample chi \<equiv> pmf_of_set {S \<in> Pow chi. card S = n * f}\<close>
+
+definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
+  \<open>step_2 \<equiv> \<lambda> state. do {
+    let k = state_k state;
+    let chi = state_chi state;
+
+    if card chi < n
+    then return_pmf state
+    else (chi
+      |> subsample
+      |> map_pmf (\<lambda> chi. \<lparr>state_k = k + 1, state_chi = chi\<rparr>)) }\<close>
+
+definition step :: "'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf" where
+  \<open>step x st \<equiv> step_1 x st \<bind> step_2\<close>
 
 abbreviation foldM_pmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
   \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 
-definition cvm :: "'a list \<Rightarrow> 'a state \<Rightarrow> 'a state pmf" where
-  \<open>cvm \<equiv> foldM_pmf cvm_step\<close>
+definition run_steps :: "'a list \<Rightarrow> 'a state \<Rightarrow> 'a state pmf" where
+  \<open>run_steps \<equiv> foldM_pmf step\<close>
 
 end
 
