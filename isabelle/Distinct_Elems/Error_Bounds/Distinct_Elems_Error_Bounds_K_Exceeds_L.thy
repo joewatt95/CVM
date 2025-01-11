@@ -87,7 +87,7 @@ proof (cases \<open>l > length xs\<close>)
   with eager_algorithm_k_bounded
   have \<open>?L = 0\<close>
     using dual_order.strict_trans1
-    by (fastforce simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff)
+    by (fastforce simp add: measure_pmf.prob_eq_0)
   then show ?thesis by (simp add: prob_k_gt_l_bound_def) 
 next
   case False

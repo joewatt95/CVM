@@ -45,7 +45,7 @@ definition satisfiesM where
 lemma
   \<open>map_pmf P p = map_pmf \<lblot>True\<rblot> p
   \<longleftrightarrow> (AE x in p. P x)\<close>
-  by (simp add: AE_measure_pmf_iff map_pmf_eq_return_pmf_iff)
+  by (auto iff: AE_measure_pmf_iff map_pmf_eq_return_pmf_iff)
 
 lemma
   \<open>map_spmf P p = map_spmf \<lblot>True\<rblot> p

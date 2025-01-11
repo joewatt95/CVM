@@ -136,7 +136,7 @@ proof -
 
   also from state_finite_support have \<open>\<dots> =
     (\<Sum> s \<in> ?A (<). ?f s) + (\<Sum> s \<in> ?A (\<ge>). ?f s)\<close>
-    by (auto intro: sum.mono_neutral_cong_left simp add: indicator_def)
+    by (auto intro: sum.mono_neutral_cong_left iff: indicator_eq_0_iff)
 
   also from state_finite_support have \<open>\<dots> =
     measure_pmf.expectation state (aux id x)\<close>
