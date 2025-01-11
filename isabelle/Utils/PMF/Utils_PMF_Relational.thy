@@ -148,8 +148,7 @@ next
     apply (simp add: foldM_enumerate_def)
     by (fastforce
       intro!: seq[where S = \<open>R <| Suc offset\<close>]
-      simp add: relational_hoare_triple_def add_Suc[symmetric]
-      simp del: add_Suc)
+      simp add: relational_hoare_triple_def)
 qed
 
 lemma loop :

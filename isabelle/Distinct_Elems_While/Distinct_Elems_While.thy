@@ -233,10 +233,10 @@ proof -
   have \<open>?hoare_triple undefined id\<close>
     by (auto
       intro!: while Utils_SPMF_Hoare.seq'[where Q = \<open>\<lblot>True\<rblot>\<close>]
+      simp flip: bind_spmf_of_pmf map_spmf_of_pmf map_pmf_def
       simp add:
         cond_def body_def spmf_of_pmf_bind map_spmf_conv_bind_spmf Let_def
-        card_mono subset_iff
-      simp flip: bind_spmf_of_pmf map_spmf_of_pmf map_pmf_def)
+        card_mono subset_iff)
 
   from this[simplified] have
     \<open>?hoare_triple undefined (insert x)\<close>

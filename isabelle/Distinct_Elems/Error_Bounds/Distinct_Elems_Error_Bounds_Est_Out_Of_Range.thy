@@ -112,10 +112,10 @@ next
     using \<open>\<epsilon> > 0\<close> l_le_length_xs 
     by (auto
       intro!: sum_mono intro: pmf_mono
-      simp add:
+      simp flip:
         map_pmf_nondet_alg_eq_binomial[
-          where m = \<open>length xs\<close> and n = \<open>length xs\<close>, symmetric]
-        field_simps)
+          where m = \<open>length xs\<close> and n = \<open>length xs\<close>]
+      simp add: field_simps)
 
   text \<open>Apply Chernoff bound to each term.\<close>
   also have \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * ?exp_term k)\<close> (is \<open>_ \<le> (\<Sum> k \<le> _. ?R k)\<close>)
@@ -126,7 +126,7 @@ next
         where n = \<open>card <| set xs\<close> and p = \<open>1 / 2 ^ k\<close> and \<delta> = \<epsilon>,
         simplified binomial_distribution_def]
       \<open>\<epsilon> > 0\<close>
-    show \<open>?L k \<le> ?R k\<close> by (simp add: field_simps)
+    show \<open>?L k \<le> ?R k\<close> by (simp add: algebra_simps)
   qed
 
   text
@@ -135,12 +135,10 @@ next
     out a factor of `2 * exp_term l` from each term.
     Note that `exp_term l < 1` and that this is important for obtaining a tight
     bound later on.\<close>
-  also have
+  also from \<open>\<epsilon> > 0\<close> have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * ?exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
-    apply (rule sum.cong[OF refl])
-    using \<open>\<epsilon> > 0\<close>
-    apply (simp add:
-      exp_of_nat_mult[symmetric] power_add[symmetric] field_split_simps)
+    apply (intro sum.cong[OF refl])
+    apply (simp flip: exp_of_nat_mult power_add add: field_split_simps)
     by (smt (verit, best) mult_sign_intros(5) one_le_power)
 
   text
@@ -168,7 +166,7 @@ next
   text \<open>Upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (1 / (1 - ?exp_term l))\<close>
     using \<open>?exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
-    by (auto intro: sum_le_suminf simp add: suminf_geometric[symmetric])
+    by (auto intro: sum_le_suminf simp flip: suminf_geometric)
 
   also have \<open>\<dots> \<le> 4 * ?exp_bound\<close>
   proof -

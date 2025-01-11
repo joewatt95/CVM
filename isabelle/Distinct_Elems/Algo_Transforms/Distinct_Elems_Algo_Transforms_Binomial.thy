@@ -35,9 +35,10 @@ proof -
         using assms
         by (auto
           intro!: map_pmf_cong
+          simp flip: map_pmf_compose
           simp add:
-            nondet_alg_aux_def map_pmf_compose[symmetric]
-            fun_eq_iff dual_order.strict_trans1 find_last_correct_1(2))
+            nondet_alg_aux_def fun_eq_iff dual_order.strict_trans1
+            find_last_correct_1(2))
 
       then show ?thesis
         using assms find_last_inj

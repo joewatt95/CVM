@@ -238,7 +238,7 @@ proof -
       unfolding space_def restrict_dfl_def using fin_I by (intro arg_cong2[where f="pair_pmf"]
           arg_cong2[where f="measure_pmf.prob"] Pi_pmf_subset) auto
     also have "\<dots> = measure (pair_pmf space space) {(x,y). ?r m (?c1 x)=?v \<and> ?r (f ?v) (?c2 y)=?w}"
-      by (simp add: restrict_dfl_def map_pair[symmetric] case_prod_beta' cong:if_cong)
+      by (simp flip: map_pair add: restrict_dfl_def case_prod_beta' cong: if_cong)
     also have "\<dots> = measure (pair_pmf space space) {(x,y). ?r m x = ?v \<and> ?r (f ?v) y = ?w}"
       using e f by (intro measure_pmf_cong) auto
     also have "\<dots> = (\<integral>x. measure (map_pmf (Pair x) space) {(x,y). ?r m x=?v\<and>?r(f ?v) y=?w} \<partial>space)"
