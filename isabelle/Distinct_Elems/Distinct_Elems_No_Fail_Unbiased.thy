@@ -106,9 +106,7 @@ proof -
     (is \<open>_ = (\<Sum> s \<in> ?A (<). ?f s) + (\<Sum> _ \<in> ?B. _)\<close>)
     apply (simp
       flip: map_pmf_def
-      add:
-        step_2_no_fail_def if_distrib if_distribR Let_def
-        sum.If_cases uminus_set_def fun_Compl_def not_less algebra_simps)
+      add: step_2_no_fail_def if_distrib if_distribR Let_def sum.If_cases)
     apply (intro sum.mono_neutral_cong_right)
     by auto
 
