@@ -75,25 +75,23 @@ proof -
     \<open>?L = (\<Sum> s \<in> set_pmf state.
       pmf state s * measure_pmf.expectation (step_2_no_fail s) (aux id x))\<close>
     proof -
-      from assms threshold_pos not_le have \<open>\<turnstile>pmf
-        \<lbrakk>\<lblot>True\<rblot>\<rbrakk> \<lblot>state\<rblot>
-        \<lbrakk>(\<lambda> state.
+      from assms threshold_pos not_le have
+        \<open>AE state in state.
           let chi = state_chi state
           in card chi \<ge> threshold \<longrightarrow>
             finite (
               \<Union> s \<in> set_pmf (prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>).
                 {state\<lparr>
                   state_k := state_k state + 1,
-                  state_chi := Set.filter s chi\<rparr>}))\<rbrakk>\<close>
-        unfolding Let_def
-        apply (intro Utils_PMF_Hoare.hoare_tripleI, safe)
+                  state_chi := Set.filter s chi\<rparr>})\<close>
+        apply (simp add: AE_measure_pmf_iff Let_def, safe)
         apply (subst set_prod_pmf)
         by (fastforce intro!: finite_UN_I finite_PiE)+
 
       with state_finite_support show ?thesis
         apply (subst pmf_expectation_bind)
         by (auto
-          dest: Utils_PMF_Hoare.hoare_tripleE
+          iff: AE_measure_pmf_iff
           simp add: step_2_no_fail_def Let_def)
     qed
 
