@@ -1,7 +1,20 @@
-session CVM = "CryptHOL" +
+session Negative_Association in "Negative_Association" = "HOL-Probability" +
   options [timeout = 300]
 
   sessions
+    Concentration_Inequalities
+    Birkhoff_Finite_Distributive_Lattices
+    Twelvefold_Way
+    Expander_Graphs
+  theories
+    Negative_Association_Chernoff_Bounds
+    Negative_Association_Permtutation_Distributions
+
+session CVM = "CryptHOL" +
+  options [timeout = 300]
+
+sessions
+    Negative_Association
     "Universal_Hash_Families"
     "Finite_Fields"
     "Concentration_Inequalities"
