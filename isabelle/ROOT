@@ -8,7 +8,7 @@ session Negative_Association in "Negative_Association" = "HOL-Probability" +
     Expander_Graphs
   theories
     Negative_Association_Chernoff_Bounds
-    Negative_Association_Permtutation_Distributions
+    Negative_Association_Permutation_Distributions
 
 session CVM = "CryptHOL" +
   options [timeout = 300]
