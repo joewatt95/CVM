@@ -4,6 +4,10 @@ theory Negative_Association_Util
     Concentration_Inequalities.Concentration_Inequalities_Preliminary
 begin
 
+(* From Joe Watt *)
+abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
+  \<open>flip f x y \<equiv> f y x\<close>
+
 lemma bounded_const_min:
   fixes f :: "'a \<Rightarrow> real"
   assumes "bdd_below (f ` M)"
@@ -36,6 +40,11 @@ proof -
 
   thus ?thesis by (intro boundedI[where B="max m c"]) fastforce
 qed
+
+lemma bounded_range_imp:
+  assumes "bounded (range f)" 
+  shows "bounded ((\<lambda>\<omega>. f (h \<omega>)) ` S)"
+  by (intro bounded_subset[OF assms]) auto
 
 definition has_int_that where
   "has_int_that M f P = (integrable M f \<and> (P (\<integral>\<omega>. f \<omega> \<partial>M)))"
@@ -166,6 +175,11 @@ lemma clamp_range:
   shows "\<And>x. clamp a b x \<ge> a" "\<And>x. clamp a b x \<le> b" "range (clamp a b) \<subseteq> {a..b::real}"
   using assms by (auto simp: clamp_real_def)
 
+lemma clamp_abs_le:
+  assumes "a \<ge> (0::real)"
+  shows "\<bar>clamp (-a) a x\<bar> \<le> \<bar>x\<bar>"
+  using assms unfolding clamp_real_def by simp
+
 lemma bounded_clamp:
   fixes a b :: real
   shows "bounded ((clamp a b \<circ> f) ` S)"
@@ -185,8 +199,14 @@ lemma bounded_clamp_alt:
   shows "bounded ((\<lambda>x. clamp a b (f x)) ` S)"
   using bounded_clamp by (auto simp:comp_def)
 
-lemma clamp_borel:
-  "clamp a (b::'a::{euclidean_space, linorder_topology,second_countable_topology}) \<in> borel_measurable borel"
+lemma clamp_borel[measurable]:
+  fixes a b :: "'a::{euclidean_space,second_countable_topology}"
+  shows "clamp a b \<in> borel_measurable borel"
   unfolding clamp_def by measurable
+
+lemma monotone_clamp:
+  assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f"
+  shows "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) (\<lambda>\<omega>. clamp a (b::real) (f \<omega>))"
+  using assms unfolding monotone_def clamp_real_def by (cases \<eta>) force+  
 
 end

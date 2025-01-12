@@ -38,7 +38,7 @@ proof -
     by (intro AE_finite_allI[OF fin_I]) simp
 
   show "?A"
-    using a by (intro neg_assoc_cong[OF fin_I rv_X rv_\<X> na_X]) force+
+    using a by (intro neg_assoc_cong[OF fin_I rv_\<X> na_X]) force+
 
   show "expectation (\<X> i) = expectation (X i)" if "i \<in> I" for i
     by (intro integral_cong_AE a rv_X rv_\<X> that)
@@ -58,13 +58,36 @@ proof -
     by (intro conjI integral_ge_const integral_le_const AE_I2 integrable_bounded d[OF that]) auto
 qed
 
+lemma ln_one_plus_x_lower_bound:
+  assumes "x \<ge> (0::real)" 
+  shows "2*x/(2+x) \<le> ln (1 + x)"
+proof -
+  define v where "v x = ln(1+x) - 2 * x/ (2+x) " for x :: real
+  define v' where "v' x = 1/(1+x) - 4/(2+x)^2" for x :: real
+
+  have v_deriv: "(v has_real_derivative (v' x)) (at x)" if "x \<ge> 0" for x
+    using that unfolding v_def v'_def power2_eq_square by (auto intro!:derivative_eq_intros)
+  have v_deriv_nonneg: "v' x \<ge> 0" if "x \<ge> 0" for x
+    using that unfolding v'_def 
+    by (simp add:divide_simps power2_eq_square) (simp add:algebra_simps)
+
+  have v_mono: "v x \<le> v y" if "x \<le> y" "x \<ge> 0" for x y
+    using v_deriv v_deriv_nonneg that order_trans
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
+
+  have "0 = v 0" unfolding v_def by simp
+  also have "\<dots> \<le> v x" using v_mono assms by auto
+  finally have "v x \<ge> 0" by simp
+  thus ?thesis unfolding v_def by simp
+qed
+
 (* Based on proof Theorem 4.1 \cite{raghavan1981} *)
 theorem multiplicative_chernoff_bound_upper:
   assumes "\<delta> > 0"
   assumes "\<And>i. i \<in> I \<Longrightarrow> AE \<omega> in M. X i \<omega> \<in> {0..1}"
   defines "\<mu> \<equiv> (\<Sum>i \<in> I. expectation (X i))"
-  shows "\<P>(\<omega> in M. (\<Sum>i \<in> I. X i \<omega>) \<ge> (1+\<delta>) * \<mu>) \<le> (exp \<delta>/((1+\<delta>) powr (1+\<delta>))) powr \<mu>"
-    (is "?L \<le> ?R")
+  shows "\<P>(\<omega> in M. (\<Sum>i \<in> I. X i \<omega>) \<ge> (1+\<delta>) * \<mu>) \<le> (exp \<delta>/((1+\<delta>) powr (1+\<delta>))) powr \<mu>" (is "?L \<le> ?R")
+    and "\<P>(\<omega> in M. (\<Sum>i \<in> I. X i \<omega>) \<ge> (1+\<delta>) * \<mu>) \<le> exp (-(\<delta>^2) * \<mu> / (2+\<delta>))" (is "_ \<le> ?R1")
 proof -
   define \<X> where "\<X> = (\<lambda>i. clamp 0 1 \<circ> X i)"
   have transfer_to_clamped_vars_assms: "(\<forall>i\<in>I. AE \<omega> in M. X i \<omega> \<in> {0 .. 1} \<and> 0 \<le> (1::real))"
@@ -81,6 +104,14 @@ proof -
 
   have int: "integrable M (\<X> i)" if "i \<in> I" for i
     using that by (intro bounded') simp_all
+
+  have " 2*\<delta> \<le> (2+\<delta>)* ln (1 + \<delta>)" 
+    using assms(1) ln_one_plus_x_lower_bound[OF less_imp_le[OF assms(1)]] by (simp add:field_simps)
+  hence " (1+\<delta>)*(2*\<delta>) \<le> (1 + \<delta>) *(2+\<delta>)* ln (1 + \<delta>)" using assms(1) by simp
+  hence a:"(\<delta> - (1 + \<delta>) * ln (1 + \<delta>)) \<le> - (\<delta>^2)/(2+\<delta>)"
+    using assms(1) by (simp add:field_simps power2_eq_square)
+
+  have \<mu>_ge_0: "\<mu> \<ge> 0" unfolding \<mu>_def using ttcv(2,6) by (intro sum_nonneg) auto
 
   note \<X>_prod_mono = has_int_thatD(2)[OF neg_assoc_imp_prod_mono[OF fin_I ttcv(1), where \<eta>="Fwd"]]
 
@@ -111,7 +142,39 @@ proof -
   also have "\<dots> = exp \<delta> powr \<mu> / exp ( ln(1+\<delta>)*(1+\<delta>)) powr \<mu>"
     unfolding powr_def by (simp add:ac_simps)
   also have "\<dots> = ?R" using assms(1) by (subst powr_divide) (simp_all add:powr_def)
-  finally show ?thesis by simp
+  finally show "?L \<le> ?R" by simp
+  also have "\<dots> =  exp (\<mu> * ln (exp \<delta> / exp ((1 + \<delta>) * ln (1 + \<delta>))))"
+    using assms unfolding powr_def by simp
+  also have "\<dots> = exp (\<mu> * (\<delta> - (1 + \<delta>) * ln (1 + \<delta>)))" by (subst ln_div) simp_all
+  also have "\<dots> \<le> exp (\<mu> * (-(\<delta>^2)/(2+\<delta>)))"
+    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a \<mu>_ge_0)
+  also have "\<dots> = ?R1" by simp
+  finally show "?L \<le> ?R1" by simp
+qed
+
+
+lemma ln_one_minus_x_lower_bound:
+  assumes "x \<in> {(0::real)..<1}" 
+  shows "(x^2/2-x)/(1-x) \<le> ln (1 - x)"
+proof -
+  define v where "v x = ln(1-x) - (x^2/2-x) / (1-x) " for x :: real
+  define v' where "v' x = -1/(1-x) - (-(x^2)/2+x-1)/((1-x)^2)" for x :: real
+
+  have v_deriv: "(v has_real_derivative (v' x)) (at x)" if "x \<in> {0..<1}" for x
+    using that unfolding v_def v'_def power2_eq_square 
+    by (auto intro!:derivative_eq_intros simp:algebra_simps)
+  have v_deriv_nonneg: "v' x \<ge> 0" if "x \<ge> 0" for x
+    using that unfolding v'_def by (simp add:divide_simps power2_eq_square) 
+
+  have v_mono: "v x \<le> v y" if "x \<le> y" "x \<ge> 0" "y < 1" for x y
+    using v_deriv v_deriv_nonneg that unfolding atLeastLessThan_iff
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) 
+     (metis (mono_tags, opaque_lifting) Ico_eq_Ico ivl_subset linorder_not_le order_less_irrefl)
+
+  have "0 = v 0" unfolding v_def by simp
+  also have "\<dots> \<le> v x" using v_mono assms by auto
+  finally have "v x \<ge> 0" by simp
+  thus ?thesis unfolding v_def by simp
 qed
 
 (* Based on proof Theorem 4.2 \cite{raghavan1981} *)
@@ -119,8 +182,8 @@ theorem multiplicative_chernoff_bound_lower:
   assumes "\<delta> \<in> {0<..<1}"
   assumes "\<And>i. i \<in> I \<Longrightarrow> AE \<omega> in M. X i \<omega> \<in> {0..1}"
   defines "\<mu> \<equiv> (\<Sum>i \<in> I. expectation (X i))"
-  shows "\<P>(\<omega> in M. (\<Sum>i \<in> I. X i \<omega>) \<le> (1-\<delta>) * \<mu>) \<le> (exp (-\<delta>)/((1-\<delta>) powr (1-\<delta>))) powr \<mu>"
-    (is "?L \<le> ?R")
+  shows "\<P>(\<omega> in M. (\<Sum>i \<in> I. X i \<omega>) \<le> (1-\<delta>)*\<mu>) \<le> (exp (-\<delta>)/(1-\<delta>) powr (1-\<delta>)) powr \<mu>" (is "?L \<le> ?R")
+    and "\<P>(\<omega> in M. (\<Sum>i \<in> I. X i \<omega>) \<le> (1-\<delta>)*\<mu>) \<le> (exp (-(\<delta>^2)*\<mu>/2))" (is "_ \<le> ?R1")
 proof -
   define \<X> where "\<X> = (\<lambda>i. clamp 0 1 \<circ> X i)"
   have transfer_to_clamped_vars_assms: "(\<forall>i\<in>I. AE \<omega> in M. X i \<omega> \<in> {0 .. 1} \<and> 0 \<le> (1::real))"
@@ -135,6 +198,8 @@ proof -
 
   note bounded' = integrable_bounded bounded_prod bounded_vec_mult_comp bounded_intros ttcv(5)
 
+  have \<mu>_ge_0: "\<mu> \<ge> 0" unfolding \<mu>_def using ttcv(2,6) by (intro sum_nonneg) auto
+
   have int: "integrable M (\<X> i)" if "i \<in> I" for i
     using that by (intro bounded') simp_all
 
@@ -147,6 +212,11 @@ proof -
       using t_lt_0 ttcv(6)[OF that] by (intro add_mono mult_left_mono_neg) auto
     finally show ?thesis by simp
   qed
+
+  have "\<delta> \<in> {0..<1}" using assms(1) by simp
+  from ln_one_minus_x_lower_bound[OF this]
+  have "\<delta>\<^sup>2 / 2 - \<delta>  \<le>  (1 - \<delta>) * ln (1 - \<delta>)" using assms(1) by (simp add:field_simps)
+  hence 1: "- \<delta> - (1 - \<delta>) * ln (1 - \<delta>) \<le> - \<delta>\<^sup>2 / 2" by (simp add:algebra_simps)
 
   have "?L = \<P>(\<omega> in M. (\<Sum>i \<in> I. \<X> i \<omega>) \<le> (1-\<delta>) * \<mu>)" using ttcv(3)[where \<eta>="Fwd"] by simp
   also have "\<dots> = \<P>(\<omega> in M. (\<Prod>i \<in> I. exp (t * \<X> i \<omega>)) \<ge> exp (t * (1-\<delta>) * \<mu>))"
@@ -173,6 +243,41 @@ proof -
   also have "\<dots> = exp (-\<delta>) powr \<mu> / exp ( ln(1-\<delta>)*(1-\<delta>)) powr \<mu>"
     unfolding powr_def by (simp add:ac_simps)
   also have "\<dots> = ?R" using assms(1) by (subst powr_divide) (simp_all add:powr_def)
+  finally show "?L \<le> ?R" by simp
+  also have "\<dots> = exp (\<mu> * (- \<delta> - (1 - \<delta>) * ln (1 - \<delta>)))" 
+    using assms(1) unfolding powr_def by (simp add:ln_div)
+  also have "\<dots> \<le> exp (\<mu> * (-(\<delta>^2) / 2 ))"
+    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono \<mu>_ge_0 1)
+  finally show "?L \<le> ?R1" by (simp add:ac_simps)
+qed
+
+theorem multiplicative_chernoff_bound_two_sided:
+  assumes "\<delta> \<in> {0<..<1}"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> AE \<omega> in M. X i \<omega> \<in> {0..1}"
+  defines "\<mu> \<equiv> (\<Sum>i \<in> I. expectation (X i))"
+  shows "\<P>(\<omega> in M. \<bar>(\<Sum>i \<in> I. X i \<omega>) - \<mu>\<bar> \<ge> \<delta>*\<mu>) \<le> 2*(exp (-(\<delta>^2)*\<mu>/3))" (is "?L \<le> ?R")
+proof -
+  define \<X> where "\<X> = (\<lambda>i. clamp 0 1 \<circ> X i)"
+  have transfer_to_clamped_vars_assms: "(\<forall>i\<in>I. AE \<omega> in M. X i \<omega> \<in> {0 .. 1} \<and> 0 \<le> (1::real))"
+    using assms(2) by auto
+  note ttcv = transfer_to_clamped_vars[OF transfer_to_clamped_vars_assms \<X>_def]
+
+  have \<mu>_ge_0: "\<mu> \<ge> 0" unfolding \<mu>_def using ttcv(2,6) by (intro sum_nonneg) auto
+
+  note [measurable] = neg_assoc_imp_measurable[OF na_X]
+
+  have "?L = \<P>(\<omega> in M. (\<Sum>i\<in>I. X i \<omega>) \<ge> (1+\<delta>)*\<mu> \<or> (\<Sum>i\<in>I. X i \<omega>) \<le> (1-\<delta>)*\<mu>)" unfolding abs_real_def
+    by (intro arg_cong[where f="prob"] Collect_cong) (auto simp:algebra_simps)
+  also have "\<dots> =measure M({\<omega>\<in>space M.(\<Sum>i\<in>I. X i \<omega>)\<ge>(1+\<delta>)*\<mu>}\<union>{\<omega>\<in>space M. (\<Sum>i\<in>I. X i \<omega>)\<le>(1-\<delta>)*\<mu>})"
+    by (intro arg_cong[where f="prob"]) auto
+  also have "\<dots> \<le> \<P>(\<omega> in M. (\<Sum>i\<in>I. X i \<omega>) \<ge> (1+\<delta>)*\<mu>) + \<P>(\<omega> in M.(\<Sum>i\<in>I. X i \<omega>) \<le> (1-\<delta>)*\<mu> )"
+    by (intro measure_Un_le) measurable
+  also have "\<dots> \<le> exp (-(\<delta>^2)*\<mu>/(2+\<delta>)) + exp (-(\<delta>^2)*\<mu>/2)"
+    unfolding \<mu>_def using assms(1,2)
+    by (intro multiplicative_chernoff_bound_lower multiplicative_chernoff_bound_upper add_mono) auto
+  also have "\<dots> \<le> exp (-(\<delta>^2)*\<mu>/3) + exp (-(\<delta>^2)*\<mu>/3)"
+    using assms(1) \<mu>_ge_0 by (intro iffD2[OF exp_le_cancel_iff] add_mono divide_left_mono_neg) auto
+  also have "\<dots> = ?R" by simp
   finally show ?thesis by simp
 qed
 
@@ -488,7 +593,7 @@ proof -
 
   have "?L = \<P>(\<omega> in M. (\<Sum>i\<in>I. X i \<omega>) \<ge> \<mu>+\<delta>*n \<or> (\<Sum>i\<in>I. X i \<omega>) \<le> \<mu>-\<delta>*n )"
     unfolding abs_real_def by (intro arg_cong[where f="prob"] Collect_cong) auto
-  also have "\<dots> = measure M ({\<omega>\<in>space M. (\<Sum>i\<in>I. X i \<omega>)\<ge>\<mu>+\<delta>*n}\<union>{\<omega> \<in> space M. (\<Sum>i\<in>I. X i \<omega>)\<le>\<mu>-\<delta>*n})"
+  also have "\<dots> = measure M ({\<omega>\<in>space M. (\<Sum>i\<in>I. X i \<omega>)\<ge>\<mu>+\<delta>*n}\<union>{\<omega>\<in>space M. (\<Sum>i\<in>I. X i \<omega>)\<le>\<mu>-\<delta>*n})"
     by (intro arg_cong[where f="prob"]) auto
   also have "\<dots> \<le> \<P>(\<omega> in M. (\<Sum>i\<in>I. X i \<omega>) \<ge> \<mu>+\<delta>*n) + \<P>(\<omega> in M.(\<Sum>i\<in>I. X i \<omega>) \<le> \<mu>-\<delta>*n )"
     by (intro measure_Un_le) measurable
@@ -497,5 +602,7 @@ proof -
   also have "\<dots> = ?R" by simp
   finally show ?thesis by simp
 qed
+
+end
 
 end

@@ -19,7 +19,7 @@ in the work by Joag-Dev~\cite{joagdev1983}, however after close inspection that 
 missing a lot of details. In fact, we don't know whether it is correct, at least we couldn't follow
 it steps.\<close>
 
-theory Negative_Association_Permtutation_Distributions
+theory Negative_Association_Permutation_Distributions
   imports
     Negative_Association_Definition
     Negative_Association_FKG_Inequality
@@ -732,8 +732,6 @@ proof-
     unfolding bij_pmf_def by (intro map_pmf_of_set_bij_betw bij_betw_non_empty_finite assms)
 qed
 
-find_theorems "size (?x :: 'a multiset)"
-
 lemma pmf_of_multiset_eq_pmf_of_setI:
   assumes "c > 0"  "x \<noteq> {#}"
   assumes "\<And>i. i \<in> y \<Longrightarrow> count x i = c"
@@ -938,10 +936,10 @@ lemma permutation_distributions_are_neg_associated:
   fixes I :: "'b set"
   assumes "finite F" "finite I" "card I = card F"
   shows "measure_pmf.neg_assoc (bij_pmf I F) (\<lambda>i \<omega>. \<omega> i) I"
-proof (rule measure_pmf.neg_assocI, goal_cases)
+proof (rule measure_pmf.neg_assocI2, goal_cases)
   case (1 i) thus ?case by simp
 next
-  case (2 \<f> \<g> J)
+  case (2 f g J)
 
   have fin_J: "finite J"  using 2(1) assms(2) finite_subset by metis
   have fin_I_J: "finite (I-J)"  using 2(1) assms(2) finite_subset by blast
@@ -959,30 +957,14 @@ next
 
   note integrable_p0[simp] = integrable_measure_pmf_finite[OF set_pmf_p0(2), where 'b="real"]
 
-  define f_max where "f_max = (MAX x \<in> set_pmf ?p0. \<bar>\<f> x\<bar>)"
-  define g_max where "g_max = (MAX x \<in> set_pmf ?p0. \<bar>\<g> x\<bar>)"
+  note dep_f = 2(2)
+  note dep_g = 2(3)
 
-  define f where "f = clamp (-f_max) f_max \<circ> \<f>"
-  define g where "g = clamp (-g_max) g_max \<circ> \<g>"
+  have bounded_f: "bounded (f ` S)" for S using bounded_subset[OF 2(6) image_mono] by simp
+  have bounded_g: "bounded (g ` S)" for S using bounded_subset[OF 2(7) image_mono] by simp
 
-  have f_cong: "f x = \<f> x" if "x \<in> set_pmf ?p0" for x
-    unfolding f_def f_max_def comp_def using that
-    by (intro clamp_eqI[symmetric] Max.coboundedI finite_imageI set_pmf_p0(2)) auto
-
-  have g_cong: "g x = \<g> x" if "x \<in> set_pmf ?p0" for x
-    unfolding g_def g_max_def comp_def using that
-    by (intro clamp_eqI[symmetric] Max.coboundedI finite_imageI set_pmf_p0(2)) auto
-
-  have dep_f: "depends_on f J" unfolding f_def by (intro depends_on_comp[OF 2(2)])
-  have dep_g: "depends_on g (I-J)" unfolding g_def by (intro depends_on_comp[OF 2(3)])
-
-  have bounded_f: "bounded (f ` S)" for S unfolding f_def by (intro bounded_clamp)
-  have bounded_g: "bounded (g ` S)" for S unfolding g_def by (intro bounded_clamp)
-
-  have mono_f: "mono f" using monoD[OF 2(4)]
-    unfolding f_def clamp_real_def by (intro monoI) fastforce
-  have mono_g: "mono g" using monoD[OF 2(5)]
-    unfolding g_def clamp_real_def by (intro monoI) fastforce
+  note mono_f = 2(4)
+  note mono_g = 2(5)
 
   let ?L = "ordered_set_lattice F k"
 
@@ -1098,9 +1080,8 @@ next
 
   note split_p0 = split_bij_pmf[OF assms(2,1,3) 2(1)]
 
-  have "(\<integral>x. \<f> x * \<g> x \<partial>?p0) = (\<integral>x. f x * g x \<partial>bij_pmf I F)"
-    using f_cong g_cong by (intro integral_cong_AE AE_pmfI) auto
-  also have "\<dots> = (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f(merge J (I-J) (\<phi>,\<psi>))*g(merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
+  have "(\<integral>x. f x * g x \<partial>bij_pmf I F)  = 
+    (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f(merge J (I-J) (\<phi>,\<psi>))*g(merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
     unfolding k_def by (simp add:split_p0 bounded_intros bounded_f bounded_g integral_bind_pmf)
   also have "\<dots> = (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f \<phi>*g \<psi> \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
     by (intro integral_cong_AE AE_pmfI arg_cong2[where f="(*)"] depends_onD2[OF dep_f]
@@ -1117,11 +1098,7 @@ next
         depends_onD2[OF dep_g]) simp_all
   also have "\<dots> = (\<integral>x. f x \<partial>?p0) * (\<integral>x. g x \<partial>?p0)"
     unfolding k_def by (simp add:split_p0 bounded_intros bounded_f bounded_g integral_bind_pmf)
-  also have "\<dots> = (\<integral>x. \<f> x \<partial>?p0) * (\<integral>x. \<g> x \<partial>?p0)"
-    using f_cong g_cong by (intro arg_cong2[where f="(*)"] integral_cong_AE AE_pmfI) auto
-  finally have "(\<integral>x. \<f> x * \<g> x \<partial>?p0) \<le> (\<integral>x. \<f> x \<partial>?p0)*(\<integral>x. \<g> x \<partial>?p0)"
-    by simp
-  then show ?case by (subst measure_pmf.covariance_eq) (simp_all add:comp_def)
+  finally show "(\<integral>x. f x * g x \<partial>?p0) \<le> (\<integral>x. f x \<partial>?p0)*(\<integral>x. g x \<partial>?p0)" by simp
 qed
 
 lemma multiset_permutation_distributions_are_neg_associated:
@@ -1171,6 +1148,54 @@ proof -
   hence "measure_pmf.neg_assoc (map_pmf (\<lambda>f. (\<lambda>i\<in>I. \<alpha>(f i))) (bij_pmf I {..<size F})) (\<lambda>i \<omega>. \<omega> i) I"
     by (simp add:neg_assoc_map_pmf restrict_def if_distrib if_distribR)
   thus ?thesis unfolding 1 by simp
+qed
+
+lemma k_combination_distribution_neg_assoc:
+  assumes "finite S" "k \<le> card S"
+  defines "p \<equiv> pmf_of_set {T. T \<subseteq> S \<and> card T = k}"
+  shows "measure_pmf.neg_assoc p (\<lambda>s \<omega>. of_bool(s \<in> \<omega>)::real) S" 
+proof -
+  define F :: "real multiset" where "F = replicate_mset k 1 + replicate_mset (card S - k) 0"
+  let ?qset = "{ \<phi> \<in> extensional S. image_mset \<phi> (mset_set S) = F }"
+  define q where "q = pmf_of_set ?qset"
+
+  have a: "card S = size F" unfolding F_def using assms(2) by simp
+
+  have b: "image_mset \<phi> (mset_set S) = F \<longleftrightarrow> card (\<phi> -` {1} \<inter> S) = k \<and> \<phi> ` S \<subseteq> {0,1}" 
+    (is "?L \<longleftrightarrow> ?R") for \<phi>
+  proof -
+    have "\<phi> ` S \<subseteq> {0,1} \<longleftrightarrow> \<phi>-`{0}\<inter>S \<union> \<phi>-`{1}\<inter>S = S" by auto
+    also have "\<dots> \<longleftrightarrow> card ( \<phi>-`{0}\<inter>S \<union> \<phi>-`{1}\<inter>S) = card S"
+      by (intro iffI card_subset_eq[OF assms(1)]) auto
+    also have "\<dots> \<longleftrightarrow> card (\<phi>-`{0}\<inter>S) + card (\<phi>-`{1}\<inter>S) = card S"
+      using assms(1) by (subst card_Un_disjoint) auto 
+    finally have de: "\<phi> ` S \<subseteq> {0,1} \<longleftrightarrow> card (\<phi>-`{0}\<inter>S) + card (\<phi>-`{1}\<inter>S) = card S"  by simp
+
+    have "?L \<longleftrightarrow> (\<forall>i. count {#\<phi> x. x\<in>#mset_set S#} i = count F i)" using multiset_eq_iff by blast
+    also have "\<dots> \<longleftrightarrow> (\<forall>i. card (\<phi> -` {i} \<inter> S) = count F i)"
+      unfolding count_image_mset_eq_card_vimage[OF assms(1)] vimage_def Int_def 
+      by (simp add:conj_commute)
+    also have "\<dots> \<longleftrightarrow> card (\<phi> -` {1} \<inter> S) = k \<and> card (\<phi> -` {0} \<inter> S) = (card S-k) \<and> \<phi> ` S \<subseteq> {0,1}"
+      unfolding F_def using assms(1) by auto
+    also have "\<dots> \<longleftrightarrow> ?R" using assms(2) unfolding de by auto
+    finally show ?thesis by simp
+  qed
+  
+  have "bij_betw (\<lambda>\<omega>. \<lambda>s\<in>S. of_bool(s\<in>\<omega>)) {T. T\<subseteq>S \<and> card T = k} ?qset" unfolding b
+    by (intro bij_betwI[where g="\<lambda>\<phi>. {x. x \<in> S \<and> \<phi> x = 1}"] Pi_I ext)
+     (auto intro: arg_cong[where f="card"] simp:extensional_def vimage_def Int_def conj_commute)
+  moreover have "card {T. T \<subseteq> S \<and> card T = k} > 0" 
+    unfolding n_subsets[OF assms(1)] by (intro zero_less_binomial assms(2))
+  hence "{T. T \<subseteq> S \<and> card T = k} \<noteq> {} \<and> finite {T. T \<subseteq> S \<and> card T = k}" 
+    using card_gt_0_iff by blast
+  ultimately have c: "map_pmf (\<lambda>\<omega>. \<lambda>s\<in>S. of_bool(s\<in>\<omega>)) p = q"
+    unfolding p_def q_def by (intro map_pmf_of_set_bij_betw) auto
+
+  have "measure_pmf.neg_assoc (map_pmf (\<lambda>\<omega>. \<lambda>s\<in>S. of_bool(s\<in>\<omega>)::real) p) (\<lambda>i \<omega>. \<omega> i) S"
+    unfolding c q_def by (intro multiset_permutation_distributions_are_neg_associated a assms(1))
+  hence d:"measure_pmf.neg_assoc p (\<lambda>s \<omega>. if s \<in> S then of_bool (s \<in> \<omega>)::real else undefined) S"
+    unfolding neg_assoc_map_pmf by (simp add:restrict_def cong:if_cong)
+  show ?thesis by (intro measure_pmf.neg_assoc_cong[OF assms(1) _ d] AE_pmfI) auto
 qed
 
 end
