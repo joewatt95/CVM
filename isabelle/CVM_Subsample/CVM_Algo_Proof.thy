@@ -93,10 +93,10 @@ qed
 context
   fixes \<phi> :: \<open>real \<Rightarrow> bool \<Rightarrow> real\<close>
   assumes phi : 
-    \<open>\<And> x b. \<lbrakk>0 < x; x \<le> 1\<rbrakk> \<Longrightarrow> \<phi> x b \<ge> 0\<close> and
-    \<open>\<And> \<alpha> x.
-      \<lbrakk>0 < \<alpha>; \<alpha> < 1; 0 < x; x \<le> 1\<rbrakk> \<Longrightarrow>
-      (1 - \<alpha>) * \<phi> x False + \<alpha> * \<phi> x True \<le> \<phi> (x / \<alpha>) True \<close> and
+    \<open>\<And> x b. \<lbrakk>0 < x; x \<le> 1\<rbrakk> \<Longrightarrow> \<phi> x b \<ge> 0\<close>
+    \<open>\<And> p x.
+      \<lbrakk>0 < p; p < 1; 0 < x; x \<le> 1\<rbrakk> \<Longrightarrow>
+      measure_pmf.expectation (bernoulli_pmf p) (\<phi> x) \<le> \<phi> (x / p) True\<close>
     \<open>\<And> x y.
       \<lbrakk>0 < x; x \<le> y; y \<le> 1\<rbrakk> \<Longrightarrow>
       \<phi> x False \<le> \<phi> y False\<close>
@@ -128,15 +128,35 @@ lemma step_1_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (\<Prod> x \<in> S. aux x) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state)
+      \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_1 x) (\<Prod> x \<in> S. aux x)
+    \<open>measure_pmf.expectation (state \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
+    (is \<open>?L \<le> ?R\<close>)
 proof -
-  show ?thesis
-    apply (simp flip: map_pmf_def add: step_1_def)
+  from state_finite_support have
+    \<open>?L = (\<Sum> s \<in> set_pmf state.
+      pmf state s * measure_pmf.expectation (step_1 x' s) (\<lambda> s. \<Prod> x \<in> S. aux x s))\<close>
+    by (simp add: step_1_def pmf_expectation_bind)
+
+  also from f have
+    \<open>\<dots> = (\<Sum> s \<in> set_pmf state.
+      pmf state s * (
+        f ^ state_k s * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x = x' \<or> x \<in> state_chi s)) +
+        (1 - f ^ state_k s) * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x \<in> state_chi s \<and> x \<noteq> x'))))\<close>
+    by (simp flip: map_pmf_def add: step_1_def power_le_one Let_def algebra_simps)
+
+  also from phi have \<open>\<dots> \<le> ?R\<close>
+    (* using state_finite_support assms phi f
+    apply (simp flip: map_pmf_def add: step_1_def Let_def)
+    apply (subst (asm) integral_measure_pmf[of \<open>set_pmf state\<close>])
+    apply (auto simp add: power_le_one) *)
+    apply (simp add: power_le_one)
     sorry
+
+  finally show ?thesis .
 qed
 
 end
@@ -175,7 +195,7 @@ lemma step_2_preserves_expectation_le :
     \<open>measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_2) (\<Prod> x \<in> S. aux x)
+    \<open>measure_pmf.expectation (state \<bind> step_2) (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -186,24 +206,25 @@ lemma step_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (\<Prod> x \<in> S. aux x) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state)
+      \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step x) (\<Prod> x \<in> S. aux x)
+    \<open>measure_pmf.expectation (state \<bind> step x) (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
 qed
 
-lemma expectation_cvm:
+lemma run_steps_preserves_expectation_le :
   assumes
     \<open>finite U\<close>
-    \<open>\<And>S.
+    \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state) \<le> (\<phi> 1 True) ^ card S\<close>
   assumes \<open>S \<subseteq> set xs \<union> U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> run_steps xs) (\<Prod> x \<in> S. aux x)
+    \<open>measure_pmf.expectation (state \<bind> run_steps xs) (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -213,12 +234,12 @@ qed
 lemma run_steps_then_step_1_preserves_expectation_le :
   assumes
     \<open>finite U\<close>
-    \<open>\<And>S.
+    \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (\<Prod> x \<in> S. aux x) \<le> (\<phi> 1 True) ^ card S\<close>
+      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x (set xs \<union> U)\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> run_steps xs \<bind> step_1 x) (\<Prod> x \<in> S. aux x)
+    \<open>measure_pmf.expectation (state \<bind> run_steps xs \<bind> step_1 x) (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -240,14 +261,14 @@ abbreviation (input)
     in of_bool (p > q) * h ((1 / p) * indicat_real (state_chi state) x))\<close>
 
 (* Lemma 3 *)
-lemma expectation_cvm' :
+lemma run_steps_preserves_expectation_le' :
   assumes U: \<open>finite U\<close>
   assumes \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation stp (prod aux' S) \<le> (h 1) ^ card S\<close>
+      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux' x state) \<le> (h 1) ^ card S\<close>
   assumes \<open>S \<subseteq> set xs \<union> U\<close>
   shows
-    \<open>measure_pmf.expectation (stp \<bind> cvm xs) (prod aux2 S) \<le> (h 1) ^ card S\<close>
+    \<open>measure_pmf.expectation (state \<bind> run_steps xs) (\<lambda> state. \<Prod> x \<in> S. aux' x state) \<le> (h 1) ^ card S\<close>
 proof -
   show ?thesis sorry
 qed
