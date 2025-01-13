@@ -6,6 +6,8 @@ imports
 
 begin
 
+unbundle no_vec_syntax
+
 record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
@@ -14,8 +16,12 @@ definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
 locale cvm_algo =
-  fixes threshold :: nat and f :: real
+  fixes threshold :: nat and subsample_size :: nat
+  assumes subsample: "subsample_size < threshold"
 begin
+
+definition f :: real 
+  where "f = subsample_size / threshold"
 
 definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
@@ -32,7 +38,7 @@ definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow>
     return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
-  \<open>subsample \<equiv> \<lambda> chi. pmf_of_set {S \<in> Pow chi. card S = threshold * f}\<close>
+  \<open>subsample \<equiv> \<lambda> chi. pmf_of_set {S. S \<subseteq> chi \<and> card S = subsample_size}\<close>
 
 definition step_2 :: \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_2 \<equiv> \<lambda> state. do {
@@ -53,8 +59,8 @@ abbreviation foldM_pmf ::
   \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 
 definition run_steps ::
-  \<open>'a list \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
-  \<open>run_steps \<equiv> foldM_pmf step\<close>
+  \<open>'a list \<Rightarrow> 'a state pmf\<close> where
+  \<open>run_steps xs \<equiv> foldM_pmf step xs initial_state\<close>
 
 end
 
