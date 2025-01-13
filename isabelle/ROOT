@@ -6,6 +6,7 @@ session Negative_Association in "Negative_Association" = "HOL-Probability" +
     Birkhoff_Finite_Distributive_Lattices
     Twelvefold_Way
     Expander_Graphs
+    Executable_Randomized_Algorithms
 
   theories
     Negative_Association_Chernoff_Bounds

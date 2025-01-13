@@ -26,27 +26,9 @@ theory Negative_Association_Permutation_Distributions
     Negative_Association_More_Lattices
     Finite_Fields.Finite_Fields_More_PMF
     "HOL-Types_To_Sets.Types_To_Sets"
-    (* Executable_Randomized_Algorithms.Randomized_Algorithm *) (* pmf_eq_iff_le *)
+    Executable_Randomized_Algorithms.Randomized_Algorithm (* pmf_eq_iff_le *)
     Twelvefold_Way.Card_Bijections
 begin
-
-(* From `Executable_Randomized_Algorithms.Randomized_Algorithm`` *)
-lemma pmf_eq_iff_le:
-  fixes p q :: "'a pmf"
-  assumes "\<And>x. pmf p x \<le> pmf q x"
-  shows "p = q"
-proof -
-  have "(\<integral>x. pmf q x - pmf p x \<partial>count_space UNIV) = 0"
-    by (simp_all add:integrable_pmf integral_pmf)
-  moreover have "integrable (count_space UNIV) (\<lambda>x. pmf q x - pmf p x)"
-    by (simp add:integrable_pmf)
-  moreover  have "AE x in count_space UNIV. 0 \<le> pmf q x - pmf p x"
-    using assms unfolding AE_count_space by auto
-  ultimately have "AE x in count_space UNIV. pmf q x - pmf p x = 0"
-    using integral_nonneg_eq_0_iff_AE by blast
-  hence "\<And>x. pmf p x = pmf q x" unfolding AE_count_space by simp
-  thus ?thesis by (intro pmf_eqI) auto
-qed
 
 text \<open>The following introduces a lattice for n-element subsets of a finite set (with size larger
 or equal to n.) A subset $x$ is smaller or equal to $y$, if the smallest element of $x$ is
