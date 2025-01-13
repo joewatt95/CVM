@@ -7,18 +7,18 @@ imports
 begin
 
 locale cvm_algo_proof = cvm_algo +
-  assumes f : \<open>1 / 2 \<le> f\<close> \<open>f < 1\<close> \<open>n * f \<in> \<nat>\<close>
-begin                       
+  assumes f : \<open>1 / 2 \<le> f\<close> \<open>f < 1\<close> \<open>threshold * f \<in> \<nat>\<close>
+begin
 
 (* Lemma 1 *)
 lemma int_prod_subsample_eq_prod_int:
   fixes g :: \<open>bool \<Rightarrow> real\<close>
   assumes
-    \<open>finite U\<close> \<open>card U = n\<close>
+    \<open>finite U\<close> \<open>card U = threshold\<close>
     \<open>S \<subseteq> U\<close> \<open>range g \<subseteq> {0..}\<close>
   shows \<open>(\<integral>\<omega>. (\<Prod>s\<in>S. g(s \<in> \<omega>)) \<partial>subsample U) \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>bernoulli_pmf f))\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
-  obtain k where k_eq: \<open>real k = real n * f\<close> by (metis f(3) Nats_cases)
+  obtain k where k_eq: \<open>real k = real threshold * f\<close> by (metis f(3) Nats_cases)
   define \<eta> where \<open>\<eta> = (if g True \<ge> g False then Fwd else Rev)\<close>
 
   let ?C = "{T. T \<subseteq> U \<and> card T = k}"
@@ -26,7 +26,7 @@ proof -
   have subsample_eq: \<open>subsample U = pmf_of_set ?C\<close>
     unfolding subsample_def k_eq[symmetric] by auto
 
-  have k_le_n: \<open>real k \<le> real n\<close>
+  have k_le_n: \<open>real k \<le> real threshold\<close>
     using f(2) by (simp add: mult_le_cancel_right2 mult_of_nat_commute k_eq)
   hence k_le_card_U: \<open>k \<le> card U\<close>
     unfolding assms(2) by simp
@@ -55,7 +55,7 @@ proof -
 
   have c: \<open>map_pmf (\<lambda>\<omega>. s \<in> \<omega>) (subsample U) = bernoulli_pmf f\<close> if \<open>s \<in> U\<close> for s
   proof -
-    have n_gt_0: \<open>n > 0\<close> using that assms(1,2) card_gt_0_iff by blast
+    have threshold_gt_0: \<open>threshold > 0\<close> using that assms(1,2) card_gt_0_iff by blast
 
     have \<open>measure (pmf_of_set ?C) {x. s \<notin> x} = real (card {T. T\<subseteq>U \<and> card T = k \<and> s \<notin> T}) / card ?C\<close>
       using b by (subst measure_pmf_of_set) (simp_all add:Int_def)
@@ -63,13 +63,13 @@ proof -
       by (intro arg_cong2[where f="(\<lambda>x y. real (card x)/y)"] Collect_cong) auto
     also have \<open>\<dots> = real(card (U - {s}) choose k) / real (card U choose k)\<close>
       using assms(1) by (subst (1 2) n_subsets) auto
-    also have \<open>\<dots> = real((n - 1) choose k) / real (n choose k)\<close>
+    also have \<open>\<dots> = real((threshold - 1) choose k) / real (threshold choose k)\<close>
       using assms(2) that by simp
-    also have \<open>\<dots> = real(n * ((n - 1) choose k)) / real (n * (n choose k))\<close>
-      using n_gt_0 by simp 
-    also have \<open>\<dots> = real (n - k) / real n\<close> unfolding binomial_absorb_comp[symmetric] using a by simp
-    also have \<open>\<dots> = (real n - real k) / real n\<close> using k_le_n by (subst of_nat_diff) auto
-    also have \<open>\<dots> = 1-f\<close> using n_gt_0 unfolding k_eq by (simp add:field_simps)
+    also have \<open>\<dots> = real(threshold * ((threshold - 1) choose k)) / real (threshold * (threshold choose k))\<close>
+      using threshold_gt_0 by simp 
+    also have \<open>\<dots> = real (threshold - k) / real threshold\<close> unfolding binomial_absorb_comp[symmetric] using a by simp
+    also have \<open>\<dots> = (real threshold - real k) / real threshold\<close> using k_le_n by (subst of_nat_diff) auto
+    also have \<open>\<dots> = 1-f\<close> using threshold_gt_0 unfolding k_eq by (simp add:field_simps)
     finally have \<open>1-measure (pmf_of_set ?C) {x. s \<notin> x} = f\<close> by simp
 
     hence \<open>measure (pmf_of_set ?C) {x. s \<in> x} = f\<close>
@@ -88,7 +88,6 @@ proof -
   also have \<open>\<dots> = ?R\<close> using c assms(3) by (intro prod.cong refl) (metis in_mono)
   finally show ?thesis by simp
 qed
-
 
 (* Copied as-is for Lemma 2 *)
 context
@@ -115,6 +114,15 @@ abbreviation (input)
     state_chi st \<subseteq> U
 *)
 
+context
+  fixes state :: \<open>('a, 'b) state_scheme pmf\<close>
+  assumes state_finite_support : \<open>finite <| set_pmf state\<close>
+begin
+
+lemma step_1_preserves_finite_support :
+  \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close>
+  by (simp flip: map_pmf_def add: state_finite_support step_1_def)
+
 lemma step_1_preserves_expectation_le :
   assumes
     \<open>finite U\<close>
@@ -125,19 +133,47 @@ lemma step_1_preserves_expectation_le :
   shows
     \<open>measure_pmf.expectation (state \<bind> step_1 x) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
-proof - 
-  show ?thesis sorry
+proof -
+  show ?thesis
+    apply (simp flip: map_pmf_def add: step_1_def)
+    sorry
+qed
+
+end
+
+context
+  fixes state :: \<open>('a, 'b) state_scheme pmf\<close>
+  assumes
+    state_finite_support : \<open>finite <| set_pmf state\<close> and
+    threshold_pos : \<open>threshold > 0\<close>
+begin
+
+lemma step_2_preserves_finite_support :
+  \<open>finite <| set_pmf <| state \<bind> step_2\<close>
+proof -
+  from threshold_pos linorder_not_le have
+    \<open>finite (set_pmf <| prod_pmf (state_chi state) \<lblot>bernoulli_pmf <| 1 / 2\<rblot>)\<close>
+    if \<open>card (state_chi state) \<ge> threshold\<close> for state :: \<open>('a, 'b) state_scheme\<close>
+    using that
+    apply (subst set_prod_pmf)
+    by (fastforce intro!: finite_PiE)+
+
+  then show ?thesis
+    apply (auto
+      simp add: state_finite_support not_less step_2_def Let_def)
+    sorry
 qed
 
 lemma step_2_preserves_expectation_le :
   assumes
+    \<open>finite <| set_pmf <| state \<bind> step_2\<close>
     \<open>finite U\<close>
     \<open>measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> U\<close>
   shows
     \<open>measure_pmf.expectation (state \<bind> step_2) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
-proof - 
+proof -
   show ?thesis sorry
 qed
 
@@ -151,7 +187,7 @@ lemma step_preserves_expectation_le :
   shows
     \<open>measure_pmf.expectation (state \<bind> step x) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
-proof - 
+proof -
   show ?thesis sorry
 qed
 
@@ -165,7 +201,7 @@ lemma expectation_cvm:
   shows
     \<open>measure_pmf.expectation (state \<bind> run_steps xs) (\<Prod> x \<in> S. aux x)
     \<le> (\<phi> 1 True) ^ card S\<close>
-proof - 
+proof -
   show ?thesis sorry
 qed
 
