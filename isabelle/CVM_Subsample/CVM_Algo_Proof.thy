@@ -155,18 +155,17 @@ proof -
     \<open>finite <| set_pmf <| pmf_of_set {S \<in> Pow chi. card S = threshold * f}\<close>
     if \<open>card chi \<ge> threshold\<close> for chi :: \<open>'a set\<close>
   proof -
-    from threshold_pos f that
-    obtain S where \<open>S \<subseteq> chi\<close> \<open>card S = threshold * f\<close>
-      by (metis Nats_cases[of "threshold * f"] dual_order.strict_trans1[of _ threshold "card chi"] ex_card[of _ chi] less_eq_real_def[of f "1"] more_arith_simps(6)[of "of_nat threshold"]
-        mult_left_mono[of f "1" "threshold"] not_less[of threshold] not_less[of "card chi"] not_less[of "of_nat threshold" "of_nat _"] of_nat_0_le_iff[of threshold] of_nat_less_iff[of threshold])
+    from f that obtain S where \<open>S \<subseteq> chi\<close> \<open>card S = threshold * f\<close>
+      apply (simp add: algebra_simps)
+      by (metis Nats_cases less_eq_real_def mult_right_mono obtain_subset_with_card_n of_nat_0_le_iff of_nat_le_iff order_trans verit_prod_simplify(1))
 
     with threshold_pos that show ?thesis
       apply (subst set_pmf_of_set)
       using infinite_super by fastforce+
   qed
 
-  then show ?thesis
-    by (simp add: state_finite_support step_2_def subsample_def Let_def)
+  with state_finite_support show ?thesis
+    by (simp add: step_2_def subsample_def Let_def)
 qed
 
 lemma step_2_preserves_expectation_le :
