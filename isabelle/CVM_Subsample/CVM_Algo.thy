@@ -10,6 +10,9 @@ record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
 
+definition initial_state :: \<open>'a state\<close> where
+  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
+
 locale cvm_algo =
   fixes n :: nat and f :: real
 begin
@@ -42,14 +45,14 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
       |> subsample
       |> map_pmf (\<lambda> chi. \<lparr>state_k = k + 1, state_chi = chi\<rparr>)) }\<close>
 
-definition step :: "'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf" where
+definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step x st \<equiv> step_1 x st \<bind> step_2\<close>
 
 abbreviation foldM_pmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
   \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 
-definition run_steps :: "'a list \<Rightarrow> 'a state \<Rightarrow> 'a state pmf" where
+definition run_steps :: \<open>'a list \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps \<equiv> foldM_pmf step\<close>
 
 end

@@ -360,7 +360,7 @@ proof -
   also have "\<dots> = (1 + (exp t - 1) * \<mu>) powr ?n / exp (t*(\<mu>+\<delta>)) powr ?n"
     unfolding powr_def by simp
   also have "\<dots> = ((1 + (exp t - 1) * \<mu>)/exp(t*(\<mu>+\<delta>))) powr ?n"
-    using a t_gt_0 by (intro powr_divide[symmetric] add_nonneg_nonneg mult_nonneg_nonneg) simp_all
+    using a t_gt_0 by (auto intro: powr_divide[symmetric] add_nonneg_nonneg mult_nonneg_nonneg)
   also have "\<dots> = (exp (- ln((1-\<mu>-\<delta>) / (1-\<mu>))) * exp( -(t * (\<mu>+\<delta>)))) powr ?n"
     unfolding 1 exp_minus inverse_eq_divide by simp
   also have "\<dots> = exp ( -ln((1 - \<mu>-\<delta>)/(1 - \<mu>))- t * (\<mu>+\<delta>)) powr ?n"

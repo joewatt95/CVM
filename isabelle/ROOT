@@ -6,21 +6,33 @@ session Negative_Association in "Negative_Association" = "HOL-Probability" +
     Birkhoff_Finite_Distributive_Lattices
     Twelvefold_Way
     Expander_Graphs
+
   theories
     Negative_Association_Chernoff_Bounds
     Negative_Association_Permutation_Distributions
 
+session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
+  options [timeout = 300]
+
+  sessions
+    Probabilistic_Prime_Tests
+
+  theories
+    CVM_Algo
+    CVM_Algo_Proof
+    Helper
+
 session CVM = "CryptHOL" +
   options [timeout = 300]
 
-sessions
+  sessions
     Negative_Association
-    "Universal_Hash_Families"
-    "Finite_Fields"
-    "Concentration_Inequalities"
-    "Probabilistic_While"
-    "Constructive_Cryptography_CM"
-    "ABY3_Protocols"
+    Universal_Hash_Families
+    Finite_Fields
+    Concentration_Inequalities
+    Probabilistic_While
+    Constructive_Cryptography_CM
+    ABY3_Protocols
 
   directories
     "Utils"
