@@ -142,7 +142,8 @@ private method simps = (
   simp
     flip: map_pmf_def
     add: step_1_def pmf_expectation_bind power_le_one Let_def,
-  simp add: integral_measure_pmf algebra_simps)
+  simp add: integral_measure_pmf algebra_simps,
+  intro sum.cong[OF refl])
 
 lemma step_1_preserves_expectation_le :
   assumes
@@ -164,7 +165,7 @@ proof (cases \<open>x' \<in> S\<close>)
   moreover from calculation state_finite_support f f_le_1
   have \<open>?L = ?L' S\<close>
     apply simps
-    by (smt (verit, ccfv_SIG) prod.cong sum.cong)
+    by (smt (verit, best) prod.cong)
 
   ultimately show ?thesis by auto
 next
@@ -175,7 +176,6 @@ next
         measure_pmf.expectation (bernoulli_pmf <| f ^ state_k s) (\<phi> <| f ^ state_k s) ))\<close>
     (is \<open>_ = ?L'' (\<lambda> _ :: (_, _) state_scheme. measure_pmf.expectation _ _)\<close>)
     apply simps
-    apply (intro sum.cong[OF refl])
     by (smt (verit, best) Diff_iff finite.intros(2) insertCI prod.cong prod.remove rev_finite_subset)
 
   also from f f_le_1 phi have \<open>\<dots> \<le> ?L'' \<lblot>\<phi> 1 True\<rblot>\<close>
