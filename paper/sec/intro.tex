@@ -1,0 +1,58 @@
+\section{Introduction}
+\label{sec:intro}
+
+In 2022, Chakraborty, Vinodchandran, and Meel~\cite{DBLP:conf/esa/0001VM22} published a marvelous streaming algorithm for the distinct elements problem, which was very unexpected in the community.
+Indeed, Knuth later published a note on the algorithm, pointing out its simplicity and also christening it the \emph{CVM} algorithm (which we will follow for the rest of this paper).
+One striking property of the algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
+Indeed, the algorithm could theoretically be implemented in a setting where the objects in the data stream only allow for equality comparisons.
+Another property is its simplicity, which is why the authors called it ``an algorithm for the text-book''---the algorithm is shown in its entirety in~\cref{alg:cvm}.
+
+\begin{algorithm}[h!]
+	\caption{CVM algorithm for distinct elements estimation.}\label{alg:cvm}
+	\begin{algorithmic}[1]
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A randomized cardinality approximation $c$ for set $A = \{ a_1,\dots,a_l \}$ with $$\Pr_c \left( | c - |A| | > \varepsilon |A| \right) \leq \delta$$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil{\frac{12}{\varepsilon^2} \ln{(\frac{81}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State {TODO}
+  \EndFor
+  \Return $\frac{|\chi|}{p}$
+  \end{algorithmic}
+\end{algorithm}
+
+The algorithm's state is a buffer $\chi$ and a fraction $p > 0$.
+The buffer contains a subset of the elements of the stream encountered so far, with maximal size $n$.
+The size is chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
+The algorithm iterates over stream elements, adding each one to the buffer with probability $p$, and conversely removing them with probability $(1-p)$.
+If the buffer gets too large, approximately half of the elements are removed by discarding each element in $\chi$ independently with probability $\frac{1}{2}$; then, $p$ is adjusted to reflect the fact that the buffer now contains each element with probability $p_\text{new} = \frac{p_\text{old}}{2}$.
+After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as an approximation of the number of distinct elements in the stream.
+This output is probably-approximately correct, i.e., the probability that the relative error of $\frac{|\chi|}{p}$ exceeds $\varepsilon$ is at most $\delta$.
+
+The pen-and-paper proof of correctness for~\cref{alg:cvm} is remarkably simple, requiring only undergraduate-level exposure to the concepts of randomized algorithms.
+We set out to formalize the proof as described in the literature~\cite{DBLP:conf/esa/0001VM22}, hoping that it would be an easy exercise for the formalized algorithms textbook.
+
+%TODO: a bit too long in details, we should trim this and move to later section
+\subparagraph*{The road not taken:}
+One of the difficult aspects of the proof is that it relies on an eager-lazy coin flip conversion.
+To understand that, we should note that none of the observable random variables, such as the presence of a stream element in the buffer or conditions on the value of $p$, are independent of the other state variables, which makes the algorithm hard to analyze and makes the application of standard techniques from probability theory, such as Hoeffding's theorem impossible.
+The authors resolved that problem by a simulation argument---they show that~\cref{alg:cvm} behaves stochastically identically to a different algorithm, which makes the relevant coin flips in a different order.
+That modified algorithm performs a column of coin flips for each stream element.
+An element is kept in the buffer if the first $k=log2(p-1)$ rows of the column are heads.
+At each sub-sampling step, when p is divided by two, i.e., if k increases by one.
+The algorithm examines the newly activated $k$-th row of the previous sequence elements to decide whether the element should be kept in the buffer.
+This preserves the invariant that the buffer consists of exactly those sequence elements whose associated coin flip column starts with $log2(p-1)$ heads.
+Of course, the new algorithm is not practical for actual implementation, but one can verify its correctness using standard Chernoff bounds, and on the other hand, it is possible to show that its behavior is equivalent to Algorithm 1.
+To summarize, while the algorithm is marvelous, the proof was still very technical.
+The simulation argument, in particular, is not so elegant to formalize.
+
+\subparagraph*{A more direct proof:}
+We set out to try to find a more direct proof, which also eases the formalization effort.
+For the following discussion, we will analyze Algorithm 1 with line 8 removed, i.e., the algorithm does not output $\bot$, nor performs a second check of $|\chi|=n$.
+Note that this happens if the very improbable event where none of the elements in X are removed during a subsampling step, which happens with probability at most $2^{-n/2}$.
+Overall, the probability of it happening during the course of the algorithm is at most $\frac{\delta}{2}$. (Note that removing line 8 does not affect the correctness of the algorithm, but it loses its space consumption bound.)
+It is easy to see that any probability established about the algorithm missing line 8 will be true for the original algorithm with a possible correction by, at most,  $\frac{\delta}{2}$.
+We will remember and correct this at the end of this section.
+
+Let us consider an imaginary situation where, somehow, $p$ is fixed at some point in the algorithm.
+For example, we could imagine a final sub-sampling loop, which is run until a fixed $p$ is reached.
+Then, the indicator random variables representing the presence of a stream element TODO
