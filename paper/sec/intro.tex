@@ -1,11 +1,11 @@
 \section{Introduction}
 \label{sec:intro}
 
-In 2022, Chakraborty, Vinodchandran, and Meel~\cite{DBLP:conf/esa/0001VM22} published a marvelous streaming algorithm for the distinct elements problem, which was very unexpected in the community.
-Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its simplicity and christening it the \emph{CVM} algorithm (which we will use for the rest of this paper).
-One striking property of the algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
+In 2022, Chakraborty, Vinodchandran, and Meel~\cite{DBLP:conf/esa/0001VM22} published a marvelous streaming algorithm for the distinct elements problem, which was very unexpected in the community~\cite{quanta}.
+Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its simplicity and christening it the \emph{CVM} algorithm (which we use for the rest of this paper).
+One striking property of the CVM algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
 Instead, the algorithm could theoretically be implemented in a setting where the objects in the data stream only allow for equality comparisons.
-Another property is its simplicity, which is why the authors called it ``an algorithm for the text book''---the algorithm is shown in its entirety in~\cref{alg:cvm}.
+Another property is its simplicity---which is why the authors called it ``an algorithm for the text book''---the algorithm is shown in its entirety in~\cref{alg:cvm}.
 
 \begin{algorithm}[h!]
 	\caption{CVM algorithm for distinct elements estimation.}\label{alg:cvm}
@@ -32,6 +32,7 @@ Another property is its simplicity, which is why the authors called it ``an algo
   \end{algorithmic}
 \end{algorithm}
 
+%TODO: I think this should be later, we can give a forward reference
 The algorithm's state is a buffer $\chi$ and a fraction $p > 0$.
 The buffer contains a subset of the elements of the stream encountered so far, with maximal size $n$.
 The size is chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
@@ -40,8 +41,8 @@ If the buffer gets too large, approximately half of the elements are removed by 
 After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as an approximation of the number of distinct elements in the stream.
 This output is probably-approximately correct, i.e., the probability that the relative error of $\frac{|\chi|}{p}$ exceeds $\varepsilon$ is at most $\delta$.
 
-The pen-and-paper proof of correctness for~\cref{alg:cvm} is remarkably simple, requiring only undergraduate-level exposure to the concepts of randomized algorithms.
-We set out to formalize the proof as described in the literature~\cite{DBLP:conf/esa/0001VM22}, hoping that it would be an easy exercise for the formalized algorithms textbook.
+The pen-and-paper proof of correctness for~\cref{alg:cvm} is remarkably straightforward requiring only undergraduate-level exposure to the analysis of randomized algorithms.
+We set out to formalize the proof as described in the literature~\cite{DBLP:conf/esa/0001VM22}, hoping to show that it would also be an easy formalization exercise.
 
 %TODO: a bit too long in details, we should trim this and move to later section
 \subparagraph*{The road not taken:}
