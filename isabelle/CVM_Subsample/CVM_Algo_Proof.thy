@@ -118,7 +118,8 @@ context
 begin
 
 abbreviation (input)
-  \<open>aux \<equiv> \<lambda> x state. \<phi> (f ^ (state_k state)) (x \<in> (state_chi state))\<close>
+  \<open>aux \<equiv> \<lambda> S x state. (
+    \<Prod> x \<in> S. \<phi> (f ^ state_k state) (x \<in> state_chi state))\<close>
 
 (*
   Intuition:
@@ -150,12 +151,12 @@ lemma step_1_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state)
+      measure_pmf.expectation state (aux S x)
       \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>\<And> S. _ \<Longrightarrow> ?L' S \<le> _\<close>)
     \<open>S \<subseteq> insert x' U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
+    \<open>measure_pmf.expectation (state \<bind> step_1 x') (aux S x)
     \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof (cases \<open>x' \<in> S\<close>)
@@ -208,11 +209,11 @@ lemma step_2_preserves_finite_support :
 
 lemma step_2_preserves_expectation_le :
   assumes
-    \<open>finite U\<close>
-    \<open>measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
-    \<open>S \<subseteq> U\<close>
+    (* \<open>finite U\<close> \<open>S \<subseteq> U\<close> *)
+    \<open>finite S\<close> 
+    \<open>measure_pmf.expectation state (aux S x) \<le> (\<phi> 1 True) ^ card S\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_2) (\<lambda> state. \<Prod> x \<in> S. aux x state)
+    \<open>measure_pmf.expectation (state \<bind> step_2) (aux S x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   from assms step_2_preserves_finite_support state_finite_support show ?thesis
@@ -227,11 +228,11 @@ lemma step_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state)
+      measure_pmf.expectation state (aux S x)
       \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step x) (\<lambda> state. \<Prod> x \<in> S. aux x state)
+    \<open>measure_pmf.expectation (state \<bind> step x) (aux S x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -240,7 +241,7 @@ qed
 lemma run_steps_preserves_expectation_le :
   assumes \<open>S \<subseteq> set xs\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs) (\<lambda> state. \<Prod> x \<in> S. aux x state)
+    \<open>measure_pmf.expectation (run_steps xs) (aux S x)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -251,7 +252,7 @@ lemma run_steps_then_step_1_preserves_expectation_le :
   assumes
     \<open>S \<subseteq> insert x' (set xs)\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
+    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x') (aux S x)
     \<le> \<phi> 1 True ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -268,15 +269,15 @@ context
 begin
 
 abbreviation (input)
-  \<open>aux' \<equiv> \<lambda> x state. (
+  \<open>aux' \<equiv> \<lambda> S x state. (
     let p = f ^ (state_k state)
-    in of_bool (p > q) * h ((1 / p) * indicat_real (state_chi state) x))\<close>
+    in \<Prod> x \<in> S. of_bool (p > q) * h ((1 / p) * indicat_real (state_chi state) x))\<close>
 
 (* Lemma 3 *)
 lemma run_steps_preserves_expectation_le' :
   assumes \<open>S \<subseteq> set xs\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs) (\<lambda> state. \<Prod> x \<in> S. aux' x state) \<le> (h 1) ^ card S\<close>
+    \<open>measure_pmf.expectation (run_steps xs) (aux' S x) \<le> (h 1) ^ card S\<close>
 proof -
   show ?thesis sorry
 qed
