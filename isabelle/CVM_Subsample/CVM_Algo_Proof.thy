@@ -140,8 +140,10 @@ lemma step_1_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close>
   by (simp flip: map_pmf_def add: state_finite_support step_1_def)
 
-method simps = (
-  simp flip: map_pmf_def add: step_1_def pmf_expectation_bind power_le_one Let_def,
+private method simps = (
+  simp
+    flip: map_pmf_def
+    add: step_1_def pmf_expectation_bind power_le_one Let_def,
   simp add: integral_measure_pmf algebra_simps)
 
 lemma step_1_preserves_expectation_le :
@@ -176,7 +178,7 @@ next
     (is \<open>_ = ?L'' (\<lambda> _ :: (_, _) state_scheme. measure_pmf.expectation _ _)\<close>)
     apply simps
     apply (intro sum.cong[OF refl])
-    by (smt (verit, del_insts) DiffE finite_insert infinite_super insertCI insert_absorb prod.cong prod.insert_remove)
+    by (smt (verit, best) Diff_iff finite.intros(2) insertCI prod.cong prod.remove rev_finite_subset)
 
   also from f phi have \<open>\<dots> \<le> ?L'' \<lblot>\<phi> 1 True\<rblot>\<close>
     apply (intro sum_mono)
@@ -190,7 +192,7 @@ next
 
   finally show ?thesis
     using assms \<open>x' \<in> S\<close>
-    by (metis (no_types, lifting) card_0_eq empty_iff finite.intros(2) infinite_super power_commutes power_eq_if)
+    by (metis (lifting) Groups.mult_ac(2) Suc_diff_1 bot_nat_0.extremum card_0_eq empty_iff finite_insert infinite_super le_eq_less_or_eq power.simps(2))
 qed
 
 end
