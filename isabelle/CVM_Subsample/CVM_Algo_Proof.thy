@@ -67,8 +67,6 @@ proof -
 
   have c: \<open>map_pmf (\<lambda>\<omega>. s \<in> \<omega>) (subsample U) = bernoulli_pmf f\<close> if \<open>s \<in> U\<close> for s
   proof -
-    have threshold_gt_0: \<open>threshold > 0\<close> using that assms(1,2) card_gt_0_iff by blast
-
     have \<open>measure (pmf_of_set ?C) {x. s \<notin> x} =
       real (card {T. T\<subseteq>U \<and> card T = subsample_size \<and> s \<notin> T}) / card ?C\<close>
       using subsample_finite_nonempty by (subst measure_pmf_of_set) (simp_all add:Int_def)
@@ -81,12 +79,12 @@ proof -
       using assms(2) that by simp
     also have \<open>\<dots> = real(threshold *((threshold-1) choose subsample_size))
       / real (threshold * (threshold choose subsample_size))\<close>
-      using threshold_gt_0 by simp
+      using threshold_pos by simp
     also have \<open>\<dots> = real (threshold - subsample_size) / real threshold\<close>
       unfolding binomial_absorb_comp[symmetric] using subsample by simp
     also have \<open>\<dots> = (real threshold - real subsample_size) / real threshold\<close>
       using subsample by (subst of_nat_diff) auto
-    also have \<open>\<dots> = 1-f\<close> using threshold_gt_0 f_def by (simp add:field_simps)
+    also have \<open>\<dots> = 1-f\<close> using threshold_pos f_def by (simp add:field_simps)
     finally have \<open>1-measure (pmf_of_set ?C) {x. s \<notin> x} = f\<close> by simp
 
     hence \<open>measure (pmf_of_set ?C) {x. s \<in> x} = f\<close>
@@ -180,10 +178,11 @@ next
     apply (intro sum.cong[OF refl])
     by (smt (verit, best) Diff_iff finite.intros(2) insertCI prod.cong prod.remove rev_finite_subset)
 
-  also from f phi have \<open>\<dots> \<le> ?L'' \<lblot>\<phi> 1 True\<rblot>\<close>
+  also from f f_le_1 phi have \<open>\<dots> \<le> ?L'' \<lblot>\<phi> 1 True\<rblot>\<close>
     apply (intro sum_mono)
-    apply (simp add: set_pmf_iff)
-    by (smt (z3) divide_self_if f_le_1 integral_bernoulli_pmf landau_omega.R_mult_left_mono mult.commute mult_cancel_right2 power_le_one prod_nonneg zero_less_power)
+    apply (simp flip: pmf_positive_iff)
+    by (smt (z3) div_by_1 divide_self_if integral_bernoulli_pmf landau_omega.R_mult_left_mono nonzero_mult_div_cancel_right power_le_one prod_nonneg zero_compare_simps(6)
+      zero_less_power)
 
   also from assms \<open>x' \<in> S\<close> state_finite_support phi
   have \<open>\<dots> \<le> \<phi> 1 True ^ (card S - 1) * \<phi> 1 True\<close>
