@@ -188,14 +188,19 @@ next
     by (metis arith_simps(63) f_def f_le_1 linorder_neqE_linordered_idom mult.commute not_less of_nat_less_0_iff power_le_one prod_nonneg rel_simps(45) zero_compare_simps(11)
       zero_less_power)
 
-  also have \<open>\<dots> = \<phi> 1 True * ?L'' \<lblot>1\<rblot>\<close>
-    by (simp add: algebra_simps sum_distrib_left)
+  also from assms \<open>x' \<in> S\<close> state_finite_support phi
+  have \<open>\<dots> \<le> \<phi> 1 True * \<phi> 1 True ^ (card S - 1)\<close>
+    apply (simp
+      flip: sum_distrib_right
+      add: integral_measure_pmf)
+    apply (simp add: algebra_simps)
+    apply (intro landau_omega.R_mult_left_mono)
+    apply (smt (verit) Diff_iff Diff_subset One_nat_def card_Diff_singleton dual_order.trans insertCI subset_insert sum.cong)
+    by simp
 
-  also from True assms state_finite_support phi f f_le_1 have \<open>\<dots> \<le> ?R\<close>
-    apply simps
-    sorry
-
-  finally show ?thesis .
+  finally show ?thesis
+    using assms \<open>x' \<in> S\<close>
+    by (metis (no_types, lifting) card_0_eq empty_iff finite_insert infinite_super power_eq_if)
 qed
 
 end
