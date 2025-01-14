@@ -208,7 +208,6 @@ lemma step_2_preserves_finite_support :
 
 lemma step_2_preserves_expectation_le :
   assumes
-    \<open>finite <| set_pmf <| state \<bind> step_2\<close>
     \<open>finite U\<close>
     \<open>measure_pmf.expectation state (prod aux S) \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> U\<close>
@@ -216,7 +215,11 @@ lemma step_2_preserves_expectation_le :
     \<open>measure_pmf.expectation (state \<bind> step_2) (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
-  show ?thesis sorry
+  from assms step_2_preserves_finite_support state_finite_support show ?thesis
+    apply (simp add: step_2_def pmf_expectation_bind integral_measure_pmf Let_def)
+    unfolding if_distrib if_distribR
+    apply (simp add: sum.If_cases)
+    sorry
 qed
 
 lemma step_preserves_expectation_le :
