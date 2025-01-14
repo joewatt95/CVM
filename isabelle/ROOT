@@ -1,16 +1,25 @@
 session Negative_Association in "Negative_Association" = "HOL-Probability" +
-  options [timeout = 300]
+  options [timeout = 600]
 
   sessions
     Concentration_Inequalities
     Birkhoff_Finite_Distributive_Lattices
     Twelvefold_Way
-    Expander_Graphs
+    Weighted_Arithmetic_Geometric_Mean
     Executable_Randomized_Algorithms
+    Finite_Fields
 
   theories
+    Negative_Association_Util
+    Negative_Association_Definition
     Negative_Association_Chernoff_Bounds
+    Negative_Association_FKG_Inequality
+    Negative_Association_More_Lattices
     Negative_Association_Permutation_Distributions
+
+  document_files
+    "root.tex"
+    "root.bib"
 
 session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
   options [timeout = 300]

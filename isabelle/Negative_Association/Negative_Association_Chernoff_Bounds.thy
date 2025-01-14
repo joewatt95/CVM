@@ -1,9 +1,92 @@
+section \<open>Chernoff-Hoeffding Bounds\<close>
+
+text \<open>This section shows that all the well-known Chernoff-Hoeffding bounds hold also for
+negatively associated random variables. The proofs follow the derivation by 
+Hoeffding~\cite{hoeffding1963}, with the modification that the crucial step, where Hoeffding uses
+independence, is replaced with the application of Property P2 for negatively associated RV's.\<close>
+
 theory Negative_Association_Chernoff_Bounds
   imports
-    Expander_Graphs.Constructive_Chernoff_Bound (* KL_div *)
     Negative_Association_Definition
     Concentration_Inequalities.McDiarmid_Inequality
+    Weighted_Arithmetic_Geometric_Mean.Weighted_Arithmetic_Geometric_Mean
 begin
+
+(*
+lemma radon_nikodym_pmf_zero:
+  assumes "set_pmf p - set_pmf q \<noteq> {}"
+  shows "RN_deriv q p x = 0"
+proof -
+  have "set_pmf p \<subseteq> set_pmf q" if "\<exists>f. density q f = p" 
+  proof (rule subsetI)
+    fix x assume x:"x \<in> set_pmf p"
+    from that obtain f where f:"density q f = p" by auto
+    have "0 \<noteq> emeasure p {x}" by (simp add: emeasure_pmf_single_eq_zero_iff x)
+    moreover have "emeasure p {x} = f x * emeasure (measure_pmf q) {x}"
+      unfolding f[symmetric] by (subst emeasure_density) simp_all
+    ultimately have "emeasure (measure_pmf q) {x} \<noteq> 0" by auto
+    thus "x \<in> set_pmf q"  by (simp add: emeasure_pmf_single_eq_zero_iff)
+  qed
+  hence "False" if "\<exists>f. density q f = p" using that assms by simp
+  thus ?thesis unfolding RN_deriv_def by auto
+qed
+*)
+
+lemma radon_nikodym_pmf:
+  assumes "set_pmf p \<subseteq> set_pmf q"
+  defines "f \<equiv> (\<lambda>x. ennreal (pmf p x / pmf q x))"
+  shows 
+    "AE x in measure_pmf q. RN_deriv q p x = f x" (is "?R1")
+    "AE x in measure_pmf p. RN_deriv q p x = f x" (is "?R2")
+proof -
+  have "pmf p x = 0" if "pmf q x = 0" for x
+    using assms(1) that by (meson pmf_eq_0_set_pmf subset_iff)
+  hence a:"(pmf q x * (pmf p x / pmf q x)) = pmf p x" for x by simp
+  have "emeasure (density q f) A = emeasure p A" (is "?L = ?R") for A
+  proof -
+    have "?L = set_nn_integral (measure_pmf q) A f"
+      by (subst emeasure_density) auto
+    also have "\<dots> =  (\<integral>\<^sup>+ x\<in>A. ennreal (pmf q x) * f x \<partial>count_space UNIV)" 
+      by (simp add: ac_simps nn_integral_measure_pmf)
+    also have "\<dots> = (\<integral>\<^sup>+x\<in>A. ennreal (pmf p x) \<partial>count_space UNIV)"
+      using a unfolding f_def by (subst ennreal_mult'[symmetric]) simp_all 
+    also have "\<dots> = emeasure (bind_pmf p return_pmf) A"
+      unfolding emeasure_bind_pmf nn_integral_measure_pmf by simp
+    also have "\<dots> = ?R" by simp
+    finally show ?thesis by simp
+  qed
+  hence "density (measure_pmf q) f = measure_pmf p" by (intro measure_eqI) auto
+  hence "AE x in measure_pmf q. f x = RN_deriv q p x" by (intro measure_pmf.RN_deriv_unique) simp
+  thus ?R1 unfolding AE_measure_pmf_iff by auto
+  thus ?R2 using assms unfolding AE_measure_pmf_iff by auto
+qed
+
+lemma KL_divergence_pmf:
+  assumes "set_pmf q \<subseteq> set_pmf p"
+  shows "KL_divergence b (measure_pmf p) (measure_pmf q) = (\<integral>x. log b (pmf q x / pmf p x) \<partial>q)" 
+  unfolding KL_divergence_def entropy_density_def
+  by (intro integral_cong_AE AE_mp[OF radon_nikodym_pmf(2)[OF assms(1)] AE_I2]) auto
+
+definition KL_div :: "real \<Rightarrow> real \<Rightarrow> real" where 
+  "KL_div p q = KL_divergence (exp 1) (bernoulli_pmf q) (bernoulli_pmf p)" 
+
+lemma KL_div_eq:
+  assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
+  shows "KL_div p q = p * ln (p/q) + (1-p) * ln ((1-p)/(1-q))" (is "?L = ?R")
+proof -
+  have "set_pmf (bernoulli_pmf p) \<subseteq> set_pmf (bernoulli_pmf q)"
+    using assms(1) set_pmf_bernoulli by auto
+  hence "?L = (\<integral>x. ln (pmf (bernoulli_pmf p) x / pmf (bernoulli_pmf q) x) \<partial>bernoulli_pmf p)"
+    unfolding KL_div_def by (subst KL_divergence_pmf) (simp_all add:log_ln[symmetric])
+  also have "\<dots> = ?R" 
+    using assms(1,2) by (subst integral_bernoulli_pmf) auto
+  finally show ?thesis by simp
+qed
+
+lemma KL_div_swap:
+  assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
+  shows "KL_div p q = KL_div (1-p) (1-q)"
+  using assms by (subst (1 2) KL_div_eq) auto
 
 context prob_space
 begin
@@ -151,7 +234,6 @@ proof -
   also have "\<dots> = ?R1" by simp
   finally show "?L \<le> ?R1" by simp
 qed
-
 
 lemma ln_one_minus_x_lower_bound:
   assumes "x \<in> {(0::real)..<1}" 
@@ -368,7 +450,7 @@ proof -
   also have "\<dots> = exp ( -ln((1 - \<mu>-\<delta>)/(1 - \<mu>))- (ln ((\<mu>+\<delta>)/\<mu>) - ln ((1-\<mu>-\<delta>)/(1-\<mu>)))*(\<mu>+\<delta>)) powr ?n"
     using a unfolding t_def by (simp add:divide_simps)
   also have "\<dots> = exp( -KL_div (\<mu>+\<delta>) \<mu>) powr ?n"
-    using a unfolding KL_div_def by (simp_all add:field_simps)
+    using a by (subst KL_div_eq) (simp_all add:field_simps)
   also have "\<dots> = ?R" unfolding powr_def by simp
   finally show ?thesis by simp
 qed
@@ -423,7 +505,7 @@ proof -
   also have "\<dots> \<le> ((\<Sum>i \<in> I. expectation (\<X> i)) / ?n) powr ?n"
     using n_gt_0 ttcv(6) by (subst powr_realpow') (auto intro!:sum_nonneg divide_nonneg_pos)
   also have "\<dots> \<le> \<mu> powr ?n" using ttcv(2) unfolding \<mu>_def by simp
-  also have "\<dots> = ?R" using assms(4) unfolding KL_div_def powr_def by (simp add:ln_div)
+  also have "\<dots> = ?R" using assms(4) unfolding powr_def by (subst KL_div_eq) (auto simp:ln_div)
   finally show ?thesis by simp
 qed
 
@@ -450,7 +532,7 @@ proof -
   thus ?thesis
   proof (cases)
     case i
-    hence "KL_div (\<mu>+\<delta>) \<mu> = 0" unfolding KL_div_def by simp
+    hence "KL_div (\<mu>+\<delta>) \<mu> = 0" using assms(4,5) by (subst KL_div_eq) auto
     thus ?thesis by simp
   next
     case ii
@@ -554,7 +636,7 @@ proof -
   also have "\<dots> \<le> exp (-real (card I) * KL_div ((1-\<mu>)+\<delta>) (1-\<mu>))"
     using assms(3) 1 2 3 unfolding 0 by (intro additive_chernoff_bound_upper assms(2,4)) auto
   also have "\<dots> = exp (-real (card I) * KL_div (1-(\<mu>-\<delta>)) (1-\<mu>))" by (simp add:algebra_simps)
-  also have "\<dots> = ?R" by (simp add:KL_div_swap)
+  also have "\<dots> = ?R" using assms(6,7) by (subst KL_div_swap) (simp_all add:algebra_simps)
   finally show ?thesis by simp
 qed
 

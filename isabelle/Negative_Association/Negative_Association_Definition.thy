@@ -1,5 +1,15 @@
 section \<open>Definition\<close>
 
+text \<open>This section introduces the concept of negatively associated random variables (RVs). The
+definition follows the description by Joag-Dev and Proschan~\cite{joagdev1983}. With minor caveats:
+
+Singleton and empty sets of random variables are considered negatively associated. This is useful
+because it simplifies many of the induction proofs. The second modification is that the RV's don't
+have to be real valued.
+Instead the range can be into any linearly ordered space with the borel $\sigma$-algebra. This is a
+major enhancement compared to the original work, as well as results by following
+authors~\cite{dubhashi1996, dubhashi2007, dubhashi1998, lisawadi2011, permantle2000}.\<close>
+
 theory Negative_Association_Definition
   imports
     Concentration_Inequalities.Bienaymes_Identity
@@ -103,12 +113,15 @@ lemma neg_assoc_imp_measurable:
   shows "random_variable borel (X i)"
   using assms unfolding neg_assoc_def by auto
 
+text \<open>Even though the assumption was that defining property is true for pairs of monotone functions
+over the random variables, it is also true for pairs of anti-monotone functions.\<close>
+
 lemma neg_assoc_imp_mult_mono_bounded:
   fixes f g :: "('i \<Rightarrow> 'c::linorder_topology) \<Rightarrow> real"
   assumes "neg_assoc X I"
   assumes "J \<subseteq> I"
   assumes "bounded (range f)" "bounded (range g)"
-  assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g" (* e.g. if f,g are both mono inc. or both mono dec. *)
+  assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g"
   assumes "depends_on f J" "depends_on g (I-J)"
   assumes [measurable]: "f \<in> borel_measurable (Pi\<^sub>M J (\<lambda>_. borel))" 
   assumes [measurable]: "g \<in> borel_measurable (Pi\<^sub>M (I-J) (\<lambda>_. borel))"
@@ -152,7 +165,6 @@ proof -
   ultimately show  "?L \<le> ?R" by (subst (asm) covariance_eq) (auto simp:comp_def)
 qed
 
-
 lemma lim_min_n: "(\<lambda>n. min (real n) x) \<longlonglongrightarrow> x"
 proof -
   define m where "m = nat \<lceil>x\<rceil>"
@@ -175,7 +187,7 @@ lemma neg_assoc_imp_mult_mono:
   assumes "neg_assoc X I"
   assumes "J \<subseteq> I"
   assumes "square_integrable M (f \<circ> flip X)" "square_integrable M (g \<circ> flip X)"
-  assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g" (* e.g. if f,g are both mono inc. or both mono dec. *)
+  assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g"
   assumes "depends_on f J" "depends_on g (I-J)"
   assumes [measurable]: "f \<in> borel_measurable (Pi\<^sub>M J (\<lambda>_. borel))" 
   assumes [measurable]: "g \<in> borel_measurable (Pi\<^sub>M (I-J) (\<lambda>_. borel))"
@@ -220,7 +232,7 @@ proof -
         measurable_compose[OF _ clamp_borel] depends_on_comp_2[OF assms(8)])
 qed
 
-(* Property P4 \cite[Property P2]{joagdev1982} *)
+text \<open>Property P4~\cite{joagdev1983}\<close>
 lemma neg_assoc_subset:
   assumes "J \<subseteq> I"
   assumes "neg_assoc X I"
@@ -288,7 +300,8 @@ proof -
       using monotoneD[OF assms(8)] unfolding comp_def min_mult_distrib_left
       by (intro monotoneI) (cases \<eta>, fastforce+)
     ultimately have "expectation (h n) \<le> expectation (?cf n\<circ>flip X) * expectation (?cg n\<circ>flip X)"
-      unfolding h_def comp_def by (intro neg_assoc_imp_mult_mono[OF assms(1-2)] borel_intros assms(11,12)
+      unfolding h_def comp_def 
+      by (intro neg_assoc_imp_mult_mono[OF assms(1-2)] borel_intros assms(11,12)
           depends_on_comp_2[OF assms(10)] depends_on_comp_2[OF assms(9)]) (auto simp:comp_def)
     also have "... \<le> expectation (f\<circ>flip X) * expectation (g\<circ>flip X)"
       using assms(3,4) by (intro mult_mono integral_nonneg_AE AE_I2 integral_mono' assms(5,6)) auto
@@ -314,7 +327,7 @@ proof -
   ultimately show ?thesis unfolding has_bochner_integral_iff u_def has_int_that_def by auto
 qed
 
-(* Property P2 \cite[Property P2]{joagdev1982} *)
+text \<open>Property P2~\cite{joagdev1983}\<close>
 lemma neg_assoc_imp_prod_mono:
   fixes f :: "'i \<Rightarrow> ('c::linorder_topology) \<Rightarrow> real"
   assumes "finite I"
@@ -381,7 +394,7 @@ next
   finally show ?case using le_boolE by (simp add:comp_def)
 qed
 
-(* Property P5 *)
+text \<open>Property P5~\cite{joagdev1983}\<close>
 lemma neg_assoc_compose:
   fixes f :: "'j \<Rightarrow> ('i \<Rightarrow> ('c::linorder_topology)) \<Rightarrow> ('d ::linorder_topology)"
   assumes "finite I"
@@ -613,7 +626,6 @@ lemma measurable_compose_merge_2:
   shows "(\<lambda>x. h(merge I J (f x, g x))) \<in> A \<rightarrow>\<^sub>M N"
   using assms by (intro measurable_compose_merge_1[OF assms(1-3)]) simp_all
 
-(* Property P7 - special case *)
 lemma neg_assoc_combine:
   fixes I I1 I2 :: "'i set"
   fixes X :: "'i \<Rightarrow> 'a \<Rightarrow> ('b::linorder_topology)"
@@ -759,7 +771,7 @@ proof -
   show ?thesis by (intro neg_assoc_cong[OF assms(1) X_measurable na_X']) (simp_all add:X'_def)
 qed
 
-(* Property P7 - general case *)
+text \<open>Property P7~\cite{joagdev1983}\<close>
 lemma neg_assoc_union:
   fixes I :: "'i set"
   fixes p :: "'j \<Rightarrow> 'i set"
@@ -797,15 +809,15 @@ proof -
 
     note r = indep_var_compose[OF indep_var_restrict[OF assms(3), where A="F" and B="{x}"] _]
 
-    have t1: "(\<lambda>\<omega>. \<lambda>i\<in>\<Union>(p`F). X i \<omega>) = (\<lambda>\<omega>. \<lambda>i\<in>\<Union>(p`F). \<omega> (g i) i) \<circ> (\<lambda>\<omega>. \<lambda>i\<in>F. \<lambda>i\<in>p i. X i \<omega>)"
+    have a: "(\<lambda>\<omega>. \<lambda>i\<in>\<Union>(p`F). X i \<omega>) = (\<lambda>\<omega>. \<lambda>i\<in>\<Union>(p`F). \<omega> (g i) i) \<circ> (\<lambda>\<omega>. \<lambda>i\<in>F. \<lambda>i\<in>p i. X i \<omega>)"
       using insert(4) g by (intro restrict_ext ext) auto
-    have t2: "(\<lambda>\<omega>. \<lambda>i\<in>p x. X i \<omega>) = (\<lambda>\<omega> i. \<omega> x i) \<circ> (\<lambda>\<omega>. \<lambda>i\<in>{x}. \<lambda>i\<in>p i. X i \<omega>)"
+    have b: "(\<lambda>\<omega>. \<lambda>i\<in>p x. X i \<omega>) = (\<lambda>\<omega> i. \<omega> x i) \<circ> (\<lambda>\<omega>. \<lambda>i\<in>{x}. \<lambda>i\<in>p i. X i \<omega>)"
       by (simp add:comp_def restrict_def)
 
-    have t3:"(\<lambda>x. x (g i) i) \<in> borel_measurable (Pi\<^sub>M F (\<lambda>j. Pi\<^sub>M (p j) ?B))" if "i \<in> (\<Union>(p`F))" for i
+    have c:"(\<lambda>x. x (g i) i) \<in> borel_measurable (Pi\<^sub>M F (\<lambda>j. Pi\<^sub>M (p j) ?B))" if "i \<in> (\<Union>(p`F))" for i
     proof -
       have h: "i \<in> p (g i)" and q: "g i \<in> F" using g that insert(4) by auto
-      show ?thesis  using h
+      thus ?thesis
         by (intro measurable_compose[OF measurable_component_singleton[OF q]]) measurable
     qed
 
@@ -816,7 +828,7 @@ proof -
       using assms(5) insert(2,4) unfolding disjoint_family_on_def by fast
     moreover have
       "indep_var (PiM (\<Union>(p`F)) ?B) (\<lambda>\<omega>. \<lambda>i\<in>\<Union>(p`F). X i \<omega>) (PiM (p x) ?B) (\<lambda>\<omega>. \<lambda>i\<in>p x. X i \<omega>)"
-      unfolding t1 t2 using insert(1,2,4) by (intro r measurable_restrict t3) simp_all
+      unfolding a b using insert(1,2,4) by (intro r measurable_restrict c) simp_all
     moreover have "neg_assoc X (\<Union> (p ` F))" using insert(4) by (intro insert(3)) auto
     moreover have "neg_assoc X (p x)" using insert(4) by (intro assms(4)) auto
     ultimately show ?case by (rule neg_assoc_combine)
@@ -825,7 +837,7 @@ proof -
   ultimately show ?thesis by auto
 qed
 
-(* Property P5 *)
+text \<open>Property P5~\cite{joagdev1983}\<close>
 lemma indep_imp_neg_assoc:
   assumes "finite I"
   assumes "indep_vars (\<lambda>_. borel) X I"
@@ -860,12 +872,12 @@ proof -
     finally show ?thesis by simp
   qed
 
-  hence 0:"?d1 = ?d2" by (intro measure_eqI) auto
+  hence a:"?d1 = ?d2" by (intro measure_eqI) auto
 
   have "?L \<longleftrightarrow> prob_space.neg_assoc ?d1 (\<lambda>x y. y x) I"
     by (subst measure_pmf.neg_assoc_iff_distr) auto
   also have "\<dots> \<longleftrightarrow> prob_space.neg_assoc ?d2 (\<lambda>x y. y x) I"
-    unfolding 0 by simp
+    unfolding a by simp
   also have "\<dots> \<longleftrightarrow> ?R"
     by (subst measure_pmf.neg_assoc_iff_distr) auto
   finally show ?thesis by simp

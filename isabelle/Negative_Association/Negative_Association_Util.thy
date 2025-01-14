@@ -1,12 +1,20 @@
+section \<open>Preliminary Definitions and Lemmas\<close>
+
 theory Negative_Association_Util
-  imports 
-    "HOL-Probability.Probability"
+  imports
     Concentration_Inequalities.Concentration_Inequalities_Preliminary
 begin
 
 (* From Joe Watt *)
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
   \<open>flip f x y \<equiv> f y x\<close>
+
+text \<open>Additional introduction rules for boundedness:\<close>
+
+(* 
+  Note to editors: I will move these to (in afp-devel)
+  Concentration_Inequalities.Concentration_Inequalities_Preliminary 
+*)
 
 lemma bounded_const_min:
   fixes f :: "'a \<Rightarrow> real"
@@ -46,6 +54,10 @@ lemma bounded_range_imp:
   shows "bounded ((\<lambda>\<omega>. f (h \<omega>)) ` S)"
   by (intro bounded_subset[OF assms]) auto
 
+text \<open>The following allows to state integrability and conditions about the integral simultaneously,
+e.g. @{term "has_int_that M f (\<lambda>x. x \<le> c)"} says f is integrable on M and the integral smaller or
+equal to @{term "c"}.\<close>
+
 definition has_int_that where
   "has_int_that M f P = (integrable M f \<and> (P (\<integral>\<omega>. f \<omega> \<partial>M)))"
 
@@ -62,6 +74,7 @@ lemma has_int_thatD:
   shows "integrable M f" "P (integral\<^sup>L M f)"
   using assms has_int_that_def by auto
 
+text \<open>This is useful to specify which components a functional depends on.\<close>
 
 definition depends_on :: "(('a \<Rightarrow> 'b) \<Rightarrow> 'c) \<Rightarrow> 'a set \<Rightarrow> bool"
   where "depends_on f I = (\<forall>x y. restrict x I = restrict y I \<longrightarrow> f x = f y)"
@@ -112,9 +125,9 @@ lemma depends_on_mono:
 
 abbreviation "square_integrable M f \<equiv> integrable M ((power2 :: real \<Rightarrow> real) \<circ> f)"
 
-(*
-  The following allows us to state theorems with multiple monotonicity variants.
-*)
+text \<open>There are many results in the field of negative association, where a statement is true
+for simultaneously monotone or anti-monotone functions. With the below construction, we introduce
+a mechanism where we can parameterize on the direction of a relation:\<close>
 
 datatype RelDirection = Fwd | Rev
 
@@ -151,6 +164,8 @@ lemmas rel_dir_mult[simp] = times_RelDirection_def
 
 lemma dir_mult_hom: "(\<plusminus>\<^bsub>\<sigma> * \<tau>\<^esub>) = (\<plusminus>\<^bsub>\<sigma>\<^esub>) * ((\<plusminus>\<^bsub>\<tau>\<^esub>)::real)"
   unfolding dir_sign_def times_RelDirection_def by (cases \<sigma>,auto intro:RelDirection.exhaust)
+
+text \<open>Additional lemmas about clamp for the specific case on reals.\<close>
 
 lemma clamp_eqI2:
   assumes "x \<in> {a..b::real}"

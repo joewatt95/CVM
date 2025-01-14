@@ -1,9 +1,9 @@
-section \<open>Permutation Distributions\<close>
+section \<open>Permutation Distributions\label{sec:permutation_distributions}\<close>
 
 text \<open>One of the fundamental examples for negatively associated random variables are permutation
 distributions.
 
-Let $x_1, \ldots, x_n$ be n (not-necessarily) distinct values from a totally ordered set, then we
+Let $x_1, \ldots, x_n$ be $n$ (not-necessarily) distinct values from a totally ordered set, then we
 choose a permutation $\sigma : \{0,\ldots,n-1\} \rightarrow \{0,\ldots,n-1\}$ uniformly at random
 Then the random variables defined by $X_i(\sigma) = x_{\sigma(i)}$ are negatively associated.
 
@@ -13,11 +13,10 @@ the resulting distribution is also referred to as the balls into bins process. B
 closure properties established before, it is possible to conclude that the number of hits of each
 bin in such a process are also negatively associated random variables.
 
-In this section, we will derive that permutation distributions are negatively associated.The proof
-follows Dubashi~\cite[Section 10]{dubashi1996} closely. A very short proof was presented
+In this section, we will derive that permutation distributions are negatively associated. The proof
+follows Dubashi~\cite[Th. 10]{dubhashi1996} closely. A very short proof was presented
 in the work by Joag-Dev~\cite{joagdev1983}, however after close inspection that proof seemed to
-missing a lot of details. In fact, we don't know whether it is correct, at least we couldn't follow
-it steps.\<close>
+missing a lot of details. In fact, I don't think it is correct.\<close>
 
 theory Negative_Association_Permutation_Distributions
   imports
@@ -26,7 +25,7 @@ theory Negative_Association_Permutation_Distributions
     Negative_Association_More_Lattices
     Finite_Fields.Finite_Fields_More_PMF
     "HOL-Types_To_Sets.Types_To_Sets"
-    Executable_Randomized_Algorithms.Randomized_Algorithm (* pmf_eq_iff_le *)
+    Executable_Randomized_Algorithms.Randomized_Algorithm
     Twelvefold_Way.Card_Bijections
 begin
 
@@ -35,8 +34,7 @@ or equal to n.) A subset $x$ is smaller or equal to $y$, if the smallest element
 smaller or equal to the smallest element of $y$, the second smallest element of $x$ is smaller or
 equal to the second smallest element of $y$, etc.)
 
-The lattice is introduced without name by Dubashi~\cite[Example 7]{dubashi1998}.
-(https://doi.org/10.7146/BRICS.V3I27.20008).\<close>
+The lattice is introduced without name by Dubashi~\cite[Example 7]{dubashi1998}.\<close>
 
 definition le_ordered_set_lattice :: "('a::linorder) set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "le_ordered_set_lattice S T = list_all2 (\<le>) (sorted_list_of_set S) (sorted_list_of_set T)"

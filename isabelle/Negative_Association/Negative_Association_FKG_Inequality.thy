@@ -1,14 +1,28 @@
 section \<open>The FKG inequality\<close>
 
-text \<open>The FKG inequality~\cite{fortuin1971}
+text \<open>The FKG inequality~\cite{fortuin1971} is a generalization of Chebyshev's less known other
+inequality. It is sometimes referred to as Chebyshev's sum inequality. Although there is a also
+a continuous version, which can be stated as:
 
-The proof follows the proof from the book the Probabilistic method by Alon et al.
-\<close>
+\[
+  E [ f g ] \geq E[f] E [g]
+\]
+
+where $f$, $g$ are continuous simultaneously monotone or simultaneously antimonotone
+functions on the Lebesgue probability space $[a,b] \subseteq \mathbb R$. ($E f$ denotes the 
+expectation of the function.)
+
+Note that the inequality is also true for totally ordered discrete probability spaces, for example:
+$\{1,\ldots,n\}$ with uniform probabilities.
+
+The FKG inequality is essentially a generalization of the above to not necessarily totally ordered
+spaces, but finite distributive lattices.
+
+The proof follows the derivation in the book by Alon and Spencer~\cite[Ch. 6]{alon2000}.\<close>
 
 theory Negative_Association_FKG_Inequality
   imports
     Negative_Association_Util
-    "HOL-Probability.Probability_Mass_Function"
     Birkhoff_Finite_Distributive_Lattices.Birkhoff_Finite_Distributive_Lattices
 begin
 
@@ -93,9 +107,9 @@ next
   ultimately show ?case unfolding a by (intro insert(3)) auto
 qed
 
-text \<open>The four functions theorem. \cite[Th 6.11.]{The probabilistic method}.
-Ahlswede-Daykin
-\<close>
+text \<open>The following is the Ahlswede-Daykin inequality~\cite{ahlswede1978} also referred to by 
+Alon and Spencer as the four functions theorem~\cite[Th. 6.1.1]{alon2000}.\<close>
+
 theorem four_functions:
   fixes \<alpha> \<beta> \<gamma> \<delta> :: "'a set \<Rightarrow> real"
   assumes "finite I"
@@ -147,6 +161,9 @@ proof -
   finally show ?thesis by simp
 qed
 
+text \<open>Using Birkhoff's Representation 
+Theorem~\cite{birkhoff1967,Birkhoff_Finite_Distributive_Lattices-AFP} it is possible to generalize
+the previous to finite distributive lattices~\cite[Cor. 6.1.2]{alon2000}.\<close>
 lemma four_functions_in_lattice:
   fixes \<alpha> \<beta> \<gamma> \<delta> :: "'a :: finite_distrib_lattice  \<Rightarrow> real"
   assumes "range \<alpha> \<subseteq> {0..}" "range \<beta> \<subseteq> {0..}" "range \<gamma> \<subseteq> {0..}" "range \<delta> \<subseteq> {0..}"
@@ -326,8 +343,8 @@ theorem fkg_inequality_pmf:
   fixes f g :: "'a \<Rightarrow> real"
   assumes "\<And>x y. pmf M x * pmf M y \<le> pmf M (x \<squnion> y) * pmf M (x \<sqinter> y)"
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<tau>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<sigma>\<^esub>) g"
-  shows "(\<integral>x. f x \<partial>M) * (\<integral>x. g x \<partial>M)  \<le>\<ge>\<^bsub>\<tau> * \<sigma>\<^esub> (\<integral>x. f x * g x \<partial>M)"
-    (is "?L  \<le>\<ge>\<^bsub>_\<^esub> ?R")
+  shows "(\<integral>x. f x \<partial>M) * (\<integral>x. g x \<partial>M) \<le>\<ge>\<^bsub>\<tau> * \<sigma>\<^esub> (\<integral>x. f x * g x \<partial>M)"
+    (is "?L \<le>\<ge>\<^bsub>_\<^esub> ?R")
 proof -
   have 0:"?L = (\<Sum>a\<in>UNIV. pmf M a * f a) * (\<Sum>a\<in>UNIV. pmf M a * g a)"
     by (subst (1 2) integral_measure_pmf_real[where A="UNIV"]) (auto simp:ac_simps)
