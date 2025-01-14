@@ -24,13 +24,12 @@ lemma subsample_finite_nonempty:
 proof -
   have a: \<open>card U choose subsample_size > 0\<close> 
     using subsample assms by (intro zero_less_binomial) auto
-  hence \<open>card ?C > 0\<close>
-    by (metis (mono_tags, lifting) assms card_ge_0_finite dual_order.strict_trans1 n_subsets threshold_pos) 
+  with assms threshold_pos have \<open>card ?C > 0\<close>
+    by (metis (mono_tags, lifting) card.infinite n_subsets verit_comp_simplify(3))
     (* unfolding n_subsets[OF assms(1)] by auto *)
   thus \<open>?C \<noteq> {}\<close> \<open>finite ?C\<close> using card_gt_0_iff by blast+
   thus \<open>finite (set_pmf (subsample U))\<close> unfolding subsample_def by auto
 qed
-
 
 (* Lemma 1 *)
 lemma int_prod_subsample_eq_prod_int:
@@ -148,7 +147,8 @@ lemma step_1_preserves_expectation_le :
       S \<subseteq> U \<Longrightarrow>
       measure_pmf.expectation state (\<lambda> state. \<Prod> x \<in> S. aux x state)
       \<le> (\<phi> 1 True) ^ card S\<close>
-    \<open>S \<subseteq> insert x U\<close>
+    (is \<open>\<And> S. _ \<Longrightarrow> ?L' S \<le> _\<close>)
+    \<open>S \<subseteq> insert x' U\<close>
   shows
     \<open>measure_pmf.expectation (state \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
@@ -166,15 +166,45 @@ proof -
       pmf state s * (
         f ^ state_k s * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x = x' \<or> x \<in> state_chi s)) +
         (1 - f ^ state_k s) * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x \<in> state_chi s \<and> x \<noteq> x'))))\<close>
+    (is \<open>_ = ?L\<close>)
     by (simp flip: map_pmf_def add: step_1_def algebra_simps)
 
-  also from assms phi state_finite_support have \<open>\<dots> \<le> ?R\<close>
-    (* using state_finite_support assms phi f
-    apply (simp flip: map_pmf_def add: step_1_def Let_def)
-    apply (subst (asm) integral_measure_pmf[of \<open>set_pmf state\<close>])
-    apply (auto simp add: power_le_one) *)
-    apply (simp add: integral_measure_pmf)
-    sorry
+  also have \<open>\<dots> \<le> ?R\<close>
+  proof (cases \<open>x' \<in> S\<close>)
+    case False
+    moreover note assms
+
+    moreover from calculation state_finite_support
+    have \<open>?L = ?L' S\<close>
+      apply (simp add: integral_measure_pmf Set.UNIV_bool algebra_simps)
+      by (smt (verit, best) prod.cong sum.cong)
+
+    ultimately show ?thesis by auto
+  next
+    case True
+    with assms phi f have
+      \<open>?L = (\<Sum> s \<in> set_pmf state.
+        pmf state s * (
+          f ^ state_k s *
+            (\<Prod> x \<in> S - {x'}. \<phi> (f ^ state_k s) (x \<in> state_chi s)) *
+            \<phi> (f ^ state_k s) True +
+          (1 - f ^ state_k s) *
+            (\<Prod> x \<in> S - {x'}. \<phi> (f ^ state_k s) (x \<in> state_chi s)) *
+            \<phi> (f ^ state_k s) False))\<close>
+      apply (intro sum.cong[OF refl])
+      apply (simp add: algebra_simps)
+      apply (subst prod.subset_diff[where A = S and B = \<open>{x'}\<close>])
+      apply auto
+      apply (meson finite_insert finite_subset)
+      apply (subst prod.subset_diff[where A = S and B = \<open>{x'}\<close>])
+      apply auto
+      apply (meson finite_insert finite_subset)
+      by (smt (z3) finite_insert infinite_super prod.cong prod.delta_remove)
+
+    with state_finite_support assms show ?thesis
+      apply (simp add: integral_measure_pmf)
+      sorry
+  qed
 
   finally show ?thesis .
 qed
@@ -231,10 +261,10 @@ qed
 (* Run some prefix of the elements + one more *)
 lemma run_steps_then_step_1_preserves_expectation_le :
   assumes
-    \<open>S \<subseteq> insert x (set xs)\<close>
+    \<open>S \<subseteq> insert x' (set xs)\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x) (\<lambda> state. \<Prod> x \<in> S. aux x state)
-    \<le> (\<phi> 1 True) ^ card S\<close>
+    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
+    \<le> \<phi> 1 True ^ card S\<close>
 proof -
   show ?thesis sorry
 qed
