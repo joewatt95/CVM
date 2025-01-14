@@ -140,6 +140,10 @@ lemma step_1_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close>
   by (simp flip: map_pmf_def add: state_finite_support step_1_def)
 
+method simps = (
+  simp flip: map_pmf_def add: step_1_def pmf_expectation_bind,
+  simp add: integral_measure_pmf algebra_simps)
+
 lemma step_1_preserves_expectation_le :
   assumes
     \<open>finite U\<close>
@@ -149,62 +153,47 @@ lemma step_1_preserves_expectation_le :
       \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>\<And> S. _ \<Longrightarrow> ?L' S \<le> _\<close>)
     \<open>S \<subseteq> insert x' U\<close>
+  notes [simp] = power_le_one Let_def
   shows
     \<open>measure_pmf.expectation (state \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>?L \<le> ?R\<close>)
-proof -
-  note [simp] = power_le_one Let_def
+proof (cases \<open>x' \<in> S\<close>)
+  case False
+  moreover note assms
 
-  from state_finite_support have
+  moreover from calculation state_finite_support f f_le_1
+  have \<open>?L = ?L' S\<close>
+    apply simps
+    by (smt (verit, ccfv_SIG) prod.cong sum.cong)
+
+  ultimately show ?thesis by auto
+next
+  case True
+  with assms state_finite_support f f_le_1 have
     \<open>?L = (\<Sum> s \<in> set_pmf state.
-      pmf state s * measure_pmf.expectation (step_1 x' s) (\<lambda> s. \<Prod> x \<in> S. aux x s))\<close>
-    by (simp add: step_1_def pmf_expectation_bind)
+      pmf state s * (\<Prod> x \<in> S - {x'}. \<phi> (f ^ state_k s) (x \<in> state_chi s)) * (
+        measure_pmf.expectation (bernoulli_pmf <| f ^ state_k s) (\<phi> <| f ^ state_k s) ))\<close>
+    (is \<open>_ = ?L'' (\<lambda> _ :: (_, _) state_scheme. measure_pmf.expectation _ _)\<close>)
+    apply simps
+    apply (intro sum.cong[OF refl])
+    by (smt (verit, del_insts) DiffE finite_insert infinite_super insertCI insert_absorb prod.cong prod.insert_remove)
 
-  also from f f_le_1 have
-    \<open>\<dots> = (\<Sum> s \<in> set_pmf state.
-      pmf state s * (
-        f ^ state_k s * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x = x' \<or> x \<in> state_chi s)) +
-        (1 - f ^ state_k s) * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x \<in> state_chi s \<and> x \<noteq> x'))))\<close>
-    (is \<open>_ = ?L\<close>)
-    by (simp flip: map_pmf_def add: step_1_def algebra_simps)
+  also from f phi have \<open>\<dots> \<le> ?L'' \<lblot>\<phi> 1 True\<rblot>\<close>
+    apply (intro sum_mono)
+    apply (simp add: set_pmf_iff)
+    apply (intro landau_omega.R_mult_left_mono)
+    apply (smt (verit, del_insts) bot_nat_0.not_eq_extremum divide_le_eq_1_pos divide_pos_pos divide_self_if f f_def integral_bernoulli_pmf mult.commute mult_cancel_right2
+      nat_less_real_le of_nat_0_le_iff power_0 power_divide power_mono_iff subsample zero_less_power)
+    by (metis arith_simps(63) f_def f_le_1 linorder_neqE_linordered_idom mult.commute not_less of_nat_less_0_iff power_le_one prod_nonneg rel_simps(45) zero_compare_simps(11)
+      zero_less_power)
 
-  also have \<open>\<dots> \<le> ?R\<close>
-  proof (cases \<open>x' \<in> S\<close>)
-    case False
-    moreover note assms
+  also have \<open>\<dots> = \<phi> 1 True * ?L'' \<lblot>1\<rblot>\<close>
+    by (simp add: algebra_simps sum_distrib_left)
 
-    moreover from calculation state_finite_support
-    have \<open>?L = ?L' S\<close>
-      apply (simp add: integral_measure_pmf Set.UNIV_bool algebra_simps)
-      by (smt (verit, best) prod.cong sum.cong)
-
-    ultimately show ?thesis by auto
-  next
-    case True
-    with assms phi f have
-      \<open>?L = (\<Sum> s \<in> set_pmf state.
-        pmf state s * (
-          f ^ state_k s *
-            (\<Prod> x \<in> S - {x'}. \<phi> (f ^ state_k s) (x \<in> state_chi s)) *
-            \<phi> (f ^ state_k s) True +
-          (1 - f ^ state_k s) *
-            (\<Prod> x \<in> S - {x'}. \<phi> (f ^ state_k s) (x \<in> state_chi s)) *
-            \<phi> (f ^ state_k s) False))\<close>
-      apply (intro sum.cong[OF refl])
-      apply (simp add: algebra_simps)
-      apply (subst prod.subset_diff[where A = S and B = \<open>{x'}\<close>])
-      apply auto
-      apply (meson finite_insert finite_subset)
-      apply (subst prod.subset_diff[where A = S and B = \<open>{x'}\<close>])
-      apply auto
-      apply (meson finite_insert finite_subset)
-      by (smt (z3) finite_insert infinite_super prod.cong prod.delta_remove)
-
-    with state_finite_support assms show ?thesis
-      apply (simp add: integral_measure_pmf)
-      sorry
-  qed
+  also from True assms state_finite_support phi f f_le_1 have \<open>\<dots> \<le> ?R\<close>
+    apply simps
+    sorry
 
   finally show ?thesis .
 qed
