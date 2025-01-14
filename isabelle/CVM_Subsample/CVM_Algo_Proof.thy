@@ -181,25 +181,16 @@ next
   also from f phi have \<open>\<dots> \<le> ?L'' \<lblot>\<phi> 1 True\<rblot>\<close>
     apply (intro sum_mono)
     apply (simp add: set_pmf_iff)
-    apply (intro landau_omega.R_mult_left_mono)
-    apply (smt (verit, del_insts) bot_nat_0.not_eq_extremum divide_le_eq_1_pos divide_pos_pos divide_self_if f f_def integral_bernoulli_pmf mult.commute mult_cancel_right2
-      nat_less_real_le of_nat_0_le_iff power_0 power_divide power_mono_iff subsample zero_less_power)
-    by (metis arith_simps(63) f_def f_le_1 linorder_neqE_linordered_idom mult.commute not_less of_nat_less_0_iff power_le_one prod_nonneg rel_simps(45) zero_compare_simps(11)
-      zero_less_power)
+    by (smt (z3) divide_self_if f_le_1 integral_bernoulli_pmf landau_omega.R_mult_left_mono mult.commute mult_cancel_right2 power_le_one prod_nonneg zero_less_power)
 
   also from assms \<open>x' \<in> S\<close> state_finite_support phi
-  have \<open>\<dots> \<le> \<phi> 1 True * \<phi> 1 True ^ (card S - 1)\<close>
-    apply (simp
-      flip: sum_distrib_right
-      add: integral_measure_pmf)
-    apply (simp add: algebra_simps)
-    apply (intro landau_omega.R_mult_left_mono)
-    apply (smt (verit) Diff_iff Diff_subset One_nat_def card_Diff_singleton dual_order.trans insertCI subset_insert sum.cong)
-    by simp
+  have \<open>\<dots> \<le> \<phi> 1 True ^ (card S - 1) * \<phi> 1 True\<close>
+    apply (simp flip: sum_distrib_right add: integral_measure_pmf)
+    by (smt (verit, best) One_nat_def card_Diff_singleton landau_omega.R_mult_right_mono subset_insert_iff sum.cong)
 
   finally show ?thesis
     using assms \<open>x' \<in> S\<close>
-    by (metis (no_types, lifting) card_0_eq empty_iff finite_insert infinite_super power_eq_if)
+    by (metis (no_types, lifting) card_0_eq empty_iff finite.intros(2) infinite_super power_commutes power_eq_if)
 qed
 
 end
