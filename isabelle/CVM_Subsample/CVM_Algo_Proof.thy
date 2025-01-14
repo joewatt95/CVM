@@ -141,7 +141,7 @@ lemma step_1_preserves_finite_support :
   by (simp flip: map_pmf_def add: state_finite_support step_1_def)
 
 method simps = (
-  simp flip: map_pmf_def add: step_1_def pmf_expectation_bind,
+  simp flip: map_pmf_def add: step_1_def pmf_expectation_bind power_le_one Let_def,
   simp add: integral_measure_pmf algebra_simps)
 
 lemma step_1_preserves_expectation_le :
@@ -153,7 +153,6 @@ lemma step_1_preserves_expectation_le :
       \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>\<And> S. _ \<Longrightarrow> ?L' S \<le> _\<close>)
     \<open>S \<subseteq> insert x' U\<close>
-  notes [simp] = power_le_one Let_def
   shows
     \<open>measure_pmf.expectation (state \<bind> step_1 x') (\<lambda> state. \<Prod> x \<in> S. aux x state)
     \<le> (\<phi> 1 True) ^ card S\<close>
