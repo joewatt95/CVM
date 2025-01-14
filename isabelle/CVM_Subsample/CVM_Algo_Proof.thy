@@ -7,11 +7,16 @@ imports
 begin
 
 locale cvm_algo_proof = cvm_algo +
-  assumes f : \<open>1 / 2 \<le> f\<close>
+  assumes
+    f : \<open>1 / 2 \<le> f\<close> and
+    subsample: \<open>subsample_size < threshold\<close>
 begin
 
+lemma threshold_pos : \<open>threshold > 0\<close> using subsample by simp
+lemma f_le_1: \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
+
 lemma subsample_finite_nonempty:
-  assumes \<open>finite U\<close> \<open>card U \<ge> threshold\<close>
+  assumes \<open>card U \<ge> threshold\<close>
   shows 
     \<open>{T. T \<subseteq> U \<and> card T = subsample_size} \<noteq> {}\<close> (is "?C \<noteq> {}")
     \<open>finite {T. T \<subseteq> U \<and> card T = subsample_size}\<close>
@@ -19,14 +24,13 @@ lemma subsample_finite_nonempty:
 proof -
   have a: \<open>card U choose subsample_size > 0\<close> 
     using subsample assms by (intro zero_less_binomial) auto
-  hence \<open>card ?C > 0\<close> unfolding n_subsets[OF assms(1)] by auto
+  hence \<open>card ?C > 0\<close>
+    by (metis (mono_tags, lifting) assms card_ge_0_finite dual_order.strict_trans1 n_subsets threshold_pos) 
+    (* unfolding n_subsets[OF assms(1)] by auto *)
   thus \<open>?C \<noteq> {}\<close> \<open>finite ?C\<close> using card_gt_0_iff by blast+
   thus \<open>finite (set_pmf (subsample U))\<close> unfolding subsample_def by auto
 qed
 
-lemma f_le_1: "f \<le> 1" using f_def subsample by simp
-
-lemma threshold_pos: "threshold > 0" using subsample by simp
 
 (* Lemma 1 *)
 lemma int_prod_subsample_eq_prod_int:
@@ -39,7 +43,7 @@ proof -
   define \<eta> where \<open>\<eta> = (if g True \<ge> g False then Fwd else Rev)\<close>
 
   note subsample_finite_nonempty = 
-    subsample_finite_nonempty[OF assms(1) eq_refl[OF assms(2)[symmetric]]]
+    subsample_finite_nonempty[OF eq_refl[OF assms(2)[symmetric]]]
   let ?C = \<open>{T. T \<subseteq> U \<and> card T = subsample_size}\<close>
 
   have subssample_size_le_card_U: \<open>subsample_size \<le> card U\<close>
@@ -150,6 +154,8 @@ lemma step_1_preserves_expectation_le :
     \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
+  note [simp] = power_le_one Let_def
+
   from state_finite_support have
     \<open>?L = (\<Sum> s \<in> set_pmf state.
       pmf state s * measure_pmf.expectation (step_1 x' s) (\<lambda> s. \<Prod> x \<in> S. aux x s))\<close>
@@ -160,14 +166,14 @@ proof -
       pmf state s * (
         f ^ state_k s * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x = x' \<or> x \<in> state_chi s)) +
         (1 - f ^ state_k s) * (\<Prod> x \<in> S. \<phi> (f ^ state_k s) (x \<in> state_chi s \<and> x \<noteq> x'))))\<close>
-    by (simp flip: map_pmf_def add: step_1_def power_le_one Let_def algebra_simps)
+    by (simp flip: map_pmf_def add: step_1_def algebra_simps)
 
-  also from phi have \<open>\<dots> \<le> ?R\<close>
+  also from assms phi state_finite_support have \<open>\<dots> \<le> ?R\<close>
     (* using state_finite_support assms phi f
     apply (simp flip: map_pmf_def add: step_1_def Let_def)
     apply (subst (asm) integral_measure_pmf[of \<open>set_pmf state\<close>])
     apply (auto simp add: power_le_one) *)
-    apply (simp add: power_le_one)
+    apply (simp add: integral_measure_pmf)
     sorry
 
   finally show ?thesis .
@@ -177,21 +183,13 @@ end
 
 context
   fixes state :: \<open>('a, 'b) state_scheme pmf\<close>
-  assumes
-    state_finite_support : \<open>finite <| set_pmf state\<close>
+  assumes state_finite_support : \<open>finite <| set_pmf state\<close>
 begin
 
 lemma step_2_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_2\<close>
-proof -
-  have
-    \<open>finite <| set_pmf <| subsample chi\<close>
-    if \<open>card chi \<ge> threshold\<close> for chi :: \<open>'a set\<close>
-    using that threshold_pos card_gt_0_iff by (intro subsample_finite_nonempty) fastforce+
-
-  with state_finite_support show ?thesis
-    by (simp add: step_2_def subsample_def Let_def)
-qed
+  using state_finite_support subsample_finite_nonempty
+  by (auto simp add: step_2_def subsample_def Let_def not_less)
 
 lemma step_2_preserves_expectation_le :
   assumes
