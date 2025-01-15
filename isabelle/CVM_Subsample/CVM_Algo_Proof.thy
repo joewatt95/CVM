@@ -40,7 +40,7 @@ lemma int_prod_subsample_eq_prod_int:
     \<open>S \<subseteq> U\<close> \<open>range g \<subseteq> {0..}\<close>
   shows \<open>(\<integral>\<omega>. (\<Prod>s\<in>S. g(s \<in> \<omega>)) \<partial>subsample U) \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>bernoulli_pmf f))\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
-  define \<eta> where \<open>\<eta> = (if g True \<ge> g False then Fwd else Rev)\<close>
+  define \<eta> where \<open>\<eta> \<equiv> if g True \<ge> g False then Fwd else Rev\<close>
 
   note subsample_finite_nonempty = 
     subsample_finite_nonempty[OF eq_refl[OF assms(2)[symmetric]]]
@@ -102,7 +102,7 @@ proof -
       (auto intro!:arg_cong[where f=\<open>integral\<^sup>L (subsample U)\<close>]) 
   also have \<open>\<dots> = (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>map_pmf (\<lambda>\<omega>. s \<in> \<omega>) (subsample U)))\<close> by simp
   also have \<open>\<dots> = ?R\<close> using c assms(3) by (intro prod.cong refl) (metis in_mono)
-  finally show ?thesis by simp
+  finally show ?thesis .
 qed
 
 (* Copied as-is for Lemma 2 *)
@@ -145,7 +145,7 @@ private method simps = (
     flip: map_pmf_def
     add: step_1_def pmf_expectation_bind power_le_one Let_def,
   simp add: integral_measure_pmf algebra_simps,
-  intro sum.cong[OF refl])
+  intro sum.cong refl)
 
 lemma step_1_preserves_expectation_le :
   assumes

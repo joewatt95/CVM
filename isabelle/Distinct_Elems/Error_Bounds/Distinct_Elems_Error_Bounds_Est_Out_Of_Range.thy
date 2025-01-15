@@ -137,7 +137,7 @@ next
     bound later on.\<close>
   also from \<open>\<epsilon> > 0\<close> have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * ?exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
-    apply (intro sum.cong[OF refl])
+    apply (intro sum.cong refl)
     apply (simp flip: exp_of_nat_mult power_add add: field_split_simps)
     by (smt (verit, best) mult_sign_intros(5) one_le_power)
 

@@ -123,7 +123,7 @@ proof -
 
       then show ?thesis
         unfolding add.left_cancel indicator_def
-        apply (intro sum.cong[OF refl])
+        apply (intro sum.cong refl)
         apply (subst
           expectation_Pi_pmf_slice[symmetric, where
             I = \<open>state_chi _\<close> and M = \<open>\<lblot>bernoulli_pmf _\<rblot>\<close>])
