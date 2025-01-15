@@ -10,13 +10,13 @@ begin
 locale cvm_algo_proof = cvm_algo +
   assumes
     f : \<open>1 / 2 \<le> f\<close> and
-    subsample: \<open>subsample_size < threshold\<close>
+    subsample : \<open>subsample_size < threshold\<close>
 begin
 
 lemma threshold_pos : \<open>threshold > 0\<close> using subsample by simp
-lemma f_le_1: \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
+lemma f_le_1 : \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
 
-lemma subsample_finite_nonempty:
+lemma subsample_finite_nonempty :
   assumes \<open>card U \<ge> threshold\<close>
   shows 
     \<open>{T. T \<subseteq> U \<and> card T = subsample_size} \<noteq> {}\<close> (is "?C \<noteq> {}")
@@ -119,7 +119,7 @@ context
 begin
 
 abbreviation (input)
-  \<open>aux \<equiv> \<lambda> S x state. (
+  \<open>aux \<equiv> \<lambda> S state. (
     \<Prod> x \<in> S. \<phi> (f ^ state_k state) (x \<in> state_chi state))\<close>
 
 (*
@@ -152,14 +152,14 @@ lemma step_1_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (aux S x)
+      measure_pmf.expectation state (aux S)
       \<le> (\<phi> 1 True) ^ card S\<close>
     (is \<open>\<And> S. _ \<Longrightarrow> ?L' S \<le> _\<close>)
     \<open>S \<subseteq> insert x' U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_1 x') (aux S x)
+    \<open>measure_pmf.expectation (state \<bind> step_1 x') (aux S)
     \<le> (\<phi> 1 True) ^ card S\<close>
-    (is \<open>?L \<le> ?R\<close>)
+    (is \<open>?L \<le> _\<close>)
 proof (cases \<open>x' \<in> S\<close>)
   case False
   moreover note assms
@@ -212,15 +212,27 @@ lemma step_2_preserves_expectation_le :
   assumes
     (* \<open>finite U\<close> \<open>S \<subseteq> U\<close> *)
     \<open>finite S\<close> 
-    \<open>measure_pmf.expectation state (aux S x) \<le> (\<phi> 1 True) ^ card S\<close>
+    \<open>measure_pmf.expectation state (aux S) \<le> (\<phi> 1 True) ^ card S\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step_2) (aux S x)
+    \<open>measure_pmf.expectation (state \<bind> step_2) (aux S)
     \<le> (\<phi> 1 True) ^ card S\<close>
+    (is \<open>?L \<le> ?R\<close>)
 proof -
-  from assms step_2_preserves_finite_support state_finite_support show ?thesis
-    apply (simp add: step_2_def pmf_expectation_bind integral_measure_pmf Let_def)
-    unfolding if_distrib if_distribR
-    apply (simp add: sum.If_cases)
+  from assms step_2_preserves_finite_support state_finite_support have
+    \<open>?L = (
+      \<Sum> s \<in> set_pmf state \<inter> {s. card (state_chi s) < threshold}.
+       pmf state s * aux S s) + (
+      \<Sum> s \<in> set_pmf state \<inter> {s. card (state_chi s) \<ge> threshold}.
+       pmf state s *
+       measure_pmf.expectation (subsample <| state_chi s)
+        (\<lambda> chi. aux S \<lparr>state_k = state_k s + 1, state_chi = chi\<rparr>))\<close>
+    by (simp
+      flip: Collect_neg_eq
+      add:
+        step_2_def pmf_expectation_bind integral_measure_pmf Let_def
+        if_distrib if_distribR sum.If_cases not_less)
+
+  then show ?thesis
     sorry
 qed
 
@@ -229,11 +241,11 @@ lemma step_preserves_expectation_le :
     \<open>finite U\<close>
     \<open>\<And> S.
       S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (aux S x)
+      measure_pmf.expectation state (aux S)
       \<le> (\<phi> 1 True) ^ card S\<close>
     \<open>S \<subseteq> insert x U\<close>
   shows
-    \<open>measure_pmf.expectation (state \<bind> step x) (aux S x)
+    \<open>measure_pmf.expectation (state \<bind> step x) (aux S)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -242,7 +254,7 @@ qed
 lemma run_steps_preserves_expectation_le :
   assumes \<open>S \<subseteq> set xs\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs) (aux S x)
+    \<open>measure_pmf.expectation (run_steps xs) (aux S)
     \<le> (\<phi> 1 True) ^ card S\<close>
 proof -
   show ?thesis sorry
@@ -253,7 +265,7 @@ lemma run_steps_then_step_1_preserves_expectation_le :
   assumes
     \<open>S \<subseteq> insert x' (set xs)\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x') (aux S x)
+    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x') (aux S)
     \<le> \<phi> 1 True ^ card S\<close>
 proof -
   show ?thesis sorry
