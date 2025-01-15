@@ -118,7 +118,7 @@ context
       \<phi> x False \<le> \<phi> y False\<close>
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>aux \<equiv> \<lambda> S state. (
     \<Prod> x \<in> S. \<phi> (f ^ state_k state) (x \<in> state_chi state))\<close>
 
@@ -139,6 +139,18 @@ begin
 lemma step_1_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close>
   by (simp flip: map_pmf_def add: state_finite_support step_1_def)
+
+lemma
+  assumes \<open>AE state in state. card (state_chi state) < threshold\<close>
+  shows
+    \<open>AE state in bind_pmf state (step_1 x). card (state_chi state) \<le> threshold\<close>
+  using assms threshold_pos
+  apply (auto
+    iff: AE_measure_pmf_iff
+    simp flip: map_pmf_def
+    simp add: step_1_def Let_def map_bind_pmf map_pmf_comp Set.remove_def)
+  apply (metis card.infinite card_insert_if finite_insert leI less_asym not_less_eq)
+  by (meson basic_trans_rules(21) card_Diff1_le nless_le)
 
 private method simps = (
   simp
@@ -211,11 +223,10 @@ lemma step_2_preserves_finite_support :
 lemma step_2_preserves_expectation_le :
   assumes
     (* \<open>finite U\<close> \<open>S \<subseteq> U\<close> *)
-    \<open>finite S\<close> 
-    \<open>measure_pmf.expectation state (aux S) \<le> (\<phi> 1 True) ^ card S\<close>
+    \<open>finite S\<close>
   shows
     \<open>measure_pmf.expectation (state \<bind> step_2) (aux S)
-    \<le> (\<phi> 1 True) ^ card S\<close>
+    \<le> measure_pmf.expectation state (aux S)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   from assms step_2_preserves_finite_support state_finite_support have
@@ -226,14 +237,19 @@ proof -
        pmf state s *
        measure_pmf.expectation (subsample <| state_chi s)
         (\<lambda> chi. aux S \<lparr>state_k = state_k s + 1, state_chi = chi\<rparr>))\<close>
+    (is \<open>_ = ?L' (\<lambda> _ :: (_, _) state_scheme. measure_pmf.expectation _ _)\<close>)
     by (simp
       flip: Collect_neg_eq
       add:
         step_2_def pmf_expectation_bind integral_measure_pmf Let_def
         if_distrib if_distribR sum.If_cases not_less)
 
-  then show ?thesis
+  also from state_finite_support subsample_finite_nonempty
+  have \<open>\<dots> \<le> ?R\<close>
+    apply (simp add: integral_measure_pmf)
     sorry
+
+  finally show ?thesis .
 qed
 
 lemma step_preserves_expectation_le :
@@ -281,7 +297,7 @@ context
     \<open>\<And> x. \<lbrakk>1 \<le> x; x * q \<le> 1\<rbrakk> \<Longrightarrow> h x \<ge> 0\<close>
 begin
 
-abbreviation (input)
+private abbreviation (input)
   \<open>aux' \<equiv> \<lambda> S x state. (
     let p = f ^ (state_k state)
     in \<Prod> x \<in> S. of_bool (p > q) * h ((1 / p) * indicat_real (state_chi state) x))\<close>

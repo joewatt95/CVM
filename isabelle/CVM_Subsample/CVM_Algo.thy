@@ -20,7 +20,7 @@ locale cvm_algo =
 begin
 
 definition f :: real 
-  where "f = subsample_size / threshold"
+  where "f \<equiv> subsample_size / threshold"
 
 definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
