@@ -1,7 +1,7 @@
 theory CVM_Algo
 
 imports
-  Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  "HOL-Probability.Probability_Mass_Function"
   Helper
 
 begin
@@ -17,7 +17,6 @@ definition initial_state :: \<open>'a state\<close> where
 
 locale cvm_algo =
   fixes threshold :: nat and subsample_size :: nat
-  assumes subsample: "subsample_size < threshold"
 begin
 
 definition f :: real 
