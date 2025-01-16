@@ -19,7 +19,7 @@ lemma f_le_1 : \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
 
 lemma subsample_finite_nonempty:
   assumes \<open>card U \<ge> threshold\<close>
-  shows 
+  shows
     \<open>{T. T \<subseteq> U \<and> card T = subsample_size} \<noteq> {}\<close> (is "?C \<noteq> {}")
     \<open>finite {T. T \<subseteq> U \<and> card T = subsample_size}\<close>
     \<open>finite (set_pmf (subsample U))\<close>

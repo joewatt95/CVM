@@ -17,14 +17,8 @@ abbreviation possibly_evals_to
   (\<open>\<turnstile>pmf _ \<Rightarrow>? _\<close> [20, 2] 60) where
   \<open>\<turnstile>pmf p \<Rightarrow>? x \<equiv> x \<in> set_pmf p\<close>
 
-lemma bind_pmfE :
-  assumes \<open>\<turnstile>pmf f x \<bind> g \<Rightarrow>? z\<close>
-  obtains y where
-    \<open>\<turnstile>pmf f x \<Rightarrow>? y\<close>
-    \<open>\<turnstile>pmf g y \<Rightarrow>? z\<close>
-  using assms by auto
-
-abbreviation hoare_triple
+abbreviation hoare_triple ::
+  \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b pmf) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> prop\<close>
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x y. \<lbrakk>P x; \<turnstile>pmf f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y)\<close>
 
@@ -62,21 +56,21 @@ lemma if_then_else :
     \<open>\<And> x. f x \<Longrightarrow> \<turnstile>pmf \<lbrakk>(\<lambda> x'. x = x' \<and> P x)\<rbrakk> g \<lbrakk>Q\<rbrakk>\<close>
     \<open>\<And> x. \<not> f x \<Longrightarrow> \<turnstile>pmf \<lbrakk>(\<lambda> x'. x = x' \<and> P x)\<rbrakk> h \<lbrakk>Q\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. if f x then g x else h x) \<lbrakk>Q\<rbrakk>\<close>
-  using assms by simp_atomize
+  using assms by (simp split: if_splits)
 
 lemma seq :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
     \<open>\<turnstile>pmf \<lbrakk>Q\<rbrakk> g \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g) \<lbrakk>R\<rbrakk>\<close>
-  using assms by simp_atomize blast 
+  using assms by auto
 
-(* lemma seq' :
+lemma seq' :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile>pmf \<lbrakk>Q\<rbrakk> g x \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g x) \<lbrakk>R\<rbrakk>\<close>
-  using assms by simp_atomize  *)
+  using assms seq by fastforce
 
 context
   fixes
@@ -86,9 +80,9 @@ context
 begin
 
 private abbreviation (input)
-  \<open>P' index x val \<equiv>
+  \<open>P' index x val \<equiv> (
     (index, x) \<in> set (List.enumerate offset xs) \<and>
-    P index val\<close>
+    P index val)\<close>
 
 lemma loop_enumerate :
   assumes \<open>\<And> index x. \<turnstile>pmf \<lbrakk>P' index x\<rbrakk> f (index, x) \<lbrakk>P (Suc index)\<rbrakk>\<close>
@@ -101,18 +95,16 @@ using assms proof (induction xs arbitrary: offset)
   then show ?case by (simp add: foldM_enumerate_def)
 next
   case (Cons _ _)
-  with seq[where Q = \<open>P <| Suc offset\<close>] show ?case
-    apply (simp add: foldM_enumerate_def algebra_simps)
+  then show ?case
+    apply (simp add: foldM_enumerate_def)
     by (metis add_Suc)
 qed
 
 lemma loop :
   assumes \<open>\<And> index x. \<turnstile>pmf \<lbrakk>P' index x\<rbrakk> f x \<lbrakk>P (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P offset\<rbrakk> foldM_pmf f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
-  using assms
-  by (auto
-    intro!: loop_enumerate
-    simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
+  using assms loop_enumerate foldM_eq_foldM_enumerate
+  by (metis comp_apply snd_conv)
 
 end
 
@@ -120,6 +112,6 @@ lemma loop' :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
   using loop[where ?P = \<open>curry <| snd >>> P\<close> and ?offset = 0] assms
-  by simp blast
+  by simp'
 
 end

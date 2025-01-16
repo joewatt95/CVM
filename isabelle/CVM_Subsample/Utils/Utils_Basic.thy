@@ -6,7 +6,8 @@ imports
 
 begin
 
-method simp_atomize = simp add: atomize_all atomize_imp
+method simp' uses simp = (simp add: simp, blast?)
+method simp_atomize = (simp' simp: atomize_all atomize_imp)
 
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
   \<open>flip f x y \<equiv> f y x\<close>
