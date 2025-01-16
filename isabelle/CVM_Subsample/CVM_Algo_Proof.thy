@@ -3,10 +3,22 @@ theory CVM_Algo_Proof
 imports
   Probabilistic_Prime_Tests.Generalized_Primality_Test
   Negative_Association.Negative_Association_Permutation_Distributions
-
   CVM_Subsample.CVM_Algo
-
 begin
+
+datatype 'a run_state = FinalState "'a list" | IntermState "'a list" "'a"
+
+lemma run_state_induct:
+  fixes result :: "'a run_state"
+  assumes "P (FinalState [])"
+  assumes "\<And>xs x. P (FinalState xs) \<Longrightarrow> P (IntermState xs x)"
+  assumes "\<And>xs x. P (IntermState xs x) \<Longrightarrow> P (FinalState (xs@[x]))"
+  shows "P result" 
+proof -
+  have "P (FinalState xs) \<and> P (IntermState xs x)" for xs x
+    using assms by (induction xs rule:rev_induct) auto
+  thus ?thesis by (cases result) auto
+qed
 
 locale cvm_algo_proof = cvm_algo +
   assumes
@@ -16,6 +28,9 @@ begin
 
 lemma threshold_pos : \<open>threshold > 0\<close> using subsample by simp
 lemma f_le_1 : \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
+
+lemma run_steps_snoc: "run_steps (xs @[x]) = run_steps xs \<bind> step_1 x \<bind> step_2"
+  unfolding run_steps_def foldM_pmf_snoc step_def by (simp add:bind_assoc_pmf)
 
 lemma subsample_finite_nonempty:
   assumes \<open>card U \<ge> threshold\<close>
@@ -253,39 +268,90 @@ proof -
   finally show ?thesis .
 qed
 
-lemma step_preserves_expectation_le :
-  assumes
-    \<open>finite U\<close>
-    \<open>\<And> S.
-      S \<subseteq> U \<Longrightarrow>
-      measure_pmf.expectation state (aux S)
-      \<le> (\<phi> 1 True) ^ card S\<close>
-    \<open>S \<subseteq> insert x U\<close>
-  shows
-    \<open>measure_pmf.expectation (state \<bind> step x) (aux S)
-    \<le> (\<phi> 1 True) ^ card S\<close>
-proof -
-  show ?thesis sorry
+end
+
+fun run_state_pmf where
+  "run_state_pmf (FinalState xs) = run_steps xs" |
+  "run_state_pmf (IntermState xs x) = run_steps xs \<bind> step_1 x"
+
+fun run_state_set where
+  "run_state_set (FinalState xs) = set xs" |
+  "run_state_set (IntermState xs x) = set xs \<union> {x}"
+
+fun max_card_state where
+  "max_card_state (FinalState _) = threshold - 1" |
+  "max_card_state (IntermState _ _) = threshold"
+
+lemma finite_run_state_set[simp]: "finite (run_state_set \<sigma>)" by (cases \<sigma>) auto
+
+lemma finite_run_state_pmf: "finite (set_pmf (run_state_pmf \<sigma>))" 
+proof (induction \<sigma> rule:run_state_induct)
+  case 1 thus ?case by (simp add:run_steps_def)
+next
+  case (2 xs x) thus ?case by (simp add:step_1_def)
+next
+  case (3 xs x)
+  have a: "run_state_pmf (FinalState (xs@[x])) = run_state_pmf (IntermState xs x) \<bind> step_2"
+    by (simp add:run_steps_snoc)
+  show ?case unfolding a using step_2_preserves_finite_support[OF 3] by simp
+qed
+
+lemma card_run_state_pmf:
+  fixes \<sigma> :: "'a run_state"
+  shows "AE \<omega> in run_state_pmf \<sigma>. card (state_chi \<omega>) \<le> max_card_state \<sigma>" 
+proof (induction \<sigma> rule:run_state_induct)
+  case 1
+  then show ?case by (simp add:AE_measure_pmf_iff run_steps_def initial_state_def)
+next
+  case (2 xs x)
+  have "card (insert x S) \<le> threshold \<and> card (Set.remove x S) \<le> threshold"
+    if "card S \<le> threshold - 1" for S using threshold_pos that 
+    by (metis card_Diff1_le diff_le_self order.trans remove_def card_insert_le_m1)
+  thus ?case using 2 by (auto simp add:AE_measure_pmf_iff step_1_def)
+next
+  case (3 xs x)
+  let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
+  have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
+    by (simp add:run_steps_snoc)
+
+  have "AE \<omega> in subsample U. card \<omega> = subsample_size" if "\<not>card U < threshold" for  U :: "'a set"
+  proof -
+    have "card U \<ge> threshold" using that by simp
+    from subsample_finite_nonempty[OF this]
+    show ?thesis unfolding subsample_def by (auto simp:AE_measure_pmf_iff)
+  qed
+  moreover have "subsample_size \<le> threshold - 1" 
+    using threshold_pos subsample by simp
+  ultimately show ?case 
+    unfolding b AE_measure_pmf_iff set_bind_pmf by (auto simp: step_2_def Let_def)
 qed
 
 lemma run_steps_preserves_expectation_le :
-  assumes \<open>S \<subseteq> set xs\<close>
-  shows
-    \<open>measure_pmf.expectation (run_steps xs) (aux S)
-    \<le> (\<phi> 1 True) ^ card S\<close>
-proof -
-  show ?thesis sorry
-qed
-
-(* Run some prefix of the elements + one more *)
-lemma run_steps_then_step_1_preserves_expectation_le :
   assumes
-    \<open>S \<subseteq> insert x' (set xs)\<close>
+    \<open>S \<subseteq> run_state_set \<sigma>\<close>
   shows
-    \<open>measure_pmf.expectation (run_steps xs \<bind> step_1 x') (aux S)
-    \<le> \<phi> 1 True ^ card S\<close>
-proof -
-  show ?thesis sorry
+    \<open>measure_pmf.expectation (run_state_pmf \<sigma>) (aux S) \<le> \<phi> 1 True ^ card S\<close>
+  using assms
+proof (induction \<sigma> arbitrary: S rule: run_state_induct)
+  case 1 thus ?case by simp
+next
+  case (2 xs x)
+  have a: \<open>finite (run_state_set (FinalState xs))\<close> by simp
+  have "finite (set_pmf (run_steps xs))"
+    using finite_run_state_pmf[where \<sigma>="FinalState xs"] by simp
+  thus ?case using 2 unfolding run_state_pmf.simps
+    by (intro step_1_preserves_expectation_le[OF _ a]) auto
+next
+  case (3 xs x)
+  let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
+  have c: \<open>AE state in ?p. card (state_chi state) \<le> threshold\<close>
+    using card_run_state_pmf[where \<sigma>="IntermState xs x"] by simp
+  have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
+    by (simp add:run_steps_snoc)
+  have a: \<open>S \<subseteq> run_state_set (IntermState xs x)\<close> using 3(2) by auto
+  have fin_S: \<open>finite S\<close> using a finite_run_state_set finite_subset by auto 
+  show ?case unfolding b 
+    using step_2_preserves_expectation_le[OF finite_run_state_pmf fin_S c] 3(1)[OF a] by simp
 qed
 
 end
@@ -313,6 +379,9 @@ proof -
 qed
 
 end
+
+
+
 
 end (* end cvm_algo_proof *)
 
