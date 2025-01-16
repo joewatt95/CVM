@@ -1078,7 +1078,7 @@ next
 
   note split_p0 = split_bij_pmf[OF assms(2,1,3) 2(1)]
 
-  have "(\<integral>x. f x * g x \<partial>bij_pmf I F)  = 
+  have "(\<integral>x. f x * g x \<partial>bij_pmf I F)  =
     (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f(merge J (I-J) (\<phi>,\<psi>))*g(merge J (I-J) (\<phi>,\<psi>)) \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
     unfolding k_def by (simp add:split_p0 bounded_intros bounded_f bounded_g integral_bind_pmf)
   also have "\<dots> = (\<integral>S. (\<integral>\<phi>. (\<integral>\<psi>. f \<phi>*g \<psi> \<partial>?p3 S) \<partial>?p2 S) \<partial>?p1)"
@@ -1150,7 +1150,7 @@ qed
 
 lemma n_subsets_prob:
   assumes "d \<le> card S" "finite S" "s \<in> S"
-  shows 
+  shows
     "measure_pmf.prob (pmf_of_set {a. a \<subseteq> S \<and> card a = d}) {\<omega>. s \<notin> \<omega>} = (1 - real d/card S)"
     "measure_pmf.prob (pmf_of_set {a. a \<subseteq> S \<and> card a = d}) {\<omega>. s \<in> \<omega>} = real d/card S"
 proof -
@@ -1176,16 +1176,16 @@ proof -
     using assms by (subst of_nat_diff) auto
   also have "\<dots> = (1 - real d/card S)" using card_S_gt_0 by (simp add:field_simps)
   finally show "measure (pmf_of_set ?C) {x. s \<notin> x} = (1 - real d/card S)" by simp
-  
+
   hence \<open>1-measure (pmf_of_set ?C) {x. s \<notin> x} = real d/card S\<close> by simp
   thus "measure_pmf.prob (pmf_of_set ?C) {\<omega>. s \<in> \<omega>} = real d/card S"
-    by (subst (asm) measure_pmf.prob_compl[symmetric]) (auto simp:diff_eq Compl_eq) 
+    by (subst (asm) measure_pmf.prob_compl[symmetric]) (auto simp:diff_eq Compl_eq)
 qed
 
 lemma n_subsets_distribution_neg_assoc:
   assumes "finite S" "k \<le> card S"
   defines "p \<equiv> pmf_of_set {T. T \<subseteq> S \<and> card T = k}"
-  shows "measure_pmf.neg_assoc p (\<in>) S" 
+  shows "measure_pmf.neg_assoc p (\<in>) S"
 proof -
   define F :: "bool multiset" where "F = replicate_mset k True + replicate_mset (card S - k) False"
   let ?qset = "{ \<phi> \<in> extensional S. image_mset \<phi> (mset_set S) = F }"
@@ -1193,28 +1193,28 @@ proof -
 
   have a: "card S = size F" unfolding F_def using assms(2) by simp
 
-  have b: "image_mset \<phi> (mset_set S) = F \<longleftrightarrow> card (\<phi> -` {True} \<inter> S) = k" 
+  have b: "image_mset \<phi> (mset_set S) = F \<longleftrightarrow> card (\<phi> -` {True} \<inter> S) = k"
     (is "?L \<longleftrightarrow> ?R") for \<phi>
   proof -
     have de:"card (\<phi>-`{False}\<inter>S) + card (\<phi>-`{True}\<inter>S) = card S"
-      using assms(1) by (subst card_Un_disjoint[symmetric]) (auto intro:arg_cong[where f="card"]) 
+      using assms(1) by (subst card_Un_disjoint[symmetric]) (auto intro:arg_cong[where f="card"])
 
     have "?L \<longleftrightarrow> (\<forall>i. count {#\<phi> x. x\<in>#mset_set S#} i = count F i)" using multiset_eq_iff by blast
     also have "\<dots> \<longleftrightarrow> (\<forall>i. card (\<phi> -` {i} \<inter> S) = count F i)"
-      unfolding count_image_mset_eq_card_vimage[OF assms(1)] vimage_def Int_def 
+      unfolding count_image_mset_eq_card_vimage[OF assms(1)] vimage_def Int_def
       by (simp add:conj_commute)
     also have "\<dots> \<longleftrightarrow> card (\<phi> -` {True} \<inter> S) = k \<and> card (\<phi> -` {False} \<inter> S) = (card S-k)"
-      unfolding F_def using assms(1) by auto 
+      unfolding F_def using assms(1) by auto
     also have "\<dots> \<longleftrightarrow> ?R" using assms(2) de by auto
     finally show ?thesis by simp
   qed
-  
+
   have "bij_betw (\<lambda>\<omega>. \<lambda>s\<in>S. s\<in>\<omega>) {T. T\<subseteq>S \<and> card T = k} ?qset" unfolding b
     by (intro bij_betwI[where g="\<lambda>\<phi>. {x. x \<in> S \<and> \<phi> x}"] Pi_I ext)
      (auto intro: arg_cong[where f="card"] simp:extensional_def vimage_def Int_def conj_commute)
-  moreover have "card {T. T \<subseteq> S \<and> card T = k} > 0" 
+  moreover have "card {T. T \<subseteq> S \<and> card T = k} > 0"
     unfolding n_subsets[OF assms(1)] by (intro zero_less_binomial assms(2))
-  hence "{T. T \<subseteq> S \<and> card T = k} \<noteq> {} \<and> finite {T. T \<subseteq> S \<and> card T = k}" 
+  hence "{T. T \<subseteq> S \<and> card T = k} \<noteq> {} \<and> finite {T. T \<subseteq> S \<and> card T = k}"
     using card_gt_0_iff by blast
   ultimately have c: "map_pmf (\<lambda>\<omega>. \<lambda>s\<in>S. s\<in>\<omega>) p = q"
     unfolding p_def q_def by (intro map_pmf_of_set_bij_betw) auto

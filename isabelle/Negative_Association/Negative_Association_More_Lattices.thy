@@ -333,7 +333,6 @@ proof -
   have class_finite: "class.finite TYPE('c)"
     by (unfold_locales) (metis assms(1) Abs_image finite_imageI)
 
-  find_theorems "?F ` insert ?x ?y"
   have class_finite_lattice: "class.finite_lattice inf' sup' join' le' less' meet' bot' top'"
     unfolding class.finite_lattice_def  eqTrueI[OF class_lattice] eqTrueI[OF class_finite]
     unfolding defs class.distrib_lattice_axioms_def class.finite_lattice_axioms_def using td

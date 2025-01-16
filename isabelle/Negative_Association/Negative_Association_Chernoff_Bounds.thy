@@ -1,9 +1,9 @@
 section \<open>Chernoff-Hoeffding Bounds\<close>
 
 text \<open>This section shows that all the well-known Chernoff-Hoeffding bounds hold also for
-negatively associated random variables. The proofs follow the derivations by 
-Hoeffding~\cite{hoeffding1963}, as well as, Motwani and Raghavan~\cite[Ch. 4]{motwani1995}, with the 
-modification that the crucial steps, where the classic proofs use independence, are replaced with 
+negatively associated random variables. The proofs follow the derivations by
+Hoeffding~\cite{hoeffding1963}, as well as, Motwani and Raghavan~\cite[Ch. 4]{motwani1995}, with the
+modification that the crucial steps, where the classic proofs use independence, are replaced with
 the application of Property P2 for negatively associated RV's.\<close>
 
 theory Negative_Association_Chernoff_Bounds
@@ -67,7 +67,7 @@ proof -
 qed
 
 lemma ln_one_plus_x_lower_bound:
-  assumes "x \<ge> (0::real)" 
+  assumes "x \<ge> (0::real)"
   shows "2*x/(2+x) \<le> ln (1 + x)"
 proof -
   define v where "v x = ln(1+x) - 2 * x/ (2+x) " for x :: real
@@ -76,7 +76,7 @@ proof -
   have v_deriv: "(v has_real_derivative (v' x)) (at x)" if "x \<ge> 0" for x
     using that unfolding v_def v'_def power2_eq_square by (auto intro!:derivative_eq_intros)
   have v_deriv_nonneg: "v' x \<ge> 0" if "x \<ge> 0" for x
-    using that unfolding v'_def 
+    using that unfolding v'_def
     by (simp add:divide_simps power2_eq_square) (simp add:algebra_simps)
 
   have v_mono: "v x \<le> v y" if "x \<le> y" "x \<ge> 0" for x y
@@ -114,7 +114,7 @@ proof -
   have int: "integrable M (\<X> i)" if "i \<in> I" for i
     using that by (intro bounded') simp_all
 
-  have " 2*\<delta> \<le> (2+\<delta>)* ln (1 + \<delta>)" 
+  have " 2*\<delta> \<le> (2+\<delta>)* ln (1 + \<delta>)"
     using assms(1) ln_one_plus_x_lower_bound[OF less_imp_le[OF assms(1)]] by (simp add:field_simps)
   hence " (1+\<delta>)*(2*\<delta>) \<le> (1 + \<delta>) *(2+\<delta>)* ln (1 + \<delta>)" using assms(1) by simp
   hence a:"(\<delta> - (1 + \<delta>) * ln (1 + \<delta>)) \<le> - (\<delta>^2)/(2+\<delta>)"
@@ -162,21 +162,21 @@ proof -
 qed
 
 lemma ln_one_minus_x_lower_bound:
-  assumes "x \<in> {(0::real)..<1}" 
+  assumes "x \<in> {(0::real)..<1}"
   shows "(x^2/2-x)/(1-x) \<le> ln (1 - x)"
 proof -
   define v where "v x = ln(1-x) - (x^2/2-x) / (1-x) " for x :: real
   define v' where "v' x = -1/(1-x) - (-(x^2)/2+x-1)/((1-x)^2)" for x :: real
 
   have v_deriv: "(v has_real_derivative (v' x)) (at x)" if "x \<in> {0..<1}" for x
-    using that unfolding v_def v'_def power2_eq_square 
+    using that unfolding v_def v'_def power2_eq_square
     by (auto intro!:derivative_eq_intros simp:algebra_simps)
   have v_deriv_nonneg: "v' x \<ge> 0" if "x \<ge> 0" for x
-    using that unfolding v'_def by (simp add:divide_simps power2_eq_square) 
+    using that unfolding v'_def by (simp add:divide_simps power2_eq_square)
 
   have v_mono: "v x \<le> v y" if "x \<le> y" "x \<ge> 0" "y < 1" for x y
     using v_deriv v_deriv_nonneg that unfolding atLeastLessThan_iff
-    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) 
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)])
      (metis (mono_tags, opaque_lifting) Ico_eq_Ico ivl_subset linorder_not_le order_less_irrefl)
 
   have "0 = v 0" unfolding v_def by simp
@@ -253,7 +253,7 @@ proof -
     unfolding powr_def by (simp add:ac_simps)
   also have "\<dots> = ?R" using assms(1) by (subst powr_divide) (simp_all add:powr_def)
   finally show "?L \<le> ?R" by simp
-  also have "\<dots> = exp (\<mu> * (- \<delta> - (1 - \<delta>) * ln (1 - \<delta>)))" 
+  also have "\<dots> = exp (\<mu> * (- \<delta> - (1 - \<delta>) * ln (1 - \<delta>)))"
     using assms(1) unfolding powr_def by (simp add:ln_div)
   also have "\<dots> \<le> exp (\<mu> * (-(\<delta>^2) / 2 ))"
     by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono \<mu>_ge_0 1)

@@ -16,7 +16,7 @@ Sergey~\cite{gopinathan2020}. However their formula is less useful, as it consis
 with Stirling numbers and binomial coefficients.
 
 It is however easy to see that the original bound derived by Bloom is a correct upper bound for the
-false positive probability using negative association. (This is pointed out by 
+false positive probability using negative association. (This is pointed out by
 Bao et al.~\cite{bao2021}.)
 
 In this section, we derive the same bound using this library as an example for the applicability of
@@ -53,7 +53,7 @@ next
   have f_borel: "f i \<in> borel_measurable (Pi\<^sub>M (UNIV \<times> {i}) (\<lambda>_. borel))" (is "?L \<in> ?R") for i
   proof -
     have "f i = (\<lambda>\<omega>. max(fst \<omega>) (snd \<omega>)) \<circ> (\<lambda>\<omega>. (\<omega> (True,i),\<omega> (False,i)))" unfolding f_def by auto
-    also have "\<dots> \<in> ?R" by (intro measurable_comp[where N="borel \<Otimes>\<^sub>M borel"]) measurable 
+    also have "\<dots> \<in> ?R" by (intro measurable_comp[where N="borel \<Otimes>\<^sub>M borel"]) measurable
     finally show ?thesis by simp
   qed
 
@@ -64,30 +64,30 @@ next
   have "measure_pmf.neg_assoc (map_pmf snd (pair_pmf ?l ?r)) (\<lambda>i \<omega>. i \<in> \<omega>) ({..<N})"
     unfolding map_snd_pair_pmf using assms by (intro n_subsets_distribution_neg_assoc) auto
   hence na_l:
-    "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. snd i \<in> case_bool fst snd (fst i) \<omega>) ({False} \<times> {..<N})" 
+    "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. snd i \<in> case_bool fst snd (fst i) \<omega>) ({False} \<times> {..<N})"
     unfolding s neg_assoc_map_pmf by (subst measure_pmf.neg_assoc_reindex) (auto intro:inj_onI)
 
   have "measure_pmf.neg_assoc (map_pmf fst (pair_pmf ?l ?r)) (\<in>) ({..<N})"
     unfolding map_fst_pair_pmf using Suc by simp
   hence na_r:
-    "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. snd i \<in> case_bool fst snd (fst i) \<omega>) ({True} \<times> {..<N})" 
+    "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. snd i \<in> case_bool fst snd (fst i) \<omega>) ({True} \<times> {..<N})"
     unfolding s neg_assoc_map_pmf by (subst measure_pmf.neg_assoc_reindex) (auto intro:inj_onI)
 
   have c: "prob_space.indep_var (pair_pmf ?l ?r)
      (PiM ({True} \<times> {..<N}) (\<lambda>_. borel)) x (PiM ({False} \<times> {..<N}) (\<lambda>_. borel)) y"
     if "x = ((\<lambda>\<omega>. \<lambda>i\<in>{True} \<times> {..<N}. snd i\<in> \<omega>)\<circ>fst)" "y=((\<lambda>\<omega>. \<lambda>i\<in>{False} \<times> {..<N}. snd i \<in> \<omega>)\<circ>snd)"
     for x y
-    unfolding that by (intro prob_space.indep_var_compose[OF _ indep_var_pair_pmf] prob_space_measure_pmf) 
+    unfolding that by (intro prob_space.indep_var_compose[OF _ indep_var_pair_pmf] prob_space_measure_pmf)
       (auto simp:space_PiM)
 
-  have a:"measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. snd i \<in> case_bool fst snd (fst i) \<omega>) (UNIV \<times> {..<N})" 
+  have a:"measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. snd i \<in> case_bool fst snd (fst i) \<omega>) (UNIV \<times> {..<N})"
     by (intro measure_pmf.neg_assoc_combine[OF _ 0] na_l na_r c) (auto simp: restrict_def mem_Times_iff)
-  have "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. f i (\<lambda>i. snd i \<in> case_bool fst snd (fst i) \<omega>)) {..<N}" 
-    by (intro measure_pmf.neg_assoc_compose[OF _ a, where deps="\<lambda>j. UNIV\<times>{j}" and \<eta>="Fwd"] 
+  have "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. f i (\<lambda>i. snd i \<in> case_bool fst snd (fst i) \<omega>)) {..<N}"
+    by (intro measure_pmf.neg_assoc_compose[OF _ a, where deps="\<lambda>j. UNIV\<times>{j}" and \<eta>="Fwd"]
         monotoneI depends_onI f_borel) (auto simp:f_def)
-  hence "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. i \<in> fst \<omega> \<or> i \<in> snd \<omega>) {..<N}" 
+  hence "measure_pmf.neg_assoc (pair_pmf ?l ?r) (\<lambda>i \<omega>. i \<in> fst \<omega> \<or> i \<in> snd \<omega>) {..<N}"
     unfolding f_def by (simp add:case_prod_beta')
-  hence "measure_pmf.neg_assoc (map_pmf (case_prod (\<union>)) (pair_pmf ?l ?r)) (\<in>) {..<N}" 
+  hence "measure_pmf.neg_assoc (map_pmf (case_prod (\<union>)) (pair_pmf ?l ?r)) (\<in>) {..<N}"
     unfolding neg_assoc_map_pmf by (simp add:case_prod_beta')
   thus ?case by (simp add:pair_pmf_def map_bind_pmf Un_commute)
 qed
@@ -102,11 +102,11 @@ proof -
   next
     case (Suc n)
     let ?p = "pair_pmf (bloom_filter_pmf n d N) (pmf_of_set {a. a \<subseteq> {..<N} \<and> card a = d})"
-  
+
     have a:" {\<omega>. i \<notin> fst \<omega> \<and> i \<notin> snd \<omega>} = ({\<omega>. i \<notin> \<omega>}) \<times> ({\<omega>. i \<notin> \<omega>})" by auto
-  
+
     have "measure ?p {\<omega>. i \<notin> fst \<omega> \<and> i \<notin> snd \<omega>} = (1-real d/N) ^ n *  (1-real d/card {..<N})"
-      using assms unfolding a measure_pair_pmf 
+      using assms unfolding a measure_pair_pmf
       by (intro Suc n_subsets_prob(1) arg_cong2[where f="(*)"]) auto
     also have "\<dots> =  (1-real d/N) ^ (n+1)" by simp
     finally have "measure ?p {\<omega>. i \<notin> fst \<omega> \<and> i \<notin> snd \<omega>} = (1-real d/N) ^ (n+1)" by simp
@@ -137,9 +137,9 @@ proof -
   also have "\<dots> = (\<integral>\<omega>. (\<Prod>t \<in> T. of_bool(t \<in> \<omega>)) \<partial>?p)"
     unfolding Bochner_Integration.integral_indicator[symmetric] indicator_def
     using a by (intro integral_cong_AE AE_pmfI) auto
-  also have "\<dots> \<le> (\<Prod>t \<in> T. (\<integral>\<omega>. of_bool(t \<in> \<omega>) \<partial>?p))" 
+  also have "\<dots> \<le> (\<Prod>t \<in> T. (\<integral>\<omega>. of_bool(t \<in> \<omega>) \<partial>?p))"
     by (intro has_int_thatD(2)[OF measure_pmf.neg_assoc_imp_prod_mono[OF _ na, where \<eta>="Fwd"]]
-        integrable_bounded_pmf bounded_range_imp[OF bounded_of_bool] fin_T 
+        integrable_bounded_pmf bounded_range_imp[OF bounded_of_bool] fin_T
         borel_measurable_continuous_onI) (auto intro:monoI)
   also have "\<dots> = (\<Prod>t \<in> T. measure ?p ({\<omega>. t \<in> \<omega>} \<inter> space ?p))"
     unfolding Bochner_Integration.integral_indicator[symmetric] indicator_def by simp

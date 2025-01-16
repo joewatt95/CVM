@@ -9,7 +9,7 @@ a continuous version, which can be stated as:
 \]
 
 where $f$, $g$ are continuous simultaneously monotone or simultaneously antimonotone
-functions on the Lebesgue probability space $[a,b] \subseteq \mathbb R$. ($E f$ denotes the 
+functions on the Lebesgue probability space $[a,b] \subseteq \mathbb R$. ($E f$ denotes the
 expectation of the function.)
 
 Note that the inequality is also true for totally ordered discrete probability spaces, for example:
@@ -107,7 +107,7 @@ next
   ultimately show ?case unfolding a by (intro insert(3)) auto
 qed
 
-text \<open>The following is the Ahlswede-Daykin inequality~\cite{ahlswede1978} also referred to by 
+text \<open>The following is the Ahlswede-Daykin inequality~\cite{ahlswede1978} also referred to by
 Alon and Spencer as the four functions theorem~\cite[Th. 6.1.1]{alon2000}.\<close>
 
 theorem four_functions:
@@ -161,7 +161,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-text \<open>Using Birkhoff's Representation 
+text \<open>Using Birkhoff's Representation
 Theorem~\cite{birkhoff1967,Birkhoff_Finite_Distributive_Lattices-AFP} it is possible to generalize
 the previous to finite distributive lattices~\cite[Cor. 6.1.2]{alon2000}.\<close>
 lemma four_functions_in_lattice:

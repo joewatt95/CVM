@@ -1,8 +1,8 @@
 section \<open>Definition\<close>
 
 text \<open>This section introduces the concept of negatively associated random variables (RVs). The
-definition follows, as closely as possible, the original description by 
-Joag-Dev and Proschan~\cite{joagdev1983}. 
+definition follows, as closely as possible, the original description by
+Joag-Dev and Proschan~\cite{joagdev1983}.
 
 
 However, the following modifications have been made:
@@ -33,10 +33,10 @@ definition neg_assoc :: "('i \<Rightarrow> 'a \<Rightarrow> 'c :: {linorder_topo
 
 lemma neg_assocI:
   assumes "\<And>i. i \<in> I \<Longrightarrow> random_variable borel (X i)"
-  assumes "\<And>f g J. J \<subseteq> I 
+  assumes "\<And>f g J. J \<subseteq> I
     \<Longrightarrow> depends_on f J \<Longrightarrow> depends_on g (I-J)
     \<Longrightarrow> mono f \<Longrightarrow> mono g
-    \<Longrightarrow> bounded (range f::real set) \<Longrightarrow> bounded (range g) 
+    \<Longrightarrow> bounded (range f::real set) \<Longrightarrow> bounded (range g)
     \<Longrightarrow> f \<in> PiM J (\<lambda>_. borel) \<rightarrow>\<^sub>M borel \<Longrightarrow> g \<in> PiM (I-J) (\<lambda>_. borel) \<rightarrow>\<^sub>M borel
     \<Longrightarrow> covariance (f \<circ> flip X) (g \<circ> flip X) \<le> 0"
   shows "neg_assoc X I"
@@ -46,9 +46,9 @@ lemma neg_assocI2:
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> random_variable borel (X i)"
   assumes "\<And>f g J. J \<subseteq> I
     \<Longrightarrow> depends_on f J \<Longrightarrow> depends_on g (I-J)
-    \<Longrightarrow> mono f \<Longrightarrow> mono g 
-    \<Longrightarrow> bounded (range f) \<Longrightarrow> bounded (range g) 
-    \<Longrightarrow> f \<in> PiM J (\<lambda>_. borel) \<rightarrow>\<^sub>M (borel :: real measure) 
+    \<Longrightarrow> mono f \<Longrightarrow> mono g
+    \<Longrightarrow> bounded (range f) \<Longrightarrow> bounded (range g)
+    \<Longrightarrow> f \<in> PiM J (\<lambda>_. borel) \<rightarrow>\<^sub>M (borel :: real measure)
     \<Longrightarrow> g \<in> PiM (I-J) (\<lambda>_. borel) \<rightarrow>\<^sub>M (borel :: real measure)
     \<Longrightarrow> (\<integral>\<omega>. f(\<lambda>i. X i \<omega>) * g(\<lambda>i. X i \<omega>) \<partial>M)\<le>(\<integral>\<omega>. f(\<lambda>i. X i \<omega>)\<partial>M)*(\<integral>\<omega>. g(\<lambda>i. X i \<omega>) \<partial>M)"
   shows "neg_assoc X I"
@@ -62,12 +62,12 @@ next
 
   have [measurable]: "random_variable borel (\<lambda>\<omega>. f (\<lambda>i. X i \<omega>))"
     using subsetD[OF 2(1)] by (subst depends_onD[OF 2(2)]) measurable
-  moreover have [measurable]: "random_variable borel (\<lambda>\<omega>. g (\<lambda>i. X i \<omega>))" 
+  moreover have [measurable]: "random_variable borel (\<lambda>\<omega>. g (\<lambda>i. X i \<omega>))"
     by (subst depends_onD[OF 2(3)]) measurable
-  moreover have "integrable M (\<lambda>\<omega>. ((f \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)" 
+  moreover have "integrable M (\<lambda>\<omega>. ((f \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)"
     unfolding comp_def by (intro bounded bounded_subset[OF 2(6)]) auto
   moreover have "integrable M (\<lambda>\<omega>. ((g \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)"
-    unfolding comp_def by (intro bounded bounded_subset[OF 2(7)]) auto 
+    unfolding comp_def by (intro bounded bounded_subset[OF 2(7)]) auto
   ultimately show ?case using assms(2)[OF 2(1-9)]
     by (subst covariance_eq) (auto simp:comp_def)
 qed
@@ -109,7 +109,7 @@ next
       unfolding gc_def by (intro ext depends_onD2[OF 2(3)]) (auto simp:J)
     then show ?thesis unfolding g by (simp add:prob_space)
   qed
-qed  
+qed
 
 lemma neg_assoc_imp_measurable:
   assumes "neg_assoc X I"
@@ -127,7 +127,7 @@ lemma neg_assoc_imp_mult_mono_bounded:
   assumes "bounded (range f)" "bounded (range g)"
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g"
   assumes "depends_on f J" "depends_on g (I-J)"
-  assumes [measurable]: "f \<in> borel_measurable (Pi\<^sub>M J (\<lambda>_. borel))" 
+  assumes [measurable]: "f \<in> borel_measurable (Pi\<^sub>M J (\<lambda>_. borel))"
   assumes [measurable]: "g \<in> borel_measurable (Pi\<^sub>M (I-J) (\<lambda>_. borel))"
   shows
     "covariance (f \<circ> flip X) (g \<circ> flip X) \<le> 0"
@@ -159,12 +159,12 @@ proof -
 
   moreover have m_f: "random_variable borel (\<lambda>x. f(\<lambda>i. X i x))"
     using subsetD[OF assms(2)] by (subst depends_onD[OF assms(7)]) measurable
-  moreover have m_g: "random_variable borel (\<lambda>x. g(\<lambda>i. X i x))" 
+  moreover have m_g: "random_variable borel (\<lambda>x. g(\<lambda>i. X i x))"
     by (subst depends_onD[OF assms(8)]) measurable
-  moreover have "integrable M (\<lambda>\<omega>. ((f \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)" unfolding comp_def 
-    by (intro bounded bounded_subset[OF assms(3)] measurable_compose[OF m_f]) auto 
-  moreover have "integrable M (\<lambda>\<omega>. ((g \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)" unfolding comp_def 
-    by (intro bounded bounded_subset[OF assms(4)] measurable_compose[OF m_g]) auto 
+  moreover have "integrable M (\<lambda>\<omega>. ((f \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)" unfolding comp_def
+    by (intro bounded bounded_subset[OF assms(3)] measurable_compose[OF m_f]) auto
+  moreover have "integrable M (\<lambda>\<omega>. ((g \<circ> (\<lambda>x y. X y x)) \<omega>)\<^sup>2)" unfolding comp_def
+    by (intro bounded bounded_subset[OF assms(4)] measurable_compose[OF m_g]) auto
 
   ultimately show  "?L \<le> ?R" by (subst (asm) covariance_eq) (auto simp:comp_def)
 qed
@@ -193,7 +193,7 @@ lemma neg_assoc_imp_mult_mono:
   assumes "square_integrable M (f \<circ> flip X)" "square_integrable M (g \<circ> flip X)"
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f" "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g"
   assumes "depends_on f J" "depends_on g (I-J)"
-  assumes [measurable]: "f \<in> borel_measurable (Pi\<^sub>M J (\<lambda>_. borel))" 
+  assumes [measurable]: "f \<in> borel_measurable (Pi\<^sub>M J (\<lambda>_. borel))"
   assumes [measurable]: "g \<in> borel_measurable (Pi\<^sub>M (I-J) (\<lambda>_. borel))"
     shows "(\<integral>\<omega>. f (\<lambda>i. X i \<omega>) * g (\<lambda>i. X i \<omega>) \<partial>M) \<le> (\<integral>x. f(\<lambda>y. X y x)\<partial>M) * (\<integral>x. g(\<lambda>y. X y x)\<partial>M)"
       (is "?L \<le> ?R")
@@ -206,7 +206,7 @@ proof -
   have m_f: "random_variable borel (\<lambda>x. f(\<lambda>i. X i x))"
     using subsetD[OF assms(2)] by (subst depends_onD[OF assms(7)]) measurable
 
-  have m_g: "random_variable borel (\<lambda>x. g(\<lambda>i. X i x))" 
+  have m_g: "random_variable borel (\<lambda>x. g(\<lambda>i. X i x))"
     by (subst depends_onD[OF assms(8)]) measurable
 
   note intro_rules = borel_measurable_times measurable_compose[OF _ clamp_borel] AE_I2
@@ -219,13 +219,13 @@ proof -
 
   have "(\<lambda>n. (\<integral>x. ?cf n (\<lambda>y. X y x)\<partial>M)) \<longlonglongrightarrow> (\<integral>x. f(\<lambda>y. X y x)\<partial>M)"
     using square_integrable_imp_integrable[OF m_f] assms(3) unfolding comp_def
-    by (intro integral_dominated_convergence[where w = "\<lambda>\<omega>. norm (f(\<lambda>i. X i \<omega>))"] intro_rules) 
+    by (intro integral_dominated_convergence[where w = "\<lambda>\<omega>. norm (f(\<lambda>i. X i \<omega>))"] intro_rules)
       (simp_all add:clamp_abs_le)
 
-  moreover have "(\<lambda>n. (\<integral>x. ?cg n (\<lambda>y. X y x)\<partial>M)) \<longlonglongrightarrow> (\<integral>x. g(\<lambda>y. X y x)\<partial>M)" 
+  moreover have "(\<lambda>n. (\<integral>x. ?cg n (\<lambda>y. X y x)\<partial>M)) \<longlonglongrightarrow> (\<integral>x. g(\<lambda>y. X y x)\<partial>M)"
     using square_integrable_imp_integrable[OF m_g] assms(4) unfolding comp_def
-    by (intro integral_dominated_convergence[where w = "\<lambda>\<omega>. norm (g(\<lambda>i. X i \<omega>))"] intro_rules) 
-      (simp_all add:clamp_abs_le) 
+    by (intro integral_dominated_convergence[where w = "\<lambda>\<omega>. norm (g(\<lambda>i. X i \<omega>))"] intro_rules)
+      (simp_all add:clamp_abs_le)
 
   ultimately have b: "(\<lambda>n. (\<integral>x. ?cf n (\<lambda>y. X y x)\<partial>M) * (\<integral>x. ?cg n (\<lambda>y. X y x) \<partial>M)) \<longlonglongrightarrow> ?R"
     by (rule tendsto_mult)
@@ -304,7 +304,7 @@ proof -
       using monotoneD[OF assms(8)] unfolding comp_def min_mult_distrib_left
       by (intro monotoneI) (cases \<eta>, fastforce+)
     ultimately have "expectation (h n) \<le> expectation (?cf n\<circ>flip X) * expectation (?cg n\<circ>flip X)"
-      unfolding h_def comp_def 
+      unfolding h_def comp_def
       by (intro neg_assoc_imp_mult_mono[OF assms(1-2)] borel_intros assms(11,12)
           depends_on_comp_2[OF assms(10)] depends_on_comp_2[OF assms(9)]) (auto simp:comp_def)
     also have "... \<le> expectation (f\<circ>flip X) * expectation (g\<circ>flip X)"
@@ -563,8 +563,8 @@ proof
       covariance (f \<circ> (\<lambda>\<omega>. \<lambda>i\<in>I. X i \<omega>)) (g \<circ> (\<lambda>\<omega>. \<lambda>i\<in>I. X i \<omega>))"
       using depends_onD[OF dep_I(2)] depends_onD[OF dep_I(1)] by (simp add:comp_def)
     also have "\<dots> =  p2.covariance (f \<circ> id) (g \<circ> id)" by (subst covariance_distr) measurable
-    also have "\<dots> \<le> 0" 
-      using 2 by (intro p2.neg_assoc_imp_mult_mono_bounded[OF that 2(1), where \<eta>="Fwd"]) 
+    also have "\<dots> \<le> 0"
+      using 2 by (intro p2.neg_assoc_imp_mult_mono_bounded[OF that 2(1), where \<eta>="Fwd"])
         (simp_all add:comp_def)
     finally show ?case by simp
   qed
@@ -598,8 +598,8 @@ proof (rule neg_assocI, goal_cases)
   case (1 i) thus ?case using neg_assoc_imp_measurable[OF assms(2)] by simp
 next
   case (2 f g J)
-  let ?f = "(\<lambda>\<omega>. f (compose J \<omega> h))" 
-  let ?g = "(\<lambda>\<omega>. g (compose (I-J) \<omega> h))" 
+  let ?f = "(\<lambda>\<omega>. f (compose J \<omega> h))"
+  let ?g = "(\<lambda>\<omega>. g (compose (I-J) \<omega> h))"
 
   note neg_assoc_imp_mult_mono_intros =
     neg_assoc_imp_mult_mono_bounded(1)[OF assms(2), where J="h`J" and \<eta>="Fwd"]
@@ -615,7 +615,7 @@ next
     by (intro arg_cong2[where f="covariance"] ext depends_onD2[OF 2(2)] depends_onD2[OF 2(3)])
      (auto simp:compose_def)
   also have "\<dots> \<le> 0" using 2(1)
-    by (intro neg_assoc_imp_mult_mono_intros monotoneI depends_onI) (auto intro!: 
+    by (intro neg_assoc_imp_mult_mono_intros monotoneI depends_onI) (auto intro!:
         monoD[OF 2(4)] monoD[OF 2(5)] simp:le_fun_def compose_def restrict_def cong:if_cong)
   finally show ?case by simp
 qed
@@ -624,7 +624,7 @@ lemma neg_assoc_reindex:
   assumes "inj_on h I" "finite I"
   shows "neg_assoc X (h ` I) \<longleftrightarrow> neg_assoc (\<lambda>k. X (h k)) I" (is "?L \<longleftrightarrow> ?R")
 proof
-  assume ?L 
+  assume ?L
   thus ?R using neg_assoc_reindex_aux[OF assms(1)] by blast
 next
   note inv_h_inj = inj_on_the_inv_into[OF assms(1)]
@@ -657,7 +657,7 @@ proof -
     by (simp add:merge_def)
 
   have a:"(\<lambda>x. merge I J (?g1 x, ?g2 x) i) \<in> A \<rightarrow>\<^sub>M M' i" if "i \<in> K" for i
-    using assms(3) a1 a2 that by auto 
+    using assms(3) a1 a2 that by auto
 
   have "(\<lambda>x. h(merge I J (f x))) = (\<lambda>x. h(merge I J (?f1 x, ?f2 x)))" by simp
   also have "\<dots> = (\<lambda>x. h(\<lambda>i \<in> K. merge I J (?f1 x, ?f2 x) i))"
@@ -665,7 +665,7 @@ proof -
   also have "\<dots> = (\<lambda>x. h(\<lambda>i \<in> K. merge I J (?g1 x, ?g2 x) i))"
     by (intro ext arg_cong[where f="h"]) (auto simp:comp_def restrict_def merge_def case_prod_beta)
   also have "\<dots> \<in> A \<rightarrow>\<^sub>M N"
-    by (intro measurable_compose[OF _ assms(2)] measurable_restrict a) 
+    by (intro measurable_compose[OF _ assms(2)] measurable_restrict a)
   finally show ?thesis by simp
 qed
 
@@ -680,7 +680,7 @@ lemma neg_assoc_combine:
   fixes I I1 I2 :: "'i set"
   fixes X :: "'i \<Rightarrow> 'a \<Rightarrow> ('b::linorder_topology)"
   assumes "finite I" "I1 \<union> I2 = I" "I1 \<inter> I2 = {}"
-  assumes "indep_var (PiM I1 (\<lambda>_. borel)) (\<lambda>\<omega>. \<lambda>i\<in>I1. X i \<omega>) (PiM I2 (\<lambda>_. borel)) (\<lambda>\<omega>. \<lambda>i\<in>I2. X i \<omega>)" 
+  assumes "indep_var (PiM I1 (\<lambda>_. borel)) (\<lambda>\<omega>. \<lambda>i\<in>I1. X i \<omega>) (PiM I2 (\<lambda>_. borel)) (\<lambda>\<omega>. \<lambda>i\<in>I2. X i \<omega>)"
   assumes "neg_assoc X I1"
   assumes "neg_assoc X I2"
   shows "neg_assoc X I"
@@ -688,17 +688,17 @@ proof -
   define X' where "X' i = (if i \<in> I then X i else (\<lambda>_. undefined))" for i
 
   have X_measurable: "random_variable borel (X i)" if "i \<in> I" for i
-    using that assms(2) neg_assoc_imp_measurable[OF assms(5)] 
+    using that assms(2) neg_assoc_imp_measurable[OF assms(5)]
       neg_assoc_imp_measurable[OF assms(6)] by auto
 
   have rv[measurable]: "random_variable borel (X' i)" for i
     unfolding X'_def using X_measurable by auto
 
-  have na_I1: "neg_assoc X' I1" using neg_assoc_cong 
+  have na_I1: "neg_assoc X' I1" using neg_assoc_cong
     unfolding X'_def using assms(1,2) neg_assoc_imp_measurable[OF assms(5)]
     by (intro neg_assoc_cong[OF _ _ assms(5)] AE_I2) auto
 
-  have na_I2: "neg_assoc X' I2" using neg_assoc_cong 
+  have na_I2: "neg_assoc X' I2" using neg_assoc_cong
     unfolding X'_def using assms(1,2) neg_assoc_imp_measurable[OF assms(6)]
     by (intro neg_assoc_cong[OF _ _ assms(6)] AE_I2) auto
 
@@ -735,11 +735,11 @@ proof -
   next
     case (2 f g K)
 
-    note bounded_intros = 
+    note bounded_intros =
       bounded_range_imp[OF 2(6)] bounded_range_imp[OF 2(7)] pa.integrable_bounded
       pb.integrable_bounded pab.integrable_bounded bounded_intros pb.finite_measure_axioms
 
-    have [measurable]: 
+    have [measurable]:
       "restrict x I \<in> space (Pi\<^sub>M I (\<lambda>_. borel))" for x :: "('i \<Rightarrow> 'b)" and I by (simp add:space_PiM)
 
     have a: "K \<subseteq> I1 \<union> I2" using 2 assms(2) by auto
@@ -752,16 +752,16 @@ proof -
       "merge I1 I2 (w, y) \<le> merge I1 I2 (x, z)" if "w \<le> x" "y \<le> z" for w x y z :: "'i \<Rightarrow> 'b"
       using le_funD[OF that(1)] le_funD[OF that(2)] unfolding merge_def by (intro le_funI) auto
 
-    have split_h: "h \<circ> flip X' = (\<lambda>\<omega>. h (merge I1 I2 (\<lambda>i\<in>I1. X' i \<omega>, \<lambda>i\<in>I2. X' i \<omega>)))" 
-      if "depends_on h I" for h :: "_ \<Rightarrow> real" 
-      using assms(2) unfolding comp_def 
+    have split_h: "h \<circ> flip X' = (\<lambda>\<omega>. h (merge I1 I2 (\<lambda>i\<in>I1. X' i \<omega>, \<lambda>i\<in>I2. X' i \<omega>)))"
+      if "depends_on h I" for h :: "_ \<Rightarrow> real"
+      using assms(2) unfolding comp_def
       by (intro ext depends_onD2[OF that]) (auto simp:restrict_def merge_def)
 
-    have "depends_on f I" "depends_on g I" 
-      using 2(1) by (auto intro:depends_on_mono[OF _ 2(2)] depends_on_mono[OF _ 2(3)]) 
+    have "depends_on f I" "depends_on g I"
+      using 2(1) by (auto intro:depends_on_mono[OF _ 2(2)] depends_on_mono[OF _ 2(3)])
     note split = split_h[OF this(1)] split_h[OF this(2)]
 
-    have step_1: "(\<integral>y. f (merge I1 I2 (x, y)) * g (merge I1 I2 (x, y)) \<partial>?B) \<le> 
+    have step_1: "(\<integral>y. f (merge I1 I2 (x, y)) * g (merge I1 I2 (x, y)) \<partial>?B) \<le>
       (\<integral>y. f (merge I1 I2 (x, y))\<partial> ?B) * (\<integral>y. g (merge I1 I2 (x, y)) \<partial>?B)" (is "?L1 \<le> ?R1")
        for x
     proof -
@@ -770,10 +770,10 @@ proof -
       have step1_2: "monotone (\<le>) (\<le>\<ge>\<^bsub>Fwd\<^esub>) (\<lambda>a. g (merge I1 I2 (x, a)))"
         unfolding dir_le by (intro monoI monoD[OF 2(5)] merge_mono) simp
       have step1_3: "depends_on (\<lambda>a. f (merge I1 I2 (x, a))) (K \<inter> I2)"
-        by (subst depends_onD[OF 2(2)]) 
+        by (subst depends_onD[OF 2(2)])
           (auto intro:depends_onI simp:merge_def restrict_def cong:if_cong)
       have step1_4: "depends_on (\<lambda>a. g (merge I1 I2 (x, a))) (I2 - K \<inter> I2)"
-        by (subst depends_onD[OF 2(3)]) 
+        by (subst depends_onD[OF 2(3)])
           (auto intro:depends_onI simp:merge_def restrict_def cong:if_cong)
       show ?thesis
         by (intro pb.neg_assoc_imp_mult_mono_bounded(2)[OF pb_na, where \<eta>="Fwd" and J="K \<inter> I2"]
@@ -782,38 +782,38 @@ proof -
 
     have step2_1: "monotone (\<le>) (\<le>\<ge>\<^bsub>Fwd\<^esub>) (\<lambda>a. pb.expectation (\<lambda>y. f (merge I1 I2 (a,y))))"
       unfolding dir_le
-      by (intro monoI integral_mono bounded_intros merge_1 monoD[OF 2(4)] merge_mono) measurable 
+      by (intro monoI integral_mono bounded_intros merge_1 monoD[OF 2(4)] merge_mono) measurable
 
     have step2_2: "monotone (\<le>) (\<le>\<ge>\<^bsub>Fwd\<^esub>) (\<lambda>a. pb.expectation (\<lambda>y. g (merge I1 I2 (a,y))))"
       unfolding dir_le
-      by (intro monoI integral_mono bounded_intros merge_1 monoD[OF 2(5)] merge_mono) measurable 
+      by (intro monoI integral_mono bounded_intros merge_1 monoD[OF 2(5)] merge_mono) measurable
 
     have step2_3: "depends_on (\<lambda>a. pb.expectation (\<lambda>y. f (merge I1 I2 (a, y)))) (K \<inter> I1)"
-      by (subst depends_onD[OF 2(2)]) 
+      by (subst depends_onD[OF 2(2)])
         (auto intro:depends_onI simp:merge_def restrict_def cong:if_cong)
 
     have step2_4: "depends_on (\<lambda>a. pb.expectation (\<lambda>y. g (merge I1 I2 (a, y)))) (I1-K\<inter>I1)"
-      by (subst depends_onD[OF 2(3)]) 
+      by (subst depends_onD[OF 2(3)])
         (auto intro:depends_onI simp:merge_def restrict_def cong:if_cong)
 
     have "(\<integral>\<omega>. (f\<circ>flip X') \<omega> * (g\<circ>flip X') \<omega> \<partial>M) = (\<integral>\<omega>. f (merge I1 I2 \<omega>) * g(merge I1 I2 \<omega>) \<partial>?H)"
       unfolding split by (intro integral_distr[symmetric] merge_2 borel_measurable_times) measurable
     also have "\<dots> = (\<integral>\<omega>. f(merge I1 I2 \<omega>) * g(merge I1 I2 \<omega>) \<partial> (?A \<Otimes>\<^sub>M ?B))"
-      unfolding indep by simp 
+      unfolding indep by simp
     also have "\<dots> = (\<integral>x. (\<integral>y. f(merge I1 I2 (x,y)) * g(merge I1 I2 (x,y)) \<partial>?B) \<partial>?A)"
       by (intro integral_fst'[symmetric] bounded_intros merge_2 borel_measurable_times)
         measurable
     also have "\<dots> \<le> (\<integral>x. (\<integral>y. f(merge I1 I2 (x,y)) \<partial>?B) * (\<integral>y. g(merge I1 I2 (x,y)) \<partial>?B) \<partial>?A)"
-      by (intro integral_mono_AE bounded_intros step_1 AE_I2 pb.borel_measurable_lebesgue_integral 
+      by (intro integral_mono_AE bounded_intros step_1 AE_I2 pb.borel_measurable_lebesgue_integral
           borel_measurable_times iffD2[OF measurable_split_conv] merge_2) measurable
     also have "\<dots> \<le>(\<integral>x.(\<integral>y. f(merge I1 I2 (x,y))\<partial>?B)\<partial>?A)*(\<integral>x.(\<integral>y. g(merge I1 I2(x,y))\<partial>?B)\<partial>?A)"
       by (intro pa.neg_assoc_imp_mult_mono_bounded[OF pa_na, where \<eta>="Fwd" and J="K \<inter> I1"]
           bounded_intros pb.borel_measurable_lebesgue_integral iffD2[OF measurable_split_conv]
-          merge_2 step2_1 step2_2 step2_3 step2_4) measurable  
+          merge_2 step2_1 step2_2 step2_3 step2_4) measurable
     also have "\<dots> = (\<integral>\<omega>. f(merge I1 I2 \<omega>) \<partial>(?A \<Otimes>\<^sub>M ?B)) * (\<integral>\<omega>. g(merge I1 I2 \<omega>) \<partial>(?A \<Otimes>\<^sub>M ?B))"
       by (intro arg_cong2[where f="(*)"] integral_fst' merge_2 bounded_intros) measurable
     also have "\<dots> = (\<integral>\<omega>. f(merge I1 I2 \<omega>) \<partial>?H) * (\<integral>\<omega>. g(merge I1 I2 \<omega>) \<partial>?H)"
-      unfolding indep by simp 
+      unfolding indep by simp
     also have "\<dots> = (\<integral>\<omega>. (f\<circ>flip X') \<omega> \<partial>M) * (\<integral>\<omega>. (g\<circ>flip X') \<omega> \<partial>M)"
       unfolding split by (intro arg_cong2[where f="(*)"] integral_distr merge_2) measurable
     finally show ?case by (simp add:comp_def)
@@ -827,7 +827,7 @@ lemma neg_assoc_union:
   fixes p :: "'j \<Rightarrow> 'i set"
   fixes X :: "'i \<Rightarrow> 'a \<Rightarrow> ('b::linorder_topology)"
   assumes "finite I" "\<Union>(p ` J) = I"
-  assumes "indep_vars (\<lambda>j. PiM (p j) (\<lambda>_. borel)) (\<lambda>j \<omega>. \<lambda>i \<in> p j. X i \<omega>) J" 
+  assumes "indep_vars (\<lambda>j. PiM (p j) (\<lambda>_. borel)) (\<lambda>j \<omega>. \<lambda>i \<in> p j. X i \<omega>) J"
   assumes "\<And>j. j \<in> J \<Longrightarrow> neg_assoc X (p j)"
   assumes "disjoint_family_on p J"
   shows "neg_assoc X I"
@@ -845,7 +845,7 @@ proof -
 
   have ran_T: "T \<subseteq> J" unfolding T_def by simp
   hence "disjoint_family_on p T" using assms(5) disjoint_family_on_mono by metis
-  moreover have "finite (\<Union>(p ` T))" using ran_T assms(1,2) 
+  moreover have "finite (\<Union>(p ` T))" using ran_T assms(1,2)
     by (meson Union_mono finite_subset image_mono)
   moreover have "\<And>i. i \<in> T \<Longrightarrow> p i \<noteq> {}" unfolding T_def by auto
   ultimately have fin_T: "finite T" using infinite_disjoint_family_imp_infinite_UNION by auto
@@ -871,10 +871,10 @@ proof -
         by (intro measurable_compose[OF measurable_component_singleton[OF q]]) measurable
     qed
 
-    have "finite (\<Union> (p ` insert x F))" using assms(1,2) insert(4) 
+    have "finite (\<Union> (p ` insert x F))" using assms(1,2) insert(4)
       by (meson Sup_subset_mono image_mono infinite_super)
     moreover have "\<Union> (p ` F) \<union> p x = \<Union> (p ` insert x F)" by auto
-    moreover have "\<Union> (p ` F) \<inter> p x = {}" 
+    moreover have "\<Union> (p ` F) \<inter> p x = {}"
       using assms(5) insert(2,4) unfolding disjoint_family_on_def by fast
     moreover have
       "indep_var (PiM (\<Union>(p`F)) ?B) (\<lambda>\<omega>. \<lambda>i\<in>\<Union>(p`F). X i \<omega>) (PiM (p x) ?B) (\<lambda>\<omega>. \<lambda>i\<in>p x. X i \<omega>)"
@@ -894,7 +894,7 @@ lemma indep_imp_neg_assoc:
   shows "neg_assoc X I"
 proof -
   have a:"neg_assoc X {i}" if "i \<in> I" for i
-    using that assms(2) unfolding indep_vars_def 
+    using that assms(2) unfolding indep_vars_def
     by (intro neg_assoc_singleton) auto
   have b: "(\<Union>j\<in>I. {j}) = I" by auto
   have c: "indep_vars (\<lambda>j. Pi\<^sub>M {j} (\<lambda>_. borel)) (\<lambda>j \<omega>. \<lambda>i\<in>{j}. X j \<omega>) I"

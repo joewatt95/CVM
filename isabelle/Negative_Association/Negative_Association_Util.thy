@@ -12,9 +12,9 @@ abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rig
 
 text \<open>Additional introduction rules for boundedness:\<close>
 
-(* 
+(*
   Note to editors: I will move these to (in afp-devel)
-  Concentration_Inequalities.Concentration_Inequalities_Preliminary 
+  Concentration_Inequalities.Concentration_Inequalities_Preliminary
 *)
 
 lemma bounded_const_min:
@@ -53,7 +53,7 @@ qed
 lemma bounded_of_bool: "bounded (range of_bool)" by auto
 
 lemma bounded_range_imp:
-  assumes "bounded (range f)" 
+  assumes "bounded (range f)"
   shows "bounded ((\<lambda>\<omega>. f (h \<omega>)) ` S)"
   by (intro bounded_subset[OF assms]) auto
 
@@ -228,7 +228,7 @@ lemma clamp_borel[measurable]:
 lemma monotone_clamp:
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f"
   shows "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) (\<lambda>\<omega>. clamp a (b::real) (f \<omega>))"
-  using assms unfolding monotone_def clamp_real_def by (cases \<eta>) force+  
+  using assms unfolding monotone_def clamp_real_def by (cases \<eta>) force+
 
 text \<open>This part introduces the term @{term "KL_div"} as the Kullback-Leibler divergence between a
 pair of Bernoulli random variables. The expression is useful to express some of the Chernoff bounds
@@ -237,7 +237,7 @@ more concisely~\cite[Th.~1]{impagliazzo2010}.\<close>
 lemma radon_nikodym_pmf:
   assumes "set_pmf p \<subseteq> set_pmf q"
   defines "f \<equiv> (\<lambda>x. ennreal (pmf p x / pmf q x))"
-  shows 
+  shows
     "AE x in measure_pmf q. RN_deriv q p x = f x" (is "?R1")
     "AE x in measure_pmf p. RN_deriv q p x = f x" (is "?R2")
 proof -
@@ -248,10 +248,10 @@ proof -
   proof -
     have "?L = set_nn_integral (measure_pmf q) A f"
       by (subst emeasure_density) auto
-    also have "\<dots> =  (\<integral>\<^sup>+ x\<in>A. ennreal (pmf q x) * f x \<partial>count_space UNIV)" 
+    also have "\<dots> =  (\<integral>\<^sup>+ x\<in>A. ennreal (pmf q x) * f x \<partial>count_space UNIV)"
       by (simp add: ac_simps nn_integral_measure_pmf)
     also have "\<dots> = (\<integral>\<^sup>+x\<in>A. ennreal (pmf p x) \<partial>count_space UNIV)"
-      using a unfolding f_def by (subst ennreal_mult'[symmetric]) simp_all 
+      using a unfolding f_def by (subst ennreal_mult'[symmetric]) simp_all
     also have "\<dots> = emeasure (bind_pmf p return_pmf) A"
       unfolding emeasure_bind_pmf nn_integral_measure_pmf by simp
     also have "\<dots> = ?R" by simp
@@ -265,12 +265,12 @@ qed
 
 lemma KL_divergence_pmf:
   assumes "set_pmf q \<subseteq> set_pmf p"
-  shows "KL_divergence b (measure_pmf p) (measure_pmf q) = (\<integral>x. log b (pmf q x / pmf p x) \<partial>q)" 
+  shows "KL_divergence b (measure_pmf p) (measure_pmf q) = (\<integral>x. log b (pmf q x / pmf p x) \<partial>q)"
   unfolding KL_divergence_def entropy_density_def
   by (intro integral_cong_AE AE_mp[OF radon_nikodym_pmf(2)[OF assms(1)] AE_I2]) auto
 
-definition KL_div :: "real \<Rightarrow> real \<Rightarrow> real" where 
-  "KL_div p q = KL_divergence (exp 1) (bernoulli_pmf q) (bernoulli_pmf p)" 
+definition KL_div :: "real \<Rightarrow> real \<Rightarrow> real" where
+  "KL_div p q = KL_divergence (exp 1) (bernoulli_pmf q) (bernoulli_pmf p)"
 
 lemma KL_div_eq:
   assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
@@ -280,10 +280,10 @@ proof -
     using assms(1) set_pmf_bernoulli by auto
   hence "?L = (\<integral>x. ln (pmf (bernoulli_pmf p) x / pmf (bernoulli_pmf q) x) \<partial>bernoulli_pmf p)"
     unfolding KL_div_def by (subst KL_divergence_pmf) (simp_all add:log_ln[symmetric])
-  also have "\<dots> = ?R" 
+  also have "\<dots> = ?R"
     using assms(1,2) by (subst integral_bernoulli_pmf) auto
   finally show ?thesis by simp
-qed 
+qed
 
 lemma KL_div_swap:
   assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
@@ -292,7 +292,7 @@ lemma KL_div_swap:
 
 text \<open>A few results about independent random variables:\<close>
 
-lemma (in prob_space) indep_vars_const: 
+lemma (in prob_space) indep_vars_const:
   assumes "\<And>i. i \<in> I \<Longrightarrow> c i \<in> space (N i)"
   shows "indep_vars N (\<lambda>i _. c i) I"
 proof -
@@ -302,7 +302,7 @@ proof -
     case (1 i) thus ?case by simp
   next
     case (2 A J)
-    show ?case 
+    show ?case
     proof (cases "\<forall>j \<in> J. A j = space M")
       case True thus ?thesis using 2(1) by (simp add:prob_space)
     next
@@ -321,7 +321,7 @@ proof -
   next
     have "(\<lambda>A. (\<lambda>_. c i) -` A \<inter> space M) {} = {}" "{} \<in> N i" by auto
     hence "{} \<in> ?L" unfolding image_Collect[symmetric] by blast
-    moreover have "(\<lambda>A. (\<lambda>_. c i) -` A \<inter> space M) (space (N i)) = space M" "space (N i) \<in> N i" 
+    moreover have "(\<lambda>A. (\<lambda>_. c i) -` A \<inter> space M) (space (N i)) = space M" "space (N i) \<in> N i"
       using assms[OF that] by auto
     hence "space M \<in> ?L" unfolding image_Collect[symmetric] by blast
     ultimately show "?R \<subseteq> ?L" by simp
@@ -343,7 +343,7 @@ proof -
   have split_bool_univ: "UNIV = insert True {False}" by auto
 
   have pair_prod: "pair_pmf x y = map_pmf (\<lambda>\<omega>. (\<omega> True, \<omega> False)) (prod_pmf UNIV (case_bool x y))"
-    unfolding split_bool_univ by (subst Pi_pmf_insert) 
+    unfolding split_bool_univ by (subst Pi_pmf_insert)
       (simp_all add:map_pmf_comp Pi_pmf_singleton pair_map_pmf2 case_prod_beta)
 
   have case_bool_eq: "case_bool discrete discrete = (\<lambda>_. discrete)"
