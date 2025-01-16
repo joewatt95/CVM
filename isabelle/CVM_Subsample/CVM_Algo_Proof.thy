@@ -16,7 +16,7 @@ begin
 lemma threshold_pos : \<open>threshold > 0\<close> using subsample by simp
 lemma f_le_1 : \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
 
-lemma subsample_finite_nonempty :
+lemma subsample_finite_nonempty:
   assumes \<open>card U \<ge> threshold\<close>
   shows 
     \<open>{T. T \<subseteq> U \<and> card T = subsample_size} \<noteq> {}\<close> (is "?C \<noteq> {}")
@@ -49,59 +49,37 @@ proof -
   have subssample_size_le_card_U: \<open>subsample_size \<le> card U\<close>
     using subsample unfolding assms(2) by simp
 
-  have na: \<open>measure_pmf.neg_assoc (subsample U) (\<lambda>s \<omega>. of_bool (s \<in> \<omega>)::real) U\<close>
+  have \<open>measure_pmf.neg_assoc (subsample U) (\<lambda>s \<omega>. (s \<in> \<omega>)) U\<close>
     using subssample_size_le_card_U unfolding subsample_def
-    by (intro k_combination_distribution_neg_assoc assms(1))
+    by (intro n_subsets_distribution_neg_assoc assms(1))
 
-  note na_imp_prod_mono = has_int_thatD(2)[OF measure_pmf.neg_assoc_imp_prod_mono[OF assms(1) na]]
+  hence na: \<open>measure_pmf.neg_assoc (subsample U) (\<lambda>s \<omega>. (s \<in> \<omega>)) S\<close>
+    using measure_pmf.neg_assoc_subset[OF assms(3)] by auto
 
-  define h where \<open>h i \<omega> = (if i \<in> S then g(\<omega> \<ge> (1::real)) else 1::real)\<close> for i \<omega>
+  have fin_S: \<open>finite S\<close> using assms(1,3) finite_subset by auto
+  note na_imp_prod_mono = has_int_thatD(2)[OF measure_pmf.neg_assoc_imp_prod_mono[OF fin_S na]]
 
-  have [split]: \<open>P (\<omega>\<ge>1) = ((\<omega>\<ge>1 \<longrightarrow> P True) \<and> (\<omega> <1 \<longrightarrow> P False))\<close> for P and \<omega> :: real
-    unfolding not_le[symmetric] by (metis (full_types))
-
-  have h_borel: \<open>h s \<in> borel_measurable borel\<close> for s unfolding h_def by simp 
-  have h_nonneg: \<open>range (h s) \<subseteq> {0..}\<close> for s unfolding h_def using assms(4) by auto
-  have h_mono: \<open>monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) (h s)\<close> for s unfolding h_def \<eta>_def by (intro monotoneI) auto 
+  have g_borel: \<open>g \<in> borel_measurable borel\<close> by (intro borel_measurable_continuous_onI) simp 
+  have g_mono_aux: \<open>g x \<le>\<ge>\<^bsub>\<eta>\<^esub> g y\<close> if  \<open>x \<le> y\<close> for x y
+    unfolding \<eta>_def using that by simp (smt (verit, best))
+  have g_mono: \<open>monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g\<close>
+    by (intro monotoneI) (auto simp:dir_le_refl intro!:g_mono_aux)
 
   note [simp] = integrable_measure_pmf_finite[OF subsample_finite_nonempty(3)]
 
-  have c: \<open>map_pmf (\<lambda>\<omega>. s \<in> \<omega>) (subsample U) = bernoulli_pmf f\<close> if \<open>s \<in> U\<close> for s
+  have a: \<open>map_pmf (\<lambda>\<omega>. s \<in> \<omega>) (subsample U) = bernoulli_pmf f\<close> if \<open>s \<in> U\<close> for s
   proof -
-    have \<open>measure (pmf_of_set ?C) {x. s \<notin> x} =
-      real (card {T. T\<subseteq>U \<and> card T = subsample_size \<and> s \<notin> T}) / card ?C\<close>
-      using subsample_finite_nonempty by (subst measure_pmf_of_set) (simp_all add:Int_def)
-    also have \<open>\<dots> = real (card {T. T\<subseteq>(U-{s}) \<and> card T = subsample_size}) / card ?C\<close>
-      by (intro arg_cong2[where f="(\<lambda>x y. real (card x)/y)"] Collect_cong) auto
-    also have \<open>\<dots> = real(card (U - {s}) choose subsample_size) / real (card U choose subsample_size)\<close>
-      using assms(1) by (subst (1 2) n_subsets) auto
-    also have \<open>\<dots> = real((threshold - 1) choose subsample_size) 
-      / real (threshold choose subsample_size)\<close>
-      using assms(2) that by simp
-    also have \<open>\<dots> = real(threshold *((threshold-1) choose subsample_size))
-      / real (threshold * (threshold choose subsample_size))\<close>
-      using threshold_pos by simp
-    also have \<open>\<dots> = real (threshold - subsample_size) / real threshold\<close>
-      unfolding binomial_absorb_comp[symmetric] using subsample by simp
-    also have \<open>\<dots> = (real threshold - real subsample_size) / real threshold\<close>
-      using subsample by (subst of_nat_diff) auto
-    also have \<open>\<dots> = 1-f\<close> using threshold_pos f_def by (simp add:field_simps)
-    finally have \<open>1-measure (pmf_of_set ?C) {x. s \<notin> x} = f\<close> by simp
-
-    hence \<open>measure (pmf_of_set ?C) {x. s \<in> x} = f\<close>
-      by (subst (asm) measure_pmf.prob_compl[symmetric]) (auto simp:diff_eq Compl_eq) 
+    have \<open>measure (pmf_of_set ?C) {x. s \<in> x} = real subsample_size / card U\<close>
+      by (intro n_subsets_prob subssample_size_le_card_U that assms(1))
+    also have \<open>\<dots> = f\<close> unfolding f_def assms(2) by simp 
+    finally have \<open>measure (pmf_of_set ?C) {x. s \<in> x} = f\<close> by simp
     thus ?thesis by (intro eq_bernoulli_pmfI) (simp add: pmf_map vimage_def subsample_def)
   qed
 
-  have \<open>?L = (\<integral>\<omega>. (\<Prod>s\<in>U. h s (of_bool(s \<in> \<omega>))) \<partial>subsample U)\<close> unfolding h_def
-    by (intro arg_cong2[where f="integral\<^sup>L"] refl ext prod.mono_neutral_cong_left assms(1,3)) auto
-  also have \<open>\<dots> \<le> (\<Prod>s\<in>U. (\<integral>\<omega>. h s (of_bool(s \<in> \<omega>)) \<partial>subsample U))\<close>
-    by (intro na_imp_prod_mono[OF _ h_mono] h_borel h_nonneg) auto
-  also have \<open>\<dots> = (\<Prod>s\<in>S. (\<integral>\<omega>. g(s \<in> \<omega>) \<partial>subsample U))\<close> unfolding h_def 
-    by (intro prod.mono_neutral_cong_left[symmetric] assms(1,3)) 
-      (auto intro!:arg_cong[where f=\<open>integral\<^sup>L (subsample U)\<close>]) 
+  have \<open>?L \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g (s \<in> \<omega>) \<partial>subsample U))\<close>
+    by (intro na_imp_prod_mono[OF _ g_mono] g_borel assms(4)) auto
   also have \<open>\<dots> = (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>map_pmf (\<lambda>\<omega>. s \<in> \<omega>) (subsample U)))\<close> by simp
-  also have \<open>\<dots> = ?R\<close> using c assms(3) by (intro prod.cong refl) (metis in_mono)
+  also have \<open>\<dots> = ?R\<close> using a assms(3) by (intro prod.cong refl) (metis in_mono)
   finally show ?thesis .
 qed
 

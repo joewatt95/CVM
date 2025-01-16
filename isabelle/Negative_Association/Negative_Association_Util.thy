@@ -3,6 +3,7 @@ section \<open>Preliminary Definitions and Lemmas\<close>
 theory Negative_Association_Util
   imports
     Concentration_Inequalities.Concentration_Inequalities_Preliminary
+    Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
 begin
 
 (* From Joe Watt *)
@@ -48,6 +49,8 @@ proof -
 
   thus ?thesis by (intro boundedI[where B="max m c"]) fastforce
 qed
+
+lemma bounded_of_bool: "bounded (range of_bool)" by auto
 
 lemma bounded_range_imp:
   assumes "bounded (range f)" 
@@ -142,6 +145,9 @@ lemma dir_le[simp]:
 definition dir_sign :: "RelDirection \<Rightarrow> 'a::{one,uminus}" ("\<plusminus>\<index>")
   where "dir_sign \<eta> = (if \<eta> = Fwd then 1 else (-1))"
 
+lemma dir_le_refl: "x \<le>\<ge>\<^bsub>\<eta>\<^esub> x"
+  by (cases \<eta>) auto
+
 lemma dir_sign[simp]:
   "(\<plusminus>\<^bsub>Fwd\<^esub>) = (1)"
   "(\<plusminus>\<^bsub>Rev\<^esub>) = (-1)"
@@ -223,5 +229,149 @@ lemma monotone_clamp:
   assumes "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) f"
   shows "monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) (\<lambda>\<omega>. clamp a (b::real) (f \<omega>))"
   using assms unfolding monotone_def clamp_real_def by (cases \<eta>) force+  
+
+text \<open>This part introduces the term @{term "KL_div"} as the Kullback-Leibler divergence between a
+pair of Bernoulli random variables. The expression is useful to express some of the Chernoff bounds
+more concisely~\cite[Th.~1]{impagliazzo2010}.\<close>
+
+lemma radon_nikodym_pmf:
+  assumes "set_pmf p \<subseteq> set_pmf q"
+  defines "f \<equiv> (\<lambda>x. ennreal (pmf p x / pmf q x))"
+  shows 
+    "AE x in measure_pmf q. RN_deriv q p x = f x" (is "?R1")
+    "AE x in measure_pmf p. RN_deriv q p x = f x" (is "?R2")
+proof -
+  have "pmf p x = 0" if "pmf q x = 0" for x
+    using assms(1) that by (meson pmf_eq_0_set_pmf subset_iff)
+  hence a:"(pmf q x * (pmf p x / pmf q x)) = pmf p x" for x by simp
+  have "emeasure (density q f) A = emeasure p A" (is "?L = ?R") for A
+  proof -
+    have "?L = set_nn_integral (measure_pmf q) A f"
+      by (subst emeasure_density) auto
+    also have "\<dots> =  (\<integral>\<^sup>+ x\<in>A. ennreal (pmf q x) * f x \<partial>count_space UNIV)" 
+      by (simp add: ac_simps nn_integral_measure_pmf)
+    also have "\<dots> = (\<integral>\<^sup>+x\<in>A. ennreal (pmf p x) \<partial>count_space UNIV)"
+      using a unfolding f_def by (subst ennreal_mult'[symmetric]) simp_all 
+    also have "\<dots> = emeasure (bind_pmf p return_pmf) A"
+      unfolding emeasure_bind_pmf nn_integral_measure_pmf by simp
+    also have "\<dots> = ?R" by simp
+    finally show ?thesis by simp
+  qed
+  hence "density (measure_pmf q) f = measure_pmf p" by (intro measure_eqI) auto
+  hence "AE x in measure_pmf q. f x = RN_deriv q p x" by (intro measure_pmf.RN_deriv_unique) simp
+  thus ?R1 unfolding AE_measure_pmf_iff by auto
+  thus ?R2 using assms unfolding AE_measure_pmf_iff by auto
+qed
+
+lemma KL_divergence_pmf:
+  assumes "set_pmf q \<subseteq> set_pmf p"
+  shows "KL_divergence b (measure_pmf p) (measure_pmf q) = (\<integral>x. log b (pmf q x / pmf p x) \<partial>q)" 
+  unfolding KL_divergence_def entropy_density_def
+  by (intro integral_cong_AE AE_mp[OF radon_nikodym_pmf(2)[OF assms(1)] AE_I2]) auto
+
+definition KL_div :: "real \<Rightarrow> real \<Rightarrow> real" where 
+  "KL_div p q = KL_divergence (exp 1) (bernoulli_pmf q) (bernoulli_pmf p)" 
+
+lemma KL_div_eq:
+  assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
+  shows "KL_div p q = p * ln (p/q) + (1-p) * ln ((1-p)/(1-q))" (is "?L = ?R")
+proof -
+  have "set_pmf (bernoulli_pmf p) \<subseteq> set_pmf (bernoulli_pmf q)"
+    using assms(1) set_pmf_bernoulli by auto
+  hence "?L = (\<integral>x. ln (pmf (bernoulli_pmf p) x / pmf (bernoulli_pmf q) x) \<partial>bernoulli_pmf p)"
+    unfolding KL_div_def by (subst KL_divergence_pmf) (simp_all add:log_ln[symmetric])
+  also have "\<dots> = ?R" 
+    using assms(1,2) by (subst integral_bernoulli_pmf) auto
+  finally show ?thesis by simp
+qed 
+
+lemma KL_div_swap:
+  assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
+  shows "KL_div p q = KL_div (1-p) (1-q)"
+  using assms by (subst (1 2) KL_div_eq) auto
+
+text \<open>A few results about independent random variables:\<close>
+
+lemma (in prob_space) indep_vars_const: 
+  assumes "\<And>i. i \<in> I \<Longrightarrow> c i \<in> space (N i)"
+  shows "indep_vars N (\<lambda>i _. c i) I"
+proof -
+  have rv: " random_variable (N i) (\<lambda>_. c i)" if "i \<in> I" for i  using assms[OF that] by simp
+  have b:"indep_sets (\<lambda>i. {space M, {}}) I"
+  proof (intro indep_setsI, goal_cases)
+    case (1 i) thus ?case by simp
+  next
+    case (2 A J)
+    show ?case 
+    proof (cases "\<forall>j \<in> J. A j = space M")
+      case True thus ?thesis using 2(1) by (simp add:prob_space)
+    next
+      case False
+      then obtain i where i:"A i = {}" "i \<in> J" using 2 by auto
+      hence "prob (\<Inter> (A ` J)) = prob {}" by (intro arg_cong[where f="prob"]) auto
+      also have "\<dots> = 0" by simp
+      also have "\<dots> =  (\<Prod>j\<in>J. prob (A j))"
+        using i by (intro prod_zero[symmetric] 2 bexI[where x="i"]) auto
+      finally show ?thesis by simp
+    qed
+  qed
+  have "{(\<lambda>_. c i) -` A \<inter> space M |A. A \<in> sets (N i)} = {space M, {}}" (is "?L = ?R") if "i \<in> I" for i
+  proof
+    show "?L \<subseteq> ?R" by auto
+  next
+    have "(\<lambda>A. (\<lambda>_. c i) -` A \<inter> space M) {} = {}" "{} \<in> N i" by auto
+    hence "{} \<in> ?L" unfolding image_Collect[symmetric] by blast
+    moreover have "(\<lambda>A. (\<lambda>_. c i) -` A \<inter> space M) (space (N i)) = space M" "space (N i) \<in> N i" 
+      using assms[OF that] by auto
+    hence "space M \<in> ?L" unfolding image_Collect[symmetric] by blast
+    ultimately show "?R \<subseteq> ?L" by simp
+  qed
+  hence "indep_sets (\<lambda>i. {(\<lambda>_. c i) -` A \<inter> space M |A. A \<in> sets (N i)}) I"
+    using iffD2[OF indep_sets_cong b] b by simp
+  thus ?thesis unfolding indep_vars_def2 by (intro conjI rv ballI)
+qed
+
+lemma indep_vars_map_pmf:
+  assumes "prob_space.indep_vars (measure_pmf p) (\<lambda>_. discrete) (\<lambda>i. X i \<circ> f) I"
+  shows  "prob_space.indep_vars (map_pmf f p) (\<lambda>_. discrete) X I"
+  using assms unfolding map_pmf_rep_eq by (intro measure_pmf.indep_vars_distr) auto
+
+lemma indep_var_pair_pmf:
+  fixes x y :: "'a pmf"
+  shows "prob_space.indep_var (pair_pmf x y) discrete fst discrete snd"
+proof -
+  have split_bool_univ: "UNIV = insert True {False}" by auto
+
+  have pair_prod: "pair_pmf x y = map_pmf (\<lambda>\<omega>. (\<omega> True, \<omega> False)) (prod_pmf UNIV (case_bool x y))"
+    unfolding split_bool_univ by (subst Pi_pmf_insert) 
+      (simp_all add:map_pmf_comp Pi_pmf_singleton pair_map_pmf2 case_prod_beta)
+
+  have case_bool_eq: "case_bool discrete discrete = (\<lambda>_. discrete)"
+    by (intro ext) (simp add: bool.case_eq_if)
+
+  have "prob_space.indep_vars (prod_pmf UNIV (case_bool x y)) (\<lambda>_. discrete) (\<lambda>i \<omega>. \<omega> i) UNIV"
+    by (intro indep_vars_Pi_pmf) auto
+  moreover have "(\<lambda>i. (case_bool fst snd i) \<circ> (\<lambda>\<omega>. ((\<omega> True)::'a, \<omega> False))) = (\<lambda>i \<omega>. \<omega> i)"
+    by (auto intro!:ext split:bool.splits)
+  ultimately show ?thesis
+    unfolding prob_space.indep_var_def[OF prob_space_measure_pmf] pair_prod case_bool_eq
+    by (intro indep_vars_map_pmf) simp
+qed
+
+lemma measure_pair_pmf: "measure (pair_pmf p q) (A \<times> B) = measure p A * measure q B" (is "?L = ?R")
+proof -
+  have "?L = measure (pair_pmf p q) ((A \<inter> set_pmf p) \<times> (B \<inter> set_pmf q))"
+    by (intro measure_eq_AE AE_pmfI) auto
+  also have "\<dots> = measure p (A \<inter> set_pmf p) * measure q (B \<inter> set_pmf q)"
+    by (intro measure_pmf_prob_product) auto
+  also have "\<dots> = ?R" by (intro arg_cong2[where f="(*)"] measure_eq_AE AE_pmfI) auto
+  finally show ?thesis by simp
+qed
+
+instance bool :: second_countable_topology
+proof
+  show "\<exists>B::bool set set. countable B \<and> open = generate_topology B"
+    by (intro exI[of _ "range lessThan \<union> range greaterThan"]) (auto simp: open_bool_def)
+qed
 
 end

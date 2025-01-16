@@ -1,9 +1,10 @@
 section \<open>Chernoff-Hoeffding Bounds\<close>
 
 text \<open>This section shows that all the well-known Chernoff-Hoeffding bounds hold also for
-negatively associated random variables. The proofs follow the derivation by 
-Hoeffding~\cite{hoeffding1963}, with the modification that the crucial step, where Hoeffding uses
-independence, is replaced with the application of Property P2 for negatively associated RV's.\<close>
+negatively associated random variables. The proofs follow the derivations by 
+Hoeffding~\cite{hoeffding1963}, as well as, Motwani and Raghavan~\cite[Ch. 4]{motwani1995}, with the 
+modification that the crucial steps, where the classic proofs use independence, are replaced with 
+the application of Property P2 for negatively associated RV's.\<close>
 
 theory Negative_Association_Chernoff_Bounds
   imports
@@ -11,82 +12,6 @@ theory Negative_Association_Chernoff_Bounds
     Concentration_Inequalities.McDiarmid_Inequality
     Weighted_Arithmetic_Geometric_Mean.Weighted_Arithmetic_Geometric_Mean
 begin
-
-(*
-lemma radon_nikodym_pmf_zero:
-  assumes "set_pmf p - set_pmf q \<noteq> {}"
-  shows "RN_deriv q p x = 0"
-proof -
-  have "set_pmf p \<subseteq> set_pmf q" if "\<exists>f. density q f = p" 
-  proof (rule subsetI)
-    fix x assume x:"x \<in> set_pmf p"
-    from that obtain f where f:"density q f = p" by auto
-    have "0 \<noteq> emeasure p {x}" by (simp add: emeasure_pmf_single_eq_zero_iff x)
-    moreover have "emeasure p {x} = f x * emeasure (measure_pmf q) {x}"
-      unfolding f[symmetric] by (subst emeasure_density) simp_all
-    ultimately have "emeasure (measure_pmf q) {x} \<noteq> 0" by auto
-    thus "x \<in> set_pmf q"  by (simp add: emeasure_pmf_single_eq_zero_iff)
-  qed
-  hence "False" if "\<exists>f. density q f = p" using that assms by simp
-  thus ?thesis unfolding RN_deriv_def by auto
-qed
-*)
-
-lemma radon_nikodym_pmf:
-  assumes "set_pmf p \<subseteq> set_pmf q"
-  defines "f \<equiv> (\<lambda>x. ennreal (pmf p x / pmf q x))"
-  shows 
-    "AE x in measure_pmf q. RN_deriv q p x = f x" (is "?R1")
-    "AE x in measure_pmf p. RN_deriv q p x = f x" (is "?R2")
-proof -
-  have "pmf p x = 0" if "pmf q x = 0" for x
-    using assms(1) that by (meson pmf_eq_0_set_pmf subset_iff)
-  hence a:"(pmf q x * (pmf p x / pmf q x)) = pmf p x" for x by simp
-  have "emeasure (density q f) A = emeasure p A" (is "?L = ?R") for A
-  proof -
-    have "?L = set_nn_integral (measure_pmf q) A f"
-      by (subst emeasure_density) auto
-    also have "\<dots> =  (\<integral>\<^sup>+ x\<in>A. ennreal (pmf q x) * f x \<partial>count_space UNIV)" 
-      by (simp add: ac_simps nn_integral_measure_pmf)
-    also have "\<dots> = (\<integral>\<^sup>+x\<in>A. ennreal (pmf p x) \<partial>count_space UNIV)"
-      using a unfolding f_def by (subst ennreal_mult'[symmetric]) simp_all 
-    also have "\<dots> = emeasure (bind_pmf p return_pmf) A"
-      unfolding emeasure_bind_pmf nn_integral_measure_pmf by simp
-    also have "\<dots> = ?R" by simp
-    finally show ?thesis by simp
-  qed
-  hence "density (measure_pmf q) f = measure_pmf p" by (intro measure_eqI) auto
-  hence "AE x in measure_pmf q. f x = RN_deriv q p x" by (intro measure_pmf.RN_deriv_unique) simp
-  thus ?R1 unfolding AE_measure_pmf_iff by auto
-  thus ?R2 using assms unfolding AE_measure_pmf_iff by auto
-qed
-
-lemma KL_divergence_pmf:
-  assumes "set_pmf q \<subseteq> set_pmf p"
-  shows "KL_divergence b (measure_pmf p) (measure_pmf q) = (\<integral>x. log b (pmf q x / pmf p x) \<partial>q)" 
-  unfolding KL_divergence_def entropy_density_def
-  by (intro integral_cong_AE AE_mp[OF radon_nikodym_pmf(2)[OF assms(1)] AE_I2]) auto
-
-definition KL_div :: "real \<Rightarrow> real \<Rightarrow> real" where 
-  "KL_div p q = KL_divergence (exp 1) (bernoulli_pmf q) (bernoulli_pmf p)" 
-
-lemma KL_div_eq:
-  assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
-  shows "KL_div p q = p * ln (p/q) + (1-p) * ln ((1-p)/(1-q))" (is "?L = ?R")
-proof -
-  have "set_pmf (bernoulli_pmf p) \<subseteq> set_pmf (bernoulli_pmf q)"
-    using assms(1) set_pmf_bernoulli by auto
-  hence "?L = (\<integral>x. ln (pmf (bernoulli_pmf p) x / pmf (bernoulli_pmf q) x) \<partial>bernoulli_pmf p)"
-    unfolding KL_div_def by (subst KL_divergence_pmf) (simp_all add:log_ln[symmetric])
-  also have "\<dots> = ?R" 
-    using assms(1,2) by (subst integral_bernoulli_pmf) auto
-  finally show ?thesis by simp
-qed
-
-lemma KL_div_swap:
-  assumes "q \<in> {0<..<1}" "p \<in> {0..1}"
-  shows "KL_div p q = KL_div (1-p) (1-q)"
-  using assms by (subst (1 2) KL_div_eq) auto
 
 context prob_space
 begin
@@ -164,7 +89,8 @@ proof -
   thus ?thesis unfolding v_def by simp
 qed
 
-(* Based on proof Theorem 4.1 \cite{raghavan1981} *)
+text \<open>Based on Theorem~4.1 by Motwani and Raghavan~\cite{motwani1995}.\<close>
+
 theorem multiplicative_chernoff_bound_upper:
   assumes "\<delta> > 0"
   assumes "\<And>i. i \<in> I \<Longrightarrow> AE \<omega> in M. X i \<omega> \<in> {0..1}"
@@ -259,7 +185,8 @@ proof -
   thus ?thesis unfolding v_def by simp
 qed
 
-(* Based on proof Theorem 4.2 \cite{raghavan1981} *)
+text \<open>Based on Theorem~4.2 by Motwani and Raghavan~\cite{motwani1995}.\<close>
+
 theorem multiplicative_chernoff_bound_lower:
   assumes "\<delta> \<in> {0<..<1}"
   assumes "\<And>i. i \<in> I \<Longrightarrow> AE \<omega> in M. X i \<omega> \<in> {0..1}"
@@ -509,6 +436,8 @@ proof -
   finally show ?thesis by simp
 qed
 
+text \<open>Based on Theorem~1 by Hoeffding~\cite{hoeffding1963}.\<close>
+
 lemma additive_chernoff_bound_upper:
   assumes "\<And>i. i\<in>I \<Longrightarrow> AE \<omega> in M. X i \<omega> \<in> {0..1}" "I \<noteq> {}"
   defines "\<mu> \<equiv> (\<Sum>i\<in>I. expectation (X i)) / real (card I)"
@@ -544,6 +473,8 @@ proof -
       by (intro additive_chernoff_bound_upper_aux_2) auto
   qed
 qed
+
+text \<open>Based on Theorem~2 by Hoeffding~\cite{hoeffding1963}.\<close>
 
 lemma hoeffding_bound_upper:
   assumes "\<And>i. i\<in>I \<Longrightarrow> a i \<le> b i"
@@ -609,6 +540,8 @@ next
 qed
 
 end
+
+text \<open>Dual and two-sided versions of Theorem 1 and 2 by Hoeffding~\cite{hoeffding1963}.\<close>
 
 lemma additive_chernoff_bound_lower:
   assumes "neg_assoc X I" "finite I"

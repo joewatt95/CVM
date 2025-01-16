@@ -6,8 +6,8 @@ text \<open>This entry establishes a few missing lemmas for the set-based theory
 More crucially, a transfer theorem which can be used in conjunction with the Types-To-Sets mechanism
 to be able to work with locally defined finite distributive lattices.
 
-This being needed for the verification of the negative association of permutation distributions in
-Section~\ref{sec:permutation_distributions}.\<close>
+This is being needed for the verification of the negative association of permutation distributions
+in Section~\ref{sec:permutation_distributions}.\<close>
 
 theory Negative_Association_More_Lattices
   imports "HOL-Algebra.Lattice"

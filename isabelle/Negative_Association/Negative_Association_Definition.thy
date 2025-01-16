@@ -1,14 +1,18 @@
 section \<open>Definition\<close>
 
 text \<open>This section introduces the concept of negatively associated random variables (RVs). The
-definition follows the description by Joag-Dev and Proschan~\cite{joagdev1983}. With minor caveats:
+definition follows, as closely as possible, the original description by 
+Joag-Dev and Proschan~\cite{joagdev1983}. 
+
+
+However, the following modifications have been made:
 
 Singleton and empty sets of random variables are considered negatively associated. This is useful
 because it simplifies many of the induction proofs. The second modification is that the RV's don't
 have to be real valued.
 Instead the range can be into any linearly ordered space with the borel $\sigma$-algebra. This is a
 major enhancement compared to the original work, as well as results by following
-authors~\cite{dubhashi1996, dubhashi2007, dubhashi1998, lisawadi2011, permantle2000}.\<close>
+authors~\cite{dubhashi2007, dubhashi1998, dubhashi1996, lisawadi2011, permantle2000}.\<close>
 
 theory Negative_Association_Definition
   imports
@@ -572,7 +576,7 @@ lemma neg_assoc_cong:
   assumes "neg_assoc X I" "\<And>i. i \<in> I \<Longrightarrow> AE \<omega> in M. X i \<omega> = Y i \<omega>"
   shows "neg_assoc Y I"
 proof -
-  have m[measurable]: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> borel_measurable M"
+  have [measurable]: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> borel_measurable M"
     using neg_assoc_imp_measurable[OF assms(3)] by auto
 
   let ?B = "(\<lambda>_. borel)"
@@ -581,9 +585,55 @@ proof -
   hence b:"distr M (PiM I ?B) (\<lambda>\<omega>. \<lambda>i\<in>I. X i \<omega>) = distr M (PiM I ?B) (\<lambda>\<omega>. \<lambda>i\<in>I. Y i \<omega>)"
     by (intro distr_cong_AE refl) measurable
   have "prob_space.neg_assoc (distr M (PiM I (\<lambda>_. borel)) (\<lambda>\<omega>. \<lambda>i\<in>I. X i \<omega>)) (flip id) I"
-    using assms(2,3) m by (intro iffD1[OF neg_assoc_iff_distr])
+    using assms(2,3) by (intro iffD1[OF neg_assoc_iff_distr]) measurable
   thus ?thesis unfolding b using assms(2)
     by (intro iffD2[OF neg_assoc_iff_distr[where I="I"]])  auto
+qed
+
+lemma neg_assoc_reindex_aux:
+  assumes "inj_on h I"
+  assumes "neg_assoc X (h ` I)"
+  shows "neg_assoc (\<lambda>k. X (h k)) I"
+proof (rule neg_assocI, goal_cases)
+  case (1 i) thus ?case using neg_assoc_imp_measurable[OF assms(2)] by simp
+next
+  case (2 f g J)
+  let ?f = "(\<lambda>\<omega>. f (compose J \<omega> h))" 
+  let ?g = "(\<lambda>\<omega>. g (compose (I-J) \<omega> h))" 
+
+  note neg_assoc_imp_mult_mono_intros =
+    neg_assoc_imp_mult_mono_bounded(1)[OF assms(2), where J="h`J" and \<eta>="Fwd"]
+    measurable_compose[OF _ 2(8)] measurable_compose[OF _ 2(9)]
+    measurable_compose[OF _ measurable_finmap_compose]
+    bounded_range_imp[OF 2(6)] bounded_range_imp[OF 2(7)]
+
+  have [simp]:"h ` I - h ` J =  h ` (I-J)"
+    using assms(1) 2(1) by (simp add: inj_on_image_set_diff)
+
+  have "covariance (f\<circ>(\<lambda>x y. X(h y)x)) (g\<circ>(\<lambda>x y. X(h y)x)) = covariance (?f \<circ> flip X) (?g \<circ> flip X)"
+    unfolding comp_def
+    by (intro arg_cong2[where f="covariance"] ext depends_onD2[OF 2(2)] depends_onD2[OF 2(3)])
+     (auto simp:compose_def)
+  also have "\<dots> \<le> 0" using 2(1)
+    by (intro neg_assoc_imp_mult_mono_intros monotoneI depends_onI) (auto intro!: 
+        monoD[OF 2(4)] monoD[OF 2(5)] simp:le_fun_def compose_def restrict_def cong:if_cong)
+  finally show ?case by simp
+qed
+
+lemma neg_assoc_reindex:
+  assumes "inj_on h I" "finite I"
+  shows "neg_assoc X (h ` I) \<longleftrightarrow> neg_assoc (\<lambda>k. X (h k)) I" (is "?L \<longleftrightarrow> ?R")
+proof
+  assume ?L 
+  thus ?R using neg_assoc_reindex_aux[OF assms(1)] by blast
+next
+  note inv_h_inj = inj_on_the_inv_into[OF assms(1)]
+  assume a:?R
+  hence b:"neg_assoc (\<lambda>k. X (h (the_inv_into I h k))) (h ` I)"
+    using the_inv_into_onto[OF assms(1)] by (intro neg_assoc_reindex_aux[OF inv_h_inj]) auto
+  show ?L
+    using f_the_inv_into_f[OF assms(1)] neg_assoc_imp_measurable[OF a] assms(2)
+    by (intro neg_assoc_cong[OF _ _ b]) auto
 qed
 
 lemma measurable_compose_merge_1:
