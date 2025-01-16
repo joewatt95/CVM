@@ -9,13 +9,12 @@ begin
 datatype 'a run_state = FinalState "'a list" | IntermState "'a list" "'a"
 
 lemma run_state_induct:
-  fixes result :: "'a run_state"
-  assumes "P (FinalState [])"
-  assumes "\<And>xs x. P (FinalState xs) \<Longrightarrow> P (IntermState xs x)"
-  assumes "\<And>xs x. P (IntermState xs x) \<Longrightarrow> P (FinalState (xs@[x]))"
-  shows "P result" 
+  assumes \<open>P (FinalState [])\<close>
+  assumes \<open>\<And>xs x. P (FinalState xs) \<Longrightarrow> P (IntermState xs x)\<close>
+  assumes \<open>\<And>xs x. P (IntermState xs x) \<Longrightarrow> P (FinalState (xs@[x]))\<close>
+  shows \<open>P result\<close>
 proof -
-  have "P (FinalState xs) \<and> P (IntermState xs x)" for xs x
+  have \<open>P (FinalState xs) \<and> P (IntermState xs x)\<close> for xs x
     using assms by (induction xs rule:rev_induct) auto
   thus ?thesis by (cases result) auto
 qed
@@ -29,17 +28,17 @@ begin
 lemma threshold_pos : \<open>threshold > 0\<close> using subsample by simp
 lemma f_le_1 : \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
 
-lemma run_steps_snoc: "run_steps (xs @[x]) = run_steps xs \<bind> step_1 x \<bind> step_2"
+lemma run_steps_snoc: \<open>run_steps (xs @[x]) = run_steps xs \<bind> step_1 x \<bind> step_2\<close>
   unfolding run_steps_def foldM_pmf_snoc step_def by (simp add:bind_assoc_pmf)
 
 lemma subsample_finite_nonempty:
   assumes \<open>card U \<ge> threshold\<close>
   shows
-    \<open>{T. T \<subseteq> U \<and> card T = subsample_size} \<noteq> {}\<close> (is "?C \<noteq> {}")
+    \<open>{T. T \<subseteq> U \<and> card T = subsample_size} \<noteq> {}\<close> (is \<open>?C \<noteq> {}\<close>)
     \<open>finite {T. T \<subseteq> U \<and> card T = subsample_size}\<close>
     \<open>finite (set_pmf (subsample U))\<close>
 proof -
-  have a: \<open>card U choose subsample_size > 0\<close> 
+  have a: \<open>card U choose subsample_size > 0\<close>
     using subsample assms by (intro zero_less_binomial) auto
   with assms threshold_pos have \<open>card ?C > 0\<close>
     by (metis (mono_tags, lifting) card.infinite n_subsets verit_comp_simplify(3))
@@ -58,7 +57,7 @@ lemma int_prod_subsample_eq_prod_int:
 proof -
   define \<eta> where \<open>\<eta> \<equiv> if g True \<ge> g False then Fwd else Rev\<close>
 
-  note subsample_finite_nonempty = 
+  note subsample_finite_nonempty =
     subsample_finite_nonempty[OF eq_refl[OF assms(2)[symmetric]]]
   let ?C = \<open>{T. T \<subseteq> U \<and> card T = subsample_size}\<close>
 
@@ -75,7 +74,7 @@ proof -
   have fin_S: \<open>finite S\<close> using assms(1,3) finite_subset by auto
   note na_imp_prod_mono = has_int_thatD(2)[OF measure_pmf.neg_assoc_imp_prod_mono[OF fin_S na]]
 
-  have g_borel: \<open>g \<in> borel_measurable borel\<close> by (intro borel_measurable_continuous_onI) simp 
+  have g_borel: \<open>g \<in> borel_measurable borel\<close> by (intro borel_measurable_continuous_onI) simp
   have g_mono_aux: \<open>g x \<le>\<ge>\<^bsub>\<eta>\<^esub> g y\<close> if  \<open>x \<le> y\<close> for x y
     unfolding \<eta>_def using that by simp (smt (verit, best))
   have g_mono: \<open>monotone (\<le>) (\<le>\<ge>\<^bsub>\<eta>\<^esub>) g\<close>
@@ -87,7 +86,7 @@ proof -
   proof -
     have \<open>measure (pmf_of_set ?C) {x. s \<in> x} = real subsample_size / card U\<close>
       by (intro n_subsets_prob subssample_size_le_card_U that assms(1))
-    also have \<open>\<dots> = f\<close> unfolding f_def assms(2) by simp 
+    also have \<open>\<dots> = f\<close> unfolding f_def assms(2) by simp
     finally have \<open>measure (pmf_of_set ?C) {x. s \<in> x} = f\<close> by simp
     thus ?thesis by (intro eq_bernoulli_pmfI) (simp add: pmf_map vimage_def subsample_def)
   qed
@@ -99,10 +98,96 @@ proof -
   finally show ?thesis .
 qed
 
+fun run_state_pmf where
+  \<open>run_state_pmf (FinalState xs) = run_steps xs\<close> |
+  \<open>run_state_pmf (IntermState xs x) = run_steps xs \<bind> step_1 x\<close>
+
+fun run_state_set where
+  \<open>run_state_set (FinalState xs) = set xs\<close> |
+  \<open>run_state_set (IntermState xs x) = set xs \<union> {x}\<close>
+
+fun max_card_state where
+  \<open>max_card_state (FinalState _) = threshold - 1\<close> |
+  \<open>max_card_state (IntermState _ _) = threshold\<close>
+
+lemma finite_run_state_set[simp]: \<open>finite (run_state_set \<sigma>)\<close> by (cases \<sigma>) auto
+
+lemma step_2_preserves_finite_support :
+  assumes \<open> (finite (set_pmf state))\<close>
+  shows \<open>finite <| set_pmf <| state \<bind> step_2\<close>
+  using assms subsample_finite_nonempty
+  by (auto simp add: step_2_def subsample_def Let_def not_less)
+
+lemma finite_run_state_pmf: \<open>finite (set_pmf (run_state_pmf \<sigma>))\<close>
+proof (induction \<sigma> rule:run_state_induct)
+  case 1 thus ?case by (simp add:run_steps_def)
+next
+  case (2 xs x) thus ?case by (simp add:step_1_def)
+next
+  case (3 xs x)
+  have a: "run_state_pmf (FinalState (xs@[x])) = run_state_pmf (IntermState xs x) \<bind> step_2"
+    by (simp add:run_steps_snoc)
+  show ?case unfolding a using step_2_preserves_finite_support[OF 3] by simp
+qed
+
+lemma state_chi_run_state_pmf:
+  fixes \<sigma> :: "'a run_state"
+  shows \<open>AE \<omega> in run_state_pmf \<sigma>. state_chi \<omega> \<subseteq> run_state_set \<sigma>\<close>
+proof (induction \<sigma> rule:run_state_induct)
+  case 1 thus ?case by (simp add:run_steps_def AE_measure_pmf_iff initial_state_def)
+next
+  case (2 xs x)
+  then show ?case by (simp add:AE_measure_pmf_iff step_1_def remove_def) auto
+next
+  case (3 xs x)
+  let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
+  have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
+    by (simp add:run_steps_snoc)
+
+  have \<open>AE \<omega> in subsample U. \<omega> \<subseteq> U\<close> if \<open>\<not>card U < threshold\<close> for  U :: \<open>'a set\<close>
+  proof -
+    have \<open>card U \<ge> threshold\<close> using that by simp
+    from subsample_finite_nonempty[OF this]
+    show ?thesis unfolding subsample_def by (auto simp:AE_measure_pmf_iff)
+  qed
+  thus ?case unfolding b using 3 by (simp add:AE_measure_pmf_iff step_2_def Let_def) blast
+qed
+
+lemma card_run_state_pmf:
+  fixes \<sigma> :: \<open>'a run_state\<close>
+  shows \<open>AE \<omega> in run_state_pmf \<sigma>. card (state_chi \<omega>) \<le> max_card_state \<sigma>\<close>
+proof (induction \<sigma> rule:run_state_induct)
+  case 1
+  then show ?case by (simp add:AE_measure_pmf_iff run_steps_def initial_state_def)
+next
+  case (2 xs x)
+  have \<open>card (insert x S) \<le> threshold \<and> card (Set.remove x S) \<le> threshold\<close>
+    if \<open>card S \<le> threshold - 1\<close> for S using threshold_pos that
+    by (metis card_Diff1_le diff_le_self order.trans remove_def card_insert_le_m1)
+  thus ?case using 2 by (auto simp add:AE_measure_pmf_iff step_1_def)
+next
+  case (3 xs x)
+  let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
+  have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
+    by (simp add:run_steps_snoc)
+
+  have \<open>AE \<omega> in subsample U. card \<omega> = subsample_size\<close> if \<open>\<not>card U < threshold\<close> for U :: \<open>'a set\<close>
+  proof -
+    have \<open>card U \<ge> threshold\<close> using that by simp
+    from subsample_finite_nonempty[OF this]
+    show ?thesis unfolding subsample_def by (auto simp:AE_measure_pmf_iff)
+  qed
+  moreover have \<open>subsample_size \<le> threshold - 1\<close>
+    using threshold_pos subsample by simp
+  ultimately show ?case
+    unfolding b AE_measure_pmf_iff set_bind_pmf by (auto simp: step_2_def Let_def)
+qed
+
+
 (* Copied as-is for Lemma 2 *)
 context
   fixes \<phi> :: \<open>real \<Rightarrow> bool \<Rightarrow> real\<close>
-  assumes phi : 
+  assumes phi :
     \<open>\<And> x b. \<lbrakk>0 < x; x \<le> 1\<rbrakk> \<Longrightarrow> \<phi> x b \<ge> 0\<close>
     \<open>\<And> p x.
       \<lbrakk>0 < p; p < 1; 0 < x; x \<le> 1\<rbrakk> \<Longrightarrow>
@@ -193,11 +278,6 @@ context
   assumes state_finite_support : \<open>finite <| set_pmf state\<close>
 begin
 
-lemma step_2_preserves_finite_support :
-  \<open>finite <| set_pmf <| state \<bind> step_2\<close>
-  using state_finite_support subsample_finite_nonempty
-  by (auto simp add: step_2_def subsample_def Let_def not_less)
-
 lemma step_2_preserves_expectation_le :
   assumes
     (* \<open>finite U\<close> \<open>S \<subseteq> U\<close> *)
@@ -208,7 +288,7 @@ lemma step_2_preserves_expectation_le :
     \<le> measure_pmf.expectation state (aux S)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
-  from assms step_2_preserves_finite_support state_finite_support have
+  from assms step_2_preserves_finite_support[OF state_finite_support] state_finite_support have
     \<open>?L = (
       \<Sum> s \<in> set_pmf state \<inter> {s. card (state_chi s) < threshold}.
        pmf state s * aux S s) + (
@@ -234,62 +314,6 @@ qed
 
 end
 
-fun run_state_pmf where
-  "run_state_pmf (FinalState xs) = run_steps xs" |
-  "run_state_pmf (IntermState xs x) = run_steps xs \<bind> step_1 x"
-
-fun run_state_set where
-  "run_state_set (FinalState xs) = set xs" |
-  "run_state_set (IntermState xs x) = set xs \<union> {x}"
-
-fun max_card_state where
-  "max_card_state (FinalState _) = threshold - 1" |
-  "max_card_state (IntermState _ _) = threshold"
-
-lemma finite_run_state_set[simp]: "finite (run_state_set \<sigma>)" by (cases \<sigma>) auto
-
-lemma finite_run_state_pmf: "finite (set_pmf (run_state_pmf \<sigma>))" 
-proof (induction \<sigma> rule:run_state_induct)
-  case 1 thus ?case by (simp add:run_steps_def)
-next
-  case (2 xs x) thus ?case by (simp add:step_1_def)
-next
-  case (3 xs x)
-  have a: "run_state_pmf (FinalState (xs@[x])) = run_state_pmf (IntermState xs x) \<bind> step_2"
-    by (simp add:run_steps_snoc)
-  show ?case unfolding a using step_2_preserves_finite_support[OF 3] by simp
-qed
-
-lemma card_run_state_pmf:
-  fixes \<sigma> :: "'a run_state"
-  shows "AE \<omega> in run_state_pmf \<sigma>. card (state_chi \<omega>) \<le> max_card_state \<sigma>" 
-proof (induction \<sigma> rule:run_state_induct)
-  case 1
-  then show ?case by (simp add:AE_measure_pmf_iff run_steps_def initial_state_def)
-next
-  case (2 xs x)
-  have "card (insert x S) \<le> threshold \<and> card (Set.remove x S) \<le> threshold"
-    if "card S \<le> threshold - 1" for S using threshold_pos that 
-    by (metis card_Diff1_le diff_le_self order.trans remove_def card_insert_le_m1)
-  thus ?case using 2 by (auto simp add:AE_measure_pmf_iff step_1_def)
-next
-  case (3 xs x)
-  let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
-  have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
-    by (simp add:run_steps_snoc)
-
-  have "AE \<omega> in subsample U. card \<omega> = subsample_size" if "\<not>card U < threshold" for  U :: "'a set"
-  proof -
-    have "card U \<ge> threshold" using that by simp
-    from subsample_finite_nonempty[OF this]
-    show ?thesis unfolding subsample_def by (auto simp:AE_measure_pmf_iff)
-  qed
-  moreover have "subsample_size \<le> threshold - 1" 
-    using threshold_pos subsample by simp
-  ultimately show ?case 
-    unfolding b AE_measure_pmf_iff set_bind_pmf by (auto simp: step_2_def Let_def)
-qed
-
 lemma run_steps_preserves_expectation_le :
   assumes
     \<open>S \<subseteq> run_state_set \<sigma>\<close>
@@ -313,12 +337,14 @@ next
   have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
     by (simp add:run_steps_snoc)
   have a: \<open>S \<subseteq> run_state_set (IntermState xs x)\<close> using 3(2) by auto
-  have fin_S: \<open>finite S\<close> using a finite_run_state_set finite_subset by auto 
-  show ?case unfolding b 
+  have fin_S: \<open>finite S\<close> using a finite_run_state_set finite_subset by auto
+  show ?case unfolding b
     using step_2_preserves_expectation_le[OF finite_run_state_pmf fin_S c] 3(1)[OF a] by simp
 qed
 
 end
+
+definition "state_p \<omega> = f^state_k \<omega>"
 
 context
   fixes q :: real and h :: \<open>real \<Rightarrow> real\<close>
@@ -329,9 +355,8 @@ context
 begin
 
 private abbreviation (input)
-  \<open>aux' \<equiv> \<lambda> S x state. (
-    let p = f ^ (state_k state)
-    in \<Prod> x \<in> S. of_bool (p > q) * h ((1 / p) * indicat_real (state_chi state) x))\<close>
+  \<open>aux' \<equiv> \<lambda> S x \<sigma>. (
+    \<Prod> x \<in> S. of_bool (state_p \<sigma> \<ge> q) * h (of_bool (x \<in> state_chi \<sigma>) / state_p \<sigma>))\<close>
 
 (* Lemma 3 *)
 lemma run_steps_preserves_expectation_le' :
@@ -343,6 +368,79 @@ proof -
 qed
 
 end
+
+lemma of_bool_power:
+  assumes "y > 0"
+  shows "((of_bool x)::real) ^ (y::nat) = of_bool x"
+  by (simp add: assms)
+
+context
+  fixes xs
+  assumes set_larger_than_threshold: "card (set xs) \<ge> threshold"
+    (* If not the algorithm returns the correct result deterministically. *)
+begin
+
+definition "q = real threshold / (4 * card (set xs))"
+
+lemma q_range: "q \<in> {0<..1/4}"
+  using set_larger_than_threshold threshold_pos unfolding q_def by auto
+
+(* Lemma 4 *)
+lemma
+  assumes "\<epsilon> \<in> {0<..1::real}"
+  assumes "run_state_set \<sigma> \<subseteq> set xs"
+  shows "measure (run_state_pmf \<sigma>)
+    {\<omega>. real (card (state_chi \<omega>)) / state_p \<omega> \<ge> (1 + \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
+    \<le> exp(-real tresh/12 * \<epsilon>^2)" (is "?L \<le> ?R")
+proof -
+  let ?p = "run_state_pmf \<sigma>"
+  define t where "t = q * ln (1+\<epsilon>)"
+  define h where "h x = 1 + q * x * (exp (t / q) - 1)" for x
+
+  let ?A' = "run_state_set \<sigma>"
+  note [simp] = integrable_measure_pmf_finite[OF finite_run_state_pmf]
+
+  let ?\<chi> = "\<lambda>\<omega>. real (card (state_chi \<omega>))"
+  let ?X = "\<lambda>i \<omega>. of_bool(i \<in> state_chi \<omega>)/state_p \<omega>"
+  let ?c = "real (card (set xs))"
+
+  have t_gt_0: "t > 0" unfolding t_def using q_range assms(1) by auto
+
+  have mono_exp_t: "strict_mono (\<lambda>(x::real). exp (t * x))"
+    using t_gt_0 by (intro strict_monoI) auto
+
+  have h_1_eq: "h 1 = 1 + q * \<epsilon>" using assms(1) unfolding h_def t_def by simp
+  have h_1_pos: "h 1 \<ge> 1" unfolding h_1_eq using q_range assms(1) by auto
+
+  have "?L = measure ?p {\<omega>. exp (t*(?\<chi> \<omega>/state_p \<omega>)) \<ge> exp (t*((1+\<epsilon>)* ?c))\<and>state_p \<omega>\<ge> q}"
+    by (subst strict_mono_less_eq[OF mono_exp_t]) simp
+  also have "\<dots> \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q)*exp (t*(?\<chi> \<omega>/state_p \<omega>))\<ge> exp (t*((1+\<epsilon>)*?c)))"
+    by (intro pmf_mono) auto
+  also have "\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q)* exp (t*(?\<chi> \<omega>/state_p \<omega>))\<partial>?p) / exp (t*((1+\<epsilon>)*?c))"
+    by (intro integral_Markov_inequality_measure[where A="{}"]) simp_all
+  also have "\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/exp(t*((1+\<epsilon>)*?c))"
+    using state_chi_run_state_pmf[where \<sigma>="\<sigma>"] Int_absorb1
+    unfolding sum_divide_distrib[symmetric] sum_distrib_left[symmetric]
+    by (intro integral_cong_AE arg_cong2[where f="(/)"])
+      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f="card"])
+  also have "\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*exp( t* ?X i \<omega>)) \<partial>?p)/ exp(t*((1+\<epsilon>)*?c))"
+    unfolding exp_sum[OF finite_run_state_set] prod.distrib
+    by (intro divide_right_mono integral_mono_AE AE_pmfI)
+      (auto intro!:mult_nonneg_nonneg prod_nonneg)
+  also have "\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*h( ?X i \<omega>)) \<partial>?p)/ exp (t*((1+\<epsilon>)*?c))"
+    apply (intro divide_right_mono integral_mono_AE AE_pmfI) apply (auto intro!:prod_mono) sorry
+  also have "\<dots> \<le> h 1 ^ card ?A' / exp (t * ((1+\<epsilon>)* ?c))"
+    using q_range apply (intro divide_right_mono run_steps_preserves_expectation_le') apply simp_all sorry
+  also have "\<dots> \<le> h 1 powr ?c / exp (t * ((1+\<epsilon>)* ?c))"
+    using card_mono[OF _ assms(2)] h_1_pos
+    by (subst powr_realpow) (auto intro!:power_increasing divide_right_mono)
+
+  show ?thesis
+    sorry
+qed
+
+end
+
 
 end (* end cvm_algo_proof *)
 
