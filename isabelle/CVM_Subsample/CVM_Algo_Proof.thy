@@ -119,7 +119,7 @@ lemma step_1_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_1 x'\<close>
   by (simp flip: map_pmf_def add: state_finite_support step_1_def)
 
-lemma
+(* lemma step_1_card_le_threshold :
   \<open>\<turnstile>pmf
     \<lbrakk>(\<lambda> state. card (state_chi state) < threshold)\<rbrakk>
     step_1 x
@@ -129,19 +129,7 @@ lemma
     simp flip: map_pmf_def
     simp add: step_1_def Let_def map_bind_pmf map_pmf_comp Set.remove_def)
   apply (metis Suc_diff_1 card_insert_le_m1 le_simps(2) threshold_pos)
-  by (meson basic_trans_rules(21) card_Diff1_le le_simps(1))
-
-lemma
-  assumes \<open>AE state in state. card (state_chi state) < threshold\<close>
-  shows
-    \<open>AE state in bind_pmf state (step_1 x). card (state_chi state) \<le> threshold\<close>
-  using assms threshold_pos
-  apply (auto
-    iff: AE_measure_pmf_iff
-    simp flip: map_pmf_def
-    simp add: step_1_def Let_def map_bind_pmf map_pmf_comp Set.remove_def)
-  apply (metis card.infinite card_insert_if finite_insert leI less_asym not_less_eq)
-  by (meson basic_trans_rules(21) card_Diff1_le nless_le)
+  by (meson basic_trans_rules(21) card_Diff1_le le_simps(1)) *)
 
 private method simps = (
   simp
@@ -206,13 +194,20 @@ context
   assumes state_finite_support : \<open>finite <| set_pmf state\<close>
 begin
 
-lemma
+lemma step_2_card_lt_threshold :
   \<open>\<turnstile>pmf \<lbrakk>\<lblot>True\<rblot>\<rbrakk> step_2 \<lbrakk>(\<lambda> state. card (state_chi state) < threshold)\<rbrakk>\<close>
   apply (simp
     split: if_splits
     add: step_2_def subsample_def image_def not_less Let_def)
   apply (subst (asm) set_pmf_of_set)
   using subsample subsample_finite_nonempty by auto
+
+lemma step_preserves_card_lt_threshold :
+  \<open>\<turnstile>pmf
+    \<lbrakk>(\<lambda> state. card (state_chi state) < threshold)\<rbrakk>
+    step x
+    \<lbrakk>(\<lambda> state. card (state_chi state) < threshold)\<rbrakk>\<close>
+  using step_2_card_lt_threshold by (fastforce simp add: step_def)
 
 lemma step_2_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_2\<close>

@@ -58,19 +58,19 @@ lemma if_then_else :
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. if f x then g x else h x) \<lbrakk>Q\<rbrakk>\<close>
   using assms by (simp split: if_splits)
 
-lemma seq :
+(* lemma seq :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
     \<open>\<turnstile>pmf \<lbrakk>Q\<rbrakk> g \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g) \<lbrakk>R\<rbrakk>\<close>
-  using assms by auto
+  using assms by auto *)
 
-lemma seq' :
+lemma seq :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile>pmf \<lbrakk>Q\<rbrakk> g x \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g x) \<lbrakk>R\<rbrakk>\<close>
-  using assms seq by fastforce
+  using assms by simp' 
 
 context
   fixes
@@ -111,7 +111,6 @@ end
 lemma loop' :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
-  using loop[where ?P = \<open>curry <| snd >>> P\<close> and ?offset = 0] assms
-  by simp'
+  using loop[where ?P = \<open>curry <| snd >>> P\<close>] assms by simp'
 
 end
