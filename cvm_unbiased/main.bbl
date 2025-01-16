@@ -1,0 +1,10 @@
+\begin{thebibliography}{1}
+
+\bibitem{joagdev1983}
+Kumar Joag-Dev and Frank Proschan.
+\newblock {Negative Association of Random Variables with Applications}.
+\newblock {\em The Annals of Statistics}, 11(1):286 -- 295, 1983.
+\newblock \href {https://doi.org/10.1214/aos/1176346079}
+  {\path{doi:10.1214/aos/1176346079}}.
+
+\end{thebibliography}

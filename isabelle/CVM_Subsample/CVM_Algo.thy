@@ -1,8 +1,7 @@
 theory CVM_Algo
 
 imports
-  "HOL-Probability.Probability_Mass_Function"
-  Helper
+  CVM_Subsample.Utils_PMF
 
 begin
 

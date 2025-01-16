@@ -28,10 +28,15 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
   sessions
     Probabilistic_Prime_Tests
 
+  directories
+    "Utils"
+
   theories
     CVM_Algo
     CVM_Algo_Proof
-    Helper
+
+    "Utils/Utils_Basic"
+    "Utils/Utils_PMF"
 
 session CVM = "CryptHOL" +
   options [timeout = 300]

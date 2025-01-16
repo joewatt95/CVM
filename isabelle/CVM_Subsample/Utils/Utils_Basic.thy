@@ -1,9 +1,12 @@
-theory Helper
+theory Utils_Basic
 
 imports
   Main
+  "HOL-Eisbach.Eisbach"
 
 begin
+
+method simp_atomize = simp add: atomize_all atomize_imp
 
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
   \<open>flip f x y \<equiv> f y x\<close>
@@ -38,7 +41,7 @@ fun foldM ::
     bind (f x val) (foldM bind return f xs)\<close>
 
 lemma foldM_cong:
-  assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x = f' x"
+  assumes "\<And> x. x \<in> set xs \<Longrightarrow> f x = f' x"
   shows "foldM bind return f xs v = foldM bind return f' xs v"
   using assms
 proof (induction xs arbitrary: v)
@@ -49,8 +52,7 @@ next
   then show ?case by simp_all presburger
 qed
 
-lemma foldM_empty: "foldM bind return f [] = return"
-  by auto
+lemma foldM_empty: "foldM bind return f [] = return" by auto
 
 definition foldM_enumerate where
   \<open>foldM_enumerate bind return f xs offset \<equiv>

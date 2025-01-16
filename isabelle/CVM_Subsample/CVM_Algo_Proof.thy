@@ -1,9 +1,10 @@
 theory CVM_Algo_Proof
 
 imports
-  CVM_Algo
   Probabilistic_Prime_Tests.Generalized_Primality_Test
   Negative_Association.Negative_Association_Permutation_Distributions
+
+  CVM_Subsample.CVM_Algo
 
 begin
 
@@ -119,6 +120,18 @@ lemma step_1_preserves_finite_support :
   by (simp flip: map_pmf_def add: state_finite_support step_1_def)
 
 lemma
+  \<open>\<turnstile>pmf
+    \<lbrakk>(\<lambda> state. card (state_chi state) < threshold)\<rbrakk>
+    step_1 x
+    \<lbrakk>(\<lambda> state. card (state_chi state) \<le> threshold)\<rbrakk>\<close>
+  using threshold_pos
+  apply (auto
+    simp flip: map_pmf_def
+    simp add: step_1_def Let_def map_bind_pmf map_pmf_comp Set.remove_def)
+  apply (metis Suc_diff_1 card_insert_le_m1 le_simps(2) threshold_pos)
+  by (meson basic_trans_rules(21) card_Diff1_le le_simps(1))
+
+lemma
   assumes \<open>AE state in state. card (state_chi state) < threshold\<close>
   shows
     \<open>AE state in bind_pmf state (step_1 x). card (state_chi state) \<le> threshold\<close>
@@ -193,6 +206,14 @@ context
   assumes state_finite_support : \<open>finite <| set_pmf state\<close>
 begin
 
+lemma
+  \<open>\<turnstile>pmf \<lbrakk>\<lblot>True\<rblot>\<rbrakk> step_2 \<lbrakk>(\<lambda> state. card (state_chi state) < threshold)\<rbrakk>\<close>
+  apply (simp
+    split: if_splits
+    add: step_2_def subsample_def image_def not_less Let_def)
+  apply (subst (asm) set_pmf_of_set)
+  using subsample subsample_finite_nonempty by auto
+
 lemma step_2_preserves_finite_support :
   \<open>finite <| set_pmf <| state \<bind> step_2\<close>
   using state_finite_support subsample_finite_nonempty
@@ -202,6 +223,7 @@ lemma step_2_preserves_expectation_le :
   assumes
     (* \<open>finite U\<close> \<open>S \<subseteq> U\<close> *)
     \<open>finite S\<close>
+    \<open>AE state in state. card (state_chi state) \<le> threshold\<close>
   shows
     \<open>measure_pmf.expectation (state \<bind> step_2) (aux S)
     \<le> measure_pmf.expectation state (aux S)\<close>
@@ -211,16 +233,17 @@ proof -
     \<open>?L = (
       \<Sum> s \<in> set_pmf state \<inter> {s. card (state_chi s) < threshold}.
        pmf state s * aux S s) + (
-      \<Sum> s \<in> set_pmf state \<inter> {s. card (state_chi s) \<ge> threshold}.
+      \<Sum> s \<in> set_pmf state \<inter> {s. card (state_chi s) = threshold}.
        pmf state s *
        measure_pmf.expectation (subsample <| state_chi s)
         (\<lambda> chi. aux S \<lparr>state_k = state_k s + 1, state_chi = chi\<rparr>))\<close>
     (is \<open>_ = ?L' (\<lambda> _ :: (_, _) state_scheme. measure_pmf.expectation _ _)\<close>)
-    by (simp
-      flip: Collect_neg_eq
-      add:
-        step_2_def pmf_expectation_bind integral_measure_pmf Let_def
-        if_distrib if_distribR sum.If_cases not_less)
+    by (auto
+      intro!: sum.cong
+      simp flip: Collect_neg_eq
+      simp add:
+        step_2_def pmf_expectation_bind integral_measure_pmf AE_measure_pmf_iff
+        Let_def if_distrib if_distribR sum.If_cases not_less)
 
   also from state_finite_support subsample_finite_nonempty
   have \<open>\<dots> \<le> ?R\<close>
