@@ -42,7 +42,6 @@ session CVM = "CryptHOL" +
   options [timeout = 300]
 
   sessions
-    Negative_Association
     Universal_Hash_Families
     Finite_Fields
     Concentration_Inequalities
