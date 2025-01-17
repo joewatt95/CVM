@@ -4,9 +4,10 @@ imports
   Probabilistic_Prime_Tests.Generalized_Primality_Test
   Negative_Association.Negative_Association_Permutation_Distributions
   CVM_Subsample.CVM_Algo
+  "HOL-Decision_Procs.Approximation"
 begin
 
-datatype 'a run_state = FinalState "'a list" | IntermState "'a list" "'a"
+datatype 'a run_state = FinalState \<open>'a list\<close> | IntermState \<open>'a list\<close> \<open>'a\<close>
 
 lemma run_state_induct:
   assumes \<open>P (FinalState [])\<close>
@@ -26,6 +27,7 @@ locale cvm_algo_proof = cvm_algo +
 begin
 
 lemma threshold_pos : \<open>threshold > 0\<close> using subsample by simp
+lemma f_lt_1 : \<open>f < 1\<close> using subsample by (simp add: f_def)
 lemma f_le_1 : \<open>f \<le> 1\<close> using subsample by (simp add: f_def)
 
 lemma run_steps_snoc: \<open>run_steps (xs @[x]) = run_steps xs \<bind> step_1 x \<bind> step_2\<close>
@@ -102,6 +104,10 @@ fun run_state_pmf where
   \<open>run_state_pmf (FinalState xs) = run_steps xs\<close> |
   \<open>run_state_pmf (IntermState xs x) = run_steps xs \<bind> step_1 x\<close>
 
+fun len_run_state where
+  \<open>len_run_state (FinalState xs) = length xs\<close> |
+  \<open>len_run_state (IntermState xs x) = length xs\<close>
+
 fun run_state_set where
   \<open>run_state_set (FinalState xs) = set xs\<close> |
   \<open>run_state_set (IntermState xs x) = set xs \<union> {x}\<close>
@@ -125,13 +131,13 @@ next
   case (2 xs x) thus ?case by (simp add:step_1_def)
 next
   case (3 xs x)
-  have a: "run_state_pmf (FinalState (xs@[x])) = run_state_pmf (IntermState xs x) \<bind> step_2"
+  have a: \<open>run_state_pmf (FinalState (xs@[x])) = run_state_pmf (IntermState xs x) \<bind> step_2\<close>
     by (simp add:run_steps_snoc)
   show ?case unfolding a using step_2_preserves_finite_support[OF 3] by simp
 qed
 
 lemma state_chi_run_state_pmf:
-  fixes \<sigma> :: "'a run_state"
+  fixes \<sigma> :: \<open>'a run_state\<close>
   shows \<open>AE \<omega> in run_state_pmf \<sigma>. state_chi \<omega> \<subseteq> run_state_set \<sigma>\<close>
 proof (induction \<sigma> rule:run_state_induct)
   case 1 thus ?case by (simp add:run_steps_def AE_measure_pmf_iff initial_state_def)
@@ -325,15 +331,15 @@ proof (induction \<sigma> arbitrary: S rule: run_state_induct)
 next
   case (2 xs x)
   have a: \<open>finite (run_state_set (FinalState xs))\<close> by simp
-  have "finite (set_pmf (run_steps xs))"
-    using finite_run_state_pmf[where \<sigma>="FinalState xs"] by simp
+  have \<open>finite (set_pmf (run_steps xs))\<close>
+    using finite_run_state_pmf[where \<sigma>=\<open>FinalState xs\<close>] by simp
   thus ?case using 2 unfolding run_state_pmf.simps
     by (intro step_1_preserves_expectation_le[OF _ a]) auto
 next
   case (3 xs x)
   let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
   have c: \<open>AE state in ?p. card (state_chi state) \<le> threshold\<close>
-    using card_run_state_pmf[where \<sigma>="IntermState xs x"] by simp
+    using card_run_state_pmf[where \<sigma>=\<open>IntermState xs x\<close>] by simp
   have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
     by (simp add:run_steps_snoc)
   have a: \<open>S \<subseteq> run_state_set (IntermState xs x)\<close> using 3(2) by auto
@@ -344,7 +350,7 @@ qed
 
 end
 
-definition "state_p \<omega> = f^state_k \<omega>"
+definition \<open>state_p \<omega> = f^state_k \<omega>\<close>
 
 context
   fixes q :: real and h :: \<open>real \<Rightarrow> real\<close>
@@ -370,73 +376,379 @@ qed
 end
 
 lemma of_bool_power:
-  assumes "y > 0"
-  shows "((of_bool x)::real) ^ (y::nat) = of_bool x"
+  assumes \<open>y > 0\<close>
+  shows \<open>((of_bool x)::real) ^ (y::nat) = of_bool x\<close>
   by (simp add: assms)
 
 context
-  fixes xs
-  assumes set_larger_than_threshold: "card (set xs) \<ge> threshold"
+  fixes xs :: \<open>'a list\<close>
+  assumes set_larger_than_threshold: \<open>card (set xs) \<ge> threshold\<close>
     (* If not the algorithm returns the correct result deterministically. *)
 begin
 
-definition "q = real threshold / (4 * card (set xs))"
+definition \<open>q = real threshold / (4 * card (set xs))\<close>
 
-lemma q_range: "q \<in> {0<..1/4}"
+lemma q_range: \<open>q \<in> {0<..1/4}\<close>
   using set_larger_than_threshold threshold_pos unfolding q_def by auto
 
 (* Lemma 4 *)
-lemma
-  assumes "\<epsilon> \<in> {0<..1::real}"
-  assumes "run_state_set \<sigma> \<subseteq> set xs"
-  shows "measure (run_state_pmf \<sigma>)
+lemma upper_tail_bound:
+  assumes \<open>\<epsilon> \<in> {0<..1::real}\<close>
+  assumes \<open>run_state_set \<sigma> \<subseteq> set xs\<close>
+  shows \<open>measure (run_state_pmf \<sigma>)
     {\<omega>. real (card (state_chi \<omega>)) / state_p \<omega> \<ge> (1 + \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
-    \<le> exp(-real tresh/12 * \<epsilon>^2)" (is "?L \<le> ?R")
+    \<le> exp(-real threshold/12 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
-  let ?p = "run_state_pmf \<sigma>"
-  define t where "t = q * ln (1+\<epsilon>)"
-  define h where "h x = 1 + q * x * (exp (t / q) - 1)" for x
+  let ?p = \<open>run_state_pmf \<sigma>\<close>
+  define t where \<open>t = q * ln (1+\<epsilon>)\<close>
+  define h where \<open>h x = 1 + q * x * (exp (t / q) - 1)\<close> for x
 
-  let ?A' = "run_state_set \<sigma>"
+  let ?A' = \<open>run_state_set \<sigma>\<close>
   note [simp] = integrable_measure_pmf_finite[OF finite_run_state_pmf]
 
-  let ?\<chi> = "\<lambda>\<omega>. real (card (state_chi \<omega>))"
-  let ?X = "\<lambda>i \<omega>. of_bool(i \<in> state_chi \<omega>)/state_p \<omega>"
-  let ?c = "real (card (set xs))"
+  let ?\<chi> = \<open>\<lambda>\<omega>. real (card (state_chi \<omega>))\<close>
+  let ?X = \<open>\<lambda>i \<omega>. of_bool(i \<in> state_chi \<omega>)/state_p \<omega>\<close>
+  let ?c = \<open>real (card (set xs))\<close>
 
-  have t_gt_0: "t > 0" unfolding t_def using q_range assms(1) by auto
+  have t_gt_0: \<open>t > 0\<close> unfolding t_def using q_range assms(1) by auto
 
-  have mono_exp_t: "strict_mono (\<lambda>(x::real). exp (t * x))"
+  have mono_exp_t: \<open>strict_mono (\<lambda>(x::real). exp (t * x))\<close>
     using t_gt_0 by (intro strict_monoI) auto
 
-  have h_1_eq: "h 1 = 1 + q * \<epsilon>" using assms(1) unfolding h_def t_def by simp
-  have h_1_pos: "h 1 \<ge> 1" unfolding h_1_eq using q_range assms(1) by auto
+  have h_1_eq: \<open>h 1 = 1 + q * \<epsilon>\<close> using assms(1) unfolding h_def t_def by simp
+  have h_1_pos: \<open>h 1 \<ge> 1\<close> unfolding h_1_eq using q_range assms(1) by auto
 
-  have "?L = measure ?p {\<omega>. exp (t*(?\<chi> \<omega>/state_p \<omega>)) \<ge> exp (t*((1+\<epsilon>)* ?c))\<and>state_p \<omega>\<ge> q}"
+  define f where \<open>f x = - q * x\<^sup>2 / 3 - ln (1 + q * x) + q * ln (1 + x) * (1 + x)\<close> for x
+  define f' where \<open>f' x = -2*x*q/3 - q/(1+q*x) + q*ln(1+x) + q\<close> for x
+
+  have f_deriv: \<open>(f has_real_derivative (f' x)) (at x)\<close> if \<open>x \<ge> 0\<close> \<open>x \<le> 1\<close> for x
+  proof -
+    have \<open>0 < (1::real) + 0\<close> by simp
+    also have \<open>\<dots> \<le> 1 + q * x\<close> using that q_range by (intro add_mono mult_nonneg_nonneg) auto
+    finally have \<open>0 < 1 + q * x\<close> by simp
+    thus ?thesis
+      using that q_range unfolding f_def f'_def power2_eq_square
+      by (auto intro!:derivative_eq_intros)
+  qed
+
+  have f_deriv_nonneg: \<open>f' x \<ge> 0\<close> if \<open>x \<ge> 0\<close> \<open>x \<le> 1\<close> for x
+  proof -
+    have \<open>exp(2*x/3) = exp((1-x)*\<^sub>R 0 + x *\<^sub>R (2/3))\<close> by simp
+    also have \<open>\<dots> \<le> (1-x)*exp 0 + x*exp(2/3)\<close> by (intro that convex_onD[OF exp_convex]) auto
+    also have \<open>\<dots> = 1 + x*(exp (2/3)-exp 0)\<close> by (simp add:algebra_simps)
+    also have \<open>\<dots> \<le> 1+ x* 1\<close> by (intro add_mono order.refl mult_left_mono that) (approximation 5)
+    finally have \<open>exp(2*x/3) \<le> exp(ln(1+x))\<close> using that by simp
+    hence \<open>0 \<le> ln(1+x) - 2*x/3\<close> by simp
+    also have \<open>\<dots> = ln(1+x) +1 -2*x/3 - 1\<close> by simp
+    also have \<open>\<dots> \<le> ln(1+x) +1 -2 * x/3 - 1/(1+q*x)\<close>
+      using q_range that by (intro add_mono diff_mono) (auto simp:divide_simps)
+    finally have b: \<open>0 \<le> ln(1+x) +1 -2 * x/3 - 1/(1+q*x)\<close> by simp
+
+    have \<open>f' x = q * (-2 * x/3 - 1/(1+q*x) +ln(1+x) +1)\<close>
+      unfolding f'_def by (simp add:algebra_simps)
+    also have \<open>\<dots> \<ge> 0\<close>  using b q_range by (intro mult_nonneg_nonneg) auto
+    finally show ?thesis by simp
+  qed
+
+  have f_mono: \<open>f x \<le> f y\<close> if \<open>x \<le> y\<close> \<open>x \<ge> 0\<close> \<open>y \<le> 1\<close> for x y
+    using f_deriv f_deriv_nonneg order_trans[OF _ that(3)] order_trans[OF that(2)]
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
+
+  have f_nonneg: \<open>f x \<ge> 0\<close> if \<open>x \<in> {0<..1}\<close> for x
+  proof -
+    have \<open>0 = f 0\<close> unfolding f_def by simp
+    also have \<open>\<dots> \<le> f x\<close> using that by (intro f_mono)  auto
+    finally show ?thesis by simp
+  qed
+
+  have a: \<open>ln (h 1) - t * (1 + \<epsilon>) \<le> - q * \<epsilon>^2 / 3\<close>
+    unfolding h_1_eq t_def using f_nonneg[OF assms(1)] unfolding f_def by (simp add:algebra_simps)
+
+  have b: \<open>exp (t / y) \<le> h (1 / y)\<close> if \<open>y \<ge> q\<close> for y
+  proof -
+    have \<open>exp (t / y) = exp ((1-q/y) *\<^sub>R 0 + (q/y) *\<^sub>R (t/q))\<close> using q_range by simp
+    also have \<open>\<dots> \<le> (1-q/y) * exp 0 + (q/y) * exp (t/q)\<close> using that q_range
+      by (intro convex_onD[OF exp_convex]) simp_all
+    also have \<open>\<dots> = h (1 / y)\<close> unfolding h_def by (simp add:algebra_simps)
+    finally show ?thesis by simp
+  qed
+
+  have c: \<open>1 \<le> h 0\<close> unfolding h_def by simp
+
+  have h_concave: \<open>concave_on {0..1 / q} h\<close>
+    unfolding h_def by (intro concave_on_linorderI) (auto simp:algebra_simps)
+
+  have h_nonneg: \<open>h y \<ge> 0\<close> if \<open>y \<in> {0..1/q}\<close> for y
+  proof -
+    have \<open>0 \<le> (1-q*y) + q*y * 0\<close> using that q_range by (auto simp:field_simps)
+    also have \<open>\<dots> \<le> (1-q*y) + q*y*exp(t/q)\<close> using that q_range
+      by (intro add_mono mult_left_mono mult_nonneg_nonneg) auto
+    also have \<open>\<dots> = h y\<close> unfolding h_def by (simp add:algebra_simps)
+    finally show ?thesis by simp
+  qed
+
+  have \<open>?L = measure ?p {\<omega>. exp (t*(?\<chi> \<omega>/state_p \<omega>)) \<ge> exp (t*((1+\<epsilon>)* ?c))\<and>state_p \<omega>\<ge> q}\<close>
     by (subst strict_mono_less_eq[OF mono_exp_t]) simp
-  also have "\<dots> \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q)*exp (t*(?\<chi> \<omega>/state_p \<omega>))\<ge> exp (t*((1+\<epsilon>)*?c)))"
+  also have \<open>\<dots> \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q)*exp (t*(?\<chi> \<omega>/state_p \<omega>))\<ge> exp (t*((1+\<epsilon>)*?c)))\<close>
     by (intro pmf_mono) auto
-  also have "\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q)* exp (t*(?\<chi> \<omega>/state_p \<omega>))\<partial>?p) / exp (t*((1+\<epsilon>)*?c))"
-    by (intro integral_Markov_inequality_measure[where A="{}"]) simp_all
-  also have "\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/exp(t*((1+\<epsilon>)*?c))"
-    using state_chi_run_state_pmf[where \<sigma>="\<sigma>"] Int_absorb1
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q)* exp (t*(?\<chi> \<omega>/state_p \<omega>))\<partial>?p) / exp (t*((1+\<epsilon>)*?c))\<close>
+    by (intro integral_Markov_inequality_measure[where A=\<open>{}\<close>]) simp_all
+  also have \<open>\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/exp(t*((1+\<epsilon>)*?c))\<close>
+    using state_chi_run_state_pmf[where \<sigma>=\<open>\<sigma>\<close>] Int_absorb1
     unfolding sum_divide_distrib[symmetric] sum_distrib_left[symmetric]
-    by (intro integral_cong_AE arg_cong2[where f="(/)"])
-      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f="card"])
-  also have "\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*exp( t* ?X i \<omega>)) \<partial>?p)/ exp(t*((1+\<epsilon>)*?c))"
+    by (intro integral_cong_AE arg_cong2[where f=\<open>(/)\<close>])
+      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f=\<open>card\<close>])
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*exp( t* ?X i \<omega>)) \<partial>?p)/ exp(t*((1+\<epsilon>)*?c))\<close>
     unfolding exp_sum[OF finite_run_state_set] prod.distrib
     by (intro divide_right_mono integral_mono_AE AE_pmfI)
       (auto intro!:mult_nonneg_nonneg prod_nonneg)
-  also have "\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*h( ?X i \<omega>)) \<partial>?p)/ exp (t*((1+\<epsilon>)*?c))"
-    apply (intro divide_right_mono integral_mono_AE AE_pmfI) apply (auto intro!:prod_mono) sorry
-  also have "\<dots> \<le> h 1 ^ card ?A' / exp (t * ((1+\<epsilon>)* ?c))"
-    using q_range apply (intro divide_right_mono run_steps_preserves_expectation_le') apply simp_all sorry
-  also have "\<dots> \<le> h 1 powr ?c / exp (t * ((1+\<epsilon>)* ?c))"
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*h( ?X i \<omega>)) \<partial>?p)/ exp (t*((1+\<epsilon>)*?c))\<close>
+    using b c by (intro divide_right_mono integral_mono_AE AE_pmfI) (auto intro!:prod_mono)
+  also have \<open>\<dots> \<le> h 1 ^ card ?A' / exp (t * ((1+\<epsilon>)* ?c))\<close>
+    using q_range h_concave
+    by (intro divide_right_mono run_steps_preserves_expectation_le')
+      (auto intro!:h_nonneg simp:field_simps)
+  also have \<open>\<dots> \<le> h 1 powr ?c / exp (t * ((1+\<epsilon>)* ?c))\<close>
     using card_mono[OF _ assms(2)] h_1_pos
     by (subst powr_realpow) (auto intro!:power_increasing divide_right_mono)
+  also have \<open>\<dots> = exp (?c * (ln (h 1) - t * (1 + \<epsilon>)))\<close>
+    using h_1_pos unfolding powr_def by (simp add:algebra_simps exp_diff)
+  also have \<open>\<dots> \<le> exp (?c * (-q * \<epsilon>^2/3))\<close>
+    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a) simp
+  also have \<open>\<dots> = ?R\<close> using set_larger_than_threshold threshold_pos  unfolding q_def by auto
+  finally show ?thesis by simp
+qed
 
-  show ?thesis
-    sorry
+(* Lemma 5 *)
+lemma q_bound:
+  \<open>measure (run_steps xs) {\<omega>. state_p \<omega> < q} \<le> real (length xs) * exp(- real threshold/12)\<close>
+proof -
+  define \<sigma> where \<open>\<sigma> = FinalState xs\<close>
+
+  define j where \<open>j = nat \<lfloor>log f q\<rfloor>\<close>
+
+  have f_range: \<open>f \<ge> 0\<close> \<open>f \<le> 1\<close> using f f_le_1 by auto
+
+  have \<open>q = f powr (log f q)\<close>
+    using f f_lt_1 q_range by (intro powr_log_cancel[symmetric]) auto
+  also have \<open>\<dots> \<le> f powr (\<lfloor>log f q\<rfloor>)\<close> by (intro powr_mono' f_range) simp
+  also have \<open>\<dots> \<le> f powr (real (nat \<lfloor>log f q\<rfloor>))\<close> using f f_lt_1 q_range
+    by (subst of_nat_int_floor) (auto intro:divide_nonpos_neg simp add:log_def)
+  also have \<open>\<dots> = f ^ j\<close> using f unfolding j_def by (subst powr_realpow) auto
+  finally have f_1: \<open>q \<le> f^j\<close> by simp
+
+  have \<open>f^(j+1) = f powr (real (nat \<lfloor>log f q\<rfloor>+1))\<close>
+    unfolding j_def using f by (subst powr_realpow) auto
+  also have \<open>\<dots> \<le> f powr (log f q)\<close> by (intro powr_mono' f_range) linarith
+  also have \<open>\<dots> = q\<close> using f f_lt_1 q_range by (intro powr_log_cancel) auto
+  finally have f_2: \<open>f^(j+1) \<le> q\<close> by simp
+
+  have \<open>2 * real (card (set xs)) * f^j \<le> 4*f* real (card (set xs)) * f^j\<close>
+    using f f_le_1 by (intro mult_right_mono) auto
+  also have \<open>\<dots> = 4 * real (card (set xs)) * f^(j+1)\<close> by simp
+  also have \<open>\<dots> \<le> 4 * real (card (set xs)) * q\<close> using f_2 by (intro mult_left_mono) auto
+  also have \<open>\<dots> = threshold\<close> using threshold_pos set_larger_than_threshold unfolding q_def by auto
+  finally have f_3: \<open>2 * real (card (set xs)) * f^j \<le> threshold\<close> by simp
+
+  have ih: \<open>run_state_set \<sigma> \<subseteq> set xs\<close> unfolding \<sigma>_def by simp
+
+  have \<open>n > j\<close> if \<open>f^n < q\<close> for n
+    unfolding not_le[symmetric] using that f_1 f_le_1 power_decreasing[OF _ f_range] by force
+  hence \<open>measure (run_steps xs) {\<omega>. state_p \<omega> < q} \<le> measure (run_state_pmf \<sigma>) {\<omega>. state_k \<omega> > j}\<close>
+    unfolding \<sigma>_def run_state_pmf.simps by (intro pmf_mono) (auto simp:state_p_def)
+  also have \<open>\<dots> \<le> real (len_run_state \<sigma>) * exp(- real threshold/12)\<close>
+    using ih
+  proof (induction \<sigma> rule:run_state_induct)
+    case 1
+    then show ?case using q_range by (simp add:run_steps_def state_p_def initial_state_def)
+  next
+    case (2 ys x)
+    have \<open>measure (step_1 x s) {\<omega>. state_k \<omega> > j} = indicator {\<omega>. state_k \<omega> > j} s\<close>
+      for s :: \<open>'a state\<close>
+      by (simp add:step_1_def map_pmf_def[symmetric])
+
+    thus ?case using 2 by (simp add:measure_bind_pmf)
+  next
+    case (3 ys x)
+    define p where \<open>p = run_state_pmf (IntermState ys x)\<close>
+
+    have \<open>finite (set_pmf p)\<close> unfolding p_def by (intro finite_run_state_pmf)
+    note [simp] = integrable_measure_pmf_finite[OF this]
+
+    have b: \<open>run_state_pmf (FinalState (ys@[x])) = p \<bind> step_2\<close>
+      by (simp add:run_steps_snoc p_def)
+
+    have d: \<open>run_state_set (IntermState ys x) \<subseteq> set xs\<close>
+      using 3(2) by simp
+
+    have a':\<open>measure (step_2 s) {\<omega>. state_k \<omega> > j} \<le>
+      indicator {\<omega>. state_k \<omega> > j \<or> card (state_chi \<omega>) \<ge> threshold \<and> state_k \<omega> = j} s\<close>
+      for j and s :: \<open>'a state\<close>
+      by (simp add:step_2_def Let_def indicator_def)
+
+    have a:\<open>measure (step_2 s) {\<omega>. state_p \<omega> < q} \<le>
+      indicator {\<omega>. state_p \<omega> < q \<or> card (state_chi \<omega>) \<ge> threshold} s\<close>
+      for s :: \<open>'a state\<close>
+      by (simp add:step_2_def Let_def indicator_def)
+
+    have \<open>measure p {\<omega>. card (state_chi \<omega>) \<ge> threshold \<and> state_k \<omega> = j} \<le>
+      measure p {\<omega>. (1+1) * real(card(set xs)) \<le> real(card(state_chi \<omega>))/state_p \<omega> \<and> q\<le>state_p \<omega>}\<close>
+      using f_1 f_3 f by (intro pmf_mono) (simp add:state_p_def field_simps)
+    also have \<open>\<dots> \<le> exp (- real threshold / 12 * 1^2)\<close>
+      unfolding p_def by (intro upper_tail_bound d) simp
+    finally have c:
+      \<open>measure p {\<omega>. card (state_chi \<omega>) \<ge> threshold \<and> state_k \<omega> = j} \<le> exp (- real threshold / 12)\<close>
+      by simp
+
+    have \<open>measure (run_state_pmf (FinalState (ys @ [x]))) {\<omega>. state_k \<omega> > j} =
+      (\<integral>s. measure (step_2 s) {\<omega>. state_k \<omega> > j} \<partial>p)\<close>
+      unfolding b by (simp add:measure_bind_pmf)
+    also have \<open>\<dots> \<le> (\<integral>s. indicator {\<omega>. state_k \<omega>>j\<or>card(state_chi \<omega>)\<ge>threshold\<and>state_k \<omega>=j} s \<partial>p)\<close>
+      by (intro integral_mono_AE AE_pmfI a') simp_all
+    also have \<open>\<dots> = measure p {\<omega>. state_k \<omega> > j \<or> card (state_chi \<omega>) \<ge> threshold \<and> state_k \<omega> = j}\<close>
+      by simp
+    also have \<open>\<dots> \<le>
+      measure p {\<omega>. state_k \<omega> > j} +
+      measure p {\<omega>. card (state_chi \<omega>) \<ge> threshold \<and> state_k \<omega> = j}\<close>
+      by (intro pmf_add) auto
+    also have \<open>\<dots> \<le> length ys * exp (- real threshold / 12) + exp (- real threshold / 12)\<close>
+      using 3(1)[OF d] by (intro add_mono c) (simp add:p_def)
+    also have \<open>\<dots> = real (len_run_state (FinalState (ys @ [x]))) * exp (- real threshold / 12)\<close>
+      by (simp add:algebra_simps)
+    finally show ?case by simp
+  qed
+  also have \<open>\<dots> = real (length xs) * exp(- real threshold/12)\<close> by (simp add:\<sigma>_def)
+  finally show ?thesis by simp
+qed
+
+(* Lemma 6 *)
+lemma lower_tail_bound:
+  assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close>
+  shows \<open>measure (run_steps xs)
+    {\<omega>. real (card (state_chi \<omega>)) / state_p \<omega> \<le> (1 - \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
+    \<le> exp(-real threshold/8 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
+proof -
+  let ?p = \<open>run_state_pmf (FinalState xs)\<close>
+  define t where \<open>t = q * ln (1-\<epsilon>)\<close>
+  define h where \<open>h x = 1 + q * x * (exp (t / q) - 1)\<close> for x
+
+  let ?A' = \<open>set xs\<close>
+  have \<open>finite (set_pmf (run_steps xs))\<close>
+    using finite_run_state_pmf[where \<sigma>=\<open>FinalState xs\<close>] by simp
+  note [simp] = integrable_measure_pmf_finite[OF this]
+
+  let ?\<chi> = \<open>\<lambda>\<omega>. real (card (state_chi \<omega>))\<close>
+  let ?X = \<open>\<lambda>i \<omega>. of_bool(i \<in> state_chi \<omega>)/state_p \<omega>\<close>
+  let ?c = \<open>real (card (set xs))\<close>
+
+  have t_lt_0: \<open>t < 0\<close>
+    unfolding t_def using q_range assms(1) by (intro mult_pos_neg ln_less_zero) auto
+
+  have mono_exp_t: \<open>exp (t * x) \<le> exp (t * y) \<longleftrightarrow> y \<le> x\<close> for x y
+    using t_lt_0 by auto
+
+  have h_1_eq: \<open>h 1 = 1 - q * \<epsilon>\<close> using assms(1) unfolding h_def t_def by simp
+  have \<open>\<epsilon> * (q * 4) \<le> 1 * 1\<close> using q_range assms(1) by (intro mult_mono) auto
+  hence h_1_pos: \<open>h 1 \<ge> 3/4\<close> unfolding h_1_eq by (auto simp:algebra_simps)
+
+  define f where \<open>f x = - q * x\<^sup>2 / 2 - ln (1 - q * x) + q * ln (1 - x) * (1 - x)\<close> for x
+  define f' where \<open>f' x = -x*q + q/(1-q*x) - q*ln(1-x) - q\<close> for x
+
+  have f_deriv: \<open>(f has_real_derivative (f' x)) (at x)\<close> if \<open>x \<ge> 0\<close> \<open>x < 1\<close> for x
+  proof -
+    have \<open>q * x \<le> (1/4) * 1\<close> using that q_range by (intro mult_mono) auto
+    also have \<open>\<dots> < 1\<close> by simp
+    finally have \<open>q * x < 1\<close> by simp
+    thus ?thesis
+      using that q_range unfolding f_def f'_def power2_eq_square
+      by (auto intro!:derivative_eq_intros)
+  qed
+
+  have f_deriv_nonneg: \<open>f' x \<ge> 0\<close> if \<open>x \<ge> 0\<close> \<open>x < 1\<close> for x
+  proof -
+    have \<open>q * x \<le> (1/4) * 1\<close> using that q_range by (intro mult_mono) auto
+    also have \<open>\<dots> < 1\<close> by simp
+    finally have a:\<open>q * x < 1\<close> by simp
+
+    have \<open>0 \<le> -ln(1-x) -x\<close> using ln_one_minus_pos_upper_bound[OF that] by simp
+    also have \<open>\<dots> = -ln(1-x) -1 -x + 1\<close> by simp
+    also have \<open>\<dots> \<le> -ln(1-x) -1 -x + 1/(1-q*x)\<close>
+      using a q_range that by (intro add_mono diff_mono) (auto simp:divide_simps)
+    finally have b: \<open>0 \<le> -ln(1-x) -1 - x + 1/(1-q*x)\<close> by simp
+
+    have \<open>f' x = q * (-x + 1/(1-q*x) -ln(1-x) -1)\<close>
+      unfolding f'_def by (simp add:algebra_simps)
+    also have \<open>\<dots> \<ge> 0\<close>  using b q_range by (intro mult_nonneg_nonneg) auto
+    finally show ?thesis by simp
+  qed
+
+  have f_mono: \<open>f x \<le> f y\<close> if \<open>x \<le> y\<close> \<open>x \<ge> 0\<close> \<open>y < 1\<close> for x y
+    using f_deriv f_deriv_nonneg le_less_trans[OF _ that(3)] order_trans[OF that(2)]
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
+
+  have f_nonneg: \<open>f x \<ge> 0\<close> if \<open>x \<in> {0<..<1}\<close> for x
+  proof -
+    have \<open>0 = f 0\<close> unfolding f_def by simp
+    also have \<open>\<dots> \<le> f x\<close> using that by (intro f_mono)  auto
+    finally show ?thesis by simp
+  qed
+
+  have a: \<open>ln (h 1) - t * (1 - \<epsilon>) \<le> - q * \<epsilon>^2 / 2\<close>
+    unfolding h_1_eq t_def using f_nonneg[OF assms(1)] unfolding f_def
+    by (simp add:divide_simps)
+
+  have b: \<open>exp (t / y) \<le> h (1 / y)\<close> if \<open>y \<ge> q\<close> for y
+  proof -
+    have \<open>exp (t / y) = exp ((1-q/y) *\<^sub>R 0 + (q/y) *\<^sub>R (t/q))\<close> using q_range by simp
+    also have \<open>\<dots> \<le> (1-q/y) * exp 0 + (q/y) * exp (t/q)\<close> using that q_range
+      by (intro convex_onD[OF exp_convex]) simp_all
+    also have \<open>\<dots> = h (1 / y)\<close> unfolding h_def by (simp add:algebra_simps)
+    finally show ?thesis by simp
+  qed
+
+  have c: \<open>1 \<le> h 0\<close> unfolding h_def by simp
+
+  have h_concave: \<open>concave_on {0..1 / q} h\<close>
+    unfolding h_def by (intro concave_on_linorderI) (auto simp:algebra_simps)
+
+  have h_nonneg: \<open>h y \<ge> 0\<close> if \<open>y \<in> {0..1/q}\<close> for y
+  proof -
+    have \<open>0 \<le> (1-q*y) + q*y * 0\<close> using that q_range by (auto simp:field_simps)
+    also have \<open>\<dots> \<le> (1-q*y) + q*y*exp(t/q)\<close> using that q_range
+      by (intro add_mono mult_left_mono mult_nonneg_nonneg) auto
+    also have \<open>\<dots> = h y\<close> unfolding h_def by (simp add:algebra_simps)
+    finally show ?thesis by simp
+  qed
+
+  have \<open>?L = measure ?p {\<omega>. exp (t*(?\<chi> \<omega>/state_p \<omega>)) \<ge> exp (t*((1-\<epsilon>)* ?c))\<and>state_p \<omega>\<ge> q}\<close>
+    by (subst  mono_exp_t) simp
+  also have \<open>\<dots> \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q)*exp (t*(?\<chi> \<omega>/state_p \<omega>))\<ge> exp (t*((1-\<epsilon>)*?c)))\<close>
+    by (intro pmf_mono) auto
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q)* exp (t*(?\<chi> \<omega>/state_p \<omega>))\<partial>?p) / exp (t*((1-\<epsilon>)*?c))\<close>
+    by (intro integral_Markov_inequality_measure[where A=\<open>{}\<close>]) simp_all
+  also have \<open>\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/exp(t*((1-\<epsilon>)*?c))\<close>
+    using state_chi_run_state_pmf[where \<sigma>=\<open>FinalState xs\<close>] Int_absorb1
+    unfolding sum_divide_distrib[symmetric] sum_distrib_left[symmetric]
+    by (intro integral_cong_AE arg_cong2[where f=\<open>(/)\<close>])
+      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f=\<open>card\<close>])
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*exp( t* ?X i \<omega>)) \<partial>?p)/ exp(t*((1-\<epsilon>)*?c))\<close>
+    unfolding exp_sum[OF finite_set] prod.distrib
+    by (intro divide_right_mono integral_mono_AE AE_pmfI)
+     (auto intro!:mult_nonneg_nonneg prod_nonneg)
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*h( ?X i \<omega>)) \<partial>?p)/ exp (t*((1-\<epsilon>)*?c))\<close>
+    using b c by (intro divide_right_mono integral_mono_AE AE_pmfI) (auto intro!:prod_mono)
+  also have \<open>\<dots> \<le> h 1 ^ card ?A' / exp (t * ((1-\<epsilon>)* ?c))\<close>
+    using q_range h_concave
+    by (intro divide_right_mono run_steps_preserves_expectation_le')
+      (auto intro!:h_nonneg simp:field_simps)
+  also have \<open>\<dots> \<le> h 1 powr ?c / exp (t * ((1-\<epsilon>)* ?c))\<close>
+    using h_1_pos by (subst powr_realpow) (auto intro!:power_increasing divide_right_mono)
+  also have \<open>\<dots> = exp (?c * (ln (h 1) - t * (1 - \<epsilon>)))\<close>
+    using h_1_pos unfolding powr_def by (simp add:algebra_simps exp_add[symmetric] exp_diff)
+  also have \<open>\<dots> \<le> exp (?c * (-q * \<epsilon>^2/2))\<close>
+    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a) simp
+  also have \<open>\<dots> = ?R\<close> using set_larger_than_threshold threshold_pos unfolding q_def by auto
+  finally show ?thesis by simp
 qed
 
 end

@@ -17,11 +17,11 @@ lemma foldM_pmf_snoc: "foldM_pmf f (xs@[y]) val = bind_pmf (foldM_pmf f xs val) 
 abbreviation
   \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
 
-abbreviation possibly_evals_to
+abbreviation (input) possibly_evals_to
   (\<open>\<turnstile>pmf _ \<Rightarrow>? _\<close> [20, 2] 60) where
   \<open>\<turnstile>pmf p \<Rightarrow>? x \<equiv> x \<in> set_pmf p\<close>
 
-abbreviation hoare_triple ::
+abbreviation (input) hoare_triple ::
   \<open>('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b pmf) \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> prop\<close>
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x y. \<lbrakk>P x; \<turnstile>pmf f x \<Rightarrow>? y\<rbrakk> \<Longrightarrow> Q y)\<close>
