@@ -232,7 +232,7 @@ To get a tail estimate, we use the Cram\'{e}r-Chernoff method:
   L & \underset{t > 0}{\leq} & \prob_{\Omega} \left( \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A|) \wedge p \geq q \right) \\
   & \leq & \prob_{\Omega} \left( I(p \geq q) \exp(t p^{-1} |\chi|) \geq \exp(t (1+\eps) |A|) \right) \\
   & \underset{\textrm{Markov}}{\leq} & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ I(p \geq q) \exp ( t p^{-1} |\chi| ) \right] \\
- & = & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
+ & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
  & \leq & \exp( -t (1+\eps) |A| ) \expectation_\Omega \left[ \prod_{s \in A'} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
  & \underset{\textrm{Le.~\ref{le:neg_cor_neg}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
  & \underset{h(1)\geq 1}{\leq} & \left(\exp( \ln(h(1)) -t (1+\eps))\right) ^ {|A|} 
@@ -301,7 +301,7 @@ With these definitions we again follow the Cram\'{e}r-Chernoff method:
 }
 Substituting $t$ and $h$ and using $|A| = \frac{n}{4q}$, we can see that the lemma is true if
 \[
-  f(\eps) := -q \ln(1-\eps) (1-\eps) -\ln(1 - q \eps) - \frac{q}{2}\eps^2 = t (1-\eps) - \ln(h(1)) - \frac{q}{2} \eps^2
+  f(\eps) := q \ln(1-\eps) (1-\eps) -\ln(1 - q \eps) - \frac{q}{2}\eps^2 = t (1-\eps) - \ln(h(1)) - \frac{q}{2} \eps^2
 \]
 is non-negative for $0 \leq q \leq \frac{1}{4}$ and $0 < \eps < 1$.
 This can be verified by checking that $f(0) = 0$ and that the derivative with respect to $\eps$ is non-negative.
