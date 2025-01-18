@@ -19,7 +19,7 @@ begin
 definition f :: real 
   where "f \<equiv> subsample_size / threshold"
 
-definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
+definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
     let k = state_k state;
     let chi = state_chi state; 
@@ -36,7 +36,7 @@ definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow>
 definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
   \<open>subsample \<equiv> \<lambda> chi. pmf_of_set {S. S \<subseteq> chi \<and> card S = subsample_size}\<close>
 
-definition step_2 :: \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
+definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 \<equiv> \<lambda> state. do {
     let k = state_k state;
     let chi = state_chi state;
@@ -47,7 +47,7 @@ definition step_2 :: \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_s
       |> subsample
       |> map_pmf (\<lambda> chi. state\<lparr>state_k := k + 1, state_chi := chi\<rparr>)) }\<close>
 
-definition step :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
+definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step x st \<equiv> step_1 x st \<bind> step_2\<close>
 
 definition run_steps ::

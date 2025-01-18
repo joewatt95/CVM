@@ -409,6 +409,54 @@ definition \<open>q = real threshold / (4 * card (set xs))\<close>
 lemma q_range: \<open>q \<in> {0<..1/4}\<close>
   using set_larger_than_threshold threshold_pos unfolding q_def by auto
 
+lemma upper_tail_bound_helper:
+  assumes \<open>x \<in> {0<..1::real}\<close>
+  defines "h \<equiv> (\<lambda>x. - q * x\<^sup>2 / 3 - ln (1 + q * x) + q * ln (1 + x) * (1 + x))"
+  shows "h x \<ge> 0"
+proof -
+  define h' where \<open>h' x = -2*x*q/3 - q/(1+q*x) + q*ln(1+x) + q\<close> for x
+
+  have deriv: \<open>(h has_real_derivative (h' x)) (at x)\<close> if \<open>x \<ge> 0\<close> \<open>x \<le> 1\<close> for x
+  proof -
+    have \<open>0 < (1::real) + 0\<close> by simp
+    also have \<open>\<dots> \<le> 1 + q * x\<close> using that q_range by (intro add_mono mult_nonneg_nonneg) auto
+    finally have \<open>0 < 1 + q * x\<close> by simp
+    thus ?thesis
+      using that q_range unfolding h_def h'_def power2_eq_square
+      by (auto intro!:derivative_eq_intros)
+  qed
+
+  have deriv_nonneg: \<open>h' x \<ge> 0\<close> if \<open>x \<ge> 0\<close> \<open>x \<le> 1\<close> for x
+  proof -
+    have \<open>exp(2*x/3) = exp((1-x)*\<^sub>R 0 + x *\<^sub>R (2/3))\<close> by simp
+    also have \<open>\<dots> \<le> (1-x)*exp 0 + x*exp(2/3)\<close> by (intro that convex_onD[OF exp_convex]) auto
+    also have \<open>\<dots> = 1 + x*(exp (2/3)-exp 0)\<close> by (simp add:algebra_simps)
+    also have \<open>\<dots> \<le> 1+ x* 1\<close> by (intro add_mono order.refl mult_left_mono that) (approximation 5)
+    finally have \<open>exp(2*x/3) \<le> exp(ln(1+x))\<close> using that by simp
+    hence \<open>0 \<le> ln(1+x) - 2*x/3\<close> by simp
+    also have \<open>\<dots> = ln(1+x) +1 -2*x/3 - 1\<close> by simp
+    also have \<open>\<dots> \<le> ln(1+x) +1 -2 * x/3 - 1/(1+q*x)\<close>
+      using q_range that by (intro add_mono diff_mono) (auto simp:divide_simps)
+    finally have b: \<open>0 \<le> ln(1+x) +1 -2 * x/3 - 1/(1+q*x)\<close> by simp
+
+    have \<open>h' x = q * (-2 * x/3 - 1/(1+q*x) +ln(1+x) +1)\<close>
+      unfolding h'_def by (simp add:algebra_simps)
+    also have \<open>\<dots> \<ge> 0\<close>  using b q_range by (intro mult_nonneg_nonneg) auto
+    finally show ?thesis by simp
+  qed
+
+  have h_mono: \<open>h x \<le> h y\<close> if \<open>x \<le> y\<close> \<open>x \<ge> 0\<close> \<open>y \<le> 1\<close> for x y
+    using deriv deriv_nonneg order_trans[OF _ that(3)] order_trans[OF that(2)]
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
+
+  show ?thesis
+  proof -
+    have \<open>0 = h 0\<close> unfolding h_def by simp
+    also have \<open>\<dots> \<le> h x\<close> using assms(1) by (intro h_mono)  auto
+    finally show ?thesis by simp
+  qed
+qed
+
 (* Lemma 4 *)
 lemma upper_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..1::real}\<close>
@@ -436,51 +484,9 @@ proof -
   have h_1_eq: \<open>h 1 = 1 + q * \<epsilon>\<close> using assms(1) unfolding h_def t_def by simp
   have h_1_pos: \<open>h 1 \<ge> 1\<close> unfolding h_1_eq using q_range assms(1) by auto
 
-  define f where \<open>f x = - q * x\<^sup>2 / 3 - ln (1 + q * x) + q * ln (1 + x) * (1 + x)\<close> for x
-  define f' where \<open>f' x = -2*x*q/3 - q/(1+q*x) + q*ln(1+x) + q\<close> for x
-
-  have f_deriv: \<open>(f has_real_derivative (f' x)) (at x)\<close> if \<open>x \<ge> 0\<close> \<open>x \<le> 1\<close> for x
-  proof -
-    have \<open>0 < (1::real) + 0\<close> by simp
-    also have \<open>\<dots> \<le> 1 + q * x\<close> using that q_range by (intro add_mono mult_nonneg_nonneg) auto
-    finally have \<open>0 < 1 + q * x\<close> by simp
-    thus ?thesis
-      using that q_range unfolding f_def f'_def power2_eq_square
-      by (auto intro!:derivative_eq_intros)
-  qed
-
-  have f_deriv_nonneg: \<open>f' x \<ge> 0\<close> if \<open>x \<ge> 0\<close> \<open>x \<le> 1\<close> for x
-  proof -
-    have \<open>exp(2*x/3) = exp((1-x)*\<^sub>R 0 + x *\<^sub>R (2/3))\<close> by simp
-    also have \<open>\<dots> \<le> (1-x)*exp 0 + x*exp(2/3)\<close> by (intro that convex_onD[OF exp_convex]) auto
-    also have \<open>\<dots> = 1 + x*(exp (2/3)-exp 0)\<close> by (simp add:algebra_simps)
-    also have \<open>\<dots> \<le> 1+ x* 1\<close> by (intro add_mono order.refl mult_left_mono that) (approximation 5)
-    finally have \<open>exp(2*x/3) \<le> exp(ln(1+x))\<close> using that by simp
-    hence \<open>0 \<le> ln(1+x) - 2*x/3\<close> by simp
-    also have \<open>\<dots> = ln(1+x) +1 -2*x/3 - 1\<close> by simp
-    also have \<open>\<dots> \<le> ln(1+x) +1 -2 * x/3 - 1/(1+q*x)\<close>
-      using q_range that by (intro add_mono diff_mono) (auto simp:divide_simps)
-    finally have b: \<open>0 \<le> ln(1+x) +1 -2 * x/3 - 1/(1+q*x)\<close> by simp
-
-    have \<open>f' x = q * (-2 * x/3 - 1/(1+q*x) +ln(1+x) +1)\<close>
-      unfolding f'_def by (simp add:algebra_simps)
-    also have \<open>\<dots> \<ge> 0\<close>  using b q_range by (intro mult_nonneg_nonneg) auto
-    finally show ?thesis by simp
-  qed
-
-  have f_mono: \<open>f x \<le> f y\<close> if \<open>x \<le> y\<close> \<open>x \<ge> 0\<close> \<open>y \<le> 1\<close> for x y
-    using f_deriv f_deriv_nonneg order_trans[OF _ that(3)] order_trans[OF that(2)]
-    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
-
-  have f_nonneg: \<open>f x \<ge> 0\<close> if \<open>x \<in> {0<..1}\<close> for x
-  proof -
-    have \<open>0 = f 0\<close> unfolding f_def by simp
-    also have \<open>\<dots> \<le> f x\<close> using that by (intro f_mono)  auto
-    finally show ?thesis by simp
-  qed
-
   have a: \<open>ln (h 1) - t * (1 + \<epsilon>) \<le> - q * \<epsilon>^2 / 3\<close>
-    unfolding h_1_eq t_def using f_nonneg[OF assms(1)] unfolding f_def by (simp add:algebra_simps)
+    using upper_tail_bound_helper[OF assms(1)] 
+    unfolding h_1_eq t_def f_def by (simp add:algebra_simps)
 
   have b: \<open>exp (t / y) \<le> h (1 / y)\<close> if \<open>y \<ge> q\<close> for y
   proof -
@@ -639,6 +645,53 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma lower_tail_bound_helper:
+  assumes \<open>x \<in> {0<..<1::real}\<close>
+  defines "h \<equiv> (\<lambda>x. - q * x\<^sup>2 / 2 - ln (1 - q * x) + q * ln (1 - x) * (1 - x))"
+  shows "h x \<ge> 0"
+proof -
+  define h' where \<open>h' x = -x*q + q/(1-q*x) - q*ln(1-x) - q\<close> for x
+
+  have deriv: \<open>(h has_real_derivative (h' x)) (at x)\<close> if \<open>x \<ge> 0\<close> \<open>x < 1\<close> for x
+  proof -
+    have \<open>q * x \<le> (1/4) * 1\<close> using that q_range by (intro mult_mono) auto
+    also have \<open>\<dots> < 1\<close> by simp
+    finally have \<open>q * x < 1\<close> by simp
+    thus ?thesis
+      using that q_range unfolding h_def h'_def power2_eq_square
+      by (auto intro!:derivative_eq_intros)
+  qed
+
+  have deriv_nonneg: \<open>h' x \<ge> 0\<close> if \<open>x \<ge> 0\<close> \<open>x < 1\<close> for x
+  proof -
+    have \<open>q * x \<le> (1/4) * 1\<close> using that q_range by (intro mult_mono) auto
+    also have \<open>\<dots> < 1\<close> by simp
+    finally have a:\<open>q * x < 1\<close> by simp
+
+    have \<open>0 \<le> -ln(1-x) -x\<close> using ln_one_minus_pos_upper_bound[OF that] by simp
+    also have \<open>\<dots> = -ln(1-x) -1 -x + 1\<close> by simp
+    also have \<open>\<dots> \<le> -ln(1-x) -1 -x + 1/(1-q*x)\<close>
+      using a q_range that by (intro add_mono diff_mono) (auto simp:divide_simps)
+    finally have b: \<open>0 \<le> -ln(1-x) -1 - x + 1/(1-q*x)\<close> by simp
+
+    have \<open>h' x = q * (-x + 1/(1-q*x) -ln(1-x) -1)\<close>
+      unfolding h'_def by (simp add:algebra_simps)
+    also have \<open>\<dots> \<ge> 0\<close>  using b q_range by (intro mult_nonneg_nonneg) auto
+    finally show ?thesis by simp
+  qed
+
+  have h_mono: \<open>h x \<le> h y\<close> if \<open>x \<le> y\<close> \<open>x \<ge> 0\<close> \<open>y < 1\<close> for x y
+    using deriv deriv_nonneg le_less_trans[OF _ that(3)] order_trans[OF that(2)]
+    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
+
+  show "h x \<ge> 0"
+  proof -
+    have \<open>0 = h 0\<close> unfolding h_def by simp
+    also have \<open>\<dots> \<le> h x\<close> using assms(1) by (intro h_mono)  auto
+    finally show ?thesis by simp
+  qed
+qed
+
 (* Lemma 6 *)
 lemma lower_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close>
@@ -669,50 +722,8 @@ proof -
   have \<open>\<epsilon> * (q * 4) \<le> 1 * 1\<close> using q_range assms(1) by (intro mult_mono) auto
   hence h_1_pos: \<open>h 1 \<ge> 3/4\<close> unfolding h_1_eq by (auto simp:algebra_simps)
 
-  define f where \<open>f x = - q * x\<^sup>2 / 2 - ln (1 - q * x) + q * ln (1 - x) * (1 - x)\<close> for x
-  define f' where \<open>f' x = -x*q + q/(1-q*x) - q*ln(1-x) - q\<close> for x
-
-  have f_deriv: \<open>(f has_real_derivative (f' x)) (at x)\<close> if \<open>x \<ge> 0\<close> \<open>x < 1\<close> for x
-  proof -
-    have \<open>q * x \<le> (1/4) * 1\<close> using that q_range by (intro mult_mono) auto
-    also have \<open>\<dots> < 1\<close> by simp
-    finally have \<open>q * x < 1\<close> by simp
-    thus ?thesis
-      using that q_range unfolding f_def f'_def power2_eq_square
-      by (auto intro!:derivative_eq_intros)
-  qed
-
-  have f_deriv_nonneg: \<open>f' x \<ge> 0\<close> if \<open>x \<ge> 0\<close> \<open>x < 1\<close> for x
-  proof -
-    have \<open>q * x \<le> (1/4) * 1\<close> using that q_range by (intro mult_mono) auto
-    also have \<open>\<dots> < 1\<close> by simp
-    finally have a:\<open>q * x < 1\<close> by simp
-
-    have \<open>0 \<le> -ln(1-x) -x\<close> using ln_one_minus_pos_upper_bound[OF that] by simp
-    also have \<open>\<dots> = -ln(1-x) -1 -x + 1\<close> by simp
-    also have \<open>\<dots> \<le> -ln(1-x) -1 -x + 1/(1-q*x)\<close>
-      using a q_range that by (intro add_mono diff_mono) (auto simp:divide_simps)
-    finally have b: \<open>0 \<le> -ln(1-x) -1 - x + 1/(1-q*x)\<close> by simp
-
-    have \<open>f' x = q * (-x + 1/(1-q*x) -ln(1-x) -1)\<close>
-      unfolding f'_def by (simp add:algebra_simps)
-    also have \<open>\<dots> \<ge> 0\<close>  using b q_range by (intro mult_nonneg_nonneg) auto
-    finally show ?thesis by simp
-  qed
-
-  have f_mono: \<open>f x \<le> f y\<close> if \<open>x \<le> y\<close> \<open>x \<ge> 0\<close> \<open>y < 1\<close> for x y
-    using f_deriv f_deriv_nonneg le_less_trans[OF _ that(3)] order_trans[OF that(2)]
-    by (intro DERIV_nonneg_imp_nondecreasing[OF that(1)]) blast
-
-  have f_nonneg: \<open>f x \<ge> 0\<close> if \<open>x \<in> {0<..<1}\<close> for x
-  proof -
-    have \<open>0 = f 0\<close> unfolding f_def by simp
-    also have \<open>\<dots> \<le> f x\<close> using that by (intro f_mono)  auto
-    finally show ?thesis by simp
-  qed
-
   have a: \<open>ln (h 1) - t * (1 - \<epsilon>) \<le> - q * \<epsilon>^2 / 2\<close>
-    unfolding h_1_eq t_def using f_nonneg[OF assms(1)] unfolding f_def
+    unfolding h_1_eq t_def using lower_tail_bound_helper[OF assms(1)] unfolding f_def
     by (simp add:divide_simps)
 
   have b: \<open>exp (t / y) \<le> h (1 / y)\<close> if \<open>y \<ge> q\<close> for y
@@ -847,7 +858,7 @@ qed
 theorem correctness:
   fixes \<epsilon> \<delta> :: real
   assumes "\<epsilon> \<in> {0<..<1}" "\<delta> \<in> {0<..<1}"
-  assumes "real threshold \<ge> 12/\<epsilon>^2 * ln (3*real (length xs) /\<delta>)"
+  assumes "real threshold \<ge> 12/\<epsilon>^2 * ln (3 * real (length xs) / \<delta>)"
   defines "R \<equiv> real (card (set xs))"
   shows "measure (run_steps xs) {\<omega>. \<bar>real (card (state_chi \<omega>))/state_p \<omega> - R\<bar> > \<epsilon>*R } \<le> \<delta>" 
 proof (cases "card (set xs) \<ge> threshold")
