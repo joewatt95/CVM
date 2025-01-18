@@ -1,8 +1,6 @@
 theory CVM_Algo
-
-imports
-  CVM_Subsample.Utils_PMF
-
+  imports
+    CVM_Subsample.Utils_PMF
 begin
 
 unbundle no_vec_syntax
@@ -52,14 +50,9 @@ definition step_2 :: \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_s
 definition step :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step x st \<equiv> step_1 x st \<bind> step_2\<close>
 
-abbreviation foldM_pmf ::
-  \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
-  \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
-
 definition run_steps ::
   \<open>'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps xs \<equiv> foldM_pmf step xs initial_state\<close>
-
 end
 
 end
