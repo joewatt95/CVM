@@ -872,6 +872,117 @@ next
   thus ?thesis using assms(1,2) by (simp add:indicator_def state_p_def R_def not_less)
 qed
 
+lemma state_k_run_state_pmf:
+  fixes \<sigma> :: \<open>'a run_state\<close>
+  shows \<open>AE \<omega> in run_state_pmf \<sigma>. state_k \<omega> \<le> len_run_state \<sigma>\<close>
+proof (induction \<sigma> rule:run_state_induct)
+  case 1 thus ?case by (simp add:run_steps_def AE_measure_pmf_iff initial_state_def)
+next
+  case (2 xs x)
+  then show ?case by (simp add:AE_measure_pmf_iff step_1_def remove_def)
+next
+  case (3 xs x)
+  let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
+  have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
+    by (simp add:run_steps_snoc)
+
+  thus ?case using 3
+    apply (simp add:AE_measure_pmf_iff step_2_def Let_def)
+    using le_SucI by blast
+qed
+
+lemma run_steps_expectation_sing:
+  assumes i: "i \<in> set xs"
+  shows "measure_pmf.expectation (run_steps xs)
+      (\<lambda>\<omega>. of_bool (i \<in> state_chi \<omega>)/state_p \<omega>) = 1"
+  (is "?L = _")
+proof -
+  have \<open>finite (set_pmf (run_steps xs))\<close>
+    using finite_run_state_pmf[where \<sigma>=\<open>FinalState xs\<close>] by simp
+  note int = integrable_measure_pmf_finite[OF this]
+  
+  define Mi where "Mi = f ^ len_run_state (FinalState xs)"
+
+  have Mi:"0 < Mi" "Mi \<le> 1"
+    unfolding Mi_def using f f_le_1 by (auto simp add: power_le_one)
+  have \<open>AE \<omega> in run_state_pmf (FinalState xs). Mi \<le> state_p \<omega>\<close>
+    apply (subst AE_mp[OF state_k_run_state_pmf])
+    unfolding Mi_def state_p_def
+    using f f_le_1 by (auto intro!: power_decreasing)
+  then have *: "AE \<omega> in run_steps xs. Mi \<le> state_p \<omega>"
+    by (metis run_state_pmf.simps(1))
+  then have "
+    measure_pmf.expectation (run_steps xs)
+     (\<lambda>\<omega>. of_bool (i \<in> state_chi \<omega>) / state_p \<omega>) =
+    measure_pmf.expectation (run_state_pmf (FinalState xs))
+     (\<lambda>\<tau>. \<Prod>x\<in>{i}. of_bool (Mi \<le> state_p \<tau>) *
+          (of_bool (x \<in> state_chi \<tau>) / state_p \<tau>))"
+    by (auto intro!: integral_cong_AE)
+    
+  also have "... \<le> 1 ^ card {i}"
+    apply (intro run_steps_preserves_expectation_le'[OF Mi])
+    using i unfolding concave_on_iff by auto
+  finally have
+    le: "?L \<le> 1" by auto
+
+  have concave: "concave_on {0..1 / Mi} ((-) (1 / Mi + 1))"
+    unfolding concave_on_iff
+    using Mi apply (clarsimp simp add: field_simps)
+    by (metis combine_common_factor distrib_right linear mult_1_left)
+
+  have "
+    1 / Mi + 1 - measure_pmf.expectation (run_steps xs)
+      (\<lambda>\<omega>. of_bool (i \<in> state_chi \<omega>) / state_p \<omega>) =
+    measure_pmf.expectation (run_steps xs)
+      (\<lambda>\<omega>. 1 / Mi + 1 - of_bool (i \<in> state_chi \<omega>) / state_p \<omega>) "
+    apply (subst Bochner_Integration.integral_diff)
+    using int by auto
+  also have "... =
+    measure_pmf.expectation (run_state_pmf (FinalState xs))
+     (\<lambda>\<tau>. \<Prod>x\<in>{i}. of_bool (Mi \<le> state_p \<tau>) *
+          (1 / Mi + 1 - of_bool (x \<in> state_chi \<tau>) / state_p \<tau>))"
+    using * by (auto intro!: integral_cong_AE)
+  also have "... \<le> (1 / Mi + 1 - 1) ^ card{i}"
+    apply (intro run_steps_preserves_expectation_le'[OF Mi  concave])
+    using i Mi by (auto simp add: field_simps)
+  also have "... = 1 / Mi" by auto
+  finally have ge:" -measure_pmf.expectation (run_steps xs)
+     (\<lambda>\<omega>. of_bool (i \<in> state_chi \<omega>) / state_p \<omega>) \<le> -1" by auto
+  show ?thesis using le ge by auto
+qed
+
+corollary unbiasedness:
+  fixes \<sigma> :: "'a run_state"
+  shows \<open>measure_pmf.expectation (run_steps xs)
+    (\<lambda>\<omega>. real (card (state_chi \<omega>))/state_p \<omega>) = real (card (set xs))\<close>
+    (is "?L = _")
+proof -
+  have \<open>finite (set_pmf (run_steps xs))\<close>
+    using finite_run_state_pmf[where \<sigma>=\<open>FinalState xs\<close>] by simp
+  note [simp] = integrable_measure_pmf_finite[OF this]
+
+  have s: \<open>AE \<omega> in run_steps xs. state_chi \<omega> \<subseteq> set xs\<close>
+    by (metis run_state_pmf.simps(1) run_state_set.simps(1) state_chi_run_state_pmf)
+
+  have "?L =
+    measure_pmf.expectation (run_steps xs)
+      (\<lambda>\<omega>. (\<Sum>i\<in>set xs. of_bool (i \<in> state_chi \<omega>))/state_p \<omega>)"
+    by (auto intro!: integral_cong_AE intro: AE_mp[OF s] simp add: Int_absorb1)
+
+  also have "... =
+    measure_pmf.expectation (run_steps xs)
+      (\<lambda>\<omega>. (\<Sum>i\<in>set xs. of_bool (i \<in> state_chi \<omega>)/state_p \<omega>))"
+    by (metis (no_types) sum_divide_distrib)
+  also have "... =
+    (\<Sum>i\<in>set xs. (measure_pmf.expectation (run_steps xs)
+      (\<lambda>\<omega>. of_bool (i \<in> state_chi \<omega>)/state_p \<omega>)))"
+    by (auto intro: Bochner_Integration.integral_sum)
+  also have "... = (\<Sum>i\<in>set xs. 1)"
+    apply (intro sum.cong)
+    using run_steps_expectation_sing by auto
+  finally show ?thesis by auto
+qed
+
 end (* end cvm_algo_proof *)
 
 end (* end theory *)
