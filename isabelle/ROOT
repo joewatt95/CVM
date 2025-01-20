@@ -38,7 +38,7 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
     "Utils/Utils_Basic"
     "Utils/Utils_PMF"
 
-session CVM = "CryptHOL" +
+session CVM_old in "CVM_old" = "CryptHOL" +
   options [timeout = 300]
 
   sessions
