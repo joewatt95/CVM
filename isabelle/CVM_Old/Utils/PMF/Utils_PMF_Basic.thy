@@ -7,9 +7,9 @@ imports
 
 begin
 
-lemma pmf_return_pmf_1 [simp] :
+(* lemma pmf_return_pmf_1 [simp] :
   \<open>pmf (return_pmf x) x = 1\<close>
-  by simp
+  by simp *)
 
 lemma pmf_map_pred_true_eq_prob :
   \<open>pmf (map_pmf P p) True = \<P>(x in measure_pmf p. P x)\<close>
