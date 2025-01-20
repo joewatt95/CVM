@@ -42,16 +42,8 @@ qed
 
 lemma foldM_spmf_of_pmf_eq :
   \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs = spmf_of_pmf <<< foldM_pmf f xs\<close>
-  (is ?thesis_0)
-  \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs val = spmf_of_pmf (foldM_pmf f xs val)\<close>
-  (is ?thesis_1)
-proof -
-  show ?thesis_0
-    apply (induction xs)
-    by (simp_all add: spmf_of_pmf_bind)
-
-  then show ?thesis_1 by simp
-qed
+  apply (induction xs)
+  by (simp_all add: spmf_of_pmf_bind)
 
 lemma pmf_foldM_spmf_nil :
   \<open>spmf (foldM_spmf f [] acc) acc' = of_bool (acc = acc')\<close>
