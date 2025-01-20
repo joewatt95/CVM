@@ -77,9 +77,9 @@ lemma prob_le_prob_of_ord_spmf_eq :
   using assms
   by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
-lemma prob_None_eq_of_rel_spmf :
+lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
-  shows \<open>prob_fprob_Nonerob_fprob_None
+  shows \<open>prob_fprob_Nprob_failrob_Nprob_fail
   using assms
   by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
 
@@ -278,12 +278,12 @@ lemma hoare_ord_option_iff_ord_spmf :
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> ord_spmf S (f x) (f' x'))\<close>
   by (simp add: Utils_PMF_Relational.relational_hoare_triple_def)
 
-lemma prob_None_le_of_relational_hoare_triple :
+lemma prob_fail_le_of_relational_hoare_triple :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option (=)\<rbrakk>\<close>
     \<open>R x x'\<close>
   shows
-    \<open>prob_fprob_None') \<le> prob_fail prob_None
+    \<open>prob_fprob_Nprob_failrob_fail prob_Noneprob_fail
   using assms
   by (auto
     intro!: ord_spmf_eqD_pmf_None[where Y = \<open>{}\<close>] 
@@ -718,14 +718,14 @@ proof -
         f_with_bad_flag_def f_fail_on_bad_event_def pmf.rel_map)
 qed
 
-lemma prob_foldM_spmf_diff_le_prob_None_foldM_fail_on_bad_event :
+lemma prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event :
   fixes xs val
   assumes \<open>invariant val\<close> \<open>invariant' val\<close>
   defines
     \<open>prob \<equiv> \<lambda> P f. \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
     \<open>\<bar>prob P f - prob P f'\<bar>
-    \<le> probprob_NoneldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
+    \<le> probprobprob_failspmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P bad_event f.

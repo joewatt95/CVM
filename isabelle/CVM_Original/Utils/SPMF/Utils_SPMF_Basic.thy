@@ -13,10 +13,10 @@ lemma spmf_of_pmf_eq_iff_eq [simp] :
 
 abbreviation \<open>fail_spmf \<equiv> return_pmf None\<close>
 
-abbreviation \<open>prob_None \<equiv> flip pmf None\<close>
+abbreviation \<open>prob_fail \<equiv> flip pmf None\<close>
 
-lemma prob_None_map_spmf_eq :
-  \<open>prob_None (map_spmf f p) = prob_None p\<close>
+lemma prob_fail_map_spmf_eq :
+  \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
   by (simp add: pmf_None_eq_weight_spmf)
 
 lemma spmf_map_pred_true_eq_prob :
@@ -29,9 +29,9 @@ abbreviation is_None_or_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a 
 abbreviation is_Some_and_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
   \<open>is_Some_and_pred \<equiv> case_option False\<close>
 
-lemma prob_is_None_or_pred_eq_prob_None_plus_prob :
+lemma prob_is_None_or_pred_eq_prob_fail_plus_prob :
   \<open>\<P>(x in measure_pmf p. x |> is_None_or_pred P) =
-    prob_None p + \<P>(x in measure_spmf p. P x)\<close>
+    prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
   have \<open>Collect (is_None_or_pred P) = {None} \<union> Some ` Collect P\<close>
     by (auto split: option.splits)

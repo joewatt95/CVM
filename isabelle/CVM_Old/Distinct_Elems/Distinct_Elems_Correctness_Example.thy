@@ -105,10 +105,10 @@ interpretation estimate_distinct \<open>nat \<lceil>threshold\<rceil>\<close> 2 
   apply simp_all
   by (smt (verit, best) Suc_1 \<epsilon>(2) \<epsilon>_threshold_ge_12 nat_2 nat_mono numeral_nat(7) of_nat_nat threshold_ge_2 two_l_threshold_bounds(1,2))
 
-lemma prob_None_bound_le_\<delta> :
-  \<open>prob_fprob_None \<le> \<delta> / 8\<close>
+lemma prob_fail_bound_le_\<delta> :
+  \<open>prob_fprob_Nprob_fail 8\<close>
 proof -
-  from \<epsilon> \<delta> have \<open>prob_fail_bound \<le> lengprob_None8 * length_xs_1 / \<delta>)\<close>
+  from \<epsilon> \<delta> have \<open>prob_fail_bound \<le> lengprob_None8 * length_xs_1 /prob_fail
     apply (simp only: estimate_distinct_basic.prob_bounds_defs threshold_def)
     by (smt (verit, ccfv_SIG) Multiseries_Expansion.intyness_0 divide_le_eq_1_pos frac_le divide_pos_pos less_log_of_power max_nat.eq_neutr_iff mult_eq_0_iff mult_le_cancel_right1
       of_nat_le_0_iff power_le_one real_nat_ceiling_ge rel_simps(76,93) zero_less_power)
@@ -147,7 +147,7 @@ corollary estimate_distinct_example_correct :
       (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
   \<le> 3 * \<delta> / 8\<close>
   using
-    estimate_distinct_error_bound prob_None_bound_le_\<delta>
+    estimate_distinct_error_bound prob_fail_bound_le_\<delta>
     prob_k_gt_l_bound_le_\<delta> prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
   by simp
 

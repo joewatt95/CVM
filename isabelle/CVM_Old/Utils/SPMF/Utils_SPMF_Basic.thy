@@ -13,10 +13,10 @@ lemma spmf_of_pmf_eq_iff_eq [simp] :
 
 abbreviation \<open>fail_spmf \<equiv> return_pmf None\<close>
 
-abbreviation \<open>prob_fprob_Nonep pmf None\<close>
+abbreviation \<open>prob_fprob_Nprob_failNone\<close>
 
-lemma prob_None_map_spmf_eq :
-  \<open>prob_fprob_Nonespmf f p) = prob_fprob_None
+lemma prob_fail_map_spmf_eq :
+  \<open>prob_fprob_Nprob_fail p) = prob_fprob_Nprob_fail
   by (simp add: pmf_None_eq_weight_spmf)
 
 lemma spmf_map_pred_true_eq_prob :
@@ -29,9 +29,9 @@ abbreviation is_None_or_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a 
 abbreviation is_Some_and_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
   \<open>succeeis_Some_and_prede_option False\<close>
 
-lemma prob_is_None_or_pred_eq_prob_None_plus_prob :
+lemma prob_is_None_or_pred_eq_prob_fail_plus_prob :
   \<open>\<P>(x in measure_pmf p. x |> fails_oris_None_or_pred
-    prob_None p + \<P>(x in measure_spmf p. P x)\<close>
+    prob_fail p + \<P>(x in measure_spmf p. P x)\<close>
 proof -
   have \<open>Collect (fails_is_None_or_pred{None} \<union> Some ` Collect P\<close>
     by (auto split: option.splits)
