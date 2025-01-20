@@ -7,8 +7,8 @@ imports
 
 begin
 
-abbreviation foldM_spmf
-  :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
+abbreviation foldM_spmf ::
+  \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
   \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
 
 abbreviation
