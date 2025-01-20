@@ -4,7 +4,7 @@ https://trustworthy.systems/publications/nicta_full_text/483.pdf
 theory Utils_Reader_Monad_Hoare
 
 imports
-  Utils_Function
+  Utils_Basic
   Utils_Reader_Monad_Basic
 
 begin

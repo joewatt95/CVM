@@ -3,7 +3,7 @@ theory Utils_Hoare_Basic
 imports
   "HOL-Library.Monad_Syntax"
   "HOL-Probability.SPMF"
-  Utils_Function
+  Utils_Basic
 
 begin
 

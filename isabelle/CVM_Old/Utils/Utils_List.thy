@@ -2,7 +2,7 @@ theory Utils_List
 
 imports
   "HOL-Probability.SPMF"
-  Utils_Function
+  Utils_Basic
   Utils_Option
 
 begin

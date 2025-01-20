@@ -88,7 +88,7 @@ session CVM_Old in "CVM_Old" = "CryptHOL" +
     "Utils/Compat/Utils_Compat_Real"
 
     "Utils/Utils_Approx_Algo"
-    "Utils/Utils_Function"
+    "Utils/Utils_Basic"
     "Utils/Utils_List"
     "Utils/Utils_Option"
     "Utils/Utils_Real"
@@ -124,3 +124,22 @@ session CVM_Original in "CVM_Original" = "CryptHOL" +
     Probabilistic_While
     Constructive_Cryptography_CM
     ABY3_Protocols
+
+  directories
+    "Utils"
+    "Utils/PMF"
+    "Utils/SPMF"
+
+  theories
+    "Algo"
+
+    "Utils_Basic"
+
+    "Utils_Reader_Monad"
+
+    "Utils_PMF_Basic"
+    "Utils_PMF_Bernoulli_Binomial"
+    "Utils_PMF_Lazify"
+
+    "Utils_SPMF_Basic"
+    "Utils_SPMF_FoldM"

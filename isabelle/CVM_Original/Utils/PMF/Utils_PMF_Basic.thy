@@ -150,13 +150,12 @@ proof -
     map_pmf (\<lambda>\<omega>. \<omega> \<circ> prod.swap)
      (map_pmf (\<lambda> \<phi>. \<lambda> i \<in> J \<times> I. \<phi> (prod.swap i))
        (prod_pmf (I \<times> J) M))"
-    apply (subst prod_pmf_reindex[OF f _ a, symmetric])
-    by auto
+    by (simp add: f prod_pmf_reindex product_swap)
 
   also have "\<dots> = ?L"
     by (auto
       intro!: map_pmf_idI elim!: PiE_E
-      simp add: map_pmf_comp o_def set_prod_pmf[OF f] fun_eq_iff)
+      simp add: map_pmf_comp comp_def set_prod_pmf[OF f] fun_eq_iff)
 
   finally show ?thesis by simp
 qed

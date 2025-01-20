@@ -1,4 +1,4 @@
-theory Utils_Reader_Monad_Basic
+theory Utils_Reader_Monad
   imports "HOL-Library.Monad_Syntax" "Utils_Basic"
 begin
 
