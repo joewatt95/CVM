@@ -2,12 +2,8 @@ theory Utils_Basic
 
 imports
   Main
-  "HOL-Eisbach.Eisbach"
 
 begin
-
-method simp' uses simp = (simp add: simp, blast?)
-method simp_atomize = (simp' simp: atomize_all atomize_imp)
 
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
   \<open>flip f x y \<equiv> f y x\<close>
@@ -54,15 +50,5 @@ next
 qed
 
 lemma foldM_empty: "foldM bind return f [] = return" by auto
-
-definition foldM_enumerate where
-  \<open>foldM_enumerate bind return f xs offset \<equiv>
-    foldM bind return f (List.enumerate offset xs)\<close>
-
-lemma foldM_eq_foldM_enumerate :
-  \<open>foldM bind return f xs
-    = foldM_enumerate bind return (f \<circ> snd) xs offset\<close>
-  apply (induction xs arbitrary: offset)
-  by (auto simp add: foldM_enumerate_def)
 
 end
