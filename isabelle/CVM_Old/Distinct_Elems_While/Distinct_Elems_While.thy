@@ -348,10 +348,10 @@ lemma step_step_while_with_bad_flag_preserves_eq_up_to_bad :
     well_formed_state_card_le_threshold[simplified]
   by (smt (verit, ccfv_threshold) card_mono finite.insertI finite_filter member_filter remove_def state.simps(2) subsetI)
 
-lemma diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail :
+lemma diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_None :
   \<open>\<bar>\<P>(estimate in measure_spmf <| estimate_distinct_no_fail_spmf xs. P estimate)
     - \<P>(estimate in measure_spmf <| estimate_distinct_while xs. P estimate)\<bar>
-  \<le> prob_fail (estimate_distinct xs)\<close>
+  \<le> probprob_Nonetimate_distinct xs)\<close>
   (is \<open>?L estimate_distinct_no_fail_spmf estimate_distinct_while \<le> ?R\<close>)
 proof -
   note [simp] = space_measure_spmf well_formed_state_def Let_def Set.remove_def
@@ -363,7 +363,7 @@ proof -
         estimate_distinct_while_with_bad_flag\<close>
     by (simp add: estimate_distinct_no_fail_eq_with_bad_flag estimate_distinct_while_eq_with_bad_flag)
 
-  also have \<open>\<dots> \<le> prob_fail (foldM_spmf step_fail_on_bad_event xs initial_state_with_bad_flag)\<close>
+  also have \<open>\<dots> \<le> prob_fail (foldMprob_Nonep_fail_on_bad_event xs initial_state_with_bad_flag)\<close>
     (* First simp our defns away and convert foldM_pmf into foldM_spmf *)
     apply (simp
       add:
@@ -374,7 +374,7 @@ proof -
     using lossless_step_while_with_bad_flag
     by (fastforce
       intro:
-        prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event[
+        prob_foldM_spmf_diff_le_prob_None_foldM_fail_on_bad_event[
           where
             invariant = \<open>finite <<< state_chi\<close> and
             invariant' = well_formed_state and
@@ -386,14 +386,14 @@ proof -
         initial_state_with_bad_flag_def initial_state_def)
 
   also have \<open>\<dots> = ?R\<close>
-    by (simp add: estimate_distinct_eq_fail_on_bad_event prob_fail_map_spmf_eq run_steps_then_estimate_def)
+    by (simp add: estimate_distinct_eq_fail_on_bad_event prob_None_map_spmf_eq run_steps_then_estimate_def)
 
   finally show ?thesis .
 qed
 
-lemma prob_estimate_distinct_while_fails_or_satisfies_le :
-  \<open>\<P>(estimate in estimate_distinct_while xs. fails_or_satisfies P estimate)
-  \<le> prob_fail (estimate_distinct xs) +
+lemma prob_estimate_distinct_while_is_None_or_pred_le :
+  \<open>\<P>(estimate in estimate_distinct_while xs. fails_oris_None_or_predate)
+  \<le> probprob_Nonetimate_distinct xs) +
     \<P>(estimate in estimate_distinct_no_fail xs. P estimate)\<close>
   (is \<open>?L \<le> _\<close>)
 proof -
@@ -401,10 +401,10 @@ proof -
     \<open>?L = \<P>(estimate in measure_spmf <| estimate_distinct_while xs. P estimate)\<close>
     by (simp
       flip: lossless_iff_pmf_None
-      add: prob_fails_or_satisfies_eq_prob_fail_plus_prob[simplified])
+      add: prob_is_None_or_pred_eq_prob_None_plus_prob[simplified])
 
   (* Triangle inequality. *)
-  with diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_fail[of xs P]
+  with diff_prob_estimate_distinct_while_no_fail_bounded_by_prob_None[of xs P]
   show ?thesis by simp
 qed
 

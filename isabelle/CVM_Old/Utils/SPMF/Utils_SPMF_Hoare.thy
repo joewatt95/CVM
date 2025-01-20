@@ -37,10 +37,10 @@ definition hoare_triple ::
 definition hoare_triple_total ::
   \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b spmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
   (\<open>\<turnstile>spmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk>\<close> [21, 20, 21] 60) where
-  \<open>\<turnstile>spmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> \<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>succeeds_and_satisfies Q\<rbrakk>\<close>
+  \<open>\<turnstile>spmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> \<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>succeeds_and_satisfies Q\<rbrakk>\<close>is_Some_and_pred
 
 lemma hoare_triple_altdef :
-  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>fails_or_satisfies Q\<rbrakk>)\<close>
+  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>fails_or_satisfies Q\<rbrakk>)\<close>is_None_or_pred
   by (simp
     add: hoare_triple_def Utils_PMF_Hoare.hoare_triple_def in_set_spmf
     split: option.splits)
@@ -278,15 +278,15 @@ lemma integral_mono_of_hoare_triple :
   shows \<open>(\<integral> y. g y \<partial> \<mu>) \<le> \<integral> y. h y \<partial> \<mu>\<close>
   using assms by (auto intro!: integral_mono_AE elim!: hoare_tripleE)
 
-lemma prob_fail_foldM_spmf_le :
+lemma prob_None_foldM_spmf_le :
   fixes
     p :: real and
     P :: \<open>'b \<Rightarrow> bool\<close>
   assumes
     \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
-    \<open>\<And> x val. P val \<Longrightarrow> prob_fail (f x val) \<le> p\<close>
+    \<open>\<And> x val. P val \<Longrightarrow> prob_fail (f x val) \<le> p\<close>prob_None
     \<open>P val\<close>
-  shows \<open>prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close>
+  shows \<open>prob_fprob_NoneM_spmf f xs val) \<le> length xs * p\<close>
 using assms proof (induction xs arbitrary: val)
   case Nil
   then show ?case by simp
@@ -297,20 +297,20 @@ next
   let ?\<mu>' = \<open>measure_spmf ?val'\<close>
 
   have
-    \<open>prob_fail (foldM_spmf f (x # xs) val) =
-      prob_fail ?val' + \<integral> val'. prob_fail (foldM_spmf f xs val') \<partial> ?\<mu>'\<close>
-    (is \<open>_ = _ + \<integral> val'. ?prob_fail val' \<partial> _\<close>)
+    \<open>prob_fprob_NoneM_spmf f (x # xs) val) =
+      prob_None ?val' + \<integral> val'. prob_fail prob_Nonemf f xs val') \<partial> ?\<mu>'\<close>
+    (is \<open>_ = _ + \<integral> val'. ?prob_fail val' \<partial>prob_None
     by (simp add: pmf_bind_spmf_None)
 
   also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
   proof -
     from Cons.IH assms \<open>P val\<close>
-    have \<open>\<turnstile>spmf \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?val'\<rblot> \<lbrace>(\<lambda> val'. ?prob_fail val' \<le> length xs * p)\<rbrace>\<close>
+    have \<open>\<turnstile>spmf \<lbrace>\<lblot>True\<rblot>\<rbrace> \<lblot>?val'\<rblot> \<lbrace>(\<lambda> val'. ?prob_fail val' \<le> length xs * p)\<rbrace>\<close>prob_None
       by (simp add: Utils_SPMF_Hoare.hoare_triple_def)
 
-    then have \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+    then have \<open>(\<integral> val'. ?prob_fail val' \<partial>prob_None _. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_of_hoare_triple[where f = \<open>\<lblot>?val'\<rblot>\<close>])
-      by (simp_all add: integrable_prob_fail_foldM_spmf)
+      by (simp_all add: integrable_prob_None_foldM_spmf)
 
     with \<open>P val\<close> assms(2) show ?thesis by (simp add: add_mono)
   qed
@@ -328,7 +328,7 @@ lemma lossless_foldM_spmf :
     \<open>\<And> x val. P val \<Longrightarrow> lossless_spmf (f x val)\<close>
     \<open>P val\<close>
   shows \<open>lossless_spmf <| foldM_spmf f xs val\<close>
-  using assms prob_fail_foldM_spmf_le[of P f 0]
+  using assms prob_None_foldM_spmf_le[of P f 0]
   by (simp add: lossless_iff_pmf_None)
 
 lemma lossless_foldM_spmf' [simp] :

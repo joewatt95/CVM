@@ -59,10 +59,10 @@ lemma pmf_foldM_spmf_cons :
   apply (simp add: bind_spmf_def pmf_bind)
   by (metis (mono_tags, lifting) option.case_eq_if)
 
-lemma integrable_prob_fail_foldM_spmf :
+lemma integrable_prob_None_foldM_spmf :
   \<open>integrable
     (measure_spmf <| f x acc) <|
-    prob_fail <<< foldM_spmf f xs\<close>
+    prob_None <<< foldM_spmf f xs\<close>
   by (auto
     intro: measure_spmf.integrable_const_bound[where B = 1]
     simp add: pmf_le_1)

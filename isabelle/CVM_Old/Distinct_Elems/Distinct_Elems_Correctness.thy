@@ -51,10 +51,10 @@ locale estimate_distinct_basic = with_threshold_r_l_\<epsilon>_xs
 begin
 
 definition
-  \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close>
+  \<open>prob_fprob_None \<equiv> real (length xs) / 2 ^ threshold\<close>
 
 lemmas prob_bounds_defs =
-  prob_fail_bound_def
+  prob_None_bound_def
   prob_k_gt_l_bound_def
   prob_k_le_l_and_est_out_of_range_bound_def
 
@@ -72,9 +72,9 @@ begin
 
 theorem estimate_distinct_error_bound :
   \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
-      estimate |> fails_or_satisfies
+      estimate |> is_None_or_pred
         (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
-  \<le> prob_fail_bound +
+  \<le> probprob_Nonend +
     prob_k_gt_l_bound +
     prob_k_le_l_and_est_out_of_range_bound\<close>
   (is \<open>?L \<le> _\<close>)
@@ -97,15 +97,15 @@ next
     \<open>run_with_bernoulli_matrix <|
       run_reader <<< eager_algorithm\<close>
 
-  from prob_estimate_distinct_fails_or_satisfies_le
+  from prob_estimate_distinct_is_None_or_pred_le
   have \<open>?L \<le>
-    prob_fail_bound +
+    prob_None_bound +
     \<P>(estimate in estimate_distinct_no_fail xs.
       real estimate >[\<epsilon>] card (set xs))\<close>
     by (simp add: prob_bounds_defs)
 
   also have \<open>\<dots> \<le> (
-    prob_fail_bound +
+    prob_None_bound +
     \<P>(state in ?run_eager_algo. state_k state > l) +
     \<P>(state in ?run_eager_algo. 
       state_k state \<le> l \<and> real (compute_estimate state) >[\<epsilon>] card (set xs)))\<close>
@@ -140,7 +140,7 @@ theorem estimate_distinct_error_bound' :
       \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
       2 ^ l * threshold \<in> {r * card_xs .. 2 * r * card_xs}\<close>
   defines
-   \<open>prob_fail_bound \<equiv>
+   \<open>prob_fprob_None \<equiv>
       real (length xs) / 2 ^ threshold\<close> and
    \<open>prob_k_gt_l_bound \<equiv>
       real (length xs) *
@@ -149,9 +149,9 @@ theorem estimate_distinct_error_bound' :
       4 * exp (- \<epsilon>\<^sup>2 * real threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
   shows
     \<open>\<P>(estimate in with_threshold.estimate_distinct threshold xs.
-      estimate |> fails_or_satisfies
+      estimate |> is_None_or_pred
         (\<lambda> estimate. real estimate >[\<epsilon>] card (set xs)))
-    \<le> prob_fail_bound +
+    \<le> probprob_Nonend +
       prob_k_gt_l_bound +
       prob_k_le_l_and_est_out_of_range_bound\<close>
   using estimate_distinct.estimate_distinct_error_bound assms

@@ -77,9 +77,9 @@ lemma prob_le_prob_of_ord_spmf_eq :
   using assms
   by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
 
-lemma prob_fail_eq_of_rel_spmf :
+lemma prob_None_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
-  shows \<open>prob_fail p = prob_fail p'\<close>
+  shows \<open>prob_fprob_Nonerob_fprob_None
   using assms
   by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
 
@@ -278,12 +278,12 @@ lemma hoare_ord_option_iff_ord_spmf :
   \<longleftrightarrow> (\<forall> x x'. R x x' \<longrightarrow> ord_spmf S (f x) (f' x'))\<close>
   by (simp add: Utils_PMF_Relational.relational_hoare_triple_def)
 
-lemma prob_fail_le_of_relational_hoare_triple :
+lemma prob_None_le_of_relational_hoare_triple :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option (=)\<rbrakk>\<close>
     \<open>R x x'\<close>
   shows
-    \<open>prob_fail (f' x') \<le> prob_fail (f x)\<close>
+    \<open>prob_fprob_None') \<le> prob_fail prob_None
   using assms
   by (auto
     intro!: ord_spmf_eqD_pmf_None[where Y = \<open>{}\<close>] 
@@ -718,14 +718,14 @@ proof -
         f_with_bad_flag_def f_fail_on_bad_event_def pmf.rel_map)
 qed
 
-lemma prob_foldM_spmf_diff_le_prob_fail_foldM_fail_on_bad_event :
+lemma prob_foldM_spmf_diff_le_prob_None_foldM_fail_on_bad_event :
   fixes xs val
   assumes \<open>invariant val\<close> \<open>invariant' val\<close>
   defines
     \<open>prob \<equiv> \<lambda> P f. \<P>(val in measure_spmf <| foldM_spmf f xs val. P val)\<close>
   shows
     \<open>\<bar>prob P f - prob P f'\<bar>
-    \<le> prob_fail (foldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
+    \<le> probprob_NoneldM_spmf (f_fail_on_bad_event bad_event <<< f) xs val)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?prob_with_flag = \<open>\<lambda> P bad_event f.
@@ -756,15 +756,15 @@ proof -
 
   also have \<open>\<dots> \<le>
     \<P>(flag_val in foldM_spmf_with_bad_flag bad_event f xs False val.
-      fails_or_satisfies fst flag_val)\<close>
-    by (rule measure_spmf_le_measure_pmf_fails_or_satisfies)
+      is_None_or_pred fst flag_val)\<close>
+    by (rule measure_spmf_le_measure_pmf_is_None_or_pred)
 
   (* thm rel_pmf_measureD[
     where p = \<open>f_fail_on_bad_event x val\<close>,
     where q = \<open>foldM_spmf f_with_bad_flag x (bad_flag, val)\<close>,
     where R = \<open>\<lambda> val' flag_val.
-      val' = None \<longleftrightarrow> fails_or_satisfies fst flag_val\<close>,
-    where A = \<open>Collect <| fails_or_satisfies bad_event\<close>,
+      val' = None \<longleftrightarrow> fails_or_satisfies fis_None_or_pred
+    where A = \<open>Collect <| fails_is_None_or_predvent\<close>,
     simplified Let_def, simplified] *)
 
   also from rel_spmf_foldM_with_bad_flag_foldM_fail_on_bad_flag

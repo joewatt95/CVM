@@ -164,23 +164,23 @@ proof -
       simp add: set_prod_pmf Let_def Set.filter_def)
 qed
 
-lemma prob_fail_step_le :
+lemma prob_None_step_le :
   assumes \<open>state ok\<close>
-  shows \<open>prob_fail (step x state) \<le> 1 / 2 ^ threshold\<close>
+  shows \<open>prob_fprob_None x state) \<le> 1 / 2 ^ threshold\<close>
   using well_formed_state_card_le_threshold[OF assms] assms
   apply (simp add: step_def well_formed_state_def Let_def)
   by (simp add:
     spmf_bind_filter_chi_eq_map pmf_prod_pmf
     pmf_bind pmf_map measure_pmf_single vimage_def field_simps)
 
-lemma prob_fail_estimate_size_le :
-  \<open>prob_fail (estimate_distinct xs) \<le> length xs / 2 ^ threshold\<close>
-  using prob_fail_foldM_spmf_le[OF
+lemma prob_None_estimate_size_le :
+  \<open>prob_fprob_Nonemate_distinct xs) \<le> length xs / 2 ^ threshold\<close>
+  using prob_None_foldM_spmf_le[OF
     step_preserves_well_formedness
-    prob_fail_step_le initial_state_well_formed]
+    prob_None_step_le initial_state_well_formed]
   by (fastforce simp add:
     estimate_distinct_def run_steps_then_estimate_def
-    prob_fail_map_spmf_eq)
+    prob_None_map_spmf_eq)
 
 lemma step_ord_spmf_eq :
   \<open>step x state \<sqsubseteq> spmf_of_pmf (step_no_fail x state)\<close>
@@ -201,11 +201,11 @@ lemma estimate_distinct_ord_spmf_eq :
   by (metis (mono_tags, lifting) foldM_spmf_of_pmf_eq foldM_spmf_ord_spmf_eq_of_ord_spmf_eq ord_spmf_mono step_ord_spmf_eq)
 
 (* Think of P as event that `estimate` is the wrong count *)
-theorem prob_estimate_distinct_fails_or_satisfies_le :
-  \<open>\<P>(estimate in estimate_distinct xs. estimate |> fails_or_satisfies P)
+theorem prob_estimate_distinct_is_None_or_pred_le :
+  \<open>\<P>(estimate in estimate_distinct xs. estimate |> fails_oris_None_or_pred
   \<le> real (length xs) / 2 ^ threshold
     + \<P>(estimate in estimate_distinct_no_fail xs. P estimate)\<close>
-  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_fail_estimate_size_le prob_fails_or_satisfies_eq_prob_fail_plus_prob prob_le_prob_of_ord_spmf_eq)
+  by (smt (verit, del_insts) Collect_cong estimate_distinct_ord_spmf_eq measure_spmf_spmf_of_pmf prob_None_estimate_size_le prob_is_None_or_pred_eq_prob_None_plus_prob prob_le_prob_of_ord_spmf_eq)
 
 end
 
