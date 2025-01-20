@@ -38,7 +38,7 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
     "Utils/Utils_Basic"
     "Utils/Utils_PMF"
 
-session CVM_old in "CVM_old" = "CryptHOL" +
+session CVM_Old in "CVM_Old" = "CryptHOL" +
   options [timeout = 300]
 
   sessions
@@ -113,3 +113,14 @@ session CVM_old in "CVM_old" = "CryptHOL" +
 
   document_files
     "root.tex"
+
+session CVM_Original in "CVM_Original" = "CryptHOL" +
+  options [timeout = 300]
+
+  sessions
+    Universal_Hash_Families
+    Finite_Fields
+    Concentration_Inequalities
+    Probabilistic_While
+    Constructive_Cryptography_CM
+    ABY3_Protocols
