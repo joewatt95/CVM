@@ -32,8 +32,7 @@ definition step_2_no_fail ::
     in if card chi < threshold
       then return_pmf (state\<lparr>state_chi := chi\<rparr>)
       else do {
-        keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-          prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
+        keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
 
         let chi = Set.filter keep_in_chi chi;
 
