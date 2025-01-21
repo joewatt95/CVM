@@ -305,16 +305,14 @@ next
     by (simp add: pmf_bind_spmf_None)
 
   also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
-  proof -
-    note \<open>P val\<close> assms
+  proof (rule add_mono)
+    from assms show \<open>prob_fail ?val' \<le> p\<close> by simp
 
-    moreover with Cons.IH
-    have \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+    from Cons.IH assms
+    show \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_AE)
       by (simp_all add:
         integrable_prob_fail_foldM_spmf Utils_SPMF_Hoare.hoare_triple_def)
-
-    ultimately show ?thesis by (simp add: add_mono)
   qed
 
   also from assms have \<open>\<dots> \<le> p + length xs * p\<close>

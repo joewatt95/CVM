@@ -58,51 +58,6 @@ lemma hoare_tripleE :
   shows \<open>Q y\<close>
   by (metis assms hoare_triple_def)
 
-(* lemma precond_strengthen :
-  assumes
-    \<open>\<And> x. P x \<Longrightarrow> P' x\<close>
-    \<open>\<turnstile>spmf \<lbrace>P'\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
-
-lemma precond_false [simp] :
-  \<open>\<turnstile>spmf \<lbrace>\<lblot>False\<rblot>\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-  by (simp add: hoare_tripleI)
-
-lemma postcond_weaken :
-  assumes
-    \<open>\<And> x. Q' x \<Longrightarrow> Q x\<close>
-    \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q'\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
-
-lemma postcond_true [simp] :
-  \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>\<lblot>True\<rblot>\<rbrace>\<close>
-  by (simp add: hoare_tripleI)
-
-lemma fail [simp] :
-  \<open>\<turnstile>spmf \<lbrace>P\<rbrace> \<lblot>fail_spmf\<rblot> \<lbrace>Q\<rbrace>\<close>
-  by (metis empty_iff hoare_tripleI set_spmf_return_pmf_None)
-
-lemma skip [simp] :
-  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
-  by (auto intro: hoare_tripleI elim: hoare_tripleE)
-
-lemma skip' [simp] :
-  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q (f x))\<close>
-  by (simp add: hoare_triple_def) *)
-
-(* lemma hoare_triple_altdef :
-  \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<longleftrightarrow> \<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile>spmf f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrace>\<close>
-  by (smt (verit, ccfv_SIG) hoare_tripleE hoare_tripleI) *)
-
-(* lemma if_then_else :
-  assumes
-    \<open>\<And> x. f x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> g \<lbrace>Q\<rbrace>\<close>
-    \<open>\<And> x. \<not> f x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> h \<lbrace>Q\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. if f x then g x else h x) \<lbrace>Q\<rbrace>\<close>
-  using assms by (simp add: hoare_triple_def) *)
-
 lemma seq :
   assumes
     \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close>
@@ -179,16 +134,19 @@ lemma while :
     \<open>while_triple (\<lambda> x. \<not> guard x \<and> P x)\<close> (is ?thesis_0) 
     \<open>while_triple P\<close> (is ?thesis_1)
 proof -
-  from assms show ?thesis_0
-    unfolding while_triple_def
-    apply (induction rule: loop_spmf.while_fixp_induct)
-    apply simp
-    apply (simp add: Utils_SPMF_Hoare.hoare_triple_def)
-    sorry
-    (* by (auto intro!: admissible_hoare_triple fail if_then_else seq') *)
+  show ?thesis_0
+  unfolding while_triple_def
+  proof (induction rule: loop_spmf.while_fixp_induct)
+    case 1 show ?case by simp
+  next
+    case 2 show ?case by (simp add: Utils_SPMF_Hoare.hoare_triple_def)
+  next
+    case 3
+    with assms show ?case
+      by (smt (verit, ccfv_threshold) Utils_SPMF_Hoare.hoare_triple_def Utils_SPMF_Hoare.seq set_return_spmf singletonD)
+  qed
 
-  then show ?thesis_1
-    by (simp add: while_triple_def hoare_triple_def)
+  then show ?thesis_1 by (simp add: while_triple_def hoare_triple_def)
 qed
 
 lemma prob_fail_foldM_spmf_le :
@@ -208,6 +166,8 @@ using assms proof (induction xs arbitrary: val)
 next
   case (Cons x xs)
 
+  note assms = \<open>P val\<close> assms
+
   let ?val' = \<open>f x val\<close>
   let ?\<mu>' = \<open>measure_spmf ?val'\<close>
 
@@ -218,16 +178,14 @@ next
     by (simp add: pmf_bind_spmf_None)
 
   also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
-  proof -
-    note \<open>P val\<close> assms
+  proof (rule add_mono)
+    from assms show \<open>prob_fail ?val' \<le> p\<close> by simp
 
-    moreover with Cons.IH
-    have \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+    from Cons.IH assms
+    show \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_AE)
       by (simp_all add:
         integrable_prob_fail_foldM_spmf Utils_SPMF_Hoare.hoare_triple_def)
-
-    ultimately show ?thesis by (simp add: add_mono)
   qed
 
   also from assms have \<open>\<dots> \<le> p + length xs * p\<close>
