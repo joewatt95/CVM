@@ -114,29 +114,28 @@ session CVM_Old in "CVM_Old" = "CryptHOL" +
   document_files
     "root.tex"
 
-session CVM_Original in "CVM_Original" = "CryptHOL" +
+session CVM_Original in "CVM_Original" = "HOL-Probability" +
   options [timeout = 300]
 
   sessions
     Universal_Hash_Families
     Finite_Fields
     Concentration_Inequalities
-    Probabilistic_While
-    Constructive_Cryptography_CM
     ABY3_Protocols
 
   directories
+   "Algo_Transforms"
+
     "Utils"
     "Utils/PMF"
     "Utils/SPMF"
 
   theories
     "Algo"
+    "Algo_Transforms_No_Fail"
 
     "Utils_Basic"
-
     "Utils_Reader_Monad"
-
     "Utils_PMF_Basic"
     "Utils_PMF_Bernoulli_Binomial"
     "Utils_PMF_Lazify"

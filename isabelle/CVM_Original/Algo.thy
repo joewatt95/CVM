@@ -15,8 +15,13 @@ record 'a state =
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
+locale algo_params =
+  fixes threshold :: nat and f :: real
+begin
+
 definition compute_estimate :: \<open>('a, 'b) state_scheme \<Rightarrow> nat\<close> where
-  \<open>compute_estimate state \<equiv> card (state_chi state) * 2 ^ (state_k state)\<close>
+  \<open>compute_estimate \<equiv> \<lambda> state.
+    nat \<lfloor>card (state_chi state) / f ^ (state_k state)\<rfloor>\<close>
 
 context
   fixes
@@ -33,11 +38,9 @@ definition run_steps_then_estimate ::
 end
 
 abbreviation
-  \<open>run_steps_then_estimate_pmf \<equiv> run_steps_then_estimate foldM_pmf map_pmf\<close>
-
-locale with_threshold =
-  fixes threshold :: nat
-begin
+  \<open>run_steps_then_estimate_pmf \<equiv>
+    run_steps_then_estimate undefined undefined undefined undefined
+      foldM_pmf map_pmf\<close>
 
 text
   \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
@@ -47,7 +50,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
     let k = state_k state;
     let chi = state_chi state;
 
-    insert_x_into_chi \<leftarrow> bernoulli_pmf <| 1 / 2 ^ k;
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ k;
 
     let chi = (chi |>
       if insert_x_into_chi
@@ -57,8 +60,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
     if card chi < threshold
     then return_spmf (state\<lparr>state_chi := chi\<rparr>)
     else do {
-      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow>
-        prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
+      keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
 
       let chi = Set.filter keep_in_chi chi;
       let k = k + 1;
@@ -69,14 +71,17 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 
 abbreviation
   \<open>run_steps_then_estimate_spmf \<equiv>
-    run_steps_then_estimate foldM_spmf map_spmf\<close>
+    run_steps_then_estimate undefined undefined undefined undefined
+      foldM_spmf map_spmf\<close>
 
 definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
   \<open>estimate_distinct \<equiv> run_steps_then_estimate_spmf step initial_state\<close>
 
 end
 
-locale with_threshold_pos = with_threshold +
-  assumes threshold_pos : \<open>threshold > 0\<close>
+locale algo_params_assms = algo_params +
+  assumes
+    threshold : \<open>threshold > 0\<close> and
+    f : \<open>0 < f\<close> \<open>f \<le> 1\<close>
 
 end

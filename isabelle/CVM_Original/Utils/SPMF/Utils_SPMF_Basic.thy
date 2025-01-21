@@ -1,7 +1,6 @@
 theory Utils_SPMF_Basic
 
 imports
-  CryptHOL.Misc_CryptHOL
   "HOL-Probability.SPMF"
   Utils_Basic
 
@@ -9,13 +8,13 @@ begin
 
 lemma spmf_of_pmf_eq_iff_eq [simp] :
   \<open>spmf_of_pmf p = spmf_of_pmf q \<longleftrightarrow> p = q\<close>
-  using map_the_spmf_of_pmf[of p] by fastforce
+  by (metis measure_pmf_inject measure_spmf_spmf_of_pmf)
 
 abbreviation \<open>fail_spmf \<equiv> return_pmf None\<close>
 
 abbreviation \<open>prob_fail \<equiv> flip pmf None\<close>
 
-lemma prob_fail_map_spmf_eq :
+lemma prob_fail_map_spmf_eq [simp] :
   \<open>prob_fail (map_spmf f p) = prob_fail p\<close>
   by (simp add: pmf_None_eq_weight_spmf)
 

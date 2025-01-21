@@ -1,7 +1,6 @@
 theory Utils_SPMF_FoldM
 
 imports
-  Constructive_Cryptography_CM.Fold_Spmf
   Utils_PMF_Basic
   Utils_SPMF_Basic
 
@@ -13,11 +12,6 @@ abbreviation foldM_spmf ::
 
 abbreviation
   \<open>foldM_spmf_enumerate \<equiv> foldM_enumerate bind_spmf return_spmf\<close>
-
-lemma foldM_spmf_eq_foldl_spmf :
-  \<open>foldM_spmf f xs val = foldl_spmf (flip f) (return_spmf val) xs\<close>
-  apply (induction xs arbitrary: val)
-  by (simp_all add: bind_foldl_spmf_return bind_spmf_cong)
 
 lemma foldM_spmf_eq_foldM_pmf_case :
   \<open>foldM_spmf f xs =
