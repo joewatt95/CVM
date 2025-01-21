@@ -32,8 +32,9 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
     "Utils"
 
   theories
-    CVM_Algo
-    CVM_Algo_Proof
+    CVM_Abstract_Algorithm
+    CVM_Original_Algorithm
+    CVM_New_Unbiased_Algorithm
 
     "Utils/Utils_Basic"
     "Utils/Utils_PMF"

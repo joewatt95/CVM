@@ -1,41 +1,20 @@
-theory CVM_Algo
-  imports CVM_Algo_Proof
+theory CVM_New_Unbiased_Algorithm
+  imports
+    CVM_Abstract_Algorithm
+    Negative_Association.Negative_Association_Permutation_Distributions
 begin
 
 context
   fixes subsample_size :: nat
   fixes thresh :: nat
-  assumes subsample_size: "subsample_size < thresh" "2 * subsample_size \<ge> thresh"
+  assumes subsample_size: \<open>subsample_size < thresh\<close> \<open>2 * subsample_size \<ge> thresh\<close>
 begin
 
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
 definition f :: real 
-  where "f \<equiv> subsample_size / thresh"
-
-(*
-definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step x state =
-    do {
-      let k = state_k state;
-      let chi = state_chi state; 
-  
-      insert_x_into_chi \<leftarrow> bernoulli_pmf (f ^ k);
-  
-      let chi = (chi |>
-        if insert_x_into_chi
-        then insert x
-        else Set.remove x);
-  
-      if card chi = thresh then do {
-        chi \<leftarrow> pmf_of_set {S. S \<subseteq> chi \<and> card chi = subsample_size};
-        return_pmf \<lparr> state_k = k + 1, state_chi = chi \<rparr>
-      } else do {
-        return_pmf \<lparr> state_k = k, state_chi = chi \<rparr>
-      }
-    }\<close>
-*)
+  where \<open>f \<equiv> subsample_size / thresh\<close>
 
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 x state = do {
@@ -69,8 +48,8 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps xs \<equiv> foldM_pmf (\<lambda>x \<sigma>. step_1 x \<sigma> \<bind> step_2) xs initial_state\<close>
 
-definition estimate :: "'a state \<Rightarrow> real" where 
-  "estimate \<sigma> = card (state_chi \<sigma>) / f ^ state_k \<sigma>"
+definition estimate :: \<open>'a state \<Rightarrow> real\<close> where 
+  \<open>estimate \<sigma> = card (state_chi \<sigma>) / f ^ state_k \<sigma>\<close>
 
 lemma subsample_finite_nonempty:
   assumes \<open>card U = thresh\<close>
@@ -79,7 +58,7 @@ lemma subsample_finite_nonempty:
     \<open>finite {T. T \<subseteq> U \<and> card T = subsample_size}\<close>
     \<open>finite (set_pmf (subsample U))\<close>
 proof -
-  have fin_U: "finite U" using assms subsample_size 
+  have fin_U: \<open>finite U\<close> using assms subsample_size 
     by (meson card_gt_0_iff le0 order_le_less_trans order_less_le_trans)
   have a: \<open>card U choose subsample_size > 0\<close>
     using subsample_size assms by (intro zero_less_binomial) auto
@@ -99,7 +78,7 @@ lemma int_prod_subsample_eq_prod_int:
 proof -
   define \<eta> where \<open>\<eta> \<equiv> if g True \<ge> g False then Fwd else Rev\<close>
 
-  have fin_U: "finite U" using assms subsample_size 
+  have fin_U: \<open>finite U\<close> using assms subsample_size 
     by (meson card_gt_0_iff le0 order_le_less_trans order_less_le_trans)
 
   note subsample_finite_nonempty =
@@ -145,9 +124,9 @@ proof -
 qed
 
 interpretation abs: cvm_algo_abstract thresh f subsample
-  rewrites "abs.run_steps = run_steps" and "abs.estimate = estimate"
+  rewrites \<open>abs.run_steps = run_steps\<close> and \<open>abs.estimate = estimate\<close>
 proof -
-  show abs:"cvm_algo_abstract thresh local.f local.subsample"
+  show abs:\<open>cvm_algo_abstract thresh local.f local.subsample\<close>
   proof (unfold_locales, goal_cases)
     case 1 thus ?case using subsample_size by auto 
   next
@@ -157,15 +136,15 @@ proof -
   next
     case (4 g U S) thus ?case by (intro int_prod_subsample_eq_prod_int) auto    
   qed
-  have a:"cvm_algo_abstract.step_1 f = step_1"
+  have a:\<open>cvm_algo_abstract.step_1 f = step_1\<close>
     unfolding cvm_algo_abstract.step_1_def[OF abs] step_1_def by auto
-  have b:"cvm_algo_abstract.step_2 thresh subsample = step_2"
+  have b:\<open>cvm_algo_abstract.step_2 thresh subsample = step_2\<close>
     unfolding cvm_algo_abstract.step_2_def[OF abs] step_2_def by auto 
-  have c:"cvm_algo_abstract.initial_state = initial_state"
+  have c:\<open>cvm_algo_abstract.initial_state = initial_state\<close>
     unfolding cvm_algo_abstract.initial_state_def[OF abs] initial_state_def by auto
-  show "cvm_algo_abstract.run_steps thresh f subsample = run_steps"
+  show \<open>cvm_algo_abstract.run_steps thresh f subsample = run_steps\<close>
     unfolding cvm_algo_abstract.run_steps_def[OF abs] run_steps_def a b c by simp
-  show "cvm_algo_abstract.estimate f = estimate"
+  show \<open>cvm_algo_abstract.estimate f = estimate\<close>
     unfolding cvm_algo_abstract.estimate_def[OF abs] estimate_def by auto
 qed
 
@@ -175,13 +154,12 @@ theorem unbiasedness:
 
 theorem correctness:
   fixes \<epsilon> \<delta> :: real
-  assumes "\<epsilon> \<in> {0<..<1}" "\<delta> \<in> {0<..<1}"
-  assumes "real thresh \<ge> 12/\<epsilon>^2 * ln (3 * real (length xs) / \<delta>)"
-  defines "R \<equiv> real (card (set xs))"
-  shows "measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon> * R } \<le> \<delta>" 
+  assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
+  assumes \<open>real thresh \<ge> 12/\<epsilon>^2 * ln (3 * real (length xs) / \<delta>)\<close>
+  defines \<open>R \<equiv> real (card (set xs))\<close>
+  shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon> * R } \<le> \<delta>\<close> 
   unfolding R_def by (intro abs.correctness assms)
 
 end
-
 
 end
