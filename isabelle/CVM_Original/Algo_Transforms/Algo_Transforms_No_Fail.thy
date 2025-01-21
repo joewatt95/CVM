@@ -79,10 +79,14 @@ lemma initial_state_well_formed :
 
 lemma step_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
-  apply (simp add:
-    step_def well_formed_state_def hoare_triple_def Let_def
-    in_set_spmf remove_def)
-  by (smt (verit, del_insts) finite.insertI finite_Diff finite_filter simps(2,5) surjective)
+  using well_formed_state_card_lt_thresholdD
+  apply (auto
+    split: if_splits
+    simp add: step_def well_formed_state_def Let_def remove_def set_bind_spmf in_set_spmf comp_def)
+  apply (smt (verit, best) Suc_n_not_n simps(1,5) surjective)
+  apply fastforce
+  apply blast+
+  by (smt (verit, best) Suc_n_not_n simps(1,5) surjective)
 
 lemma spmf_bind_filter_chi_eq_map :
   assumes
@@ -142,8 +146,8 @@ qed
 
 lemma prob_fail_step_le :
   assumes \<open>state ok\<close>
-  shows \<open>prob_fprob_Nprob_failte) \<le> 1 / 2 ^ threshold\<close>
-  using well_formed_state_card_le_threshold[OF assms] assms
+  shows \<open>prob_fail (step x state) \<le> 1 / 2 ^ threshold\<close>
+  using well_formed_state_card_lt_thresholdD[OF assms] assms
   apply (simp add: step_def well_formed_state_def Let_def)
   by (simp add:
     spmf_bind_filter_chi_eq_map pmf_prod_pmf

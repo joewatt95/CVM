@@ -5,26 +5,14 @@ imports
 
 begin
 
-(* abbreviation possibly_evals_to
-  (\<open>\<turnstile>pmf _ \<Rightarrow>? _\<close> [20, 2] 60) where
-  \<open>\<turnstile>pmf p \<Rightarrow>? x \<equiv> x \<in> set_pmf p\<close>
-
-lemma bind_pmfE :
-  assumes \<open>\<turnstile>pmf f x \<bind> g \<Rightarrow>? z\<close>
-  obtains y where
-    \<open>\<turnstile>pmf f x \<Rightarrow>? y\<close>
-    \<open>\<turnstile>pmf g y \<Rightarrow>? z\<close>
-  using assms by auto *)
-
-definition hoare_triple ::
-  \<open>['a \<Rightarrow> bool, 'a \<Rightarrow> 'b pmf, 'b \<Rightarrow> bool] \<Rightarrow> bool\<close>
+abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
-  \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> \<forall> x y. P x \<longrightarrow> y \<in> set_pmf (f x) \<longrightarrow> Q y\<close>
+  \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
 
-lemma hoare_tripleI :
+(* lemma hoare_tripleI :
   assumes \<open>\<And> x y. \<lbrakk>P x; y \<in> set_pmf (f x)\<rbrakk> \<Longrightarrow> Q y\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-  by (metis assms hoare_triple_def)
+  by (simp add: AE_measure_pmf_iff assms)
 
 lemma hoare_tripleE :
   assumes
@@ -32,66 +20,26 @@ lemma hoare_tripleE :
     \<open>P x\<close>
     \<open>y \<in> set_pmf (f x)\<close>
   shows \<open>Q y\<close>
-  by (metis assms hoare_triple_def)
-
-(* lemma precond_strengthen :
-  assumes
-    \<open>\<And> x. P x \<Longrightarrow> P' x\<close>
-    \<open>\<turnstile>pmf \<lbrakk>P'\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
-
-lemma precond_false [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>\<lblot>False\<rblot>\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-  by (simp add: hoare_tripleI)
-
-lemma postcond_weaken :
-  assumes
-    \<open>\<And> x. Q' x \<Longrightarrow> Q x\<close>
-    \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q'\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-  by (metis assms(1,2) hoare_tripleE hoare_tripleI) 
-
-lemma postcond_true [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>\<lblot>True\<rblot>\<rbrakk>\<close>
-  by (simp add: hoare_tripleI) *)
-
-(* lemma fail [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> \<lblot>fail_pmf\<rblot> \<lbrakk>Q\<rbrakk>\<close>
-  by (metis fail_pmf_def empty_iff hoare_tripleI set_pmf_return_pmf_None) *)
+  by (metis AE_measure_pmf_iff assms) *)
 
 lemma skip [simp] :
-  \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> return_pmf \<lbrakk>Q\<rbrakk>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q x)\<close>
-  by (auto intro: hoare_tripleI elim: hoare_tripleE)
+  \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> return_pmf \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
+  \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. return_pmf (f x)) \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
+  by (auto iff: AE_measure_pmf_iff simp add: atomize_all atomize_imp)
 
-lemma skip' [simp] :
-  \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. return_pmf (f x)) \<lbrakk>Q\<rbrakk>) \<longleftrightarrow> (\<forall> x. P x \<longrightarrow> Q (f x))\<close>
-  by (simp add: hoare_triple_def)
-
-(* lemma hoare_triple_altdef :
-  \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<longleftrightarrow> \<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>(\<lambda> y. \<forall> x. P x \<longrightarrow> (\<turnstile>pmf f x \<Rightarrow>? y) \<longrightarrow> Q y)\<rbrakk>\<close>
-  by (smt (verit, ccfv_SIG) hoare_tripleE hoare_tripleI) *)
-
-(* lemma if_then_else :
-  assumes
-    \<open>\<And> x. f x \<Longrightarrow> \<turnstile>pmf \<lbrakk>(\<lambda> x'. x = x' \<and> P x)\<rbrakk> g \<lbrakk>Q\<rbrakk>\<close>
-    \<open>\<And> x. \<not> f x \<Longrightarrow> \<turnstile>pmf \<lbrakk>(\<lambda> x'. x = x' \<and> P x)\<rbrakk> h \<lbrakk>Q\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. if f x then g x else h x) \<lbrakk>Q\<rbrakk>\<close>
-  using assms by (simp add: hoare_triple_def) *)
-
-lemma seq :
+(* lemma seq :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<close>
     \<open>\<turnstile>pmf \<lbrakk>Q\<rbrakk> g \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g) \<lbrakk>R\<rbrakk>\<close>
-  using assms by (auto simp add: hoare_triple_def)
+  using assms by (auto iff: AE_measure_pmf_iff simp add: hoare_triple_def)
 
 lemma seq' :
   assumes
     \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile>pmf \<lbrakk>Q\<rbrakk> g x \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g x) \<lbrakk>R\<rbrakk>\<close>
-  using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq)
+  using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq) *)
 
 context
   fixes
@@ -105,7 +53,7 @@ private abbreviation (input)
     (index, x) \<in> set (List.enumerate offset xs) \<and>
     P index val\<close>
 
-lemma loop_enumerate' :
+lemma loop_enumerate :
   assumes \<open>\<And> index x. \<turnstile>pmf \<lbrakk>P' index x\<rbrakk> f (index, x) \<lbrakk>P (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>P offset\<rbrakk>
@@ -113,34 +61,26 @@ lemma loop_enumerate' :
     \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
 using assms proof (induction xs arbitrary: offset)
   case Nil
-  then show ?case by (simp add: foldM_enumerate_def)
+  then show ?case by (simp add: AE_measure_pmf_iff foldM_enumerate_def)
 next
   case (Cons _ _)
   then show ?case
-    apply (simp add: foldM_enumerate_def)
-    by (fastforce
-      intro!: seq[where Q = \<open>P <| Suc offset\<close>] simp add: hoare_triple_def)
+    apply (simp add: AE_measure_pmf_iff foldM_enumerate_def)
+    by (metis add_Suc_right add_Suc_shift)
 qed
 
-lemma loop' :
+lemma loop :
   assumes \<open>\<And> index x. \<turnstile>pmf \<lbrakk>P' index x\<rbrakk> f x \<lbrakk>P (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P offset\<rbrakk> foldM_pmf f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
-  using assms
-  by (auto
-    intro!: loop_enumerate'
-    simp add: foldM_eq_foldM_enumerate[where ?offset = offset])
+  using assms loop_enumerate
+  by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
-
-lemmas loop_enumerate = loop_enumerate'[where offset = 0, simplified]
-
-lemmas loop = loop'[where offset = 0, simplified]
 
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
-  using loop[where P = \<open>curry <| snd >>> P\<close>] assms
-  apply (simp add: hoare_triple_def)
+  using assms loop[where offset = 0 and P = \<open>\<lblot>P\<rblot>\<close>]
   by blast
 
 end
