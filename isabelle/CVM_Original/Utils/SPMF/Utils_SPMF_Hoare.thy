@@ -127,7 +127,7 @@ lemma admissible_hoare_triple [simp] :
   by (simp add: hoare_triple_def)
 
 lemma while :
-  assumes \<open>\<And> x. guard x \<Longrightarrow> \<turnstile>spmf \<lbrace>(\<lambda> x'. x = x' \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
+  assumes \<open>\<turnstile>spmf \<lbrace>(\<lambda> x. guard x \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   defines
     \<open>while_triple postcond \<equiv> \<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>postcond\<rbrace>\<close>
   shows
