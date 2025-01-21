@@ -46,7 +46,7 @@ definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<cl
   \<open>estimate_distinct_no_fail \<equiv>
     run_steps_then_estimate_pmf step_no_fail initial_state\<close>
 
-abbreviation \<open>step_no_fail_spmf \<equiv> (\<lambda> x. spmf_of_pmf <<< step_no_fail x)\<close>
+abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step_no_fail x\<close>
 
 abbreviation \<open>estimate_distinct_no_fail_spmf \<equiv>
   spmf_of_pmf <<< estimate_distinct_no_fail\<close>
