@@ -80,7 +80,6 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
-  using assms loop[where offset = 0 and P = \<open>\<lblot>P\<rblot>\<close>]
-  by blast
+  using assms loop[where offset = 0 and P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
 end

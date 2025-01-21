@@ -98,7 +98,6 @@ lemma loop :
   assumes \<open>\<And> index x. \<turnstile>spmf \<lbrace>P' index x\<rbrace> f x \<lbrace>P (Suc index)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
   using assms loop_enumerate
-  apply simp
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
