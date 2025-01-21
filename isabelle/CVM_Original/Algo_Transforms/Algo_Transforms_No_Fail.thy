@@ -50,14 +50,15 @@ abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step
 abbreviation \<open>estimate_distinct_no_fail_spmf \<equiv>
   spmf_of_pmf <<< estimate_distinct_no_fail\<close>
 
-definition well_formed_state :: \<open>('a, 'b) state_scheme \<Rightarrow> bool\<close>
-  (\<open>_ ok\<close> [20] 60) where
-  \<open>state ok \<equiv> (
+definition well_formed_state ::
+  \<open>(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> ('a, 'b) state_scheme  \<Rightarrow> bool\<close>
+  (\<open>_ _ ok\<close> [20, 20] 60) where
+  \<open>R state ok \<equiv> (
     let chi = state_chi state
-    in finite chi \<and> card chi < threshold)\<close>
+    in finite chi \<and> R (card chi) threshold)\<close>
 
 lemma well_formed_state_card_lt_thresholdD :
-  assumes \<open>state ok\<close>
+  assumes \<open>(<) state ok\<close>
   defines \<open>chi \<equiv> state_chi state\<close>
   shows
     \<open>card (Set.remove x chi) < threshold\<close>
@@ -74,19 +75,30 @@ context algo_params_assms
 begin
 
 lemma initial_state_well_formed :
-  \<open>initial_state ok\<close>
+  \<open>(<) initial_state ok\<close>
   using threshold by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
-  \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
-  using well_formed_state_card_lt_thresholdD
-  apply (auto
-    split: if_splits
-    simp add: step_def well_formed_state_def Let_def remove_def set_bind_spmf in_set_spmf comp_def)
-  apply (smt (verit, best) Suc_n_not_n simps(1,5) surjective)
-  apply fastforce
-  apply blast+
-  by (smt (verit, best) Suc_n_not_n simps(1,5) surjective)
+  \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step x \<lbrace>well_formed_state (<)\<rbrace>\<close>
+proof -
+  from well_formed_state_card_lt_thresholdD
+  have \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step_1 x \<lbrace>well_formed_state (\<le>)\<rbrace>\<close>
+    apply (simp
+      flip: bind_spmf_of_pmf map_spmf_conv_bind_spmf
+      add: well_formed_state_def step_1_def Let_def remove_def)
+    by (smt (verit, best) algo_params.well_formed_state_def card.insert_remove leD less_or_eq_imp_le not_less_eq well_formed_state_card_lt_thresholdD(2))
+
+  moreover have \<open>\<turnstile>spmf \<lbrace>well_formed_state (\<le>)\<rbrace> step_2 \<lbrace>well_formed_state (<)\<rbrace>\<close>
+    by (auto
+      split: if_splits
+      simp flip: bind_spmf_of_pmf
+      simp add: well_formed_state_def step_2_def Let_def remove_def set_bind_spmf)
+
+  ultimately show \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step x \<lbrace>well_formed_state (<)\<rbrace>\<close>
+    unfolding step_def
+    apply (intro seq[where P = \<open>well_formed_state _\<close> and Q = \<open>well_formed_state _\<close>])
+    by simp_all
+qed
 
 lemma spmf_bind_filter_chi_eq_map :
   assumes

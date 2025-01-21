@@ -59,19 +59,12 @@ lemma skip [simp] :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
   by (simp_all add: atomize_all atomize_imp)
 
-(* lemma seq :
-  assumes
-    \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<close>
-    \<open>\<turnstile>spmf \<lbrace>Q\<rbrace> g \<lbrace>R\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f >=> g \<lbrace>R\<rbrace>\<close>
-  sorry
-
-lemma seq' :
+lemma seq :
   assumes
     \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile>spmf \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
-  using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq) *)
+  by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E assms(1,2) bind_UNION o_apply set_bind_spmf)
 
 context
   fixes
