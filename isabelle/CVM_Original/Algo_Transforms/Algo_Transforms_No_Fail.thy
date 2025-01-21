@@ -3,6 +3,7 @@ theory Algo_Transforms_No_Fail
 
 imports
   Algo
+  Utils_SPMF_Hoare 
   (* Utils_SPMF_Relational
   Utils_SPMF_Hoare *)
 
@@ -56,7 +57,7 @@ definition well_formed_state :: \<open>('a, 'b) state_scheme \<Rightarrow> bool\
     let chi = state_chi state
     in finite chi \<and> card chi < threshold)\<close>
 
-lemma well_formed_state_card_le_threshold [dest] :
+lemma well_formed_state_card_lt_thresholdD :
   assumes \<open>state ok\<close>
   defines \<open>chi \<equiv> state_chi state\<close>
   shows
@@ -79,11 +80,10 @@ lemma initial_state_well_formed :
 
 lemma step_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state\<rbrace> step x \<lbrace>well_formed_state\<rbrace>\<close>
-  unfolding step_def bind_spmf_of_pmf[symmetric] Let_def
-  by (fastforce
-    intro: Utils_SPMF_Hoare.seq' hoare_tripleI
-    split: if_splits
-    simp add: in_set_spmf well_formed_state_def remove_def Let_def)
+  apply (simp add:
+    step_def well_formed_state_def hoare_triple_def Let_def
+    in_set_spmf remove_def)
+  by (smt (verit, del_insts) finite.insertI finite_Diff finite_filter simps(2,5) surjective)
 
 lemma spmf_bind_filter_chi_eq_map :
   assumes
