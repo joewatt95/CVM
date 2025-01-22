@@ -139,6 +139,7 @@ session CVM_Original in "CVM_Original" = "HOL-Probability" +
     "Algo_Transforms_No_Fail"
 
     "Utils_Basic"
+    "Utils_Real"
     "Utils_Reader_Monad"
     "Utils_PMF_Basic"
     "Utils_PMF_Hoare"
