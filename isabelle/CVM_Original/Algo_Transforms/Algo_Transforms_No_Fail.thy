@@ -3,7 +3,6 @@ theory Algo_Transforms_No_Fail
 
 imports
   Algo
-  Utils_Real
   Utils_SPMF_Hoare 
   (* Utils_SPMF_Relational
   Utils_SPMF_Hoare *)
@@ -102,29 +101,43 @@ proof -
   have \<open>?L = measure_pmf.expectation (step_1 x state) (prob_fail <<< step_2)\<close>
     unfolding step_def pmf_bind_spmf_None by simp
 
-  text\<open>step_2 fails after step_1 has run iff \<dots>\<close>
-  also from f assms have \<open>\<dots> =
-    \<comment>\<open>we first sampled \<top> from step_1, and so inserted the new element into
-      chi, yielding ?chi, hitting the threshold, and \<dots>\<close>
+  text\<open>step_2 fails after step_1 has run iff:
+    1. We first sample \<top> from step_1 with probability `f ^ state_k state`,
+      inserting the new element into `chi`, yielding ?chi.
+    2. Doing the causes ?chi to hit the threshold.
+    3. We sample a characteristic function `keep_in_chi` of a subset of ?chi
+      that evaluates to \<top> everywhere on ?chi.\<close>
+  also have \<open>\<dots> =
     f ^ state_k state * of_bool (card ?chi = threshold) *
-    \<comment>\<open>we then sample a characteristic function keep_in_chi of a subset of ?chi
-     such that after filtering ?chi with keep_in_chi, ?chi's size remains the same.\<close>
     measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
       (\<lambda> keep_in_chi. \<Prod> x' \<in> ?chi. of_bool (keep_in_chi x'))\<close>
-    apply (auto
-      intro!: integral_cong_AE
-      iff: AE_measure_pmf_iff
-      simp flip: bind_spmf_of_pmf map_pmf_def
-      simp add:
-        step_1_def step_2_def power_le_one Let_def
-        well_formed_state_card_lt_thresholdD pmf_bind_spmf_None)
-    apply (smt (verit, ccfv_threshold) algo_params.well_formed_state_def card_mono finite_filter finite_insert member_filter of_bool_eq(1) prod_zero_iff subsetI
-      verit_comp_simplify1(3))
-    using Ball_iff_prod_of_bool_eq_1
-    by (metis card_seteq member_filter prod.infinite subsetI verit_comp_simplify1(3))
+    (is \<open>_ = _ * _ * measure_pmf.expectation _ ?prob_fail_given_keep_in_chi\<close>)
+  proof -
+    note assms
+
+    moreover from calculation have
+      \<open>?prob_fail_given_keep_in_chi keep_in_chi =
+      prob_fail (
+        let chi = Set.filter keep_in_chi ?chi
+        in if card chi < threshold
+          then return_spmf
+            \<lparr>state_k = state_k (state\<lparr>state_chi := ?chi\<rparr>) + 1, state_chi = chi\<rparr>
+          else fail_spmf)\<close>
+      if \<open>card ?chi = threshold\<close> for keep_in_chi
+      using that
+      apply (simp add: well_formed_state_def Let_def)
+      by (smt (verit, best) card_mono card_seteq finite.insertI finite_filter insert_iff member_filter of_bool_eq(2) prod.neutral subsetI verit_comp_simplify(3))
+
+    ultimately show ?thesis
+      using f well_formed_state_card_lt_thresholdD
+      unfolding step_1_def step_2_def well_formed_state_def Let_def
+      by (fastforce
+        intro!: integral_cong_AE
+        simp flip: map_pmf_def simp add: power_le_one pmf_bind)
+  qed
   
   text\<open>Note now that the probability of keep_in_chi evaluating to \<top> on ?chi
-   is = f ^ threshold.\<close>
+    is = f ^ threshold.\<close>
   also from f assms have \<open>\<dots> =
     f ^ state_k state * of_bool (card ?chi = threshold) * f ^ threshold\<close>
     apply (subst expectation_prod_Pi_pmf)
