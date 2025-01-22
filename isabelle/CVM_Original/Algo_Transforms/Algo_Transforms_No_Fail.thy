@@ -91,6 +91,7 @@ proof -
     by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E bind_UNION o_def set_bind_spmf)
 qed
 
+(* TODO: tidy *)
 lemma prob_fail_step_le :
   assumes \<open>well_formed_state (<) state\<close>
   shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
@@ -121,8 +122,10 @@ proof -
     \<Prod> x' \<in> ?chi. of_bool (card ?chi = threshold) * of_bool (keep_in_chi x'))\<close>
     apply (auto
       intro!: integral_cong_AE
-      iff: AE_measure_pmf_iff)
-    sorry
+      iff: AE_measure_pmf_iff card_gt_0_iff
+      simp add: well_formed_state_def Let_def set_prod_pmf)
+    apply (smt (verit, best) card_subset_eq finite_insert member_filter of_bool_eq(2) prod.neutral subset_iff)
+    by (metis (no_types, lifting) card_mono card_seteq finite.insertI finite_filter insert_iff member_filter subsetI)
 
   also from f assms have \<open>\<dots> \<le> ?R\<close>
     apply (subst expectation_prod_Pi_pmf)
@@ -132,12 +135,6 @@ proof -
 
   finally show ?thesis .
 qed
-
-  (* using well_formed_state_card_lt_thresholdD[OF assms] assms
-  apply (simp add: step_def well_formed_state_def Let_def)
-  by (simp add:
-    spmf_bind_filter_chi_eq_map pmf_prod_pmf
-    pmf_bind pmf_map measure_pmf_single vimage_def field_simps) *)
 
 lemma prob_fail_estimate_size_le :
   \<open>prob_fprob_Nprob_failistinct xs) \<le> length xs / 2 ^ threshold\<close>
