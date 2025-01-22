@@ -1,8 +1,7 @@
+section \<open>Preliminary Definitions\<close>
+
 theory Utils_Basic
-
-imports
-  Main
-
+  imports Main
 begin
 
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where

@@ -1,3 +1,54 @@
+section \<open>The original CVM Algorithm\<close>
+
+text \<open>In this section, we verify the same algorithm, presented by Chakrabory et 
+al.~\cite{chakraborty2022} (replicated, here, in Algorthm~\ref{alg:cvm_classic}). With the 
+following caveat:
+
+In the original algorithm the elements are removed with probability $f := \frac{1}{2}$ during the
+subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e^{-1/12}]$. 
+
+\begin{algorithm}[h!]
+	\caption{Abstract CVM algorithm.\label{alg:cvm_classic}}
+	\begin{algorithmic}[1]       
+  \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
+  \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
+  \State $\chi \gets \{\}, p \gets 1, n \geq \ceil{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Preserve each element of $\chi$ with probability $f$
+      \State $p \gets p f$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State \Return $\bot$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+\end{algorithmic}        
+\end{algorithm}
+
+The first step of the proof is identical to the proof~\cite{chakraborty2022}, where the above
+algorithm is approximated by a second algorithm, where line 8 is removed, i.e., the two algorithms
+behave identically, unless the very improbable event occurs, where the subsampling step, does not
+remove any elements.
+
+It is possible to see that the total variational distance between the two algorithms is at most 
+$\frac{\delta}{2}$.
+
+In the second step, we verify that the probability that the second algorithm returns an estimate
+outside of the desired interval is also at most $\frac{\delta}{2}$. This of course, works by 
+noticing that it is an instance of the abstract algorithm, we introduced in
+Section~\ref{sec:cvm_abs}. In combination, we conclude a failure probability for the unmodified
+version of the algorithm $\delta$.
+
+On the other hand, the fact that the number of elements in the buffer is at most $n$ can be seen
+directly, for the unmodified version of the algorithm.\<close>
+
 theory CVM_Original_Algorithm
   imports CVM_Abstract_Algorithm
 begin
@@ -10,7 +61,7 @@ context
 begin
 
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
+  \<open>initial_state = \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_1 x \<sigma> = 
@@ -95,6 +146,8 @@ proof -
   from dual_order.strict_trans2[OF this]
   show ?thesis using f_range by auto
 qed
+
+text \<open>Main result:\<close>
 
 theorem correctness:
   fixes xs :: \<open>'a list\<close>

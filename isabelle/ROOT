@@ -38,6 +38,9 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
 
     "Utils/Utils_Basic"
     "Utils/Utils_PMF"
+  document_files
+    "root.tex"
+    "root.bib"
 
 session CVM_Old in "CVM_Old" = "CryptHOL" +
   options [timeout = 300]

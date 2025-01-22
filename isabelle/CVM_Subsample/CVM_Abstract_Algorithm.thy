@@ -1,3 +1,87 @@
+section \<open>Abstract Algorithm\<close>
+
+text \<open>This section verifies an abstract version of the CVM algorithm, where the subsampling step
+can be an arbitrary randomized algorithm, fulfilling an expectation invariant.
+
+It is presented in Algorithm~\ref{alg:cvm_abs}.
+
+\begin{algorithm}[h!]
+	\caption{Abstract CVM algorithm.\label{alg:cvm_abs}}
+	\begin{algorithmic}[1]       
+  \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
+  \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
+  \State $\chi \gets \{\}, p \gets 1, n \geq \ceil{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Abstract subsampling step
+      \State $p \gets p f$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+\end{algorithmic}        
+\end{algorithm}
+
+For the subsampling step we assume that it fulfills the following inequality:
+                                        
+\begin{equation}
+\label{eq:subsample_condition}     
+\int_{\mathrm{subsample}(\chi)} \left(\prod_{i \in S} g(i \in \omega) d \omega\right) \leq 
+  \prod_{i \in S} \left(\int_{Ber(f)} g(\omega) \omega\right)      
+\end{equation}
+for all non-negative functions $g$ and $S \subseteq \chi$. 
+
+Note that, $\mathrm{Ber}(p)$ denotes the Bernoulli-distribution.
+                                                      
+The original CVM algorithm uses a subsampling step, where each element is retained with probability
+$f$. It is straight-forward to see that this fulfills the above condition.
+
+The new CVM algorithm proposed in this work, uses a subsampling step, where a random $nf$-subset
+of the elements are kept. This also fulfills the above inequality, although this is harder to
+prove and will be explained in more detail in Section~\ref{sec:cvm_new}.
+
+In this section, we'll verify that the above algorithm indeed fulfills the desired conditions, as
+well as, unbiasedness, i.e., that: $\expect [R] = |A|$.
+The part that is not going to be verified in this section, is the fact that the algorithm keeps at
+most $n$ elements in the state $\chi$, because it is not unconditionally true, but will be ensured
+(by different means) for the concrete instantiations in the following sections.
+                           
+To understand, how the proof works, let us first note that, the random variables: 
+$p^{-1} \indicator(s \in \chi)$ have always an expectation of $1$, for all $s \in A$. (Here 
+$\indicator(P)$ denotes the indicator function, equal to $1$ if the condition $P$ is true, and 
+$0$ otherwise.)
+
+And the verification, can be done using induction, i.e., if
+the condition is true in loop iteration $k$ (for the subset of elements seen at that point), then it
+must be true for loop iteration $k+1$.
+
+It is then even possible to extend the same proof to see that, for example:
+\[              
+  \expect \left[g(p^{-1} I(s \in \chi))\right] \leq g(1)
+\]
+for any concave non-negative function $g$.
+
+The main idea of the proof is to look at the following guess:
+\[
+  \expect \left[ \prod_{i \in S} g(p, s \in \omega) \right] \leq g(1,1)
+\]
+where $g$ is a function $g: \mathbb R \times \mathbb B \rightarrow \mathbb R$. Note that the second
+argument of $g$ is just a boolean. This is even more general than the previous equation. And because
+it helps bound products of the indicator function, it can be used to derive tail bounds.
+
+Of course, the above inequality is not always true, but retracing the steps of the induction proof
+for the previous case, reveals sufficient conditions on the function $g$ for the inequality to be
+true. 
+
+And for the algorithm described above, they turn out to be not so restrictive, and moreover they 
+allow us to show the concentration for the random variable $R$, following steps analogous to the
+classic Chernoff-bound, but taking advantage of the above invariant, instead of independence.\<close>
+
 theory CVM_Abstract_Algorithm
 
 imports
@@ -912,6 +996,6 @@ proof -
   finally show ?thesis by auto
 qed
 
-end (* end cvm_algo_proof *)
+end (* end cvm_algo_abstract *)
 
 end (* end theory *)

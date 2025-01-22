@@ -1,3 +1,7 @@
+section \<open>The new Unbiased Algorithm\label{sec:cvm_new}\<close>
+
+text \<open>TODO\<close>
+
 theory CVM_New_Unbiased_Algorithm
   imports
     CVM_Abstract_Algorithm
