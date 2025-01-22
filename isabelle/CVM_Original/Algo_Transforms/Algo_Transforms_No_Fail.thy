@@ -101,23 +101,36 @@ proof -
     unfolding step_def pmf_bind_spmf_None by simp
 
   also from f assms have \<open>\<dots> =
+    f ^ state_k state *
     measure_pmf.expectation
       (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
       (\<lambda> keep_in_chi.
-        let chi = Set.filter keep_in_chi ?chi
-        in prob_fail (
-          if card ?chi < threshold
-          then return_spmf \<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>
-          else fail_spmf))\<close>
+        of_bool (card ?chi = threshold) *
+        of_bool (card (Set.filter keep_in_chi ?chi) = threshold))\<close>
+    (is \<open>_ = ?L' (\<lambda> _ :: 'a \<Rightarrow> bool. of_bool (_ = _) * of_bool (_ = _))\<close>)
     apply (auto
+      intro!: integral_cong_AE
+      iff: AE_measure_pmf_iff
       simp flip: bind_spmf_of_pmf map_pmf_def
       simp add:
         step_1_def step_2_def power_le_one Let_def
         well_formed_state_card_lt_thresholdD pmf_bind_spmf_None)
-    find_theorems "measure_pmf.expectation (Pi_pmf _ _ _)"
+    by (metis card_mono finite_insert member_filter nless_le subsetI well_formed_state_def)
+
+  also from f assms have \<open>\<dots> = ?L' (\<lambda> keep_in_chi.
+    \<Prod> x' \<in> ?chi. of_bool (card ?chi = threshold) * of_bool (keep_in_chi x'))\<close>
+    apply (auto
+      intro!: integral_cong_AE
+      iff: AE_measure_pmf_iff)
     sorry
 
-  finally show ?thesis sorry
+  also from f assms have \<open>\<dots> \<le> ?R\<close>
+    apply (subst expectation_prod_Pi_pmf)
+    by (auto simp add:
+      well_formed_state_def Let_def integrable_measure_pmf_finite power_le_one
+      card.insert_remove)
+
+  finally show ?thesis .
 qed
 
   (* using well_formed_state_card_lt_thresholdD[OF assms] assms

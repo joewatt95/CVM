@@ -47,8 +47,7 @@ text
 
 definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
-    let k = state_k state;
-    let chi = state_chi state;
+    let k = state_k state; let chi = state_chi state;
 
     insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ k;
 
@@ -61,8 +60,7 @@ definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow>
 
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_2 \<equiv> \<lambda> state.
-    let
-      k = state_k state; chi = state_chi state
+    let k = state_k state; chi = state_chi state
     in if card chi < threshold
       then return_spmf (state\<lparr>state_chi := chi\<rparr>)
       else do {
