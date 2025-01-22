@@ -108,7 +108,6 @@ proof -
       (\<lambda> keep_in_chi.
         of_bool (card ?chi = threshold) *
         of_bool (card (Set.filter keep_in_chi ?chi) = threshold))\<close>
-    (is \<open>_ = ?L' (\<lambda> _ :: 'a \<Rightarrow> bool. of_bool (_ = _) * of_bool (_ = _))\<close>)
     apply (auto
       intro!: integral_cong_AE
       iff: AE_measure_pmf_iff
@@ -118,8 +117,12 @@ proof -
         well_formed_state_card_lt_thresholdD pmf_bind_spmf_None)
     by (metis card_mono finite_insert member_filter nless_le subsetI well_formed_state_def)
 
-  also from f assms have \<open>\<dots> = ?L' (\<lambda> keep_in_chi.
-    \<Prod> x' \<in> ?chi. of_bool (card ?chi = threshold) * of_bool (keep_in_chi x'))\<close>
+  also from f assms have \<open>\<dots> =
+    f ^ state_k state *
+    measure_pmf.expectation
+      (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+      (\<lambda> keep_in_chi. \<Prod> x' \<in> ?chi.
+        of_bool (card ?chi = threshold) * of_bool (keep_in_chi x'))\<close>
     apply (auto
       intro!: integral_cong_AE
       iff: AE_measure_pmf_iff card_gt_0_iff
@@ -127,13 +130,13 @@ proof -
     apply (smt (verit, best) card_subset_eq finite_insert member_filter of_bool_eq(2) prod.neutral subset_iff)
     by (metis (no_types, lifting) card_mono card_seteq finite.insertI finite_filter insert_iff member_filter subsetI)
 
-  also from f assms have \<open>\<dots> \<le> ?R\<close>
+  also from f assms have \<open>\<dots> \<le> f ^ state_k state * f ^ threshold\<close>
     apply (subst expectation_prod_Pi_pmf)
     by (auto simp add:
-      well_formed_state_def Let_def integrable_measure_pmf_finite power_le_one
-      card.insert_remove)
+      well_formed_state_def Let_def integrable_measure_pmf_finite card.insert_remove)
 
-  finally show ?thesis .
+  finally show ?thesis
+    using f by (smt (verit, best) mult_left_le_one_le power_le_one_iff zero_le_power)
 qed
 
 lemma prob_fail_estimate_size_le :
