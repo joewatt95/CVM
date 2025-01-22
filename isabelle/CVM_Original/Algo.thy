@@ -45,7 +45,7 @@ abbreviation
 text
   \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
 
-definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
+definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
     let k = state_k state;
     let chi = state_chi state;
@@ -57,27 +57,25 @@ definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spm
       then insert x
       else Set.remove x);
 
-    return_spmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
+    return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_2 \<equiv> \<lambda> state.
     let
-      k = state_k state;
-      chi = state_chi state
+      k = state_k state; chi = state_chi state
     in if card chi < threshold
       then return_spmf (state\<lparr>state_chi := chi\<rparr>)
       else do {
         keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
 
         let chi = Set.filter keep_in_chi chi;
-        let k = k + 1;
 
         if card chi < threshold
-        then return_spmf \<lparr>state_k = k, state_chi = chi\<rparr>
+        then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
         else fail_spmf }\<close>
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step \<equiv> \<lambda> x. step_1 x >=> step_2\<close>
+  \<open>step \<equiv> \<lambda> x. step_1 x >>> spmf_of_pmf >=> step_2\<close>
 
 abbreviation
   \<open>run_steps_then_estimate_spmf \<equiv>

@@ -12,19 +12,6 @@ begin
 context algo_params
 begin
 
-definition step_1_no_fail ::
-  \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
-  \<open>step_1_no_fail \<equiv> \<lambda> x state. do {
-    insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ (state_k state);
-
-    let chi = (state
-      |> state_chi
-      |> if insert_x_into_chi
-        then insert x
-        else Set.remove x);
-
-    return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
-
 definition step_2_no_fail ::
   \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
   \<open>step_2_no_fail \<equiv> \<lambda> state.
@@ -39,7 +26,7 @@ definition step_2_no_fail ::
         return_pmf (state\<lparr>state_k := state_k state + 1, state_chi := chi\<rparr>) }\<close>
 
 abbreviation \<open>step_no_fail \<equiv> \<lambda> x state.
-  step_1_no_fail x state \<bind> step_2_no_fail\<close>
+  step_1 x state \<bind> step_2_no_fail\<close>
 
 definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
   \<open>estimate_distinct_no_fail \<equiv>
@@ -85,14 +72,15 @@ lemma step_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step x \<lbrace>well_formed_state (<)\<rbrace>\<close>
   (is \<open>PROP ?thesis'\<close>)
 proof -
-  from well_formed_state_card_lt_thresholdD have
-    \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step_1 x \<lbrace>well_formed_state (\<le>)\<rbrace>\<close>
+  from well_formed_state_card_lt_thresholdD have \<open>\<turnstile>spmf
+    \<lbrace>well_formed_state (<)\<rbrace> spmf_of_pmf <<< step_1 x \<lbrace>well_formed_state (\<le>)\<rbrace>\<close>
     apply (simp
       flip: bind_spmf_of_pmf map_spmf_conv_bind_spmf
       add: well_formed_state_def step_1_def Let_def remove_def)
     using le_eq_less_or_eq by fastforce
 
-  moreover have \<open>\<turnstile>spmf \<lbrace>well_formed_state (\<le>)\<rbrace> step_2 \<lbrace>well_formed_state (<)\<rbrace>\<close>
+  moreover have
+    \<open>\<turnstile>spmf \<lbrace>well_formed_state R\<rbrace> step_2 \<lbrace>well_formed_state (<)\<rbrace>\<close> for R
     by (auto
       split: if_splits
       simp flip: bind_spmf_of_pmf
@@ -103,70 +91,40 @@ proof -
     by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E bind_UNION o_def set_bind_spmf)
 qed
 
-lemma spmf_bind_filter_chi_eq_map :
-  assumes
-    \<open>finite chi\<close>
-    \<open>card chi \<le> threshold\<close>
-  shows
-    \<open>do {
-      keep_in_chi \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf <| 1 / 2\<rblot>;
-
-      let chi = Set.filter keep_in_chi chi;
-
-      if card chi < threshold
-      then return_spmf <| \<kappa> chi
-      else fail_spmf }
-    = (
-      \<lblot>bernoulli_pmf <| 1 / 2\<rblot>
-        |> prod_pmf chi
-        |> map_pmf (
-            \<lambda> keep_in_chi.
-              if card chi = threshold \<and> keep_in_chi = (\<lambda> _ \<in> chi. True)
-              then None
-              else Some (\<kappa> {x \<in> chi. keep_in_chi x})))\<close>
+lemma prob_fail_step_le :
+  assumes \<open>well_formed_state (<) state\<close>
+  shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
-  have [simp] :
-    \<open>(if b then return_spmf e else fail_spmf)
-      = return_pmf (if b then Some e else None)\<close>
-    for b and e :: 'c by simp
+  let ?chi = \<open>insert x <| state_chi state\<close>
 
-  (* This says that an indicator function keep_in_chi defined on chi,
-    representing the coins we flip to throw things out, evaluates to True
-    everywhere on chi if:
-    1. card chi = threshold
-    2. The subset of chi defined with keep_in_chi is still the same size as chi
-      itself.
-  *)
-  have [intro] :
-    \<open>keep_in_chi = (\<lambda> _ \<in> chi. True)\<close>
-    if
-      \<open>keep_in_chi \<in> chi \<rightarrow>\<^sub>E UNIV\<close>
-      \<open>card chi = threshold\<close>
-      \<open>\<not> card {x \<in> chi. keep_in_chi x} < threshold\<close>
-    for keep_in_chi
-    by (smt (verit, best) that assms PiE_restrict card_mono card_subset_eq mem_Collect_eq order.order_iff_strict restrict_ext subset_eq)
+  have \<open>?L = measure_pmf.expectation (step_1 x state) (prob_fail <<< step_2)\<close>
+    unfolding step_def pmf_bind_spmf_None by simp
 
-  have
-    \<open>card {x \<in> chi. keep_in_chi x} < threshold\<close> 
-    if \<open>card chi < threshold\<close> for keep_in_chi
-    by (metis that assms(1) Collect_subset basic_trans_rules(21) card_mono)
+  also from f assms have \<open>\<dots> =
+    measure_pmf.expectation
+      (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+      (\<lambda> keep_in_chi.
+        let chi = Set.filter keep_in_chi ?chi
+        in prob_fail (
+          if card ?chi < threshold
+          then return_spmf \<lparr>state_k = state_k state + 1, state_chi = chi\<rparr>
+          else fail_spmf))\<close>
+    apply (auto
+      simp flip: bind_spmf_of_pmf map_pmf_def
+      simp add:
+        step_1_def step_2_def power_le_one Let_def
+        well_formed_state_card_lt_thresholdD pmf_bind_spmf_None)
+    find_theorems "measure_pmf.expectation (Pi_pmf _ _ _)"
+    sorry
 
-  then show ?thesis
-    using assms
-    by (auto
-      intro!: map_pmf_cong
-      simp flip: map_pmf_def
-      simp add: set_prod_pmf Let_def Set.filter_def)
+  finally show ?thesis sorry
 qed
 
-lemma prob_fail_step_le :
-  assumes \<open>state ok\<close>
-  shows \<open>prob_fail (step x state) \<le> 1 / 2 ^ threshold\<close>
-  using well_formed_state_card_lt_thresholdD[OF assms] assms
+  (* using well_formed_state_card_lt_thresholdD[OF assms] assms
   apply (simp add: step_def well_formed_state_def Let_def)
   by (simp add:
     spmf_bind_filter_chi_eq_map pmf_prod_pmf
-    pmf_bind pmf_map measure_pmf_single vimage_def field_simps)
+    pmf_bind pmf_map measure_pmf_single vimage_def field_simps) *)
 
 lemma prob_fail_estimate_size_le :
   \<open>prob_fprob_Nprob_failistinct xs) \<le> length xs / 2 ^ threshold\<close>
