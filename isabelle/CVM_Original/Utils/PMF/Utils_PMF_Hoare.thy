@@ -9,23 +9,11 @@ abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
 
-(* lemma hoare_tripleI :
-  assumes \<open>\<And> x y. \<lbrakk>P x; y \<in> set_pmf (f x)\<rbrakk> \<Longrightarrow> Q y\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-  by (simp add: AE_measure_pmf_iff assms)
-
-lemma hoare_tripleE :
-  assumes
-    \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-    \<open>P x\<close>
-    \<open>y \<in> set_pmf (f x)\<close>
-  shows \<open>Q y\<close>
-  by (metis AE_measure_pmf_iff assms) *)
-
 lemma skip [simp] :
   \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> return_pmf \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
   \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. return_pmf (f x)) \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
-  by (auto iff: AE_measure_pmf_iff simp add: atomize_all atomize_imp)
+  apply standard
+  by (simp_all add: AE_measure_pmf_iff)
 
 (* lemma seq :
   assumes

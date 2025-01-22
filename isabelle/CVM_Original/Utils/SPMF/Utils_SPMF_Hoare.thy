@@ -37,34 +37,23 @@ abbreviation hoare_triple_total
   (\<open>\<turnstile>spmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk>\<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> \<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_Some_and_pred Q\<rbrakk>\<close>
 
-(* lemma hoare_triple_altdef :
+lemma hoare_triple_altdef :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<equiv> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_None_or_pred Q\<rbrakk>)\<close>
-  by (meson AE_measure_spmf_iff_AE_measure_pmf Utils_PMF_Hoare.hoare_triple_def Utils_SPMF_Hoare.hoare_triple_def) *)
-
-(* lemma hoare_tripleI :
-  assumes \<open>\<And> x y. \<lbrakk>P x; y \<in> set_spmf (f x)\<rbrakk> \<Longrightarrow> Q y\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-  by (simp add: Utils_SPMF_Hoare.hoare_triple_def assms)
-
-lemma hoare_tripleE :
-  assumes
-    \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-    \<open>P x\<close>
-    \<open>y \<in> set_spmf (f x)\<close>
-  shows \<open>Q y\<close>
-  by (metis AE_measure_spmf_iff Utils_SPMF_Hoare.hoare_triple_def assms(1,2,3)) *)
+  apply standard
+  using AE_measure_spmf_iff_AE_measure_pmf by blast+
 
 lemma skip [simp] :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
-  by (simp_all add: atomize_all atomize_imp)
+  apply standard
+  by simp_all
 
-lemma seq :
+(* lemma seq :
   assumes
     \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
     \<open>\<And> x. P x \<Longrightarrow> \<turnstile>spmf \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
-  by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E assms(1,2) bind_UNION o_apply set_bind_spmf)
+  by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E assms(1,2) bind_UNION o_apply set_bind_spmf) *)
 
 context
   fixes

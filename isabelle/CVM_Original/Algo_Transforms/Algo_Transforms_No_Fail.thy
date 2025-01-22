@@ -51,23 +51,26 @@ abbreviation \<open>estimate_distinct_no_fail_spmf \<equiv>
   spmf_of_pmf <<< estimate_distinct_no_fail\<close>
 
 definition well_formed_state ::
-  \<open>(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> ('a, 'b) state_scheme  \<Rightarrow> bool\<close>
-  (\<open>_ _ ok\<close> [20, 20] 60) where
-  \<open>R state ok \<equiv> (
+  \<open>(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> ('a, 'b) state_scheme  \<Rightarrow> bool\<close> where
+  (* (\<open>_ _ ok\<close> [20, 20] 60) *)
+  \<open>well_formed_state \<equiv> \<lambda> R state. (
     let chi = state_chi state
     in finite chi \<and> R (card chi) threshold)\<close>
 
 lemma well_formed_state_card_lt_thresholdD :
-  assumes \<open>(<) state ok\<close>
+  assumes \<open>well_formed_state (<) state\<close>
   defines \<open>chi \<equiv> state_chi state\<close>
   shows
-    \<open>card (Set.remove x chi) < threshold\<close>
+    \<open>card (Set.remove x chi) < threshold\<close> (is ?thesis_0)
     \<open>\<not> card (insert x chi) < threshold \<longleftrightarrow> card (insert x chi) = threshold\<close>
-  using
-    assms
-    Diff_insert0[of x "state_chi state" "{}"]
-    insert_absorb[of x "state_chi state"]
-  by (fastforce simp add: well_formed_state_def Let_def Set.remove_def)+
+    (is ?thesis_1)
+proof -
+  show ?thesis_0
+    by (metis algo_params.well_formed_state_def assms(1,2) card_Diff1_less card_Diff_singleton_if dual_order.strict_trans remove_def)
+
+  then show ?thesis_1
+    by (metis algo_params.well_formed_state_def antisym_conv3 assms(1,2) card.insert_remove not_less_eq remove_def)
+qed
 
 end
 
@@ -75,18 +78,19 @@ context algo_params_assms
 begin
 
 lemma initial_state_well_formed :
-  \<open>(<) initial_state ok\<close>
+  \<open>well_formed_state (<) initial_state\<close>
   using threshold by (simp add: initial_state_def well_formed_state_def)
 
 lemma step_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step x \<lbrace>well_formed_state (<)\<rbrace>\<close>
+  (is \<open>PROP ?thesis'\<close>)
 proof -
-  from well_formed_state_card_lt_thresholdD
-  have \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step_1 x \<lbrace>well_formed_state (\<le>)\<rbrace>\<close>
+  from well_formed_state_card_lt_thresholdD have
+    \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step_1 x \<lbrace>well_formed_state (\<le>)\<rbrace>\<close>
     apply (simp
       flip: bind_spmf_of_pmf map_spmf_conv_bind_spmf
       add: well_formed_state_def step_1_def Let_def remove_def)
-    by (smt (verit, best) algo_params.well_formed_state_def card.insert_remove leD less_or_eq_imp_le not_less_eq well_formed_state_card_lt_thresholdD(2))
+    using le_eq_less_or_eq by fastforce
 
   moreover have \<open>\<turnstile>spmf \<lbrace>well_formed_state (\<le>)\<rbrace> step_2 \<lbrace>well_formed_state (<)\<rbrace>\<close>
     by (auto
@@ -94,10 +98,9 @@ proof -
       simp flip: bind_spmf_of_pmf
       simp add: well_formed_state_def step_2_def Let_def remove_def set_bind_spmf)
 
-  ultimately show \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step x \<lbrace>well_formed_state (<)\<rbrace>\<close>
+  ultimately show \<open>PROP ?thesis'\<close>
     unfolding step_def
-    apply (intro seq[where P = \<open>well_formed_state _\<close> and Q = \<open>well_formed_state _\<close>])
-    by simp_all
+    by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E bind_UNION o_def set_bind_spmf)
 qed
 
 lemma spmf_bind_filter_chi_eq_map :
