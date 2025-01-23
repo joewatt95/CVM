@@ -143,9 +143,11 @@ session CVM_Original in "CVM_Original" = "HOL-Probability" +
     "Utils_Reader_Monad"
     "Utils_PMF_Basic"
     "Utils_PMF_Hoare"
+    "Utils_PMF_Relational"
     "Utils_PMF_Bernoulli_Binomial"
     "Utils_PMF_Lazify"
 
     "Utils_SPMF_Basic"
     "Utils_SPMF_FoldM"
     "Utils_SPMF_Hoare"
+    "Utils_SPMF_Relational"

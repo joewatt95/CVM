@@ -1,16 +1,5 @@
 theory Utils_SPMF_Hoare
 
-(*
-Specialisation of Lean's SatisfiesM to the SPMF monad.
-This enables Hoare-logic-like reasoning for the partial correctness of spmf
-monadic programs.
-
-References:
-https://leanprover-community.github.io/mathlib4_docs/Batteries/Classes/SatisfiesM.html
-https://link.springer.com/content/pdf/10.1007/3-540-36578-8_19.pdf
-https://personal.cis.strath.ac.uk/conor.mcbride/Kleisli.pdf
-*)
-
 imports
   Probabilistic_While.While_SPMF
   Utils_SPMF_FoldM
@@ -128,8 +117,7 @@ lemma prob_fail_foldM_spmf_le :
     \<open>\<And> x val. P val \<Longrightarrow> prob_fail (f x val) \<le> p\<close>
     \<open>P val\<close>
   shows
-    \<open>prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close>
-    (is \<open>?L xs val \<le> _\<close>)
+    \<open>prob_fail (foldM_spmf f xs val) \<le> length xs * p\<close> (is \<open>?L xs val \<le> _\<close>)
 using assms proof (induction xs arbitrary: val)
   case Nil
   then show ?case by simp

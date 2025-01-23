@@ -19,33 +19,13 @@ locale algo_params =
   fixes threshold :: nat and f :: real
 begin
 
-definition compute_estimate :: \<open>('a, 'b) state_scheme \<Rightarrow> nat\<close> where
-  \<open>compute_estimate \<equiv> \<lambda> state.
-    nat \<lfloor>card (state_chi state) / f ^ (state_k state)\<rfloor>\<close>
-
-context
-  fixes
-    foldM :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'd \<Rightarrow> ('e, 'h) state_scheme \<Rightarrow> 'f\<close> and
-    map :: \<open>(('e, 'h) state_scheme \<Rightarrow> nat) \<Rightarrow> 'f \<Rightarrow> 'g\<close> and
-    step :: \<open>'a \<Rightarrow> 'b \<Rightarrow> 'c\<close>
-begin
-
-definition run_steps_then_estimate ::
-  \<open>('e, 'h) state_scheme \<Rightarrow> 'd \<Rightarrow> 'g\<close> where
-  \<open>run_steps_then_estimate \<equiv> \<lambda> initial_state.
-    flip (foldM step) initial_state >>> map compute_estimate\<close>
-
-end
-
-abbreviation
-  \<open>run_steps_then_estimate_pmf \<equiv>
-    run_steps_then_estimate undefined undefined undefined undefined
-      foldM_pmf map_pmf\<close>
+definition compute_estimate :: \<open>'a state \<Rightarrow> real\<close> where
+  \<open>compute_estimate \<equiv> \<lambda> state. card (state_chi state) / f ^ (state_k state)\<close>
 
 text
   \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
 
-definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
+definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
     let k = state_k state; let chi = state_chi state;
 
@@ -58,36 +38,34 @@ definition step_1 :: \<open>'a \<Rightarrow> ('a, 'b) state_scheme \<Rightarrow>
 
     return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
-definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
+definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 \<equiv> \<lambda> state.
     let k = state_k state; chi = state_chi state
     in if card chi < threshold
-      then return_spmf (state\<lparr>state_chi := chi\<rparr>)
+      then return_pmf (state\<lparr>state_chi := chi\<rparr>)
       else do {
         keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
 
         let chi = Set.filter keep_in_chi chi;
 
-        if card chi < threshold
-        then return_spmf \<lparr>state_k = k + 1, state_chi = chi\<rparr>
-        else fail_spmf }\<close>
+        return_pmf (\<lparr>state_k = k + 1, state_chi = chi\<rparr>) }\<close>
+
+definition step_3 :: "'a state \<Rightarrow> 'a state spmf" where
+  "step_3 \<equiv> \<lambda> state.
+    if card (state_chi state) < threshold
+    then return_spmf state 
+    else fail_spmf"
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step \<equiv> \<lambda> x. step_1 x >>> spmf_of_pmf >=> step_2\<close>
+  \<open>step \<equiv> \<lambda> x state. spmf_of_pmf (step_1 x state \<bind> step_2) \<bind> step_3\<close>
 
-abbreviation
-  \<open>run_steps_then_estimate_spmf \<equiv>
-    run_steps_then_estimate undefined undefined undefined undefined
-      foldM_spmf map_spmf\<close>
-
-definition estimate_distinct :: \<open>'a list \<Rightarrow> nat spmf\<close> where
-  \<open>estimate_distinct \<equiv> run_steps_then_estimate_spmf step initial_state\<close>
+abbreviation \<open>run_steps \<equiv> foldM_spmf step\<close>
 
 end
 
 locale algo_params_assms = algo_params +
   assumes
     threshold : \<open>threshold > 0\<close> and
-    f : \<open>0 < f\<close> \<open>f \<le> 1\<close>
+    f : \<open>0 < f\<close> \<open>f < 1\<close>
 
 end

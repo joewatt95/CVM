@@ -12,30 +12,21 @@ begin
 context algo_params
 begin
 
-definition step_2_no_fail ::
-  \<open>('a, 'b) state_scheme \<Rightarrow> ('a, 'b) state_scheme pmf\<close> where
-  \<open>step_2_no_fail \<equiv> \<lambda> state.
-    let chi = state_chi state
-    in if card chi < threshold
-      then return_pmf (state\<lparr>state_chi := chi\<rparr>)
-      else do {
-        keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
-
-        let chi = Set.filter keep_in_chi chi;
-
-        return_pmf (state\<lparr>state_k := state_k state + 1, state_chi := chi\<rparr>) }\<close>
-
-abbreviation \<open>step_no_fail \<equiv> \<lambda> x state.
-  step_1 x state \<bind> step_2_no_fail\<close>
-
-definition estimate_distinct_no_fail :: \<open>'a list \<Rightarrow> nat pmf\<close> where
-  \<open>estimate_distinct_no_fail \<equiv>
-    run_steps_then_estimate_pmf step_no_fail initial_state\<close>
+abbreviation \<open>step_no_fail \<equiv> \<lambda> x state. step_1 x state \<bind> step_2\<close>
 
 abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step_no_fail x\<close>
 
-abbreviation \<open>estimate_distinct_no_fail_spmf \<equiv>
-  spmf_of_pmf <<< estimate_distinct_no_fail\<close>
+abbreviation \<open>run_steps_no_fail \<equiv> foldM_pmf step_no_fail\<close>
+
+theorem
+  "ord_spmf (=)
+    (run_steps xs initial_state)
+    (spmf_of_pmf (run_steps_no_fail xs initial_state))"
+  sorry
+
+theorem
+  "prob_fail (run_steps xs initial_state) \<le> f ^ (threshold * length xs)"
+  sorry
 
 definition well_formed_state ::
   \<open>(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> ('a, 'b) state_scheme  \<Rightarrow> bool\<close> where
