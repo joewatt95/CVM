@@ -3,8 +3,31 @@ section \<open>The new Unbiased Algorithm\label{sec:cvm_new}\<close>
 text \<open>In this section, we introduce the new algorithm promised in the abstract. 
 
 The key idea is to replace the subsampling step of the original algorithm, which removes each
-element of the buffer independently with probability f. Instead, we choose a random $nf$-subset
-of the buffer.
+element of the buffer independently with probability f (see Algorithm~\ref{alg:cvm_new}). 
+Instead, we choose a random $nf$-subset of the buffer. 
+(This means $f$, $n$ must be choosen, such that $nf$ is integer.)
+
+\begin{algorithm}[h!]
+	\caption{New CVM algorithm.\label{alg:cvm_new}}
+	\begin{algorithmic}[1]       
+  \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
+  \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
+  \State $\chi \gets \{\}, p \gets 1, n \geq \ceil{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Choose a random $nf$-subset of $\chi$
+      \State $p \gets p f$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+\end{algorithmic}        
+\end{algorithm}
 
 The fact that this still preserves the required inequality for the subsampling operation 
 (Eq.~\ref{eq:subsample_condition}) is a result following from the negative associativity of
@@ -25,52 +48,63 @@ theory CVM_New_Unbiased_Algorithm
     Negative_Association.Negative_Association_Permutation_Distributions
 begin
 
+unbundle no_vec_syntax
+
 context
   fixes subsample_size :: nat
   fixes thresh :: nat
   assumes subsample_size: \<open>subsample_size < thresh\<close> \<open>2 * subsample_size \<ge> thresh\<close>
 begin
 
+text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
+  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
 
 definition f :: real 
   where \<open>f \<equiv> subsample_size / thresh\<close>
 
+text \<open>Lines 3-7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step_1 x state = do {
-    let k = state_k state;
-    let chi = state_chi state; 
+  \<open>step_1 x \<sigma> = 
+    do {
+      let k = state_k \<sigma>;
+      let \<chi> = state_\<chi> \<sigma>; 
+  
+      insert_x_into_\<chi> \<leftarrow> bernoulli_pmf (f ^ k);
+  
+      let \<chi> = (
+        if insert_x_into_\<chi>
+        then insert x \<chi>
+        else Set.remove x \<chi>
+      );
 
-    insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ k;
-
-    let chi = (chi |>
-      if insert_x_into_chi
-      then insert x
-      else Set.remove x);
-
-    return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
+      return_pmf (\<sigma>\<lparr>state_\<chi> := \<chi>\<rparr>) 
+    }\<close>
 
 definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
-  \<open>subsample chi = pmf_of_set {S. S \<subseteq> chi \<and> card S = subsample_size}\<close>
+  \<open>subsample \<chi> = pmf_of_set {S. S \<subseteq> \<chi> \<and> card S = subsample_size}\<close>
 
+text \<open>Lines 8-10:\<close>
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step_2 state = do {
-    let k = state_k state;
-    let chi = state_chi state;
+  \<open>step_2 \<sigma> = do {
+    let k = state_k \<sigma>;
+    let \<chi> = state_\<chi> \<sigma>;
 
-    if card chi = thresh
-    then (chi
-      |> subsample
-      |> map_pmf (\<lambda> chi. \<lparr>state_k = k + 1, state_chi = chi\<rparr>))
-    else
-      return_pmf state }\<close>
+    if card \<chi> = thresh
+    then do {
+      \<chi> \<leftarrow> subsample \<chi>;
+      return_pmf \<lparr>state_k = k + 1, state_\<chi> = \<chi>\<rparr>
+    } else
+      return_pmf \<sigma> 
+    }\<close>
 
+text \<open>Lines 1-10:\<close>
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps xs \<equiv> foldM_pmf (\<lambda>x \<sigma>. step_1 x \<sigma> \<bind> step_2) xs initial_state\<close>
 
+text \<open>Line 11:\<close>
 definition estimate :: \<open>'a state \<Rightarrow> real\<close> where 
-  \<open>estimate \<sigma> = card (state_chi \<sigma>) / f ^ state_k \<sigma>\<close>
+  \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / f ^ state_k \<sigma>\<close>
 
 lemma subsample_finite_nonempty:
   assumes \<open>card U = thresh\<close>
@@ -147,7 +181,7 @@ qed
 interpretation abs: cvm_algo_abstract thresh f subsample
   rewrites \<open>abs.run_steps = run_steps\<close> and \<open>abs.estimate = estimate\<close>
 proof -
-  show abs:\<open>cvm_algo_abstract thresh local.f local.subsample\<close>
+  show abs:\<open>cvm_algo_abstract thresh f subsample\<close>
   proof (unfold_locales, goal_cases)
     case 1 thus ?case using subsample_size by auto 
   next
@@ -160,7 +194,7 @@ proof -
   have a:\<open>cvm_algo_abstract.step_1 f = step_1\<close>
     unfolding cvm_algo_abstract.step_1_def[OF abs] step_1_def by auto
   have b:\<open>cvm_algo_abstract.step_2 thresh subsample = step_2\<close>
-    unfolding cvm_algo_abstract.step_2_def[OF abs] step_2_def by auto 
+    unfolding cvm_algo_abstract.step_2_def[OF abs] step_2_def Let_def by (auto simp:map_pmf_def) 
   have c:\<open>cvm_algo_abstract.initial_state = initial_state\<close>
     unfolding cvm_algo_abstract.initial_state_def[OF abs] initial_state_def by auto
   show \<open>cvm_algo_abstract.run_steps thresh f subsample = run_steps\<close>
@@ -176,7 +210,7 @@ theorem unbiasedness:
 theorem correctness:
   fixes \<epsilon> \<delta> :: real
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
-  assumes \<open>real thresh \<ge> 12/\<epsilon>^2 * ln (3 * real (length xs) / \<delta>)\<close>
+  assumes \<open>real thresh \<ge> 12 / \<epsilon> ^ 2 * ln (3 * real (length xs) / \<delta>)\<close>
   defines \<open>R \<equiv> real (card (set xs))\<close>
   shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon> * R } \<le> \<delta>\<close> 
   unfolding R_def by (intro abs.correctness assms)

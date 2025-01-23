@@ -13,7 +13,6 @@ lemma foldM_pmf_snoc: "foldM_pmf f (xs@[y]) val = bind_pmf (foldM_pmf f xs val) 
   by (induction xs arbitrary:val)
     (simp_all add: bind_return_pmf bind_return_pmf' bind_assoc_pmf cong:bind_pmf_cong)
 
-
 abbreviation foldM_spmf
   :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
   \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
@@ -21,7 +20,7 @@ abbreviation foldM_spmf
 lemma foldM_spmf_snoc: "foldM_spmf f (xs@[y]) val = bind_spmf (foldM_spmf f xs val) (f y)"
   by (induction xs arbitrary:val) (simp_all add:foldM_empty cong:bind_spmf_cong)
 
-abbreviation \<open>prob_fail \<equiv> flip pmf None\<close>
+abbreviation \<open>prob_fail \<equiv> (\<lambda>x. pmf x None)\<close>
 
 abbreviation \<open>fail_spmf \<equiv> return_pmf None\<close>
 
@@ -66,10 +65,9 @@ next
 qed
 
 lemma foldM_spmf_of_pmf_eq :
-  fixes f
-  shows \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs = spmf_of_pmf <<< foldM_pmf f xs\<close>
+  shows \<open>foldM_spmf (\<lambda>x y. spmf_of_pmf (f x y)) xs = spmf_of_pmf \<circ> foldM_pmf f xs\<close>
   (is ?thesis_0)
-    and \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs val = spmf_of_pmf (foldM_pmf f xs val)\<close>
+    and \<open>foldM_spmf (\<lambda>x y. spmf_of_pmf (f x y)) xs val = spmf_of_pmf (foldM_pmf f xs val)\<close>
   (is ?thesis_1)
 proof -
   show ?thesis_0
