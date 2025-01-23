@@ -1,12 +1,10 @@
-section \<open> TODO \<close>
-theory Algo
+section \<open> Definition of the CVM algorithm \<close>
+theory CVM_Algo
 
 imports
+  Utils_New
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-  Utils_PMF_Basic
-  Utils_SPMF_FoldM
-
-begin
+begin  
 
 record 'a state =
   state_k :: nat
@@ -15,7 +13,7 @@ record 'a state =
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
-locale algo_params =
+locale cvm_algo =
   fixes threshold :: nat and f :: real
 begin
 
@@ -61,9 +59,11 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 
 abbreviation \<open>run_steps \<equiv> foldM_spmf step\<close>
 
+abbreviation \<open>cvm xs \<equiv> map_spmf compute_estimate (foldM_spmf step xs initial_state)\<close>
+
 end
 
-locale algo_params_assms = algo_params +
+locale cvm_algo_assms = cvm_algo +
   assumes
     threshold : \<open>threshold > 0\<close> and
     f : \<open>0 < f\<close> \<open>f < 1\<close>

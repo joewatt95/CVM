@@ -1,15 +1,11 @@
 section \<open> Analysis of algorithm TODO \<close>
-theory Algo_Transforms_No_Fail
+theory CVM_Algo_No_Fail
 
 imports
-  Algo
-  Utils_SPMF_Hoare 
-  (* Utils_SPMF_Relational
-  Utils_SPMF_Hoare *)
-
+  CVM_Algo
 begin
 
-context algo_params
+context cvm_algo_assms
 begin
 
 abbreviation \<open>step_no_fail \<equiv> \<lambda> x state. step_1 x state \<bind> step_2\<close>
