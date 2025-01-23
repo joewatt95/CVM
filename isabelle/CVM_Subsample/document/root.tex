@@ -1,6 +1,7 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
 \usepackage{amsfonts,amsmath, amssymb}
+\usepackage[top=1.4in, bottom=1.4in, left=1.4in, right=1.4in]{geometry}
 
 \usepackage[only,bigsqcap]{stmaryrd}
 
@@ -8,6 +9,8 @@
 \usepackage[noend]{algpseudocode}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
+\let\oldsection\section
+\renewcommand\section{\clearpage\oldsection}
 
 \newcommand{\getsr}{\xleftarrow{\$}}
 
@@ -32,7 +35,7 @@
 \maketitle
 
 \begin{abstract}
-In 2022, Chakraborty et al.~\cite{chakraborty22} published a streaming algorithm for the distinct
+In 2022, Chakraborty et al.~\cite{chakraborty2022} published a streaming algorithm for the distinct
 elements problem, that deviated considerably from the state-of-the art, both due to its simplicity
 and avoidance of standard derandomization techniques, while still maintaining a close to optimal
 logarithmic space complexity.

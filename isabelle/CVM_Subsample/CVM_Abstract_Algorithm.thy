@@ -1,4 +1,4 @@
-section \<open>Abstract Algorithm\<close>
+section \<open>Abstract Algorithm\label{sec:cvm_abs}\<close>
 
 text \<open>This section verifies an abstract version of the CVM algorithm, where the subsampling step
 can be an arbitrary randomized algorithm, fulfilling an expectation invariant.
@@ -49,38 +49,7 @@ In this section, we'll verify that the above algorithm indeed fulfills the desir
 well as, unbiasedness, i.e., that: $\expect [R] = |A|$.
 The part that is not going to be verified in this section, is the fact that the algorithm keeps at
 most $n$ elements in the state $\chi$, because it is not unconditionally true, but will be ensured
-(by different means) for the concrete instantiations in the following sections.
-                           
-To understand, how the proof works, let us first note that, the random variables: 
-$p^{-1} \indicator(s \in \chi)$ have always an expectation of $1$, for all $s \in A$. (Here 
-$\indicator(P)$ denotes the indicator function, equal to $1$ if the condition $P$ is true, and 
-$0$ otherwise.)
-
-And the verification, can be done using induction, i.e., if
-the condition is true in loop iteration $k$ (for the subset of elements seen at that point), then it
-must be true for loop iteration $k+1$.
-
-It is then even possible to extend the same proof to see that, for example:
-\[              
-  \expect \left[g(p^{-1} I(s \in \chi))\right] \leq g(1)
-\]
-for any concave non-negative function $g$.
-
-The main idea of the proof is to look at the following guess:
-\[
-  \expect \left[ \prod_{i \in S} g(p, s \in \omega) \right] \leq g(1,1)
-\]
-where $g$ is a function $g: \mathbb R \times \mathbb B \rightarrow \mathbb R$. Note that the second
-argument of $g$ is just a boolean. This is even more general than the previous equation. And because
-it helps bound products of the indicator function, it can be used to derive tail bounds.
-
-Of course, the above inequality is not always true, but retracing the steps of the induction proof
-for the previous case, reveals sufficient conditions on the function $g$ for the inequality to be
-true. 
-
-And for the algorithm described above, they turn out to be not so restrictive, and moreover they 
-allow us to show the concentration for the random variable $R$, following steps analogous to the
-classic Chernoff-bound, but taking advantage of the above invariant, instead of independence.\<close>
+(by different means) for the concrete instantiations in the following sections.\<close>
 
 theory CVM_Abstract_Algorithm
 

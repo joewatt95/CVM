@@ -1,6 +1,23 @@
 section \<open>The new Unbiased Algorithm\label{sec:cvm_new}\<close>
 
-text \<open>TODO\<close>
+text \<open>In this section, we introduce the new algorithm promised in the abstract. 
+
+The key idea is to replace the subsampling step of the original algorithm, which removes each
+element of the buffer independently with probability f. Instead, we choose a random $nf$-subset
+of the buffer.
+
+The fact that this still preserves the required inequality for the subsampling operation 
+(Eq.~\ref{eq:subsample_condition}) is a result following from the negative associativity of
+permutation distributions~\cite[Th. 10]{dubhashi1996}.
+
+(See also our formalization of the concept~\cite{Negative_Association-AFP}.)
+
+Because the subsampling step always removes elements unconditionally, the second check, whether
+the subsampling succeeded of the original algorithm is not necessary anymore.
+
+This of course improves the space usage of the algorithm, because the fist reduction argument
+from Section~\ref{sec:cvm_original} is now obsolete. Moreover the resulting algorithm is now
+unbiased, because it is an instance of the abstract algorithm~\ref{sec:cvm_abs}.\<close>
 
 theory CVM_New_Unbiased_Algorithm
   imports

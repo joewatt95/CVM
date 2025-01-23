@@ -1,4 +1,4 @@
-section \<open>The original CVM Algorithm\<close>
+section \<open>The original CVM Algorithm\label{sec:cvm_original}\<close>
 
 text \<open>In this section, we verify the same algorithm, presented by Chakrabory et 
 al.~\cite{chakraborty2022} (replicated, here, in Algorthm~\ref{alg:cvm_classic}). With the 
@@ -8,7 +8,7 @@ In the original algorithm the elements are removed with probability $f := \frac{
 subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e^{-1/12}]$. 
 
 \begin{algorithm}[h!]
-	\caption{Abstract CVM algorithm.\label{alg:cvm_classic}}
+	\caption{Original CVM algorithm.\label{alg:cvm_classic}}
 	\begin{algorithmic}[1]       
   \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
   \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
@@ -21,7 +21,7 @@ subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e
       \State $\chi \gets \chi - \{a_i\}$
     \EndIf
     \If{$|\chi| = n$}
-      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Preserve each element of $\chi$ with probability $f$
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Keep elements of $\chi$ with prob. $f$
       \State $p \gets p f$
     \EndIf
     \If{$|\chi| = n$}
@@ -33,9 +33,9 @@ subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e
 \end{algorithm}
 
 The first step of the proof is identical to the proof~\cite{chakraborty2022}, where the above
-algorithm is approximated by a second algorithm, where line 8 is removed, i.e., the two algorithms
-behave identically, unless the very improbable event occurs, where the subsampling step, does not
-remove any elements.
+algorithm is approximated by a second algorithm, where line 11-12 are removed, i.e., the two
+algorithms behave identically, unless the very improbable event occurs, where the subsampling step,
+does not remove any elements.
 
 It is possible to see that the total variational distance between the two algorithms is at most 
 $\frac{\delta}{2}$.
