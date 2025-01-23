@@ -131,31 +131,27 @@ proof -
 
     ultimately show ?thesis
       using f well_formed_state_card_lt_thresholdD
-      unfolding step_1_def step_2_def well_formed_state_def Let_def
+      unfolding step_1_def step_2_def well_formed_state_def map_pmf_def[symmetric] Let_def
       by (fastforce
-        intro!: integral_cong_AE
-        simp flip: map_pmf_def simp add: power_le_one pmf_bind)
+        intro!: integral_cong_AE simp add: power_le_one pmf_bind)
   qed
   
   text\<open>Note now that the probability of keep_in_chi evaluating to \<top> on ?chi
     is = f ^ threshold.\<close>
   also from f assms have \<open>\<dots> =
     f ^ state_k state * of_bool (card ?chi = threshold) * f ^ threshold\<close>
+    unfolding well_formed_state_def Let_def
     apply (subst expectation_prod_Pi_pmf)
-    by (auto simp add:
-      well_formed_state_def Let_def integrable_measure_pmf_finite card.insert_remove)
+    by (auto simp add: integrable_measure_pmf_finite card.insert_remove)
 
   finally show ?thesis using f by (simp add: power_le_one)
 qed
 
 lemma prob_fail_estimate_size_le :
-  \<open>prob_fprob_Nprob_failistinct xs) \<le> length xs / 2 ^ threshold\<close>
-  using prob_fail_foldM_spmf_le[OF
-    step_preserves_well_formedness
-    prob_fail_step_le initial_state_well_formed]
-  by (fastforce simp add:
-    estimate_distinct_def run_steps_then_estimate_def
-    prob_fail_map_spmf_eq)
+  \<open>prob_fail (estimate_distinct xs) \<le> length xs * f ^ threshold\<close>
+  unfolding estimate_distinct_def run_steps_then_estimate_def
+  apply simp
+  by (metis algo_params_assms.prob_fail_step_le algo_params_assms.step_preserves_well_formedness algo_params_assms_axioms initial_state_well_formed prob_fail_foldM_spmf_le)
 
 lemma step_ord_spmf_eq :
   \<open>step x state \<sqsubseteq> spmf_of_pmf (step_no_fail x state)\<close>
