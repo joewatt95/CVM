@@ -39,20 +39,20 @@ definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 \<equiv> \<lambda> state.
     let k = state_k state; chi = state_chi state
-    in if card chi < threshold
-      then return_pmf (state\<lparr>state_chi := chi\<rparr>)
-      else do {
+    in if card chi = threshold
+      then do {
         keep_in_chi :: 'a \<Rightarrow> bool \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
 
         let chi = Set.filter keep_in_chi chi;
 
-        return_pmf (\<lparr>state_k = k + 1, state_chi = chi\<rparr>) }\<close>
+        return_pmf (\<lparr>state_k = k + 1, state_chi = chi\<rparr>) }
+      else return_pmf (state\<lparr>state_chi := chi\<rparr>)\<close>
 
 definition step_3 :: "'a state \<Rightarrow> 'a state spmf" where
   "step_3 \<equiv> \<lambda> state.
-    if card (state_chi state) < threshold
-    then return_spmf state 
-    else fail_spmf"
+    if card (state_chi state) = threshold
+    then fail_spmf
+    else return_spmf state"
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step \<equiv> \<lambda> x state. spmf_of_pmf (step_1 x state \<bind> step_2) \<bind> step_3\<close>

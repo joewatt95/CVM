@@ -56,15 +56,6 @@ next
   then show ?case by simp_all presburger
 qed
 
-definition foldM_enumerate where
-  \<open>foldM_enumerate \<equiv> \<lambda> f xs offset.
-    foldM f (List.enumerate offset xs)\<close>
-
-lemma foldM_eq_foldM_enumerate :
-  \<open>foldM f xs = foldM_enumerate (f <<< snd) xs offset\<close>
-  apply (induction xs arbitrary: offset)
-  by (auto simp add: foldM_enumerate_def)
-
 end
 
 end

@@ -14,6 +14,52 @@ abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step
 
 abbreviation \<open>run_steps_no_fail \<equiv> foldM_pmf step_no_fail\<close>
 
+(* not convinced this is needed, at least here...*)
+definition wf_state ::
+  \<open>'a state  \<Rightarrow> bool\<close> where
+  \<open>wf_state \<equiv> \<lambda>state. (
+    let chi = state_chi state
+    in finite chi \<and> card chi < threshold)\<close>
+
+lemma wf_state_initial_state :
+  \<open>wf_state initial_state\<close>
+  using threshold
+  by (simp add: initial_state_def wf_state_def)
+
+(* TODO: try this proof be simpler using = instead of \<ge>? *)
+lemma prob_fail_step_le:
+  shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
+proof -
+
+  have *: "\<And>st. measure_pmf.expectation (step_2 st)
+    (\<lambda>st. of_bool( card (state_chi st) = threshold)) \<le> f ^ threshold"
+    unfolding step_2_def Let_def
+    sorry
+
+  have \<open>?L = measure_pmf.expectation (step_1 x state \<bind> step_2) (prob_fail <<< step_3)\<close>
+    unfolding step_def pmf_bind_spmf_None by simp
+
+  also have "... = measure_pmf.expectation (step_1 x state \<bind> step_2) 
+    (\<lambda>st. of_bool( card (state_chi st) = threshold))"          
+    unfolding step_3_def
+    by (auto intro!: Bochner_Integration.integral_cong)
+
+  also have "... = measure_pmf.expectation (step_1 x state)
+    (\<lambda>st.
+      measure_pmf.expectation (step_2 st)
+        (\<lambda>st. of_bool( card (state_chi st) = threshold)))"
+    sorry
+
+  also have "... \<le> measure_pmf.expectation (step_1 x state) (\<lambda>_. f ^ threshold)"
+    apply (intro integral_mono_AE)
+    sorry
+
+  also have "... = f ^ threshold"
+    by auto
+
+  finally show ?thesis .
+qed
+
 theorem
   "ord_spmf (=)
     (run_steps xs initial_state)
@@ -23,13 +69,6 @@ theorem
 theorem
   "prob_fail (run_steps xs initial_state) \<le> f ^ (threshold * length xs)"
   sorry
-
-definition well_formed_state ::
-  \<open>(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> ('a, 'b) state_scheme  \<Rightarrow> bool\<close> where
-  (* (\<open>_ _ ok\<close> [20, 20] 60) *)
-  \<open>well_formed_state \<equiv> \<lambda> R state. (
-    let chi = state_chi state
-    in finite chi \<and> R (card chi) threshold)\<close>
 
 lemma well_formed_state_card_lt_thresholdD :
   assumes \<open>well_formed_state (<) state\<close>
@@ -79,60 +118,6 @@ proof -
     by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E bind_UNION o_def set_bind_spmf)
 qed
 
-(* TODO: tidy *)
-lemma prob_fail_step_le :
-  assumes \<open>well_formed_state (<) state\<close>
-  shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
-proof -
-  let ?chi = \<open>insert x <| state_chi state\<close>
-
-  have \<open>?L = measure_pmf.expectation (step_1 x state) (prob_fail <<< step_2)\<close>
-    unfolding step_def pmf_bind_spmf_None by simp
-
-  text\<open>step_2 fails after step_1 has run iff:
-    1. We first sample \<top> from step_1 with probability `f ^ state_k state`,
-      inserting the new element into `chi`, yielding ?chi.
-    2. Doing the causes ?chi to hit the threshold.
-    3. We sample a characteristic function `keep_in_chi` of a subset of ?chi
-      that evaluates to \<top> everywhere on ?chi.\<close>
-  also have \<open>\<dots> =
-    f ^ state_k state * of_bool (card ?chi = threshold) *
-    measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
-      (\<lambda> keep_in_chi. \<Prod> x' \<in> ?chi. of_bool (keep_in_chi x'))\<close>
-    (is \<open>_ = _ * _ * measure_pmf.expectation _ ?prob_fail_given_keep_in_chi\<close>)
-  proof -
-    note assms
-
-    moreover from calculation have
-      \<open>?prob_fail_given_keep_in_chi keep_in_chi =
-      prob_fail (
-        let chi = Set.filter keep_in_chi ?chi
-        in if card chi < threshold
-          then return_spmf
-            \<lparr>state_k = state_k (state\<lparr>state_chi := ?chi\<rparr>) + 1, state_chi = chi\<rparr>
-          else fail_spmf)\<close>
-      if \<open>card ?chi = threshold\<close> for keep_in_chi
-      using that
-      apply (simp add: well_formed_state_def Let_def)
-      by (smt (verit, best) card_mono card_seteq finite.insertI finite_filter insert_iff member_filter of_bool_eq(2) prod.neutral subsetI verit_comp_simplify(3))
-
-    ultimately show ?thesis
-      using f well_formed_state_card_lt_thresholdD
-      unfolding step_1_def step_2_def well_formed_state_def map_pmf_def[symmetric] Let_def
-      by (fastforce
-        intro!: integral_cong_AE simp add: power_le_one pmf_bind)
-  qed
-  
-  text\<open>Note now that the probability of keep_in_chi evaluating to \<top> on ?chi
-    is = f ^ threshold.\<close>
-  also from f assms have \<open>\<dots> =
-    f ^ state_k state * of_bool (card ?chi = threshold) * f ^ threshold\<close>
-    unfolding well_formed_state_def Let_def
-    apply (subst expectation_prod_Pi_pmf)
-    by (auto simp add: integrable_measure_pmf_finite card.insert_remove)
-
-  finally show ?thesis using f by (simp add: power_le_one)
-qed
 
 lemma prob_fail_estimate_size_le :
   \<open>prob_fail (estimate_distinct xs) \<le> length xs * f ^ threshold\<close>
