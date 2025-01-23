@@ -52,11 +52,13 @@ lemma well_formed_state_card_lt_thresholdD :
     \<open>\<not> card (insert x chi) < threshold \<longleftrightarrow> card (insert x chi) = threshold\<close>
     (is ?thesis_1)
 proof -
-  show ?thesis_0
-    by (metis algo_params.well_formed_state_def assms(1,2) card_Diff1_less card_Diff_singleton_if dual_order.strict_trans remove_def)
+  note assms well_formed_state_def
 
-  then show ?thesis_1
-    by (metis algo_params.well_formed_state_def antisym_conv3 assms(1,2) card.insert_remove not_less_eq remove_def)
+  moreover from calculation show ?thesis_0
+    by (metis card_Diff1_le dual_order.strict_trans2 remove_def)
+
+  ultimately show ?thesis_1
+    by (metis card.insert_remove linorder_neqE_nat not_less_eq remove_def)
 qed
 
 end
@@ -72,19 +74,18 @@ lemma step_preserves_well_formedness :
   \<open>\<turnstile>spmf \<lbrace>well_formed_state (<)\<rbrace> step x \<lbrace>well_formed_state (<)\<rbrace>\<close>
   (is \<open>PROP ?thesis'\<close>)
 proof -
-  from well_formed_state_card_lt_thresholdD have \<open>\<turnstile>spmf
+  have \<open>\<turnstile>spmf
     \<lbrace>well_formed_state (<)\<rbrace> spmf_of_pmf <<< step_1 x \<lbrace>well_formed_state (\<le>)\<rbrace>\<close>
-    apply (simp
-      flip: bind_spmf_of_pmf map_spmf_conv_bind_spmf
-      add: well_formed_state_def step_1_def Let_def remove_def)
-    using le_eq_less_or_eq by fastforce
+    unfolding well_formed_state_def step_1_def Let_def map_pmf_def[symmetric]
+    apply simp
+    by (metis finite_insert insert_Diff_single less_or_eq_imp_le remove_def well_formed_state_card_lt_thresholdD(1,2) well_formed_state_def)
 
   moreover have
     \<open>\<turnstile>spmf \<lbrace>well_formed_state R\<rbrace> step_2 \<lbrace>well_formed_state (<)\<rbrace>\<close> for R
+    unfolding well_formed_state_def step_2_def Let_def remove_def
     by (auto
       split: if_splits
-      simp flip: bind_spmf_of_pmf
-      simp add: well_formed_state_def step_2_def Let_def remove_def set_bind_spmf)
+      simp flip: bind_spmf_of_pmf simp add: set_bind_spmf)
 
   ultimately show \<open>PROP ?thesis'\<close>
     unfolding step_def
