@@ -12,7 +12,7 @@ subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e
 	\begin{algorithmic}[1]       
   \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
   \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
-  \State $\chi \gets \{\}, p \gets 1, n \geq \ceil{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \State $\chi \gets \{\}, p \gets 1, n \geq \left\lceil \frac{12}{\varepsilon^2} \ln(\frac{6l}{\delta}) \right\rceil$
   \For{$i \gets 1$ to $l$}
     \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
     \If{$b$}
@@ -21,7 +21,7 @@ subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e
       \State $\chi \gets \chi - \{a_i\}$
     \EndIf
     \If{$|\chi| = n$}
-      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Keep each element of $\chi$ independently with prob. $f$
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment keep each element of $\chi$ indep. with prob. $f$
       \State $p \gets p f$
     \EndIf
     \If{$|\chi| = n$}

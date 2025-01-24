@@ -1,10 +1,11 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym}
-\usepackage{amsfonts,amsmath, amssymb}
+\usepackage{amsfonts,amsmath, amssymb,amsthm}
 \usepackage[top=1.4in, bottom=1.4in, left=1.4in, right=1.4in]{geometry}
 
 \usepackage[only,bigsqcap]{stmaryrd}
 
+\usepackage{marginnote}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
@@ -21,6 +22,12 @@
 \DeclareMathOperator{\Ber}{\mathrm{Ber}}
 \DeclareMathOperator{\indicator}{\mathrm{I}}
 
+\newcommand{\eps}{\varepsilon}
+\renewcommand{\phi}{\varphi}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{lemma}{Lemma}
+
 % this should be the last package used
 \usepackage{pdfsetup}
 
@@ -35,25 +42,22 @@
 \maketitle
 
 \begin{abstract}
-In 2022, Chakraborty et al.~\cite{chakraborty2022} published a streaming algorithm for the distinct
-elements problem, that deviated considerably from the state-of-the art, both due to its simplicity
+In 2022, Chakraborty et al.~\cite{chakraborty2022} published a streaming 
+algorithm (henceforth, the CVM algorithm) for the distinct
+elements problem, that deviated considerably from the state-of-the art, due to its simplicity
 and avoidance of standard derandomization techniques, while still maintaining a close to optimal
 logarithmic space complexity.
 
-In this entry, we verify its correctness using a new verification technique we discovered during the
-effort, that simplifies the analysis considerably compared to the orignal proof by Chakraborty et
-al. The main idea is based on the well-known notion of probabilistic recurrence relations. However,
-instead of recurrence relations with respect to the state, we investigate general functions of the
-state and derive conditions on the function, which preserve the reccurence relation.
+In this entry, we verify the CVM algorithm's correctness using a new technique which simplifies
+the formal analysis considerably compared to the orignal proof by Chakraborty et
+al. The main idea is based on a probabilistic invariant that allows us to derive concentration using
+Cram\'{e}r Chernoff method.
 
-The latter allows us to derive concentration bounds which is usually not possible with 
-recurrence relations.
-
-This new technique also opened up the possible design space, and we introduce a new variant of the 
-CVM algorithm, that uses less space, fewer steps, and also has an additional property in addition 
+This new technique opens up the possible algorithm design space, and we introduce a new variant of the 
+CVM algorithm, that is total, and also has an additional property in addition 
 to concentration: unbiasedness. This means the expected result of the algorithm is exactly equal to
-the desired result. The latter is also a new property, that classic algorithms for the distinct
-elements problem do not posses.
+the desired result. The latter is also a new property, that neither the original CVM algorithm
+nor classic algorithms for the distinct elements problem posses.
 \end{abstract}
 
 \tableofcontents
@@ -64,6 +68,9 @@ elements problem do not posses.
 
 \bibliographystyle{abbrv}
 \bibliography{root}
+
+\appendix
+\input{appendix}
 
 \end{document}
 

@@ -10,7 +10,7 @@ It is presented in Algorithm~\ref{alg:cvm_abs}.
 	\begin{algorithmic}[1]       
   \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
   \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
-  \State $\chi \gets \{\}, p \gets 1, n \geq \ceil{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$
+  \State $\chi \gets \{\}, p \gets 1, n \geq \left\lceil \frac{12}{\varepsilon^2} \ln(\frac{3l}{\delta}) \right\rceil$
   \For{$i \gets 1$ to $l$}
     \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
     \If{$b$}
@@ -19,7 +19,7 @@ It is presented in Algorithm~\ref{alg:cvm_abs}.
       \State $\chi \gets \chi - \{a_i\}$
     \EndIf
     \If{$|\chi| = n$}
-      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Abstract subsampling step
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment abstract subsampling step
       \State $p \gets p f$
     \EndIf
   \EndFor
@@ -206,7 +206,7 @@ next
   thus ?case unfolding b using subsample 3 by (simp add:AE_measure_pmf_iff step_2_def Let_def) blast
 qed
 
-(* Lemma 2 *)
+text \<open>Lemma~\ref{le:neg_cor_prelim}:\<close>
 lemma run_steps_preserves_expectation_le:
   fixes \<phi> :: \<open>real \<Rightarrow> bool \<Rightarrow> real\<close>
   assumes phi :
@@ -341,7 +341,7 @@ next
   finally show ?case by simp
 qed
 
-(* Lemma 3 *)
+text \<open>Lemma~\ref{le:neg_cor_neg}:\<close>
 lemma run_steps_preserves_expectation_le' :
   fixes q :: real and h :: \<open>real \<Rightarrow> real\<close>
   assumes h:
@@ -444,7 +444,7 @@ proof -
   qed
 qed
 
-(* Lemma 4 *)
+text \<open>Lemma \ref{le:upper_tail}:\<close>
 lemma upper_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..1::real}\<close>
   assumes \<open>run_state_set \<rho> \<subseteq> set xs\<close>
@@ -529,6 +529,7 @@ proof -
 qed
 
 (* Lemma 5 *)
+text \<open>Lemma~\ref{le:low_p}:\<close>
 lemma q_bound: \<open>measure (run_steps xs) {\<sigma>. state_p \<sigma> < q} \<le> real (length xs) * exp(-real thresh/12)\<close>
 proof -
   define \<rho> where \<open>\<rho> = FinalState xs\<close>
@@ -676,7 +677,7 @@ proof -
   qed
 qed
 
-(* Lemma 6 *)
+text \<open>Lemma~\ref{le:lower_tail}:\<close>
 lemma lower_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close>
   shows \<open>measure (run_steps xs) {\<omega>. estimate \<omega> \<le> (1 - \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
@@ -838,6 +839,7 @@ next
     using 3(2) unfolding b 3(1)[OF a] by (simp add:step_2_def bind_return_pmf Let_def)
 qed
 
+text \<open>Theorem~\ref{th:concentration}:\<close>
 theorem correctness:
   fixes \<epsilon> \<delta> :: real
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
@@ -924,6 +926,7 @@ proof -
   show ?thesis using le ge by auto
 qed
 
+text \<open>Subsection~\ref{sec:unbiasedness}:\<close>
 corollary unbiasedness:
   fixes \<sigma> :: \<open>'a run_state\<close>
   shows \<open>measure_pmf.expectation (run_steps xs) estimate = real (card (set xs))\<close>
