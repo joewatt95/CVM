@@ -91,7 +91,7 @@ proof -
             of_bool (card (Set.filter keep_in_chi ?chi) = card ?chi))\<close>
         by (auto intro!: integral_cong_AE simp add: step_2_def' step_3_def)
 
-      also from assms that have \<open>\<dots> =
+      also from that have \<open>\<dots> =
         of_bool (card ?chi = threshold) *
         measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
           (\<lambda> keep_in_chi. \<Prod> x \<in> ?chi. of_bool (keep_in_chi x))\<close>
