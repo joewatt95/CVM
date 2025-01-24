@@ -25,12 +25,8 @@ abbreviation (input) kleisli_compose_right ::
   (infixr \<open><=<\<close> 50) where
   \<open>(f <=< g) \<equiv> g >=> f\<close> *)
 
-abbreviation foldM_pmf ::
-  \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
-  \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
-
-abbreviation
-  \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
+abbreviation \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
+abbreviation \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
 
 lemma map_pmf_times_one [simp] :
   fixes p :: \<open>nat pmf\<close>

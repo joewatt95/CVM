@@ -69,13 +69,12 @@ then the probability that a successful output of `p` satisfies `P` is \<le> that
 `p'` (ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of
 `p` and `p'` as measures restricted to their successful outputs).
 *)
-lemma prob_le_prob_of_ord_spmf_eq :
+(* lemma prob_le_prob_of_ord_spmf_eq :
   fixes P p p'
   assumes \<open>p \<sqsubseteq> p'\<close>
-  defines \<open>prob p'' \<equiv> \<P>(\<omega> in measure_spmf p''. P \<omega>)\<close>
-  shows \<open>prob p \<le> prob p'\<close>
+  shows \<open>\<P>(\<omega> in measure_spmf p. P \<omega>) \<le> \<P>(\<omega> in measure_spmf p'. P \<omega>)\<close>
   using assms
-  by (metis ennreal_le_iff measure_nonneg measure_spmf.emeasure_eq_measure ord_spmf_eqD_emeasure space_measure_spmf) 
+  by (simp add: space_measure_spmf ord_spmf_eqD_measure) *)
 
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
@@ -86,24 +85,6 @@ lemma prob_fail_eq_of_rel_spmf :
 abbreviation relational_hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_spmf S (f x) (f' x'))\<close>
-
-(* lemma precond_strengthen :
-  assumes
-    \<open>\<And> x x'. R x x' \<Longrightarrow> R' x x'\<close>
-    \<open>\<turnstile>spmf \<lbrace>R'\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-  by (metis assms(1,2) relational_hoare_triple_def)
-
-lemma precond_false [simp] :
-  \<open>\<turnstile>spmf \<lbrace>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-  by (simp add: relational_hoare_triple_def)
-
-lemma postcond_weaken :
-  assumes
-    \<open>\<And> x x'. S' x x' \<Longrightarrow> S x x'\<close>
-    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S'\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-  by (metis assms(1,2) rel_spmf_mono relational_hoare_triple_def) *)
 
 lemma postcond_true [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace> \<equiv> (
