@@ -34,6 +34,23 @@ abbreviation (input) uncurry :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<
 definition map_index :: \<open>(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> where
   \<open>map_index f \<equiv> map (uncurry f) <<< enumerate 0\<close>
 
+lemma set_filter_eq_iff_Ball :
+  \<open>Set.filter P A = A \<longleftrightarrow> Ball A P\<close>
+  by auto
+
+lemma finset_card_filter_eq_iff_Ball :
+  assumes \<open>finite A\<close>
+  shows \<open>card (Set.filter P A) = card A \<longleftrightarrow> Ball A P\<close>
+  using assms
+  by (metis card_subset_eq member_filter set_filter_eq_iff_Ball subsetI)
+
+lemma Ball_iff_prod_of_bool_eq_1 :
+  assumes \<open>finite A\<close>
+  shows \<open>Ball A P \<longleftrightarrow> (\<Prod> x \<in> A. of_bool (P x)) = (1 :: nat)\<close>
+  using assms
+  apply (induction rule: finite_induct)
+  by simp_all
+
 context
   fixes
     bind :: \<open>'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c\<close> and
