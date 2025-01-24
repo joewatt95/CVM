@@ -129,15 +129,13 @@ session CVM_Original in "CVM_Original" = "CryptHOL" +
     ABY3_Protocols
 
   directories
-   "Algo_Transforms"
-
     "Utils"
     "Utils/PMF"
     "Utils/SPMF"
 
   theories
-    "Algo"
-    "Algo_Transforms_No_Fail"
+    "CVM_Algo"
+    "CVM_Algo_No_Fail"
 
     "Utils_Basic"
     "Utils_Real"

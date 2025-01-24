@@ -3,6 +3,8 @@ theory CVM_Algo_No_Fail
 
 imports
   CVM_Algo
+  Utils_SPMF_Hoare
+
 begin
 
 context cvm_algo_assms
@@ -14,17 +16,103 @@ abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step
 
 abbreviation \<open>run_steps_no_fail \<equiv> foldM_pmf step_no_fail\<close>
 
+abbreviation \<open>wf_state \<equiv> \<lambda> state. finite (state_chi state)\<close>
+
 (* not convinced this is needed, at least here...*)
-definition wf_state ::
-  \<open>'a state  \<Rightarrow> bool\<close> where
-  \<open>wf_state \<equiv> \<lambda>state. (
+(* definition
+  \<open>wf_state \<equiv> \<lambda> R state. (
     let chi = state_chi state
-    in finite chi \<and> card chi < threshold)\<close>
+    in finite chi \<and> R (card chi) threshold)\<close> *)
 
 lemma wf_state_initial_state :
   \<open>wf_state initial_state\<close>
-  using threshold
-  by (simp add: initial_state_def wf_state_def)
+  by (simp add: initial_state_def)
+
+
+lemma step_1_preserves_well_formedness :
+  \<open>\<turnstile>pmf \<lbrakk>wf_state\<rbrakk> step_1 x \<lbrakk>wf_state\<rbrakk>\<close>
+  unfolding step_1_def' by (simp add: AE_measure_pmf_iff remove_def)
+
+lemma step_2_preserves_well_formedness :
+  \<open>\<turnstile>pmf \<lbrakk>wf_state\<rbrakk> step_2 \<lbrakk>wf_state\<rbrakk>\<close>
+  unfolding step_2_def' by (simp add: AE_measure_pmf_iff)
+
+lemma step_preserves_well_formedness :
+  \<open>\<turnstile>spmf \<lbrace>wf_state\<rbrace> step x \<lbrace>wf_state\<rbrace>\<close>
+  unfolding step_def step_3_def
+  using step_1_preserves_well_formedness step_2_preserves_well_formedness
+  by (force
+    split: if_splits
+    simp flip: bind_spmf_of_pmf
+    simp add: set_bind_spmf AE_measure_pmf_iff)
+
+lemma step_1_finite_support :
+  \<open>finite <| set_pmf <| step_1 x state\<close>
+  unfolding step_1_def' by simp
+
+lemma step_2_finite_support :
+  assumes \<open>wf_state state\<close>
+  shows \<open>finite <| set_pmf <| step_2 state\<close>
+  using assms
+  unfolding step_2_def' by (simp add: set_prod_pmf finite_PiE)
+
+lemma step_2_finite_support_after_step_1 :
+  \<open>\<turnstile>pmf \<lbrakk>wf_state\<rbrakk> step_1 x \<lbrakk>(\<lambda> state. finite (set_pmf <| step_2 state))\<rbrakk>\<close>
+  by (metis (no_types, lifting) eventually_mono step_1_preserves_well_formedness step_2_finite_support)
+
+lemma
+  assumes \<open>wf_state state\<close>
+  shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
+proof -
+  let ?chi = \<open>insert x <| state_chi state\<close>
+
+  have \<open>?L =
+    measure_pmf.expectation (step_1 x state \<bind> step_2) (prob_fail <<< step_3)\<close>
+    unfolding step_def pmf_bind_spmf_None by simp
+
+  also from assms step_2_finite_support_after_step_1 have \<open>\<dots> =
+    measure_pmf.expectation (step_1 x state)
+      (\<lambda> state. measure_pmf.expectation (step_2 state) (prob_fail <<< step_3))\<close>
+    apply (subst integral_bind_pmf)
+    by (fastforce simp add: AE_measure_pmf_iff step_1_finite_support)+
+
+  also from f have \<open>\<dots> =
+    f ^ state_k state *
+    measure_pmf.expectation (step_2 <| state\<lparr>state_chi := ?chi\<rparr>)
+      (prob_fail <<< step_3)\<close>
+    unfolding step_1_def' step_2_def' step_3_def
+    apply (auto simp add: power_le_one)
+    sorry
+
+  (* also have \<open>\<dots> =
+    f ^ state_k state * of_bool (card ?chi = threshold) *
+    measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+      (\<lambda> keep_in_chi. \<Prod> x' \<in> ?chi. of_bool (keep_in_chi x'))\<close>
+    sorry *)
+
+  also have \<open>\<dots> =
+    f ^ state_k state * of_bool (card ?chi = threshold) *
+    measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+      (of_bool <<< Ball ?chi)\<close>
+    (is \<open>?L' = ?R'\<close>)
+    (* (is \<open>_ = _ * _ * measure_pmf.expectation _ ?prob_fail_given_keep_in_chi\<close>) *)
+  proof -
+    from assms f threshold show ?thesis
+      unfolding step_1_def'
+      sorry
+      (* unfolding step_1_def' step_2_def' step_3_def
+      apply (auto
+        intro!: integral_cong_AE
+        simp add:
+          power_le_one field_simps AE_measure_pmf_iff
+          card.insert_remove remove_def set_prod_pmf UNIV_bool)
+      apply (metis Suc_n_not_n assms card.insert_remove card_Diff_singleton_if card_insert_le card_seteq insert_iff member_filter subsetI)
+      apply (metis assms card.insert_remove card_insert_le card_seteq finite.intros(2) insertCI insert_absorb member_filter subsetI)
+      sorry *)
+  qed
+
+  show ?thesis sorry
+qed
 
 (* TODO: try this proof be simpler using = instead of \<ge>? *)
 lemma prob_fail_step_le:
@@ -33,7 +121,8 @@ proof -
 
   have *: "\<And>st. measure_pmf.expectation (step_2 st)
     (\<lambda>st. of_bool( card (state_chi st) = threshold)) \<le> f ^ threshold"
-    unfolding step_2_def Let_def
+    unfolding step_2_def'
+    apply auto
     sorry
 
   have \<open>?L = measure_pmf.expectation (step_1 x state \<bind> step_2) (prob_fail <<< step_3)\<close>
@@ -41,8 +130,7 @@ proof -
 
   also have "... = measure_pmf.expectation (step_1 x state \<bind> step_2) 
     (\<lambda>st. of_bool( card (state_chi st) = threshold))"          
-    unfolding step_3_def
-    by (auto intro!: Bochner_Integration.integral_cong)
+    unfolding step_3_def by (auto intro: integral_cong_AE)
 
   also have "... = measure_pmf.expectation (step_1 x state)
     (\<lambda>st.

@@ -23,45 +23,6 @@ abbreviation relational_hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_pmf S (f x) (f' x'))\<close>
 
-(* lemma precond_strengthen :
-  assumes
-    \<open>\<And> x x'. R x x' \<Longrightarrow> R' x x'\<close>
-    \<open>\<turnstile>pmf \<lbrakk>R'\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-  by (metis assms(1,2) relational_hoare_triple_def)
-
-lemma precond_false [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>\<lblot>\<lblot>False\<rblot>\<rblot>\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-  by (simp add: relational_hoare_triple_def)
-
-lemma postcond_weaken :
-  assumes
-    \<open>\<And> x x'. S' x x' \<Longrightarrow> S x x'\<close>
-    \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S'\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-  by (metis assms(1,2) pmf.rel_mono_strong relational_hoare_triple_def)
-
-lemma postcond_true [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrakk>\<close>
-  by (smt (verit, best) map_pmf_const pmf.rel_map(1) pmf.rel_mono_strong rel_pmf_return_pmf1 relational_hoare_triple_def) *)
-
-(* lemma refl_eq [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>\<lblot>x\<rblot> | \<lblot>x\<rblot>\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
-  \<open>\<turnstile>pmf \<lbrakk>(=)\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
-  \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. S x x' \<and> x = x')\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
-  \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. x = x' \<and> S x x')\<rbrakk> \<langle>f | f\<rangle> \<lbrakk>(=)\<rbrakk>\<close>
-  by (simp_all add: relational_hoare_triple_def pmf.rel_eq) *)
-
-(* lemma skip [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>return_pmf | return_pmf\<rangle> \<lbrakk>S\<rbrakk> \<equiv>
-  (\<And> x x'. R x x' \<Longrightarrow> S x x')\<close>
-  by simp *)
-
-(* lemma skip' [simp] :
-  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f' >>> return_pmf\<rangle> \<lbrakk>S\<rbrakk> \<equiv>
-  (\<And> x x'. R x x' \<Longrightarrow> S (f x) (f' x'))\<close>
-  by simp *)
-
 lemma skip_left [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f'\<rangle> \<lbrakk>S\<rbrakk> \<equiv> (\<And> x. \<turnstile>pmf \<lbrakk>R x\<rbrakk> f' \<lbrakk>S (f x)\<rbrakk>)\<close>
   by (simp add: AE_measure_pmf_iff rel_pmf_return_pmf1)
@@ -71,46 +32,6 @@ lemma skip_right [simp] :
     (\<And> x'. \<turnstile>pmf \<lbrakk>flip R x'\<rbrakk> f \<lbrakk>flip S (f' x')\<rbrakk>)\<close>
   apply standard
   by (simp_all add: AE_measure_pmf_iff rel_pmf_return_pmf2)
-
-(* lemma if_then_else :
-  assumes
-    \<open>\<And> x x'. R x x' \<Longrightarrow> f x \<longleftrightarrow> f' x'\<close>
-    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. f x \<and> R x x')\<rbrakk> \<langle>g | g'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. \<not> f x \<and> R x x')\<rbrakk> \<langle>h | h'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf
-    \<lbrakk>R\<rbrakk>
-    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then g' x else h' x)\<rangle>
-    \<lbrakk>S\<rbrakk>\<close>
-  using assms
-  by simp *)
-
-(* lemma if_then_else' :
-  assumes
-    \<open>\<And> x x'. R x x' \<Longrightarrow> f x \<longleftrightarrow> \<not> f' x'\<close>
-    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. f x \<and> R x x')\<rbrakk> \<langle>g | g'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-    \<open>\<turnstile>pmf \<lbrakk>(\<lambda> x x'. \<not> f x \<and> R x x')\<rbrakk> \<langle>h | h'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf
-    \<lbrakk>R\<rbrakk>
-    \<langle>(\<lambda> x. if f x then g x else h x) | (\<lambda> x. if f' x then h' x else g' x)\<rangle>
-    \<lbrakk>S\<rbrakk>\<close>
-  using assms by simp  *)
-
-(* lemma seq :
-  assumes
-    \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-    \<open>\<turnstile>pmf \<lbrakk>S\<rbrakk> \<langle>g | g'\<rangle> \<lbrakk>T\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>(\<lambda> x. f x \<bind> g) | (\<lambda> x. f' x \<bind> g')\<rangle> \<lbrakk>T\<rbrakk>\<close>
-  using assms
-  by (auto
-    intro!: rel_pmf_bindI
-    simp add: relational_hoare_triple_def) *)
-
-(* lemma seq :
-  assumes
-    \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>\<close>
-    \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile>pmf \<lbrakk>S\<rbrakk> \<langle>g x | g' x'\<rangle> \<lbrakk>T\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>(\<lambda> x. f x \<bind> g x) | (\<lambda> x. f' x \<bind> g' x)\<rangle> \<lbrakk>T\<rbrakk>\<close>
-  using assms rel_pmf_bindI by blast *)
 
 context
   fixes

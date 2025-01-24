@@ -2,9 +2,10 @@ section \<open> Definition of the CVM algorithm \<close>
 theory CVM_Algo
 
 imports
-  Utils_New
+  Utils_SPMF_FoldM
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-begin  
+
+begin
 
 record 'a state =
   state_k :: nat
@@ -46,7 +47,7 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
         let chi = Set.filter keep_in_chi chi;
 
         return_pmf (\<lparr>state_k = k + 1, state_chi = chi\<rparr>) }
-      else return_pmf (state\<lparr>state_chi := chi\<rparr>)\<close>
+      else return_pmf state\<close>
 
 definition step_3 :: "'a state \<Rightarrow> 'a state spmf" where
   "step_3 \<equiv> \<lambda> state.
@@ -60,6 +61,12 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 abbreviation \<open>run_steps \<equiv> foldM_spmf step\<close>
 
 abbreviation \<open>cvm xs \<equiv> map_spmf compute_estimate (foldM_spmf step xs initial_state)\<close>
+
+lemmas step_1_def' =
+  step_1_def[simplified map_pmf_def[symmetric] Let_def if_distribR]
+
+lemmas step_2_def' =
+  step_2_def[simplified map_pmf_def[symmetric] Let_def]
 
 end
 
