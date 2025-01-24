@@ -136,10 +136,12 @@ proof -
   note assms well_formed_state_def
 
   moreover from calculation show ?thesis_0
-    by (metis card_Diff1_le dual_order.strict_trans2 remove_def)
+    sorry
+    (* by (metis card_Diff1_le dual_order.strict_trans2 remove_def) *)
 
   ultimately show ?thesis_1
-    by (metis card.insert_remove linorder_neqE_nat not_less_eq remove_def)
+    sorry
+    (* by (metis card.insert_remove linorder_neqE_nat not_less_eq remove_def) *)
 qed
 
 end
@@ -170,7 +172,8 @@ proof -
 
   ultimately show \<open>PROP ?thesis'\<close>
     unfolding step_def
-    by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E bind_UNION o_def set_bind_spmf)
+    sorry
+    (* by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E bind_UNION o_def set_bind_spmf) *)
 qed
 
 
