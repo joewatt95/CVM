@@ -76,8 +76,7 @@ proof -
     apply (subst integral_bind_pmf)
     by (fastforce simp add: AE_measure_pmf_iff step_1_finite_support)+
 
-  also have
-    \<open>\<dots> \<le> measure_pmf.expectation (step_1 x state) (\<lambda> _. f ^ threshold)\<close>
+  also have \<open>\<dots> \<le> measure_pmf.expectation (step_1 x state) (\<lambda> _. f ^ threshold)\<close>
   proof -
     have
       \<open>?prob_fail_step_3_after_step_2 state \<le> f ^ threshold\<close> (is \<open>?L' \<le> ?R'\<close>)
@@ -88,12 +87,13 @@ proof -
       have \<open>?L' =
         of_bool (card ?chi = threshold) *
         measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
-          (\<lambda> keep_in_chi. of_bool (card (Set.filter keep_in_chi ?chi) = card ?chi))\<close>
+          (\<lambda> keep_in_chi.
+            of_bool (card (Set.filter keep_in_chi ?chi) = card ?chi))\<close>
         by (auto intro!: integral_cong_AE simp add: step_2_def' step_3_def)
 
       also from assms that have \<open>\<dots> =
         of_bool (card ?chi = threshold) *
-          measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+        measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
           (\<lambda> keep_in_chi. \<Prod> x \<in> ?chi. of_bool (keep_in_chi x))\<close>
         by (auto
           intro!: integral_cong_AE
