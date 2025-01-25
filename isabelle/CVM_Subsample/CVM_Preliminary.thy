@@ -14,26 +14,16 @@ lemma of_bool_power:
   shows \<open>(of_bool x::real) ^ (y::nat) = of_bool x\<close>
   by (simp add: assms)
 
+lemma card_filter_mono:
+  assumes \<open>finite S\<close>
+  shows \<open>card (Set.filter p S) \<le> card S\<close>
+  by (intro card_mono assms) auto
+
 fun foldM ::
   \<open>('a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> ('d \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> 'd list \<Rightarrow> 'b \<Rightarrow> 'c\<close> where
   \<open>foldM _ return' _ [] val = return' val\<close> |
   \<open>foldM bind' return' f (x # xs) val =
     bind' (f x val) (foldM bind' return' f xs)\<close>
-
-lemma foldM_cong:
-  fixes bind return
-  assumes "\<And> x. x \<in> set xs \<Longrightarrow> f x = f' x"
-  shows "foldM bind return f xs v = foldM bind return f' xs v"
-  using assms
-proof (induction xs arbitrary: v)
-  case Nil
-  then show ?case by simp
-next
-  case (Cons a xs)
-  then show ?case by simp_all presburger
-qed
-
-lemma foldM_empty: "foldM bind' return' f [] = return'" by auto
 
 abbreviation foldM_pmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
@@ -48,7 +38,7 @@ abbreviation foldM_spmf
   \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
 
 lemma foldM_spmf_snoc: "foldM_spmf f (xs@[y]) val = bind_spmf (foldM_spmf f xs val) (f y)"
-  by (induction xs arbitrary:val) (simp_all add:foldM_empty cong:bind_spmf_cong)
+  by (induction xs arbitrary:val) (simp_all cong:bind_spmf_cong)
 
 abbreviation \<open>prob_fail \<equiv> (\<lambda>x. pmf x None)\<close>
 

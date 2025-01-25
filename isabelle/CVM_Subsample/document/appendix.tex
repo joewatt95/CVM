@@ -1,4 +1,4 @@
-\section{Informal Proof}
+\section{Informal Proof\label{apx:informal_proof}}
 This section includes an informal version of the proof for the tail bounds and unbiasedness
 of the abstract algorithm (Algorithm~\ref{alg:cvm_abs}) for interested readers.
 
@@ -36,7 +36,7 @@ After these preliminaries, we can go to the main proof, whose core is a probabil
 invariant for Algorithm~\ref{alg:cvm_abs} that can be verified inductively.
 
 \begin{lemma}
-\label{le:neg_cor_prelim}
+\label{le:prob_invariant}
 Let $\phi : (0,1] \times \{0,1\} \rightarrow \mathbb R_{\geq 0}$ be a function, fulfilling the following
   conditions:
 \begin{enumerate}
@@ -138,7 +138,7 @@ With this we can can now verify the induction step:
 \end{proof}
 
 A corollary and more practical version of the previous lemma is:
-\begin{lemma}\label{le:neg_cor_neg}
+\begin{lemma}\label{le:prob_invariant_simple}
 Let $q \leq 1$ and $h : \mathbb [0,q^{-1}] \rightarrow \mathbb R_{\geq 0}$ be concave then for all 
 $k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Omega_k'\}$:
 \[
@@ -146,7 +146,7 @@ $k \in \{0,\ldots,l\}$, $S \subseteq \{a_1,..,a_k\}$, $\Omega \in \{\Omega_k,\Om
 \]
 \end{lemma}
 \begin{proof}
-Follows from Lemma~\ref{le:neg_cor_prelim} for $\phi(p,\tau) := I(p > q) h(\tau p^{-1})$. We just
+Follows from Lemma~\ref{le:prob_invariant} for $\phi(p,\tau) := I(p > q) h(\tau p^{-1})$. We just
 need to check Conditions 1 and 2. Indeed,
 \begin{eqnarray*}
   (1-\alpha) \phi(x,0) + \alpha \phi(x,1) & = & (1-\alpha) I(x>q) h(0) + \alpha I(x>q) h(x^{-1}) \\
@@ -163,7 +163,7 @@ It should be noted that this is a probabilistic recurrence relation, but the mai
 we establish a relation, with respect to general classes of functions of the state variables.
 
 \subsection{Concentration}
-Let us now see how we can obtain concentration bounds using Lemma~\ref{le:neg_cor_neg}, i.e., that
+Let us now see how we can obtain concentration bounds using Lemma~\ref{le:prob_invariant_simple}, i.e., that
 the result of the algorithm is concentrated around the cardinality of $A = \{ a_1, \ldots, a_l \}$.
 This will be done using the Cram\'{e}r--Chernoff method for the probability that the estimate is 
 above $(1+\eps)|A|$ (resp.~below $(1-\eps)|A|$) assuming $p$ is not too small and a tail estimate 
@@ -206,7 +206,7 @@ To get a tail estimate, we use the Cram\'{e}r--Chernoff method:
   \expect_\Omega \left[ \prod_{s \in A'} I(p \geq q) \exp ( t p^{-1} I(s \in \chi) ) \right] \\
  & \leq & \exp( -t (1+\eps) |A| ) 
   \expect_\Omega \left[ \prod_{s \in A'} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
- & \underset{\textrm{Le.~\ref{le:neg_cor_neg}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
+ & \underset{\textrm{Le.~\ref{le:prob_invariant_simple}}}{\leq} & \exp( -t (1+\eps) |A| ) h(1)^{|A'|} \\
  & \underset{h(1)\geq 1}{\leq} & \left(\exp( \ln(h(1)) -t (1+\eps))\right) ^ {|A|} 
 \end{eqnarray*}}
 So we just need to show that (using $|A|=\frac{n}{4q}$):
@@ -278,7 +278,7 @@ With these definitions we again follow the Cram\'{e}r--Chernoff method:
       \exp ( t p^{-1} I(s \in \chi) ) \right] \\
     & \leq & \exp( -t (1-\eps) |A| ) \expect_\Omega 
       \left[ \prod_{s \in A} I(p \geq q) h( p^{-1} I(s \in \chi) ) \right] \\
-    & \underset{\textrm{Le.~\ref{le:neg_cor_neg}}}{\leq} & \exp( -t (1-\eps) |A| ) (h(1))^{|A|} \\
+    & \underset{\textrm{Le.~\ref{le:prob_invariant_simple}}}{\leq} & \exp( -t (1-\eps) |A| ) (h(1))^{|A|} \\
     & = & \exp( \ln(h(1)) -t (1-\eps) )^{|A|}
 \end{eqnarray*}
 }
@@ -314,7 +314,7 @@ Note that the theorem is trivial if $|A| < n$. If not:
 \end{proof}
 \subsection{Unbiasedness\label{sec:unbiasedness}}
 Let $M$ be large enough such that $p^{-1} \leq M$ a.s. (e.g., we can choose $M = f^{-l}$).
-Then we can derive from Lemma~\ref{le:neg_cor_neg} using $h(x) = x$ and $h(x) = M+1-x$ that
+Then we can derive from Lemma~\ref{le:prob_invariant_simple} using $h(x) = x$ and $h(x) = M+1-x$ that
 for all $s \in A$:
 \begin{eqnarray*}
   \expect_{\Omega_l} [ p^{-1} I(s \in \chi) ] & = &

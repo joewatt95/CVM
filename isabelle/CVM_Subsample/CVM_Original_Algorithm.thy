@@ -310,6 +310,35 @@ proof -
   finally show ?thesis by simp
 qed
 
-end
+lemma space_usage:
+  \<open>AE \<sigma> in measure_spmf (run_steps xs). card (state_\<chi> \<sigma>) < thresh \<and> finite (state_\<chi> \<sigma>)\<close>
+proof (induction xs rule:rev_induct)
+  case Nil thus ?case using thresh_gt_0 by (simp add:run_steps_def initial_state_def)
+next
+  case (snoc x xs)
+  define p1 where \<open>p1 = run_steps xs \<bind> step_1 x\<close>
+  define p2 where \<open>p2 = p1 \<bind> step_2\<close>
+  define p3 where \<open>p3 = p2 \<bind> step_3\<close>
 
-end
+  have a:\<open>run_steps (xs@[x]) = p3\<close>
+    unfolding run_steps_def p1_def p2_def p3_def foldM_spmf_snoc by (simp add:bind_assoc_pmf)
+
+  have \<open>card (state_\<chi> \<sigma>) \<le> thresh \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p1\<close> for \<sigma>
+    using snoc that less_imp_le unfolding p1_def
+    by (auto simp add:step_1_def set_bind_spmf set_spmf_bind_pmf Let_def card_insert_if remove_def)+
+
+  hence \<open>card (state_\<chi> \<sigma>) \<le> thresh \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p2\<close> for \<sigma>
+    using that card_filter_mono unfolding p2_def 
+    by (auto intro!:card_filter_mono simp:step_2_def set_bind_spmf set_spmf_bind_pmf 
+        subsample_def Let_def if_distrib)
+
+  hence \<open>card (state_\<chi> \<sigma>) < thresh \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p3\<close> for \<sigma>
+    using that unfolding p3_def 
+    by (auto intro:le_neq_implies_less simp:step_3_def set_bind_spmf if_distrib)
+
+  thus ?case unfolding a by simp
+qed
+
+end (* context *)
+
+end (* theory *)

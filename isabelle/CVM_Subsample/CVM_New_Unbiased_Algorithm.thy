@@ -124,12 +124,9 @@ proof -
   thus \<open>finite (set_pmf (subsample U))\<close> unfolding subsample_def by auto
 qed
 
-(* Lemma 1 *)
 lemma int_prod_subsample_eq_prod_int:
   fixes g :: \<open>bool \<Rightarrow> real\<close>
-  assumes
-    \<open>card U = thresh\<close>
-    \<open>S \<subseteq> U\<close> \<open>range g \<subseteq> {0..}\<close>
+  assumes \<open>card U = thresh\<close> \<open>S \<subseteq> U\<close> \<open>range g \<subseteq> {0..}\<close>
   shows \<open>(\<integral>\<omega>. (\<Prod>s\<in>S. g(s \<in> \<omega>)) \<partial>subsample U) \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>bernoulli_pmf f))\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   define \<eta> where \<open>\<eta> \<equiv> if g True \<ge> g False then Fwd else Rev\<close>
@@ -216,6 +213,51 @@ theorem correctness:
   shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon> * R } \<le> \<delta>\<close> 
   unfolding R_def by (intro abs.correctness assms)
 
-end
+lemma space_usage:
+  \<open>AE \<sigma> in run_steps xs. card (state_\<chi> \<sigma>) < thresh \<and> finite (state_\<chi> \<sigma>)\<close>
+proof -
+  define \<rho> where \<open>\<rho> = FinalState xs\<close>
+  have \<open>card (state_\<chi> \<sigma>) < thresh + (case \<rho> of FinalState _ \<Rightarrow> 0 | IntermState _ _ \<Rightarrow> 1)\<close>
+    if \<open>\<sigma> \<in> set_pmf (abs.run_state_pmf \<rho>)\<close> for \<sigma>
+    using that
+  proof (induction \<rho> arbitrary:\<sigma> rule:run_state_induct)
+    case 1
+    then show ?case using abs.thresh_gt_0 by (simp add:run_steps_def initial_state_def)
+  next
+    case (2 xs x)
+    have \<open>card (state_\<chi> \<tau>) < thresh \<and> finite (state_\<chi> \<tau>)\<close>
+      if \<open>\<tau> \<in> set_pmf (abs.run_state_pmf (FinalState xs))\<close> for \<tau>
+      using 2(1) abs.state_\<chi>_finite[where \<rho>=\<open>FinalState xs\<close>] that by (simp add:AE_measure_pmf_iff)
+    thus ?case
+      using 2(2) unfolding abs.step_1_def abs.run_state_pmf.simps Let_def map_pmf_def[symmetric] 
+      by (force simp:card_insert_if remove_def)
+  next
+    case (3 xs x)
+    define p where \<open>p = abs.run_state_pmf (IntermState xs x)\<close>
 
-end
+    have a: \<open>abs.run_state_pmf (FinalState (xs@[x])) = p \<bind> abs.step_2\<close>
+      by (simp add:p_def abs.run_steps_snoc)
+
+    have b:\<open>card \<chi> < card (state_\<chi> \<tau>)\<close> 
+      if \<open>card (state_\<chi> \<tau>) = thresh\<close> \<open>\<chi> \<in> set_pmf (subsample (state_\<chi> \<tau>))\<close> \<open>\<tau> \<in> set_pmf p\<close> for \<chi> \<tau>
+    proof -
+      from subsample_finite_nonempty[OF that(1)]
+      have \<open>card \<chi> = subsample_size\<close> using that unfolding subsample_def by auto
+      thus ?thesis using subsample_size(1) that by auto
+    qed
+
+    have \<open>card (state_\<chi> \<tau>) < thresh \<or> card (state_\<chi> \<tau>) = thresh\<close> \<open>finite (state_\<chi> \<tau>)\<close>
+      if \<open>\<tau> \<in> set_pmf p\<close> for \<tau>
+      using 3(1) abs.state_\<chi>_finite[where \<rho>=\<open>IntermState xs x\<close>] that unfolding p_def
+      by (auto simp:AE_measure_pmf_iff less_Suc_eq)
+    hence \<open>card (state_\<chi> \<sigma>) < thresh\<close>
+      using 3(2) unfolding a abs.step_2_def Let_def by (auto intro!:b simp:if_distrib if_distribR)  
+    thus ?case by simp
+  qed
+  thus ?thesis using abs.state_\<chi>_finite[where \<rho>=\<open>FinalState xs\<close>]  unfolding \<rho>_def 
+    by (simp add:AE_measure_pmf_iff)
+qed
+
+end (* context *)
+
+end (* theory *)

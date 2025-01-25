@@ -8,7 +8,7 @@ The abstract algorithm is presented in Algorithm~\ref{alg:cvm_abs}.
 \begin{algorithm}[h!]
 	\caption{Abstract CVM algorithm.\label{alg:cvm_abs}}
 	\begin{algorithmic}[1]       
-  \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
+  \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $\frac{1/2} \leq f < 1$
   \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
   \State $\chi \gets \{\}, p \gets 1, n \geq \left\lceil \frac{12}{\varepsilon^2} \ln(\frac{3l}{\delta}) \right\rceil$
   \For{$i \gets 1$ to $l$}
@@ -31,8 +31,8 @@ For the subsampling step we assume that it fulfills the following inequality:
                                         
 \begin{equation}
 \label{eq:subsample_condition}     
-\int_{\mathrm{subsample}(\chi)} \left(\prod_{i \in S} g(i \in \omega) \right) d \omega \leq 
-  \prod_{i \in S} \left(\int_{Ber(f)} g(\omega) \omega\right)      
+\int_{\mathrm{subsample}(\chi)} \left(\prod_{i \in S} g(i \in \omega) \right)\, d \omega \leq 
+  \prod_{i \in S} \left(\int_{Ber(f)} g(\omega)\, d\omega\right)      
 \end{equation}
 for all non-negative functions $g$ and $S \subseteq \chi$,
 where $\mathrm{Ber}(p)$ denotes the Bernoulli-distribution.
@@ -45,12 +45,19 @@ The new CVM algorithm variant proposed in this work uses a subsampling step wher
 $nf$-sized subset of $\chi$ is kept. This also fulfills the above inequality, although this is
 harder to prove and will be explained in more detail in Section~\ref{sec:cvm_new}.
 
-In this section, we'll verify that the above abstract algorithm indeed fulfills the desired
+In this section, we will verify that the above abstract algorithm indeed fulfills the desired
 conditions on its estimate, as well as unbiasedness, i.e., that: $\expect [R] = |A|$.
 The part that is not going to be verified in this section, is the fact that the algorithm keeps at
 most $n$ elements in the state $\chi$, because it is not unconditionally true, but will be ensured
 (by different means) for the concrete instantiations in the following sections.
-The formalization keeps track of $k$ where $p = f^k$ in its state.\<close>
+
+In contrast to the informal description (Algorithm~\ref{alg:cvm_abs}), the formalization keeps track
+of $k$ in its state, which is the number of subsampling operations, however this is an equivalent 
+representation, because $p$ is then just $f^k$.
+
+An informal version of this proof is presented in Appendix~\ref{apx:informal_proof}.
+For important lemmas and theorems, we include a reference to the corresponding statement in the
+appendix.\<close>
 
 theory CVM_Abstract_Algorithm
 
@@ -93,7 +100,7 @@ locale cvm_algo_abstract =
       \<Longrightarrow> (\<integral>\<omega>. (\<Prod>s\<in>S. g(s \<in> \<omega>)) \<partial>subsample U) \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>bernoulli_pmf f))\<close>    
 begin
 
-text \<open>Line 1:\<close>
+text \<open>Line 1 of Algorithm~\ref{alg:cvm_abs}:\<close>
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
 
@@ -181,8 +188,7 @@ next
   show ?case unfolding a using step_2_preserves_finite_support[OF 3] by simp
 qed
 
-lemma state_\<chi>_run_state_pmf:
-  \<open>AE \<omega> in run_state_pmf \<rho>. state_\<chi> \<omega> \<subseteq> run_state_set \<rho>\<close>
+lemma state_\<chi>_run_state_pmf: \<open>AE \<sigma> in run_state_pmf \<rho>. state_\<chi> \<sigma> \<subseteq> run_state_set \<rho>\<close>
 proof (induction \<rho> rule:run_state_induct)
   case 1 thus ?case by (simp add:run_steps_def AE_measure_pmf_iff initial_state_def)
 next
@@ -196,7 +202,11 @@ next
   show ?case unfolding b using subsample 3 by (simp add:AE_measure_pmf_iff step_2_def Let_def) blast
 qed
 
-text \<open>Lemma~\ref{le:neg_cor_prelim}:\<close>
+lemma state_\<chi>_finite: \<open>AE \<sigma> in run_state_pmf \<rho>. finite (state_\<chi> \<sigma>)\<close>
+  using finite_subset[OF _ finite_run_state_set] 
+  by (intro AE_mp[OF state_\<chi>_run_state_pmf AE_I2]) auto
+
+text \<open>Lemma~\ref{le:prob_invariant}:\<close>
 lemma run_steps_preserves_expectation_le:
   fixes \<phi> :: \<open>real \<Rightarrow> bool \<Rightarrow> real\<close>
   assumes phi :
@@ -329,7 +339,7 @@ next
   finally show ?case by simp
 qed
 
-text \<open>Lemma~\ref{le:neg_cor_neg}:\<close>
+text \<open>Lemma~\ref{le:prob_invariant_simple}:\<close>
 lemma run_steps_preserves_expectation_le' :
   fixes q :: real and h :: \<open>real \<Rightarrow> real\<close>
   assumes h:
@@ -941,6 +951,6 @@ proof -
   finally show ?thesis by auto
 qed
 
-end (* end cvm_algo_abstract *)
+end (* cvm_algo_abstract *)
 
-end (* end theory *)
+end (* theory *)
