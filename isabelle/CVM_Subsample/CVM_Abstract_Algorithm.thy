@@ -1,9 +1,9 @@
 section \<open>Abstract Algorithm\label{sec:cvm_abs}\<close>
 
 text \<open>This section verifies an abstract version of the CVM algorithm, where the subsampling step
-can be an arbitrary randomized algorithm, fulfilling an expectation invariant.
+can be an arbitrary randomized algorithm fulfilling an expectation invariant.
 
-It is presented in Algorithm~\ref{alg:cvm_abs}.
+The abstract algorithm is presented in Algorithm~\ref{alg:cvm_abs}.
 
 \begin{algorithm}[h!]
 	\caption{Abstract CVM algorithm.\label{alg:cvm_abs}}
@@ -31,25 +31,26 @@ For the subsampling step we assume that it fulfills the following inequality:
                                         
 \begin{equation}
 \label{eq:subsample_condition}     
-\int_{\mathrm{subsample}(\chi)} \left(\prod_{i \in S} g(i \in \omega) d \omega\right) \leq 
+\int_{\mathrm{subsample}(\chi)} \left(\prod_{i \in S} g(i \in \omega) \right) d \omega \leq 
   \prod_{i \in S} \left(\int_{Ber(f)} g(\omega) \omega\right)      
 \end{equation}
-for all non-negative functions $g$ and $S \subseteq \chi$. 
-
-Note that, $\mathrm{Ber}(p)$ denotes the Bernoulli-distribution.
+for all non-negative functions $g$ and $S \subseteq \chi$,
+where $\mathrm{Ber}(p)$ denotes the Bernoulli-distribution.
                                                       
-The original CVM algorithm uses a subsampling step, where each element is retained with probability
-$f$. It is straight-forward to see that this fulfills the above condition.
+The original CVM algorithm uses a subsampling step where each element of $\chi$ is retained
+independently with probability $f$. It is straightforward to see that this fulfills the above
+condition (with equality).
 
-The new CVM algorithm proposed in this work, uses a subsampling step, where a random $nf$-subset
-of the elements are kept. This also fulfills the above inequality, although this is harder to
-prove and will be explained in more detail in Section~\ref{sec:cvm_new}.
+The new CVM algorithm variant proposed in this work uses a subsampling step where a random
+$nf$-sized subset of $\chi$ is kept. This also fulfills the above inequality, although this is
+harder to prove and will be explained in more detail in Section~\ref{sec:cvm_new}.
 
-In this section, we'll verify that the above algorithm indeed fulfills the desired conditions, as
-well as, unbiasedness, i.e., that: $\expect [R] = |A|$.
+In this section, we'll verify that the above abstract algorithm indeed fulfills the desired
+conditions on its estimate, as well as unbiasedness, i.e., that: $\expect [R] = |A|$.
 The part that is not going to be verified in this section, is the fact that the algorithm keeps at
 most $n$ elements in the state $\chi$, because it is not unconditionally true, but will be ensured
-(by different means) for the concrete instantiations in the following sections.\<close>
+(by different means) for the concrete instantiations in the following sections.
+The formalization keeps track of $k$ where $p = f^k$ in its state.\<close>
 
 theory CVM_Abstract_Algorithm
 
@@ -96,7 +97,7 @@ text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
 
-text \<open>Lines 3-7:\<close>
+text \<open>Lines 3--7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 x \<sigma> =
     do {
@@ -114,7 +115,7 @@ definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf
       return_pmf (\<sigma>\<lparr>state_\<chi> := \<chi>\<rparr>)
     }\<close>
 
-text \<open>Lines 8-10:\<close>
+text \<open>Lines 8--10:\<close>
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 \<sigma> = do {
     let k = state_k \<sigma>;
@@ -128,7 +129,7 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
       return_pmf \<sigma> 
     }\<close>
 
-text \<open>Lines 1-10:\<close>
+text \<open>Lines 1--10:\<close>
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps xs \<equiv> foldM_pmf (\<lambda>x \<sigma>. step_1 x \<sigma> \<bind> step_2) xs initial_state\<close>
 

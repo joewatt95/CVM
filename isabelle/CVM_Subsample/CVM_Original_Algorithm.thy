@@ -1,10 +1,10 @@
-section \<open>The original CVM Algorithm\label{sec:cvm_original}\<close>
+section \<open>The Original CVM Algorithm\label{sec:cvm_original}\<close>
 
-text \<open>In this section, we verify the same algorithm, presented by Chakrabory et 
-al.~\cite{chakraborty2022} (replicated, here, in Algorthm~\ref{alg:cvm_classic}). With the 
-following caveat:
+text \<open>In this section, we verify the algorithm as presented by Chakrabory et
+al.~\cite{chakraborty2022} (replicated, here, in Algorithm~\ref{alg:cvm_classic}),
+with the following caveat:
 
-In the original algorithm the elements are removed with probability $f := \frac{1}{2}$ during the
+In the original algorithm the elements are removed with probability $f := \frac{1}{2}$ in the
 subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e^{-1/12}]$. 
 
 \begin{algorithm}[h!]
@@ -32,22 +32,20 @@ subsampling step. The version verified here allows for any $f \in [\frac{1}{2},e
 \end{algorithmic}        
 \end{algorithm}
 
-The first step of the proof is identical to the proof~\cite{chakraborty2022}, where the above
-algorithm is approximated by a second algorithm, where line 11-12 are removed, i.e., the two
-algorithms behave identically, unless the very improbable event occurs, where the subsampling step,
-does not remove any elements.
-
-It is possible to see that the total variational distance between the two algorithms is at most 
-$\frac{\delta}{2}$.
+The first step of the proof is identical to the original proof~\cite{chakraborty2022}, where the
+above algorithm is approximated by a second algorithm, where lines 11--12 are removed, i.e., the two
+algorithms behave identically, unless the very improbable event---where the subsampling step fails
+to remove any elements---occurs. It is possible to show that the total variational distance between
+the two algorithms is at most $\frac{\delta}{2}$.
 
 In the second step, we verify that the probability that the second algorithm returns an estimate
-outside of the desired interval is also at most $\frac{\delta}{2}$. This of course, works by 
-noticing that it is an instance of the abstract algorithm, we introduced in
-Section~\ref{sec:cvm_abs}. In combination, we conclude a failure probability for the unmodified
-version of the algorithm $\delta$.
+outside of the desired interval is also at most $\frac{\delta}{2}$. This, of course, works by 
+noticing that it is an instance of the abstract algorithm we introduced in
+Section~\ref{sec:cvm_abs}. In combination, we conclude a failure probability of $\delta$ for the
+unmodified version of the algorithm.
 
 On the other hand, the fact that the number of elements in the buffer is at most $n$ can be seen
-directly, for the unmodified version of the algorithm.\<close>
+directly from Algorithm~\ref{alg:cvm_classic}.\<close>
 
 theory CVM_Original_Algorithm
   imports CVM_Abstract_Algorithm
@@ -64,7 +62,7 @@ text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state = \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
 
-text \<open>Lines 3-7:\<close>
+text \<open>Lines 3--7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_1 x \<sigma> = do {
     let k = state_k \<sigma>;
@@ -87,7 +85,7 @@ definition subsample :: \<open>'a set \<Rightarrow> 'a set spmf\<close> where
       return_spmf (Set.filter keep_in_\<chi> \<chi>)
     }\<close>
 
-text \<open>Lines 8-10:\<close>
+text \<open>Lines 8--10:\<close>
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_2 \<sigma> = do {
     let k = state_k \<sigma>;
@@ -101,7 +99,7 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
       return_spmf \<sigma> 
     }\<close>
 
-text \<open>Lines 11-12:\<close>
+text \<open>Lines 11--12:\<close>
 definition step_3 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_3 \<sigma> = 
     do {
@@ -112,7 +110,7 @@ definition step_3 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
       else return_spmf \<sigma>
     }\<close>
 
-text \<open>Lines 1-12:\<close>
+text \<open>Lines 1--12:\<close>
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state spmf\<close> where
   \<open>run_steps xs \<equiv> foldM_spmf (\<lambda>x \<sigma>. step_1 x \<sigma> \<bind> step_2 \<bind> step_3) xs initial_state\<close>
 

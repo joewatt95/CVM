@@ -1,11 +1,11 @@
-section \<open>The new Unbiased Algorithm\label{sec:cvm_new}\<close>
+section \<open>The New Unbiased Algorithm\label{sec:cvm_new}\<close>
 
-text \<open>In this section, we introduce the new algorithm promised in the abstract. 
+text \<open>In this section, we introduce the new algorithm variant promised in the abstract. 
 
-The key idea is to replace the subsampling step of the original algorithm, which removes each
-element of the buffer independently with probability f (see Algorithm~\ref{alg:cvm_new}). 
-Instead, we choose a random $nf$-subset of the buffer. 
-(This means $f$, $n$ must be choosen, such that $nf$ is integer.)
+The main change is to replace the subsampling step of the original algorithm, which removes each
+element of the buffer independently with probability $f$. 
+Instead, we choose a random $nf$-subset of the buffer (see Algorithm~\ref{alg:cvm_new}). 
+(This means $f$, $n$ must be chosen, such that $nf$ is an integer.)
 
 \begin{algorithm}[h!]
 	\caption{New CVM algorithm.\label{alg:cvm_new}}
@@ -30,17 +30,17 @@ Instead, we choose a random $nf$-subset of the buffer.
 \end{algorithm}
 
 The fact that this still preserves the required inequality for the subsampling operation 
-(Eq.~\ref{eq:subsample_condition}) is a result following from the negative associativity of
-permutation distributions~\cite[Th. 10]{dubhashi1996}.
+(Eq.~\ref{eq:subsample_condition}) follows from the negative associativity of permutation
+distributions~\cite[Th. 10]{dubhashi1996}.
 
 (See also our formalization of the concept~\cite{Negative_Association-AFP}.)
 
 Because the subsampling step always removes elements unconditionally, the second check, whether
 the subsampling succeeded of the original algorithm is not necessary anymore.
 
-This of course improves the space usage of the algorithm, because the fist reduction argument
-from Section~\ref{sec:cvm_original} is now obsolete. Moreover the resulting algorithm is now
-unbiased, because it is an instance of the abstract algorithm~\ref{sec:cvm_abs}.\<close>
+This improves the space usage of the algorithm, because the first reduction argument from
+Section~\ref{sec:cvm_original} is now obsolete. Moreover the resulting algorithm is now
+unbiased, because it is an instance of the abstract algorithm of Section~\ref{sec:cvm_abs}.\<close>
 
 theory CVM_New_Unbiased_Algorithm
   imports
@@ -64,7 +64,7 @@ definition initial_state :: \<open>'a state\<close> where
 definition f :: real 
   where \<open>f \<equiv> subsample_size / thresh\<close>
 
-text \<open>Lines 3-7:\<close>
+text \<open>Lines 3--7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 x \<sigma> = 
     do {
@@ -85,7 +85,7 @@ definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf
 definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
   \<open>subsample \<chi> = pmf_of_set {S. S \<subseteq> \<chi> \<and> card S = subsample_size}\<close>
 
-text \<open>Lines 8-10:\<close>
+text \<open>Lines 8--10:\<close>
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 \<sigma> = do {
     let k = state_k \<sigma>;
@@ -99,7 +99,7 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
       return_pmf \<sigma> 
     }\<close>
 
-text \<open>Lines 1-10:\<close>
+text \<open>Lines 1--10:\<close>
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps xs \<equiv> foldM_pmf (\<lambda>x \<sigma>. step_1 x \<sigma> \<bind> step_2) xs initial_state\<close>
 
