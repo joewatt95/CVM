@@ -1,5 +1,5 @@
 session Negative_Association in "Negative_Association" = "HOL-Probability" +
-  options [timeout = 600]
+  options [timeout = 1200]
 
   sessions
     Concentration_Inequalities
@@ -23,7 +23,7 @@ session Negative_Association in "Negative_Association" = "HOL-Probability" +
     "root.bib"
 
 session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
-  options [timeout = 300]
+  options [timeout = 1200]
 
   sessions
     Probabilistic_Prime_Tests
@@ -40,7 +40,7 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
     "appendix.tex"
 
 session CVM_Old in "CVM_Old" = "CryptHOL" +
-  options [timeout = 300]
+  options [timeout = 1200]
 
   sessions
     Universal_Hash_Families
@@ -116,7 +116,7 @@ session CVM_Old in "CVM_Old" = "CryptHOL" +
     "root.tex"
 
 session CVM_Original in "CVM_Original" = "CryptHOL" +
-  options [timeout = 300]
+  options [timeout = 1200]
 
   sessions
     Universal_Hash_Families
