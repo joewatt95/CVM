@@ -5,9 +5,11 @@ of the abstract algorithm (Algorithm~\ref{alg:cvm_abs}) for interested readers.
 This means we assume for the $\mathrm{subsample}(\chi)$ operation, that it fulfills 
 Eq.~\ref{eq:subsample_condition} and returns allways a subset of $\chi$.
 
-\paragraph{Notation:} For the bernoulli probability space, over the set $\{0,1\}$ we'll write 
-$\mathrm{Ber}(p)$, i.e., $P_{\mathrm{Ber}(p)}(\{1\}) = p$. $I(P)$ is the indicator function for a 
-predicate $P$, i.e., $I(\mathrm{true}) = 1$ and $I(\mathrm{false}) = 0$.
+\paragraph{Notation:} For a finite set $S$, the probability space of uniformly sampling from the set
+is denoted by $U(S)$, i.e., for each $s \in S$ we have $\prob_{U(S)}({s}) = |S|^{-1}$.
+For the bernoulli probability space, over the set $\{0,1\}$ we'll write $\mathrm{Ber}(p)$, i.e.,
+$P_{\mathrm{Ber}(p)}(\{1\}) = p$. $I(P)$ is the indicator function for a predicate $P$, i.e.,
+$I(\mathrm{true}) = 1$ and $I(\mathrm{false}) = 0$.
 
 Like in the formalization, we will denote the first five lines of the loop ($3$--$7$) as step 1, 
 the last four lines ($8$--$10$) as step 2. For the distribution of the state of the algorithm after
@@ -30,7 +32,7 @@ $\Omega'_i$. So the sequence of states is represented by the distributions
 $\Omega_0, \Omega'_1, \Omega_1, \ldots, \Omega'_l, \Omega_l$.
 
 \subsection{Loop Invariant}
-After these preliminiaries, we can go to the main proof, whose core is an probabilistic loop
+After these preliminiaries, we can go to the main proof, whose core is a probabilistic loop
 invariant for Algorithm~\ref{alg:cvm_abs} that can be verified inductively.
 
 \begin{lemma}

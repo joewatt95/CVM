@@ -1,9 +1,39 @@
-theory Utils_PMF
+section \<open>Preliminary Definitions and Results\<close>
 
-imports
-  "HOL-Probability.SPMF"
-  CVM_Subsample.Utils_Basic
+theory CVM_Preliminary
+  imports "HOL-Probability.SPMF"
 begin
+
+lemma bounded_finite:
+  assumes \<open>finite S\<close>
+  shows \<open>bounded (f ` S)\<close>
+  using assms by (intro finite_imp_bounded) auto
+
+lemma of_bool_power:
+  assumes \<open>y > 0\<close>
+  shows \<open>(of_bool x::real) ^ (y::nat) = of_bool x\<close>
+  by (simp add: assms)
+
+fun foldM ::
+  \<open>('a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> ('d \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> 'd list \<Rightarrow> 'b \<Rightarrow> 'c\<close> where
+  \<open>foldM _ return' _ [] val = return' val\<close> |
+  \<open>foldM bind' return' f (x # xs) val =
+    bind' (f x val) (foldM bind' return' f xs)\<close>
+
+lemma foldM_cong:
+  fixes bind return
+  assumes "\<And> x. x \<in> set xs \<Longrightarrow> f x = f' x"
+  shows "foldM bind return f xs v = foldM bind return f' xs v"
+  using assms
+proof (induction xs arbitrary: v)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  then show ?case by simp_all presburger
+qed
+
+lemma foldM_empty: "foldM bind' return' f [] = return'" by auto
 
 abbreviation foldM_pmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where

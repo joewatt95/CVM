@@ -28,16 +28,12 @@ session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
   sessions
     Probabilistic_Prime_Tests
 
-  directories
-    "Utils"
-
   theories
+    CVM_Preliminary
     CVM_Abstract_Algorithm
     CVM_Original_Algorithm
     CVM_New_Unbiased_Algorithm
 
-    "Utils/Utils_Basic"
-    "Utils/Utils_PMF"
   document_files
     "root.tex"
     "root.bib"

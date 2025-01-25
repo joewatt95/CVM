@@ -45,6 +45,7 @@ unbiased, because it is an instance of the abstract algorithm~\ref{sec:cvm_abs}.
 theory CVM_New_Unbiased_Algorithm
   imports
     CVM_Abstract_Algorithm
+    Probabilistic_Prime_Tests.Generalized_Primality_Test
     Negative_Association.Negative_Association_Permutation_Distributions
 begin
 
