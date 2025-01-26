@@ -286,7 +286,7 @@ next
     using finite_run_state_pmf[where \<rho>=\<open>FinalState (xs@[x])\<close>] a by simp
 
   have c: \<open>(\<integral>u. (\<Prod>s\<in>S. \<phi> (f * f ^ state_k \<tau>) (s \<in> u)) \<partial>subsample (state_\<chi> \<tau>)) \<le> aux S \<tau>\<close>
-    (is \<open>?L \<le> ?R\<close>) if that': \<open>\<tau> \<in> set_pmf p\<close> \<open>card(state_\<chi> \<tau>) = thresh\<close> for \<tau>
+    (is \<open>?L \<le> ?R\<close>) if that': \<open>card(state_\<chi> \<tau>) = thresh\<close> for \<tau>
   proof -
     let ?q = \<open>subsample (state_\<chi> \<tau>)\<close>
     let ?U = \<open>state_\<chi> \<tau>\<close>
@@ -294,7 +294,7 @@ next
     define k' where \<open>k' = state_k \<tau>+1\<close>
 
     have d: \<open>y \<subseteq> state_\<chi> \<tau>\<close> if \<open>y \<in> set_pmf (subsample (state_\<chi> \<tau>))\<close> for y 
-      using subsample[OF that'(2)] that by auto
+      using subsample[OF that'] that by auto
 
     have e: \<open>f ^ k' \<in> {0<..1}\<close> using f_range by (auto intro:power_le_one)
     have f: \<open>f ^ state_k \<tau> \<in> {0<..1}\<close> using f_range by (auto intro:power_le_one)
