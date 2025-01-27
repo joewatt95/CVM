@@ -8,23 +8,30 @@ imports
 
 begin
 
-(* abbreviation ord_spmf_eq (infix \<open>\<sqsubseteq>\<close> 60) where
-  \<open>(\<sqsubseteq>) \<equiv> ord_spmf (=)\<close> *)
-
 lemma rel_spmf_conj_iff_ae_measure_spmf_conj :
   \<open>rel_spmf (\<lambda> x y. P x \<and> Q y) p q \<longleftrightarrow> (
     (weight_spmf p = weight_spmf q) \<and>
     (AE x in measure_spmf p. P x) \<and>
     (AE y in measure_spmf q. Q y))\<close>
-  using mk_lossless_back_eq[of p] mk_lossless_back_eq[of q]
-  by (auto
-    intro!:
-      rel_spmfI[of
-        \<open>scale_spmf (weight_spmf p) <|
-          pair_spmf (mk_lossless p) (mk_lossless q)\<close>]
-    elim!: rel_spmfE
-    split: if_splits
-    simp add: map_scale_spmf weight_mk_lossless set_scale_spmf)
+  (is \<open>?L \<longleftrightarrow> ?R\<close>)
+proof (rule iffI)
+  show ?R if ?L using that by (auto elim!: rel_spmfE)
+
+  let ?pq =
+    \<open>pair_spmf (mk_lossless p) (mk_lossless q)
+      |> scale_spmf (weight_spmf p)\<close>
+
+  show ?L if ?R
+  proof (rule rel_spmfI[of ?pq])
+    from that show \<open>(x, y) \<in> set_spmf ?pq \<Longrightarrow> P x \<and> Q y\<close> for x y
+      unfolding set_scale_spmf by (simp split: if_splits)
+
+    from that mk_lossless_back_eq[of p] mk_lossless_back_eq[of q] show
+      \<open>map_spmf fst ?pq = p\<close>
+      \<open>map_spmf snd ?pq = q\<close>
+      unfolding map_scale_spmf by (auto simp add: weight_mk_lossless)
+  qed
+qed
 
 lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
   \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q \<longleftrightarrow> weight_spmf p = weight_spmf q\<close>
