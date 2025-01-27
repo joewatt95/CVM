@@ -60,9 +60,9 @@ using assms proof (induction xs arbitrary: offset)
   then show ?case by (simp add: foldM_enumerate_def)
 next
   case (Cons _ _)
-  with rel_pmf_bindI show ?case
+  then show ?case
     apply (simp flip: add_Suc add: foldM_enumerate_def)
-    by blast
+    by (blast intro: rel_pmf_bindI)
 qed
 
 lemma loop :

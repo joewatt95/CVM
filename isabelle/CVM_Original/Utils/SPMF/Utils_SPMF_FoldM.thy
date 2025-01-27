@@ -36,6 +36,7 @@ qed
 
 lemma foldM_spmf_of_pmf_eq :
   \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs = spmf_of_pmf <<< foldM_pmf f xs\<close>
+  \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs val = spmf_of_pmf (foldM_pmf f xs val)\<close>
   apply (induction xs)
   by (simp_all add: spmf_of_pmf_bind)
 
