@@ -159,12 +159,9 @@ proof -
   let ?go = \<open>\<lambda> f. case_option fail_spmf <<< f\<close>
 
   from assms have \<open>\<turnstile>pmf
-    \<lbrakk>ord_option (=)\<rbrakk>
-    \<langle>foldM_pmf (?go f) xs | foldM_pmf (?go f') xs\<rangle>
-    \<lbrakk>ord_option (=)\<rbrakk>\<close>
-    by (fastforce
-      intro: Utils_PMF_Relational.loop_unindexed
-      split: option.splits)
+    \<lbrakk>le_option\<rbrakk> \<langle>foldM_pmf (?go f) xs | foldM_pmf (?go f') xs\<rangle> \<lbrakk>le_option\<rbrakk>\<close>
+    apply (intro Utils_PMF_Relational.loop_unindexed)
+    by (auto split: option.splits)
 
   then show ?thesis by (simp add: foldM_spmf_eq_foldM_pmf_case)
 qed
