@@ -27,8 +27,7 @@ proof (rule iffI)
       unfolding set_scale_spmf by (simp split: if_splits)
 
     from that mk_lossless_back_eq[of p] mk_lossless_back_eq[of q] show
-      \<open>map_spmf fst ?pq = p\<close>
-      \<open>map_spmf snd ?pq = q\<close>
+      \<open>map_spmf fst ?pq = p\<close> \<open>map_spmf snd ?pq = q\<close>
       unfolding map_scale_spmf by (auto simp add: weight_mk_lossless)
   qed
 qed
