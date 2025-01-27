@@ -49,11 +49,11 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
         return_pmf (\<lparr>state_k = k + 1, state_chi = chi\<rparr>) }
       else return_pmf state\<close>
 
-definition step_3 :: "'a state \<Rightarrow> 'a state spmf" where
-  "step_3 \<equiv> \<lambda> state.
+definition step_3 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
+  \<open>step_3 \<equiv> \<lambda> state.
     if card (state_chi state) = threshold
     then fail_spmf
-    else return_spmf state"
+    else return_spmf state\<close>
 
 definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step \<equiv> \<lambda> x state. spmf_of_pmf (step_1 x state \<bind> step_2) \<bind> step_3\<close>

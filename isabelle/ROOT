@@ -132,6 +132,7 @@ session CVM_Original in "CVM_Original" = "CryptHOL" +
   theories
     "CVM_Algo"
     "CVM_Algo_No_Fail"
+    "CVM_Algo_Lazy_Eager"
 
     "Utils_Basic"
     "Utils_Reader_Monad"
