@@ -8,8 +8,8 @@ imports
 
 begin
 
-abbreviation ord_spmf_eq (infix \<open>\<sqsubseteq>\<close> 60) where
-  \<open>(\<sqsubseteq>) \<equiv> ord_spmf (=)\<close>
+(* abbreviation ord_spmf_eq (infix \<open>\<sqsubseteq>\<close> 60) where
+  \<open>(\<sqsubseteq>) \<equiv> ord_spmf (=)\<close> *)
 
 lemma rel_spmf_conj_iff_ae_measure_spmf_conj :
   \<open>rel_spmf (\<lambda> x y. P x \<and> Q y) p q \<longleftrightarrow> (
@@ -149,11 +149,14 @@ lemma loop_unindexed :
     intro!: ord_spmf_eqD_pmf_None[where Y = \<open>{}\<close>] 
     simp add: hoare_ord_option_iff_ord_spmf chain_empty) *)
 
+context ord_spmf_syntax
+begin
+
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
-  assumes \<open>\<And> x val. f x val \<sqsubseteq> f' x val\<close>
-  shows \<open>foldM_spmf f xs val \<sqsubseteq> foldM_spmf f' xs val\<close>
+  assumes \<open>\<And> x val. f x val \<sqsubseteq>\<^bsub>(=)\<^esub> f' x val\<close>
+  shows \<open>foldM_spmf f xs val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_spmf f' xs val\<close>
 proof -
-  let ?go = \<open>\<lambda> f x. case_option fail_spmf (f x)\<close>
+  let ?go = \<open>\<lambda> f. case_option fail_spmf <<< f\<close>
 
   from assms have \<open>\<turnstile>pmf
     \<lbrakk>ord_option (=)\<rbrakk>
@@ -163,13 +166,14 @@ proof -
       intro: Utils_PMF_Relational.loop_unindexed
       split: option.splits)
 
-  then show ?thesis
-    by (simp add: foldM_spmf_eq_foldM_pmf_case)
+  then show ?thesis by (simp add: foldM_spmf_eq_foldM_pmf_case)
 qed
 
 lemma prob_measure_spmf_le_of_ord_spmf :
-  assumes \<open>p \<sqsubseteq> q\<close>
+  assumes \<open>p \<sqsubseteq>\<^bsub>(=)\<^esub> q\<close>
   shows \<open>\<P>(x in measure_spmf p. P x) \<le> \<P>(y in measure_spmf q. P y)\<close>
   using assms by (simp add: ord_spmf_eqD_measure space_measure_spmf)
+
+end
 
 end

@@ -70,7 +70,7 @@ lemmas step_2_def' =
 
 end
 
-locale cvm_algo_assms = cvm_algo +
+locale cvm_algo_assms = cvm_algo + ord_spmf_syntax +
   assumes
     threshold : \<open>threshold > 0\<close> and
     f : \<open>0 < f\<close> \<open>f < 1\<close>

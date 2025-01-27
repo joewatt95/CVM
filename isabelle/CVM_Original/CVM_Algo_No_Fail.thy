@@ -122,12 +122,12 @@ lemma prob_fail_run_steps_le :
   by (metis prob_fail_foldM_spmf_le prob_fail_step_le step_preserves_well_formedness wf_state_initial_state)
 
 lemma step_le_step_no_fail :
-  \<open>step x state \<sqsubseteq> spmf_of_pmf (step_no_fail x state)\<close>
+  \<open>step x state \<sqsubseteq>\<^bsub>(=)\<^esub> spmf_of_pmf (step_no_fail x state)\<close>
   apply (simp add: step_def step_3_def spmf_of_pmf_bind)
   by (smt (verit) bind_return_spmf ord_spmf_None ord_spmf_bind_reflI spmf.leq_refl)
 
 lemma run_steps_le_run_steps_no_fail :
-  \<open>run_steps xs state \<sqsubseteq> spmf_of_pmf (run_steps_no_fail xs state)\<close>
+  \<open>run_steps xs state \<sqsubseteq>\<^bsub>(=)\<^esub> spmf_of_pmf (run_steps_no_fail xs state)\<close>
   unfolding foldM_spmf_of_pmf_eq[symmetric]
   by (blast intro: foldM_spmf_ord_spmf_eq_of_ord_spmf_eq step_le_step_no_fail)
 
