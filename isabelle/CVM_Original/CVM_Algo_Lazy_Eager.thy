@@ -141,7 +141,7 @@ definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rig
 *)
 
 lemmas step_1_eager_def' = step_1_eager_def[
-  simplified map_rd_def[symmetric] Let_def]
+  simplified map_rd_def[symmetric] Let_def if_distribR]
 
 end
 
