@@ -8,7 +8,7 @@ imports
 
 begin
 
-context cvm_algo_assms
+context cvm_algo
 begin
 
 abbreviation \<open>step_no_fail \<equiv> \<lambda> x state. step_1 x state \<bind> step_2\<close>
@@ -18,6 +18,11 @@ abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step
 abbreviation \<open>run_steps_no_fail \<equiv> foldM_pmf step_no_fail\<close>
 
 abbreviation \<open>wf_state \<equiv> \<lambda> state. finite (state_chi state)\<close>
+
+end
+
+context cvm_algo_assms
+begin
 
 (* not convinced this is needed, at least here...*)
 (* definition

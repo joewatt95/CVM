@@ -90,6 +90,24 @@ proof -
   then show ?thesis_0 ?thesis_1 by simp_all
 qed
 
+theorem run_steps_no_fail_eq_lazy :
+  \<open>run_steps_no_fail xs initial_state = run_steps_lazy xs initial_state\<close>
+proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case by simp
+next
+  case (snoc x xs)
+
+  moreover have
+    "step_lazy (xs @ [x]) (length xs) state = step_no_fail x state" for state
+    unfolding
+      step_lazy_def step_1_lazy_def' step_2_lazy_def' step_1_def' step_2_def'
+    by (auto intro!: bind_pmf_cong simp add: bind_map_pmf)
+
+  ultimately show ?case
+    unfolding run_steps_lazy_snoc foldM_pmf_snoc by presburger
+qed
+
 end
 
 end
