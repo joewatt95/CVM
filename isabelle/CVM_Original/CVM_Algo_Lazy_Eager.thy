@@ -61,21 +61,33 @@ lemma run_steps_lazy_snoc :
   apply (intro bind_pmf_cong foldM_cong step_lazy_cong refl)
   by (simp add: nth_append_left)
 
-lemma state_k_bound :
-  \<open>AE state in run_steps_lazy xs initial_state. state_k state \<le> length xs\<close>
-  (is \<open>AE state in _. ?P (length xs) state\<close>)
+lemma
+  state_k_bound :
+    \<open>AE state in run_steps_lazy xs initial_state. state_k state \<le> length xs\<close>
+    (is ?thesis_0) and
+  state_chi_bound :
+    \<open>AE state in run_steps_lazy xs initial_state. state_chi state \<subseteq> set xs\<close>
+    (is ?thesis_1)
 proof -
+  let ?P = \<open>\<lambda> index state.
+    state_k state \<le> index \<and> state_chi state \<subseteq> set xs\<close>
+
   have \<open>\<turnstile>pmf
     \<lbrakk>(\<lambda> state.
-      (index, i) \<in> set (List.enumerate 0 [0 ..< length xs]) \<and> ?P index state)\<rbrakk>
+      (index, i) \<in> set (List.enumerate 0 [0 ..< length xs]) \<and>
+      ?P index state)\<rbrakk>
     step_lazy xs i
     \<lbrakk>?P (Suc index)\<rbrakk>\<close> for index i
-    by (simp add: step_lazy_def step_1_lazy_def' step_2_lazy_def' AE_measure_pmf_iff)
+    by (auto simp add:
+      step_lazy_def step_1_lazy_def' step_2_lazy_def'
+      AE_measure_pmf_iff in_set_enumerate_eq)
 
-  then show ?thesis
+  then have \<open>AE state in run_steps_lazy xs initial_state. ?P (length xs) state\<close>
     apply (intro Utils_PMF_Hoare.loop[
       where offset = 0 and xs = \<open>[0 ..< length xs]\<close>, simplified])
-    by (simp_all add: initial_state_def)
+    by (auto simp add: initial_state_def)
+
+  then show ?thesis_0 ?thesis_1 by simp_all
 qed
 
 end
