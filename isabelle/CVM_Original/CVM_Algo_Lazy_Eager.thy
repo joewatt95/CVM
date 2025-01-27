@@ -75,7 +75,7 @@ proof -
   then show ?thesis
     apply (intro Utils_PMF_Hoare.loop[
       where offset = 0 and xs = \<open>[0 ..< length xs]\<close>, simplified])
-    by (simp_all add: initial_state_def in_set_enumerate_eq)
+    by (simp_all add: initial_state_def)
 qed
 
 end
