@@ -17,7 +17,7 @@ abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step
 
 abbreviation \<open>run_steps_no_fail \<equiv> foldM_pmf step_no_fail\<close>
 
-abbreviation \<open>wf_state \<equiv> \<lambda> state. finite (state_chi state)\<close>
+abbreviation \<open>finite_chi \<equiv> \<lambda> state. finite (state_chi state)\<close>
 
 end
 
@@ -30,22 +30,22 @@ begin
     let chi = state_chi state
     in finite chi \<and> R (card chi) threshold)\<close> *)
 
-lemma wf_state_initial_state :
-  \<open>wf_state initial_state\<close>
+lemma finite_initial_state :
+  \<open>finite_chi initial_state\<close>
   by (simp add: initial_state_def)
 
-lemma step_1_preserves_well_formedness :
-  \<open>\<turnstile>pmf \<lbrakk>wf_state\<rbrakk> step_1 x \<lbrakk>wf_state\<rbrakk>\<close>
+lemma step_1_preserves_finiteness :
+  \<open>\<turnstile>pmf \<lbrakk>finite_chi\<rbrakk> step_1 x \<lbrakk>finite_chi\<rbrakk>\<close>
   unfolding step_1_def' by (simp add: AE_measure_pmf_iff remove_def)
 
-lemma step_2_preserves_well_formedness :
-  \<open>\<turnstile>pmf \<lbrakk>wf_state\<rbrakk> step_2 \<lbrakk>wf_state\<rbrakk>\<close>
+lemma step_2_preserves_finiteness :
+  \<open>\<turnstile>pmf \<lbrakk>finite_chi\<rbrakk> step_2 \<lbrakk>finite_chi\<rbrakk>\<close>
   unfolding step_2_def' by (simp add: AE_measure_pmf_iff)
 
-lemma step_preserves_well_formedness :
-  \<open>\<turnstile>spmf \<lbrace>wf_state\<rbrace> step x \<lbrace>wf_state\<rbrace>\<close>
+lemma step_preserves_finiteness :
+  \<open>\<turnstile>spmf \<lbrace>finite_chi\<rbrace> step x \<lbrace>finite_chi\<rbrace>\<close>
   unfolding step_def step_3_def
-  using step_1_preserves_well_formedness step_2_preserves_well_formedness
+  using step_1_preserves_finiteness step_2_preserves_finiteness
   by (force
     split: if_splits
     simp flip: bind_spmf_of_pmf
@@ -56,17 +56,17 @@ lemma step_1_finite_support :
   unfolding step_1_def' by simp
 
 lemma step_2_finite_support :
-  assumes \<open>wf_state state\<close>
+  assumes \<open>finite_chi state\<close>
   shows \<open>finite <| set_pmf <| step_2 state\<close>
   using assms
   unfolding step_2_def' by (simp add: set_prod_pmf finite_PiE)
 
 lemma step_2_finite_support_after_step_1 :
-  \<open>\<turnstile>pmf \<lbrakk>wf_state\<rbrakk> step_1 x \<lbrakk>(\<lambda> state. finite (set_pmf <| step_2 state))\<rbrakk>\<close>
-  by (metis (no_types, lifting) eventually_mono step_1_preserves_well_formedness step_2_finite_support)
+  \<open>\<turnstile>pmf \<lbrakk>finite_chi\<rbrakk> step_1 x \<lbrakk>(\<lambda> state. finite (set_pmf <| step_2 state))\<rbrakk>\<close>
+  by (metis (no_types, lifting) eventually_mono step_1_preserves_finiteness step_2_finite_support)
 
 lemma prob_fail_step_le :
-  assumes \<open>wf_state state\<close>
+  assumes \<open>finite_chi state\<close>
   shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   have \<open>?L =
@@ -87,7 +87,7 @@ proof -
   proof -
     have
       \<open>?prob_fail_step_3_after_step_2 state \<le> f ^ threshold\<close> (is \<open>?L' \<le> ?R'\<close>)
-      if \<open>wf_state state\<close> for state :: \<open>'a state\<close>
+      if \<open>finite_chi state\<close> for state :: \<open>'a state\<close>
     proof -
       let ?chi = \<open>state_chi state\<close>
 
@@ -114,7 +114,7 @@ proof -
       finally show ?thesis .
     qed
 
-    with assms step_1_preserves_well_formedness show ?thesis
+    with assms step_1_preserves_finiteness show ?thesis
       apply (intro integral_mono_AE)
       by (fastforce simp add: integrable_measure_pmf_finite step_1_finite_support AE_measure_pmf_iff)+
   qed
@@ -124,7 +124,7 @@ qed
 
 lemma prob_fail_run_steps_le :
   \<open>prob_fail (run_steps xs initial_state) \<le> length xs * f ^ threshold\<close>
-  by (metis prob_fail_foldM_spmf_le prob_fail_step_le step_preserves_well_formedness wf_state_initial_state)
+  by (metis prob_fail_foldM_spmf_le prob_fail_step_le step_preserves_finiteness finite_initial_state)
 
 lemma step_le_step_no_fail :
   \<open>step x state \<sqsubseteq>\<^bsub>(=)\<^esub> spmf_of_pmf (step_no_fail x state)\<close>
