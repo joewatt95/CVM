@@ -2,8 +2,11 @@ theory CVM_Algo_Lazy_Eager
 
 imports
   CVM_Algo_No_Fail
+  Utils_Reader_Monad
 
 begin
+
+hide_const (open) Misc_CryptHOL.coin_pmf
 
 context cvm_algo
 begin
@@ -99,14 +102,52 @@ next
   case (snoc x xs)
 
   moreover have
-    "step_lazy (xs @ [x]) (length xs) state = step_no_fail x state" for state
+    \<open>step_lazy (xs @ [x]) (length xs) state = step_no_fail x state\<close> for state
     unfolding
       step_lazy_def step_1_lazy_def' step_2_lazy_def' step_1_def' step_2_def'
-    by (auto intro!: bind_pmf_cong simp add: bind_map_pmf)
+      bind_map_pmf
+    apply (intro bind_pmf_cong refl)
+    by simp
 
   ultimately show ?case
     unfolding run_steps_lazy_snoc foldM_pmf_snoc by presburger
 qed
+
+type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
+
+definition step_1_eager ::
+  \<open>'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
+  \<open>step_1_eager \<equiv> \<lambda> xs i state. do {
+    let k = state_k state; let chi = state_chi state;
+    insert_x_into_chi \<leftarrow> map_rd (\<lambda> \<phi>. (\<forall> k' < k. \<phi> (k', i))) get_rd;
+
+    let chi = (chi |>
+      if insert_x_into_chi
+      then insert (xs ! i)
+      else Set.remove (xs ! i));
+
+    return_rd (state \<lparr>state_chi := chi\<rparr>) }\<close>
+
+(* definition step_2_eager :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
+  where "step_2_eager xs i state = do {
+      let k = state_k state;
+      let chi = state_chi state;
+      if real (card chi) < threshold then
+        return_rd (state\<lparr>state_chi := chi\<rparr>)
+      else do {
+        keep_in_chi \<leftarrow> map_rd (\<lambda>\<phi>. \<lambda>x \<in> chi. \<phi> (k, find_last_before i x xs)) get_rd;
+        let chi = Set.filter keep_in_chi chi;
+        return_rd \<lparr>state_k = k+1, state_chi = chi\<rparr>
+      }
+    }"
+
+definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
+  where
+  "eager_step xs i state = step_1_eager xs i state \<bind> step_2_eager xs i"
+*)
+
+lemmas step_1_eager_def' = step_1_eager_def[
+  simplified map_rd_def[symmetric] Let_def]
 
 end
 
