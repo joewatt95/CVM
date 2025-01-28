@@ -16,7 +16,7 @@ definition get_rd :: "('a,'a) reader_monad"
 definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad \<Rightarrow> ('c,'b) reader_monad"
   where "map_rd f m = bind_rd m (\<lambda>x. return_rd (f x))"
 
-adhoc_overloading Monad_Syntax.bind bind_rd
+adhoc_overloading Monad_Syntax.bind == bind_rd
 
 abbreviation (input) kleisli_compose_left
   (infixl \<open>>=>\<close> 50) where
@@ -56,6 +56,8 @@ lemma reader_monad_eqI:
   shows "m = n"
   using assms
   by (metis (mono_tags) reader_monad.rel_eq reader_monad.rel_sel rel_fun_eq_rel)
+
+lemmas bind_cong_rd = arg_cong2[where f = bind_rd]
 
 lemma map_bind_rd:
   "map_rd g (bind_rd m f) = bind_rd m (\<lambda>x. map_rd g (f x))"

@@ -18,10 +18,10 @@ definition space where "space \<equiv> Pi_pmf I d M"
 definition sample where "sample x \<equiv> map_pmf (run_reader x) space"
 
 definition depends_on :: "('a \<Rightarrow> 'c, 'b) reader_monad \<Rightarrow> 'a set \<Rightarrow> bool" where
-  \<open>depends_on m S = (\<forall> f g.
+  \<open>depends_on m S \<equiv> \<forall> f g.
     {f, g} \<subseteq> set_pmf space \<longrightarrow>
     (\<lambda> i \<in> S. f i) = (\<lambda> i \<in> S. g i) \<longrightarrow>
-    run_reader m f = run_reader m g)\<close>
+    run_reader m f = run_reader m g\<close>
 
 lemma depends_onI:
   assumes "\<And> f g. \<lbrakk>f \<in> set_pmf space; g \<in> set_pmf space;

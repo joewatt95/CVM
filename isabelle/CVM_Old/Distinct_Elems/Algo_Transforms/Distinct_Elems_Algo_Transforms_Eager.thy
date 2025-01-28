@@ -173,7 +173,7 @@ next
 
   have a:"step_2_eager (xs @ [x]) l \<sigma> =
     keep_in_chi \<bind> (\<lambda>c. return_rd \<lparr>state_k = (state_k \<sigma>+1), state_chi = Set.filter c (state_chi \<sigma>)\<rparr>)"
-    using False unfolding step_2_eager_def by (simp add: depends_on_return flip: keep_in_chi_def)
+    using False unfolding step_2_eager_def by (simp flip: keep_in_chi_def)
 
   have "c1 (state_k \<sigma>, find_last_before l i (xs @ [x])) = c2 (state_k \<sigma>, find_last_before l i (xs @ [x]))"
     (is "?L = ?R")

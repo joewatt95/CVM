@@ -3,6 +3,7 @@ theory CVM_Algo_Lazy_Eager
 imports
   CVM_Algo_No_Fail
   Utils_Reader_Monad
+  Utils_PMF_Lazify
 
 begin
 
@@ -32,10 +33,11 @@ definition step_2_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> whe
   \<open>step_2_lazy \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
 
-    if card chi = threshold then do {
+    if card chi = threshold
+    then do {
       keep_in_chi \<leftarrow> prod_pmf chi (\<lambda> _. bernoulli_pmf f);
       return_pmf \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr> }
-    else return_pmf (state \<lparr>state_chi := chi\<rparr>) }\<close>
+    else return_pmf state }\<close>
 
 definition step_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_lazy \<equiv> \<lambda> state. step_1_lazy state \<bind> step_2_lazy\<close>
@@ -131,13 +133,12 @@ definition step_2_eager ::
   \<open>step_2_eager \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
 
-    if real (card chi) = threshold then do {
+    if real (card chi) = threshold
+    then do {
       keep_in_chi \<leftarrow> map_rd
-        (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, find_last_before i xs x))
-        get_rd;
+        (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, find_last_before i xs x)) get_rd;
       return_rd \<lparr>state_k = k+1, state_chi = Set.filter keep_in_chi chi\<rparr> }
-
-    else return_rd (state\<lparr>state_chi := chi\<rparr>) }\<close>
+    else return_rd state }\<close>
 
 definition step_eager ::
   \<open>'a state \<Rightarrow> (nat \<times> nat \<Rightarrow> bool, 'a state) reader_monad\<close> where
@@ -168,9 +169,103 @@ proof -
     unfolding find_last_before_def by simp
  
   ultimately show ?thesis_0 ?thesis_1 ?thesis_2
-    unfolding step_eager_def step_1_eager_def step_2_eager_def
+    unfolding step_eager_def step_1_eager_def' step_2_eager_def'
     by (simp_all cong: if_cong)
 qed
+
+lemma run_steps_eager_snoc :
+  \<open>run_steps_eager (xs @ [x]) state =
+    run_steps_eager xs state \<bind> step_eager (xs @ [x]) (length xs)\<close>
+  by (fastforce
+    intro: bind_cong_rd foldM_cong step_eager_cong
+    simp add: foldM_rd_snoc upt_Suc_append nth_append_left)
+
+abbreviation \<open>coin_pmf \<equiv> bernoulli_pmf f\<close>
+
+context
+  fixes n :: nat
+begin
+
+interpretation lazify "{..< n} \<times> {..< n}" "undefined" "\<lambda> _. coin_pmf"
+  by unfold_locales simp
+
+lemma depends_on_step1:
+  fixes xs x \<phi> state
+  defines "l \<equiv> length xs"
+  shows "depends_on (step_1_eager (xs @ [x]) l state) ({..<state_k state}\<times>{l})"
+proof -
+  let ?S = "{..<state_k state} \<times> {l}"
+
+  have "c1 (k',l) = c2 (k',l)"
+    if "restrict c1 ?S = restrict c2 ?S" "k' < state_k state"
+    for c1 c2 :: "nat \<times> nat \<Rightarrow> bool" and k'
+  proof -
+    have "c1 (k',l) = restrict c1 ?S (k',l)" using that(2) by simp
+    also have "... = restrict c2 ?S (k',l)" using that(1) by simp
+    also have "... = c2 (k',l)" using that(2) by simp
+    finally show ?thesis by simp
+  qed
+
+  thus ?thesis
+    unfolding step_1_eager_def' Let_def
+    by (intro depends_on_bind depends_on_return depends_on_map) auto
+qed
+
+lemma depends_on_step2:
+  fixes xs x \<sigma>
+  defines
+    "k' \<equiv> state_k \<sigma> + of_bool (card (state_chi \<sigma>) \<ge> threshold)" and
+    "l \<equiv> length xs"
+  shows "depends_on
+    (step_2_eager (xs @ [x]) l \<sigma>)
+    ({state_k \<sigma> ..< k'} \<times> {.. Suc l})"
+proof (cases "card (state_chi \<sigma>) = threshold")
+  case False
+  then show ?thesis unfolding step_2_eager_def' by (simp add:Let_def depends_on_return)
+next
+  define keep_in_chi :: "(coin_matrix, 'a \<Rightarrow> bool) reader_monad" where
+    "keep_in_chi \<equiv> map_rd
+      (\<lambda> \<phi>. \<lambda> i \<in> state_chi \<sigma>. \<phi> (state_k \<sigma>, find_last_before l (xs @ [x]) i))
+      get_rd"
+
+  case True
+  then have b: "k' = Suc (state_k \<sigma>)" unfolding k'_def by simp
+
+  from True depends_on_return
+  have a:"step_2_eager (xs @ [x]) l \<sigma> =
+    map_rd
+      (\<lambda>c. \<lparr>state_k = (Suc <| state_k \<sigma>), state_chi = Set.filter c (state_chi \<sigma>)\<rparr>)
+      keep_in_chi"
+    unfolding step_2_eager_def' by (simp flip: keep_in_chi_def)
+
+  have "c1 (state_k \<sigma>, find_last_before l i (xs @ [x])) = c2 (state_k \<sigma>, find_last_before l i (xs @ [x]))"
+    (is "?L = ?R")
+    if "restrict c1 ({state_k \<sigma>} \<times> {.. Suc l}) = restrict c2 ({state_k \<sigma>} \<times> {.. Suc l})"
+    for c1 c2 :: coin_matrix and i
+  proof -
+    have "?L = restrict c1 ({state_k \<sigma>} \<times> {.. Suc l}) (state_k \<sigma>, find_last_before l i (xs @ [x]))"
+      by (simp add: find_last_before_bound)
+    also have "\<dots> = restrict c2 ({state_k \<sigma>} \<times> {.. Suc l}) (state_k \<sigma>, find_last_before l i (xs @ [x]))"
+      using that by simp
+    also have "\<dots> = ?R"
+      by (simp add: find_last_before_bound)
+    finally show ?thesis by simp
+  qed
+
+  with find_last_before_bound have
+    "depends_on keep_in_chi ({state_k \<sigma>} \<times> {.. Suc l})"
+    unfolding keep_in_chi_def
+    apply (intro depends_on_map ext)
+    apply simp
+    by (smt (verit, del_insts) atMost_iff find_last_before_bound insertI1 mem_Sigma_iff restrict_apply')
+
+  thus ?thesis
+    unfolding a b map_rd_def
+    apply (intro depends_on_bind depends_on_return)
+    by simp
+qed
+
+end
 
 end
 

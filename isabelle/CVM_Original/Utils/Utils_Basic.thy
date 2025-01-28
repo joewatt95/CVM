@@ -75,12 +75,40 @@ end
 definition find_last_before :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> nat\<close> where
   \<open>find_last_before \<equiv> \<lambda> k. last_index <<< take (Suc k)\<close>
 
-(* value "find_last_before 0 [False, False] True"
+lemma find_last_before_bound:
+  \<open>find_last_before n xs x \<le> Suc n\<close>
+proof (cases n)
+  case 0
+  then show ?thesis
+    unfolding find_last_before_def
+    by (metis One_nat_def last_index_less_size_conv last_index_size_conv length_take less_numeral_extra(4) less_or_eq_imp_le linorder_le_less_linear min_less_iff_conj)
+next
+  case (Suc n)
+  then show ?thesis
+    unfolding find_last_before_def
+    by (metis diff_self_eq_0 drop_eq_Nil2 drop_take dual_order.trans last_index_le_size take_eq_Nil2)
+qed
 
-lemma
-  fixes xs x
-  defines \<open>i \<equiv> last_index xs x\<close>
-  shows \<open>find_last_before k xs x = undefined\<close>
-  sorry *)
+context
+  fixes i xs
+  assumes \<open>i < length xs\<close>
+begin
+
+lemma find_last_before_self_eq :
+  \<open>find_last_before i xs (xs ! i) = i\<close>
+  using \<open>i < length xs\<close>
+  unfolding find_last_before_def
+  by (simp add: take_Suc_conv_app_nth)
+
+lemma find_last_before_eq_find_last_iff :
+  assumes \<open>x \<in> set (take i xs)\<close>
+  shows
+    \<open>find_last_before i xs x = last_index (take i xs) x
+    \<longleftrightarrow> x \<noteq> xs ! i\<close>
+  using assms \<open>i < length xs\<close>
+  unfolding find_last_before_def
+  by (metis last_index_Snoc last_index_less_size_conv less_not_refl take_Suc_conv_app_nth)
+
+end
 
 end
