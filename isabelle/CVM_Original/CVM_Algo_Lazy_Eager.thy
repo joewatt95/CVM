@@ -27,7 +27,7 @@ definition step_1_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> whe
       then insert (xs ! i)
       else Set.remove (xs ! i));
 
-    return_pmf (state \<lparr>state_chi := chi\<rparr>) }\<close>
+    return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition step_2_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2_lazy \<equiv> \<lambda> state. do {
@@ -126,7 +126,7 @@ definition step_1_eager ::
       then insert (xs ! i)
       else Set.remove (xs ! i));
 
-    return_rd (state \<lparr>state_chi := chi\<rparr>) }\<close>
+    return_rd (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition step_2_eager ::
   \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
@@ -137,7 +137,7 @@ definition step_2_eager ::
     then do {
       keep_in_chi \<leftarrow> map_rd
         (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, last_index_up_to i xs x)) get_rd;
-      return_rd \<lparr>state_k = k+1, state_chi = Set.filter keep_in_chi chi\<rparr> }
+      return_rd \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr> }
     else return_rd state }\<close>
 
 definition step_eager ::
