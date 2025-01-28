@@ -44,9 +44,9 @@ private abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_pmf_enumerate fn xs offset\<close>
 
 private abbreviation (input)
-  \<open>R' index x val val' \<equiv>
-    (index, x) \<in> set (List.enumerate offset xs) \<and>
-    R index val val'\<close>
+  \<open>R' idx x val val' \<equiv>
+    (idx, x) \<in> set (List.enumerate offset xs) \<and>
+    R idx val val'\<close>
 
 lemma loop_enumerate :
   assumes \<open>\<And> index x.
@@ -66,8 +66,8 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x.
-    \<turnstile>pmf \<lbrakk>R' index x\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> idx x.
+    \<turnstile>pmf \<lbrakk>R' idx x\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>R offset\<rbrakk>
     \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle>

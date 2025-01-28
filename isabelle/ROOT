@@ -119,6 +119,7 @@ session CVM_Original in "CVM_Original" = "CryptHOL" +
   options [timeout = 1200]
 
   sessions
+    "List-Index"
     Universal_Hash_Families
     Finite_Fields
     Concentration_Inequalities

@@ -37,12 +37,12 @@ context
 begin
 
 private abbreviation (input)
-  \<open>P' index x val \<equiv>
-    (index, x) \<in> set (List.enumerate offset xs) \<and>
-    P index val\<close>
+  \<open>P' idx x val \<equiv>
+    (idx, x) \<in> set (List.enumerate offset xs) \<and>
+    P idx val\<close>
 
 lemma loop_enumerate :
-  assumes \<open>\<And> index x. \<turnstile>pmf \<lbrakk>P' index x\<rbrakk> f (index, x) \<lbrakk>P (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f (idx, x) \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>P offset\<rbrakk>
     foldM_pmf_enumerate f xs offset
@@ -58,7 +58,7 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x. \<turnstile>pmf \<lbrakk>P' index x\<rbrakk> f x \<lbrakk>P (Suc index)\<rbrakk>\<close>
+  assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P offset\<rbrakk> foldM_pmf f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
   using assms loop_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))

@@ -100,13 +100,13 @@ private abbreviation (input)
   \<open>foldM_enumerate' fn \<equiv> foldM_spmf_enumerate fn xs offset\<close>
 
 private abbreviation (input)
-  \<open>R' index x val val' \<equiv>
-    (index, x) \<in> set (List.enumerate offset xs) \<and>
-    R index val val'\<close>
+  \<open>R' idx x val val' \<equiv>
+    (idx, x) \<in> set (List.enumerate offset xs) \<and>
+    R idx val val'\<close>
 
 lemma loop_enumerate :
-  assumes \<open>\<And> index x.
-    \<turnstile>spmf \<lbrace>R' index x\<rbrace> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
+  assumes \<open>\<And> idx x.
+    \<turnstile>spmf \<lbrace>R' idx x\<rbrace> \<langle>f (idx, x) | f' (idx, x)\<rangle> \<lbrace>R (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>R offset\<rbrace>
     \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
@@ -122,8 +122,8 @@ next
 qed
 
 lemma loop :
-  assumes \<open>\<And> index x.
-    \<turnstile>spmf \<lbrace>R' index x\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc index)\<rbrace>\<close>
+  assumes \<open>\<And> idx x.
+    \<turnstile>spmf \<lbrace>R' idx x\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>R offset\<rbrace>
     \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>

@@ -35,9 +35,7 @@ definition map_index :: \<open>(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightar
   \<open>map_index f \<equiv> map (uncurry f) <<< enumerate 0\<close>
 
 context
-  fixes
-    bind :: \<open>'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c\<close> and
-    return :: \<open>'b \<Rightarrow> 'c\<close>
+  fixes bind :: \<open>'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c\<close> and return :: \<open>'b \<Rightarrow> 'c\<close>
 begin
 
 fun foldM ::

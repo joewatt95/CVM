@@ -1,7 +1,7 @@
 theory Utils_Basic
 
 imports
-  Main
+  "List-Index.List_Index"
 
 begin
 
@@ -71,5 +71,16 @@ lemma foldM_eq_foldM_enumerate :
   unfolding foldM_enumerate_def by simp_all
 
 end
+
+definition find_last_before :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> nat\<close> where
+  \<open>find_last_before \<equiv> \<lambda> k. last_index <<< take (Suc k)\<close>
+
+(* value "find_last_before 0 [False, False] True"
+
+lemma
+  fixes xs x
+  defines \<open>i \<equiv> last_index xs x\<close>
+  shows \<open>find_last_before k xs x = undefined\<close>
+  sorry *)
 
 end

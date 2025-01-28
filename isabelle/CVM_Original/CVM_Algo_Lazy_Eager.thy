@@ -60,9 +60,9 @@ lemma step_lazy_cong :
 lemma run_steps_lazy_snoc :
   \<open>run_steps_lazy (xs @ [x]) state =
     run_steps_lazy xs state \<bind> step_lazy (xs @ [x]) (length xs)\<close>
-  apply (simp add: upt_Suc_append foldM_pmf_snoc)
-  apply (intro bind_pmf_cong foldM_cong step_lazy_cong refl)
-  by (simp add: nth_append_left)
+  by (fastforce
+    intro: bind_pmf_cong foldM_cong step_lazy_cong
+    simp add: foldM_pmf_snoc upt_Suc_append nth_append_left)
 
 abbreviation \<open>well_formed_state \<equiv> \<lambda> xs state.
   state_k state \<le> length xs \<and> state_chi state \<subseteq> set xs\<close>
@@ -109,9 +109,13 @@ qed
 
 type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
+context
+  fixes xs :: \<open>'a list\<close> and i :: nat
+begin
+
 definition step_1_eager ::
-  \<open>'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
-  \<open>step_1_eager \<equiv> \<lambda> xs i state. do {
+  \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
+  \<open>step_1_eager \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
     insert_x_into_chi \<leftarrow> map_rd (\<lambda> \<phi>. (\<forall> k' < k. \<phi> (k', i))) get_rd;
 
@@ -122,26 +126,51 @@ definition step_1_eager ::
 
     return_rd (state \<lparr>state_chi := chi\<rparr>) }\<close>
 
-(* definition step_2_eager :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
-  where "step_2_eager xs i state = do {
-      let k = state_k state;
-      let chi = state_chi state;
-      if real (card chi) < threshold then
-        return_rd (state\<lparr>state_chi := chi\<rparr>)
-      else do {
-        keep_in_chi \<leftarrow> map_rd (\<lambda>\<phi>. \<lambda>x \<in> chi. \<phi> (k, find_last_before i x xs)) get_rd;
-        let chi = Set.filter keep_in_chi chi;
-        return_rd \<lparr>state_k = k+1, state_chi = chi\<rparr>
-      }
-    }"
+definition step_2_eager ::
+  \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
+  \<open>step_2_eager \<equiv> \<lambda> state. do {
+    let k = state_k state; let chi = state_chi state;
 
-definition eager_step :: "'a list \<Rightarrow> nat \<Rightarrow> 'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad"
-  where
-  "eager_step xs i state = step_1_eager xs i state \<bind> step_2_eager xs i"
-*)
+    if real (card chi) = threshold then do {
+      keep_in_chi \<leftarrow> map_rd
+        (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, find_last_before i xs x))
+        get_rd;
+      return_rd \<lparr>state_k = k+1, state_chi = Set.filter keep_in_chi chi\<rparr> }
+
+    else return_rd (state\<lparr>state_chi := chi\<rparr>) }\<close>
+
+definition step_eager ::
+  \<open>'a state \<Rightarrow> (nat \<times> nat \<Rightarrow> bool, 'a state) reader_monad\<close> where
+  \<open>step_eager \<equiv> \<lambda> state. step_1_eager state \<bind> step_2_eager\<close>
 
 lemmas step_1_eager_def' = step_1_eager_def[
-  simplified map_rd_def[symmetric] Let_def if_distribR]
+  simplified map_rd_def[symmetric] map_comp_rd Let_def if_distribR]
+
+lemmas step_2_eager_def' = step_2_eager_def[
+  simplified map_rd_def[symmetric] Let_def]
+
+end
+
+abbreviation
+  \<open>run_steps_eager \<equiv> \<lambda> xs. foldM_rd (step_eager xs) [0 ..< length xs]\<close>
+
+lemma step_eager_cong:
+  assumes \<open>i < length xs\<close> \<open>i < length ys\<close> \<open>take (Suc i) xs = take (Suc i) ys\<close>
+  shows
+    \<open>step_1_eager xs i = step_1_eager ys i\<close> (is ?thesis_0)
+    \<open>step_2_eager xs i = step_2_eager ys i\<close> (is ?thesis_1)
+    \<open>step_eager xs i = step_eager ys i\<close> (is ?thesis_2)
+proof -
+  from assms have \<open>xs ! i = ys ! i\<close> by (simp add: take_Suc_conv_app_nth)
+
+  moreover from assms have
+    \<open>find_last_before i xs = find_last_before i ys\<close>
+    unfolding find_last_before_def by simp
+ 
+  ultimately show ?thesis_0 ?thesis_1 ?thesis_2
+    unfolding step_eager_def step_1_eager_def step_2_eager_def
+    by (simp_all cong: if_cong)
+qed
 
 end
 
