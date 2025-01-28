@@ -73,12 +73,12 @@ lemma foldM_eq_foldM_enumerate :
 end
 
 definition last_index_up_to :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> nat\<close> where
-  \<open>last_index_up_to \<equiv> \<lambda> k. last_index <<< take (Suc k)\<close>
+  \<open>last_index_up_to \<equiv> \<lambda> k xs. min k <<< last_index (take (Suc k) xs)\<close>
 
 lemma last_index_up_to_le :
-  \<open>last_index_up_to n xs x \<le> Suc n\<close>
+  \<open>last_index_up_to n xs x \<le> n\<close>
   unfolding last_index_up_to_def
-  by (metis cancel_comm_monoid_add_class.diff_cancel drop_eq_Nil drop_take dual_order.trans last_index_le_size take0)
+  using min.cobounded1 by blast
 
 context
   fixes i xs
@@ -98,7 +98,7 @@ lemma find_last_before_eq_find_last_iff :
     \<longleftrightarrow> x \<noteq> xs ! i\<close>
   using assms \<open>i < length xs\<close>
   unfolding last_index_up_to_def
-  by (metis last_index_Snoc last_index_less_size_conv less_not_refl take_Suc_conv_app_nth)
+  by (metis last_index_Snoc last_index_less_size_conv last_index_size_conv le_eq_less_or_eq length_take min.absorb2 take_Suc_conv_app_nth)
 
 end
 

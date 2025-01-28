@@ -274,6 +274,17 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma lazify_bind_return:
+  "sample (bind_rd m (\<lambda>x. return_rd (f x))) = sample m \<bind> (\<lambda>x. return_pmf (f x))" (is "?L = ?R")
+proof -
+  have "?L = sample m \<bind> (\<lambda>v. sample (return_rd (f v)))"
+    by (intro lazify_bind independent_bindI[where F="(\<lambda>_. UNIV)"]
+        depends_on_univ conjI depends_on_return)
+  also have "... = ?R"
+    unfolding lazify_return by simp
+  finally show ?thesis by simp
+qed
+
 lemma lazify_map :
   "sample (map_rd f m) = map_pmf f (sample m)" (is \<open>?L = ?R\<close>)
 proof -
