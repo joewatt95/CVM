@@ -136,7 +136,7 @@ definition step_2_eager ::
     if real (card chi) = threshold
     then do {
       keep_in_chi \<leftarrow> map_rd
-        (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, find_last_before i xs x)) get_rd;
+        (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, last_index_up_to i xs x)) get_rd;
       return_rd \<lparr>state_k = k+1, state_chi = Set.filter keep_in_chi chi\<rparr> }
     else return_rd state }\<close>
 
@@ -165,8 +165,8 @@ proof -
   from assms have \<open>xs ! i = ys ! i\<close> by (simp add: take_Suc_conv_app_nth)
 
   moreover from assms have
-    \<open>find_last_before i xs = find_last_before i ys\<close>
-    unfolding find_last_before_def by simp
+    \<open>last_index_up_to i xs = last_index_up_to i ys\<close>
+    unfolding last_index_up_to_def by simp
  
   ultimately show ?thesis_0 ?thesis_1 ?thesis_2
     unfolding step_eager_def step_1_eager_def' step_2_eager_def'
@@ -225,7 +225,7 @@ proof (cases "card (state_chi \<sigma>) = threshold")
 next
   define keep_in_chi :: "(coin_matrix, 'a \<Rightarrow> bool) reader_monad" where
     "keep_in_chi \<equiv> map_rd
-      (\<lambda> \<phi>. \<lambda> i \<in> state_chi \<sigma>. \<phi> (state_k \<sigma>, find_last_before l (xs @ [x]) i))
+      (\<lambda> \<phi>. \<lambda> i \<in> state_chi \<sigma>. \<phi> (state_k \<sigma>, last_index_up_to l (xs @ [x]) i))
       get_rd"
 
   case True
@@ -238,26 +238,11 @@ next
       keep_in_chi"
     unfolding step_2_eager_def' by (simp flip: keep_in_chi_def)
 
-  have "c1 (state_k \<sigma>, find_last_before l i (xs @ [x])) = c2 (state_k \<sigma>, find_last_before l i (xs @ [x]))"
-    (is "?L = ?R")
-    if "restrict c1 ({state_k \<sigma>} \<times> {.. Suc l}) = restrict c2 ({state_k \<sigma>} \<times> {.. Suc l})"
-    for c1 c2 :: coin_matrix and i
-  proof -
-    have "?L = restrict c1 ({state_k \<sigma>} \<times> {.. Suc l}) (state_k \<sigma>, find_last_before l i (xs @ [x]))"
-      by (simp add: find_last_before_bound)
-    also have "\<dots> = restrict c2 ({state_k \<sigma>} \<times> {.. Suc l}) (state_k \<sigma>, find_last_before l i (xs @ [x]))"
-      using that by simp
-    also have "\<dots> = ?R"
-      by (simp add: find_last_before_bound)
-    finally show ?thesis by simp
-  qed
-
-  with find_last_before_bound have
-    "depends_on keep_in_chi ({state_k \<sigma>} \<times> {.. Suc l})"
+  have "depends_on keep_in_chi ({state_k \<sigma>} \<times> {.. Suc l})"
     unfolding keep_in_chi_def
     apply (intro depends_on_map ext)
     apply simp
-    by (smt (verit, del_insts) atMost_iff find_last_before_bound insertI1 mem_Sigma_iff restrict_apply')
+    by (smt (verit, del_insts) atMost_iff last_index_up_to_le insertI1 mem_Sigma_iff restrict_apply')
 
   thus ?thesis
     unfolding a b map_rd_def
