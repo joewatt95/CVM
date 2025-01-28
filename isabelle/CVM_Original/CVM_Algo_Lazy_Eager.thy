@@ -189,20 +189,22 @@ begin
 interpretation lazify "{..< n} \<times> {..< n}" "undefined" "\<lambda> _. coin_pmf"
   by unfold_locales simp
 
-lemma depends_on_step1:
+lemma depends_on_step_1 :
   fixes xs x \<phi> state
   defines "l \<equiv> length xs"
-  shows "depends_on (step_1_eager (xs @ [x]) l state) ({..<state_k state}\<times>{l})"
+  shows "depends_on
+    (step_1_eager (xs @ [x]) l state)
+    ({..< state_k state} \<times> {l})"
 proof -
-  let ?S = "{..<state_k state} \<times> {l}"
+  let ?S = "{..< state_k state} \<times> {l}"
 
   have "c1 (k',l) = c2 (k',l)"
     if "restrict c1 ?S = restrict c2 ?S" "k' < state_k state"
     for c1 c2 :: "nat \<times> nat \<Rightarrow> bool" and k'
   proof -
     have "c1 (k',l) = restrict c1 ?S (k',l)" using that(2) by simp
-    also have "... = restrict c2 ?S (k',l)" using that(1) by simp
-    also have "... = c2 (k',l)" using that(2) by simp
+    also have "\<dots> = restrict c2 ?S (k',l)" using that(1) by simp
+    also have "\<dots> = c2 (k',l)" using that(2) by simp
     finally show ?thesis by simp
   qed
 
@@ -211,10 +213,10 @@ proof -
     by (intro depends_on_bind depends_on_return depends_on_map) auto
 qed
 
-lemma depends_on_step2:
+lemma depends_on_step_2 :
   fixes xs x \<sigma>
   defines
-    "k' \<equiv> state_k \<sigma> + of_bool (card (state_chi \<sigma>) \<ge> threshold)" and
+    "k' \<equiv> state_k \<sigma> + of_bool (card (state_chi \<sigma>) = threshold)" and
     "l \<equiv> length xs"
   shows "depends_on
     (step_2_eager (xs @ [x]) l \<sigma>)
@@ -248,6 +250,50 @@ next
     unfolding a b map_rd_def
     apply (intro depends_on_bind depends_on_return)
     by simp
+qed
+
+lemma depends_on_step_2_eq:
+  fixes xs x \<sigma>
+  defines "l \<equiv> length xs"
+  shows "depends_on
+    (map_rd ((=) v) (step_2_eager (xs @ [x]) l \<sigma>))
+    ({state_k \<sigma> ..< state_k v} \<times> {.. Suc l})"
+proof (cases "state_k v = state_k \<sigma> + of_bool (card (state_chi \<sigma>) = threshold)")
+  case True
+  show ?thesis
+    unfolding map_rd_def l_def True
+    by (intro depends_on_bind depends_on_return depends_on_step_2)
+next
+  case False
+  hence "map_rd ((=) v) (step_2_eager (xs @ [x]) l \<sigma>) = return_rd False"
+    unfolding step_2_eager_def
+    by (intro reader_monad_eqI) (auto simp add:run_reader_simps Let_def)
+  then show ?thesis by (simp add:depends_on_return)
+qed
+
+lemma independent_bind_step:
+  "independent_bind
+    (step_1_eager (xs @ [x]) (length xs) \<sigma>)
+    (step_2_eager (xs @ [x]) (length xs))"
+proof (intro independent_bindI[where F = "\<lambda> v. {..< state_k v} \<times> UNIV"] conjI)
+  fix v
+  show "depends_on
+    (map_rd ((=) v) (step_1_eager (xs @ [x]) (length xs) \<sigma>))
+    ({..< state_k v} \<times> UNIV)"
+  proof (cases "state_k v = state_k \<sigma>")
+    case True
+    thus ?thesis
+      unfolding map_rd_def by (intro depends_on_bind depends_on_return depends_on_mono[OF depends_on_step_1]) auto
+  next
+    case False
+    hence "map_rd ((=) v) (step_1_eager (xs @ [x]) (length xs) \<sigma>) = return_rd False"
+      unfolding step_1_eager_def by (intro reader_monad_eqI) (auto simp add:run_reader_simps Let_def)
+    then show ?thesis
+      using depends_on_return by simp
+  qed
+
+  show "depends_on (step_2_eager (xs @ [x]) (length xs) v) (UNIV - {..< state_k v} \<times> UNIV)"
+    by (intro depends_on_mono[OF depends_on_step_2]) auto
 qed
 
 end

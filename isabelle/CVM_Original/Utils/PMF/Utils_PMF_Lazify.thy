@@ -137,7 +137,7 @@ definition independent_bind where
     \<forall> v. \<exists> I. depends_on (map_rd ((=) v) m) I \<and> depends_on (f v) (UNIV - I)"
 
 lemma independent_bindI:
-  assumes "\<And> v. depends_on (map_rd ((=) v) m) (F v) &&& depends_on (f v) (UNIV - (F v))"
+  assumes "\<And> v. depends_on (map_rd ((=) v) m) (F v) \<and> depends_on (f v) (UNIV - (F v))"
   shows "independent_bind m f"
   using assms unfolding independent_bind_def by auto
 
