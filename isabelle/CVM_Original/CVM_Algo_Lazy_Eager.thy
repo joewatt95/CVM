@@ -474,7 +474,7 @@ qed
 text \<open>Equivalence of the algorithm sampling coin flips in advance and the algorithm
 sampling lazily.\<close>
 
-lemma eager_lazy_conversion_aux:
+theorem sample_run_steps_eager_eq_run_steps_lazy :
   assumes "length xs \<le> n"
   shows
     "sample (run_steps_eager xs initial_state) = run_steps_lazy xs initial_state"
@@ -500,13 +500,13 @@ next
   finally show ?case by simp
 qed
 
-theorem eager_lazy_conversion :
+corollary run_steps_no_fail_eq_run_steps_eager_bernoulli_matrix :
   assumes "length xs \<le> n"
   shows
     "run_steps_no_fail xs initial_state = (
       bernoulli_matrix n n f
         |> map_pmf (run_reader <| run_steps_eager xs initial_state))"
-  using assms run_steps_no_fail_eq_lazy eager_lazy_conversion_aux
+  using assms run_steps_no_fail_eq_lazy sample_run_steps_eager_eq_run_steps_lazy
   by (metis bernoulli_matrix_def local.space_def sample_def)
 
 end
