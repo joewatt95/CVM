@@ -500,17 +500,14 @@ next
   finally show ?case by simp
 qed
 
-text \<open>Version of the above with the definitions from the locale unfolded. This theorem can be used
-outside of this context.\<close>
-
-theorem eager_lazy_conversion:
+theorem eager_lazy_conversion :
   assumes "length xs \<le> n"
   shows
-    "run_steps_lazy xs initial_state = (
+    "run_steps_no_fail xs initial_state = (
       bernoulli_matrix n n f
         |> map_pmf (run_reader <| run_steps_eager xs initial_state))"
-  using eager_lazy_conversion_aux[OF assms(1)]
-  unfolding bernoulli_matrix_def sample_def space_def by auto
+  using assms run_steps_no_fail_eq_lazy eager_lazy_conversion_aux
+  by (metis bernoulli_matrix_def local.space_def sample_def)
 
 end
 
