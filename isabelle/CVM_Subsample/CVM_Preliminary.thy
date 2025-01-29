@@ -1,7 +1,7 @@
 section \<open>Preliminary Definitions and Results\<close>
 
 theory CVM_Preliminary
-  imports \<open>HOL-Probability.SPMF\<close>
+  imports "HOL-Probability.SPMF"
 begin
 
 lemma bounded_finite:

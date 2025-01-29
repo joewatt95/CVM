@@ -62,7 +62,7 @@ appendix.\<close>
 theory CVM_Abstract_Algorithm
 
 imports
-  \<open>HOL-Decision_Procs.Approximation\<close>
+  "HOL-Decision_Procs.Approximation"
   CVM_Preliminary
   Finite_Fields.Finite_Fields_More_PMF
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
