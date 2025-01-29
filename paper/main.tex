@@ -1,5 +1,5 @@
 
-\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+\documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate,anonymous]{lipics-v2021}
 %This is a template for producing LIPIcs articles.
 %See lipics-v2021-authors-guidelines.pdf for further information.
 %for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
@@ -15,26 +15,41 @@
 %\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
 %\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
 
+\usepackage{bigints}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 
 \newcommand{\getsr}{\xleftarrow{\$}}
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+\newcommand{\ift}[3]{\mathrm{if} \; #1 \; \mathrm{then} \; #2 \; \mathrm{else} \; #3}
 
 \usepackage{mathtools}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
-\DeclareMathOperator{\Ber}{Ber}
-
+\DeclareMathOperator{\Ber}{\mathrm{Ber}}
+\DeclareMathOperator{\prob}{\mathcal P}
+\DeclareMathOperator{\expect}{\mathrm{E}}
+\DeclareMathOperator{\bigo}{\mathcal O}
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\isabellestyle{it}
 
 \bibliographystyle{plainurl}% the mandatory bibstyle
 
-\title{Formalization of CVM (proof pearl?)} %TODO Please add
+\title{Verification of the CVM algorithm with a New Recursive Analysis Technique} %TODO Please add
 
 %\titlerunning{Dummy short title} %TODO optional, please use if title is longer than one line
 
 \author{Jane {Open Access}}{Dummy University Computing Laboratory, [optional: Address], Country \and My second affiliation, Country \and \url{http://www.myhomepage.edu} }{johnqpublic@dummyuni.org}{https://orcid.org/0000-0002-1825-0097}{(Optional) author-specific funding acknowledgements}%TODO mandatory, please use full name; only 1 author per \author macro; first two parameters are mandatory, other parameters can be empty. Please provide at least the name of the affiliation and the country. The full address is optional. Use additional curly braces to indicate the correct name splitting when the last name consists of multiple name parts.
+
+\author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
+
+\author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
+
+\author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
 
 \author{Joan R. Public\footnote{Optional footnote, e.g. to mark corresponding author}}{Department of Informatics, Dummy College, [optional: Address], Country}{joanrpublic@dummycollege.org}{[orcid]}{[funding]}
 
@@ -56,7 +71,7 @@
 
 %\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
 
-\acknowledgements{I want to thank \dots}%optional
+%\acknowledgements{I want to thank \dots}%optional
 
 %\nolinenumbers %uncomment to disable line numbering
 
@@ -84,9 +99,15 @@
 
 \input{sec/intro}
 
+\input{sec/semra}
+
+\input{sec/invariants}
+
 \input{sec/negdep}
 
-\input{sec/cvmalt}
+\input{sec/formalization}
+
+\input{sec/original_proof}
 
 %%
 %% Bibliography

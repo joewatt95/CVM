@@ -1,4 +1,19 @@
-@inproceedings{DBLP:conf/esa/0001VM22,
+@article{blasiok2020,
+  author = {Jaros\l{}aw B\l{}asiok},
+  title     = {Optimal Streaming and Tracking Distinct Elements with High Probability},
+  journal   = {{ACM} Trans. Algorithms},
+  volume    = {16},
+  number    = {1},
+  pages     = {3:1--3:28},
+  year      = {2020},
+  _url       = {https://doi.org/10.1145/3309193},
+  doi       = {10.1145/3309193},
+  timestamp = {Sat, 08 Jan 2022 02:22:06 +0100},
+  _biburl    = {https://dblp.org/rec/journals/talg/Blasiok20.bib},
+  _bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{chakraborty2022,
   author       = {Sourav Chakraborty and
                   N. V. Vinodchandran and
                   Kuldeep S. Meel},
@@ -18,6 +33,73 @@
   timestamp    = {Wed, 21 Aug 2024 22:46:00 +0200},
   biburl       = {https://dblp.org/rec/conf/esa/0001VM22.bib},
   bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{dubhashi1996,
+  title={Negative dependence through the FKG Inequality},
+  author={Devdatt P. Dubhashi and Volker Priebe and Desh Ranjan},
+  journal={BRICS Report Series},
+  year={1996},
+  volume={3},
+  doi={10.7146/BRICS.V3I27.20008},
+}
+
+@article{dubhashi1998,
+  author = {Dubhashi, Devdatt and Ranjan, Desh},
+  title = {Balls and Bins: A study in negative dependence},
+  journal = {Random Structures \& Algorithms},
+  volume = {13},
+  number = {2},
+  pages = {99--124},
+  doi = {10.1002/(SICI)1098-2418(199809)13:2<99::AID-RSA1>3.0.CO;2-M},
+  year = {1998}
+}
+
+@article{joagdev1983,
+  title={Negative Association of Random Variables with Applications},
+  author={Kumar Joag-Dev and Frank Proschan},
+  journal={Annals of Statistics},
+  year={1983},
+  volume={11},
+  pages={286-295},
+  doi={10.1214/AOS/1176346079}
+}
+
+@inproceedings{kane2010,
+	title = {An Optimal Algorithm for the Distinct Elements Problem},
+	author = {Kane, Daniel M. and Nelson, Jelani and Woodruff, David P.},
+	year = 2010,
+	booktitle = {Proceedings of the Twenty-Ninth ACM SIGMOD-SIGACT-SIGART Symposium on Principles of Database Systems},
+	location = {Indianapolis, Indiana, USA},
+	address = {New York},
+	series = {PODS '10},
+	pages = {41--52},
+	doi = {10.1145/1807085.1807094},
+	isbn = 9781450300339,
+	_publisher = {Association for Computing Machinery},
+	_url = {https://doi.org/10.1145/1807085.1807094},
+	abstract = {We give the first optimal algorithm for estimating the number of distinct elements in a data stream, closing a long line of theoretical research on this problem begun by Flajolet and Martin in their seminal paper in FOCS 1983. This problem has applications to query optimization, Internet routing, network topology, and data mining. For a stream of indices in {1,...,n}, our algorithm computes a (1 ± ε)-approximation using an optimal O(1/ε-2 + log(n)) bits of space with 2/3 success probability, where 0&lt;ε&lt;1 is given. This probability can be amplified by independent repetition. Furthermore, our algorithm processes each stream update in O(1) worst-case time, and can report an estimate at any point midstream in O(1) worst-case time, thus settling both the space and time complexities simultaneously.We also give an algorithm to estimate the Hamming norm of a stream, a generalization of the number of distinct elements, which is useful in data cleaning, packet tracing, and database auditing. Our algorithm uses nearly optimal space, and has optimal O(1) update and reporting times.},
+	numpages = 12,
+	keywords = {streaming, query optimization, distinct elements, data mining}
+}
+
+@InProceedings{karayel2023,
+  author =	{Karayel, Emin},
+  title =	{{An Embarrassingly Parallel Optimal-Space Cardinality Estimation Algorithm}},
+  booktitle =	{Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques (APPROX/RANDOM 2023)},
+  pages =	{35:1--35:22},
+  series =	{Leibniz International Proceedings in Informatics (LIPIcs)},
+  ISBN =	{978-3-95977-296-9},
+  ISSN =	{1868-8969},
+  year =	{2023},
+  volume =	{275},
+  editor =	{Megow, Nicole and Smith, Adam},
+  publisher =	{Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik},
+  address =	{Germany},
+  _URL =		{https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2023.35},
+  URN =		{urn:nbn:de:0030-drops-188607},
+  doi =		{10.4230/LIPIcs.APPROX/RANDOM.2023.35},
+  annote =	{Keywords: Distinct Elements, Distributed Algorithms, Randomized Algorithms, Expander Graphs, Derandomization, Sketching}
 }
 
 @misc{knuthnote,

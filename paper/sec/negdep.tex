@@ -1,4 +1,96 @@
-\section{Negative Dependence}
-\label{sec:negdep}
+\section{Negative Dependence and an Unbiased CVM Algorithm\label{sec:negdep}}
 
-TODO
+Sometimes, sets of random variables possess a property called negative association.
+The concept is a generalization of independence.
+It has similar closure properties as independent random variables.
+More interestingly, the standard Chernoff-Hoeffding bounds still apply to negatively associated random variables~\cite[Prop. 7]{dubhashi1998}.
+
+The concept was introduced by Joag-Dev and Proschan~\cite{joagdev1983}, who showed that it has many useful closure properties compared to other previously introduced notions of negative dependence, such as negative correlation or negative orphant dependence. 
+
+The following preliminary definition is useful, for the definition of the concept:
+\begin{definition}
+For a function defined on $n$-tuples $f: V^n \rightarrow W$, we will denote by $\mathrm{dep}(f)$ the set of coordinates the function depends on, e.g., $dep(f) \subseteq \{1,\ldots,n\}$ is minimal, s.t., $f(x) = f(y)$ for all $x, y \in V^n$ with $x_i = y_i$ for all $i \in dep(f)$.
+\end{definition}
+
+\begin{definition}[Negative Association]
+A set of random variables $X_1,..,X_n: \Omega \rightarrow \mathbb R$ is negatively associated if for all non-decreasing functions $f,g: \mathbb R^n \rightarrow \mathbb R$, which depend on disjoint sets of the variables, i.e., $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$ then
+\[
+\expect [f(X_1,\ldots,X_n) g(X_1,\ldots,X_n)] \leq \expect [f(X_1,\ldots,X_n)] \expect [g(X_1,\ldots,X_n)] \textrm{.}
+\]
+\end{definition}
+
+The following proposition summarizes some of the properties for negatively associated sets of random variables: 
+\begin{proposition}\label{pro:neg_dep_props}
+Summary of results for negatively associated random variables: 
+\begin{enumerate}
+\item If $X=(X_1,\ldots,X_n)$ are negatively associated then $\expect [f(X) g(X)] \leq \expect [f(X)] \expect [g(X)]$ also for non-increasing functions $f,g$ with $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.
+\item If $X=(X_1,\ldots,X_n)$ are negatively associated, $Y=(Y_1,\ldots,Y_m)$ are negatively associated, and the pair of vector valued random variables $X$ and $Y$ are independent, then the union $X_1,..,X_n,Y_1,..,Y_m$ is a set of negatively associated random variables.
+\item If $X=(X_1,\ldots,X_n)$ are negatively associated, $f_1,..,f_m : \mathbb R^n \rightarrow \mathbb R$ be all non-increasing or all non-decreasing functions, s.t., $\mathrm{dep}(f_i) \cap \mathrm{dep}(f_j) = \emptyset$ for $i \neq j$, then $f_1(X),\ldots,f_m(X)$ form a set of negatively dependent random variables of size $m$.
+\item If $X_1,..,X_n$ are independent then $X_1,...,X_n$ are negatively associated.
+\item A subset of a negatively associated set of random variables is again negatively associated.
+\end{enumerate}
+\end{proposition}
+
+These properties illustrate the trade-off between negative association and independence.
+For example property 3 would be true for independent random variables, even without the condition of monotonicty.
+Of course, on the other hand independence is a stronger property and fewer sets of random variables are indepenent.
+For our discussion the following is an important lemma about negative associated random variables.
+
+\begin{lemma}\label{le:neg_assoc_prod}
+Let $X_1,..,X_n$ be negatively associated and $f_1,..,f_n$ be all non-decreasing or all non-increasing non-negative functions, then
+\[
+  \expect \left[\prod_{i=1}^{n} f_i(X_i)\right] \leq \prod_{i=1}^{n} f_i(\expect [X_i]) \textrm{.}
+\]
+\end{lemma}
+\begin{proof}
+Follows from the definition of negative associativy (or Property~1 of \cref{pro:neg_dep_props}, if the $f_i$ are non-increasing) using induction.
+\end{proof}
+
+The case for non-decreasing functions of the above lemma is pointed out by Joag-Dev and Proschan~\cite[P.2]{joagdev1983}.
+Why we are interested in the lemma stems from the fact that indicator variables of random $m$-subsets are negatively associated.
+The latter is a consequence of the fact that permutation distributions are negatively-associated~\cite[Th. 2.11]{joagdev1983}.%
+\footnote{We could not verify the original proof by Joag-Dev and Proschan, which seems to be incorrect.
+However Dubashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}
+Intuitively, this is interesting because it opens up an avenue to modifying the subsampling step in \cref{alg:cvm}.
+Instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, which has the disadvantage that there is a small possibility that none of the elements gets discarded, we could instead choose a random $nf$-subset, where $\frac{1}{2} \leq f < 1$, such that $nf$ is integer, in the subsampling step.
+For such a subsampling step, we can derive using \cref{le:neg_assoc_prod}:
+\begin{equation}\label{eq:subsample_with_n_subsets}
+  \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(I(s \in \chi)) \leq \prod_{s \in S} \int_{\mathrm{subsample}(\chi)} g(I(s \in \chi)) = \prod_{s \in S}  \expect_{\Ber(f)} g \textrm{.}
+\end{equation}
+for any non-negative $g$ and $S \subseteq \chi$. Note that $g$ is only evaluated at two points and is thus either non-increasing or non-decreasing.Also, if $S$ is a singleton, the inequality becomes an equality.
+
+To understand, why the above is useful.
+When we want to establish the moment generating function, for the random variable $p^{-1} |\chi|$ --- i.e. the result --- inductively, we need to approximate the then-part of the following term, with the else-part.
+\[
+  \ift{|\chi|=n}{\left(\int_{\mathrm{subsample}(\chi)} \prod_{s \in S} h((pf)^{-1}I(s \in \tau)) \, d \tau\right)}{\prod_{s \in S} h(p^{-1}I(s \in \tau))}
+\]
+and the inequality (\cref{eq:subsample_with_n_subsets}) is exactly, what we need.
+This means the proof for the modified algorithm in \cref{sec:invariants} works just as well with the new subsampling method.
+
+The resulting algorithm is depicted in \cref{alg:cvm_new}.
+Note that it is possible to just choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.
+The key advantage is that there is no line 11 and the algorithm never returns $\bot$.
+And based on our discussion from the previous section it is unbiased.
+
+\begin{algorithm}[h!]
+	\caption{New unbiased and total CVM algorithm.}\label{alg:cvm_new}
+	\begin{algorithmic}[1]
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ s.t. $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$, $\frac{1}{2} \leq f < 1$, s.t., $nf$ integer
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment Select a random $nf$ subset of $\chi$
+      \State $p \gets pf$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+  \end{algorithmic}
+\end{algorithm}
+
