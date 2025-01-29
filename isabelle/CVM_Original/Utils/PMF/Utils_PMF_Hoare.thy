@@ -12,7 +12,6 @@ abbreviation hoare_triple
 lemma skip [simp] :
   \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> return_pmf \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
   \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. return_pmf (f x)) \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
-  apply standard
   by (simp_all add: AE_measure_pmf_iff)
 
 (* lemma seq :
