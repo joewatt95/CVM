@@ -1,15 +1,15 @@
 section \<open>The New Unbiased Algorithm\label{sec:cvm_new}\<close>
 
-text \<open>In this section, we introduce the new algorithm variant promised in the abstract. 
+text \<open>In this section, we introduce the new algorithm variant promised in the abstract.
 
 The main change is to replace the subsampling step of the original algorithm, which removes each
-element of the buffer independently with probability $f$. 
-Instead, we choose a random $nf$-subset of the buffer (see Algorithm~\ref{alg:cvm_new}). 
+element of the buffer independently with probability $f$.
+Instead, we choose a random $nf$-subset of the buffer (see Algorithm~\ref{alg:cvm_new}).
 (This means $f$, $n$ must be chosen, such that $nf$ is an integer.)
 
 \begin{algorithm}[h!]
 	\caption{New CVM algorithm.\label{alg:cvm_new}}
-	\begin{algorithmic}[1]       
+	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\ldots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$, $f$ subsampling param.
   \Ensure An estimate $R$, s.t., $\prob \left( | R - |A| | > \varepsilon |A| \right) \leq \delta$ where $A := \{a_1,\ldots,a_l\}.$
   \State $\chi \gets \{\}, p \gets 1, n \geq \left\lceil \frac{12}{\varepsilon^2} \ln(\frac{3l}{\delta}) \right\rceil$
@@ -26,10 +26,10 @@ Instead, we choose a random $nf$-subset of the buffer (see Algorithm~\ref{alg:cv
     \EndIf
   \EndFor
   \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
-\end{algorithmic}        
+\end{algorithmic}
 \end{algorithm}
 
-The fact that this still preserves the required inequality for the subsampling operation 
+The fact that this still preserves the required inequality for the subsampling operation
 (Eq.~\ref{eq:subsample_condition}) follows from the negative associativity of permutation
 distributions~\cite[Th. 10]{dubhashi1996}.
 
@@ -61,25 +61,25 @@ text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
 
-definition f :: real 
+definition f :: real
   where \<open>f \<equiv> subsample_size / thresh\<close>
 
 text \<open>Lines 3--7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step_1 x \<sigma> = 
+  \<open>step_1 x \<sigma> =
     do {
       let k = state_k \<sigma>;
-      let \<chi> = state_\<chi> \<sigma>; 
-  
+      let \<chi> = state_\<chi> \<sigma>;
+
       insert_x_into_\<chi> \<leftarrow> bernoulli_pmf (f ^ k);
-  
+
       let \<chi> = (
         if insert_x_into_\<chi>
         then insert x \<chi>
         else Set.remove x \<chi>
       );
 
-      return_pmf (\<sigma>\<lparr>state_\<chi> := \<chi>\<rparr>) 
+      return_pmf (\<sigma>\<lparr>state_\<chi> := \<chi>\<rparr>)
     }\<close>
 
 definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
@@ -96,7 +96,7 @@ definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
       \<chi> \<leftarrow> subsample \<chi>;
       return_pmf \<lparr>state_k = k + 1, state_\<chi> = \<chi>\<rparr>
     } else
-      return_pmf \<sigma> 
+      return_pmf \<sigma>
     }\<close>
 
 text \<open>Lines 1--10:\<close>
@@ -104,8 +104,11 @@ definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
   \<open>run_steps xs \<equiv> foldM_pmf (\<lambda>x \<sigma>. step_1 x \<sigma> \<bind> step_2) xs initial_state\<close>
 
 text \<open>Line 11:\<close>
-definition estimate :: \<open>'a state \<Rightarrow> real\<close> where 
+definition estimate :: \<open>'a state \<Rightarrow> real\<close> where
   \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / f ^ state_k \<sigma>\<close>
+
+definition run_algo :: \<open>'a list \<Rightarrow> real pmf\<close> where
+  \<open>run_algo xs = map_pmf estimate (run_steps xs)\<close>
 
 lemma subsample_finite_nonempty:
   assumes \<open>card U = thresh\<close>
@@ -114,7 +117,7 @@ lemma subsample_finite_nonempty:
     \<open>finite {T. T \<subseteq> U \<and> card T = subsample_size}\<close>
     \<open>finite (set_pmf (subsample U))\<close>
 proof -
-  have fin_U: \<open>finite U\<close> using assms subsample_size 
+  have fin_U: \<open>finite U\<close> using assms subsample_size
     by (meson card_gt_0_iff le0 order_le_less_trans order_less_le_trans)
   have a: \<open>card U choose subsample_size > 0\<close>
     using subsample_size assms by (intro zero_less_binomial) auto
@@ -131,7 +134,7 @@ lemma int_prod_subsample_eq_prod_int:
 proof -
   define \<eta> where \<open>\<eta> \<equiv> if g True \<ge> g False then Fwd else Rev\<close>
 
-  have fin_U: \<open>finite U\<close> using assms subsample_size 
+  have fin_U: \<open>finite U\<close> using assms subsample_size
     by (meson card_gt_0_iff le0 order_le_less_trans order_less_le_trans)
 
   note subsample_finite_nonempty =
@@ -181,18 +184,18 @@ interpretation abs: cvm_algo_abstract thresh f subsample
 proof -
   show abs:\<open>cvm_algo_abstract thresh f subsample\<close>
   proof (unfold_locales, goal_cases)
-    case 1 thus ?case using subsample_size by auto 
+    case 1 thus ?case using subsample_size by auto
   next
     case 2 thus ?case using subsample_size unfolding f_def by auto
   next
     case (3 U x) thus ?case using subsample_finite_nonempty[OF 3(1)] unfolding subsample_def by simp
   next
-    case (4 g U S) thus ?case by (intro int_prod_subsample_eq_prod_int) auto    
+    case (4 g U S) thus ?case by (intro int_prod_subsample_eq_prod_int) auto
   qed
   have a:\<open>cvm_algo_abstract.step_1 f = step_1\<close>
     unfolding cvm_algo_abstract.step_1_def[OF abs] step_1_def by auto
   have b:\<open>cvm_algo_abstract.step_2 thresh subsample = step_2\<close>
-    unfolding cvm_algo_abstract.step_2_def[OF abs] step_2_def Let_def by (auto simp:map_pmf_def) 
+    unfolding cvm_algo_abstract.step_2_def[OF abs] step_2_def Let_def by (auto simp:map_pmf_def)
   have c:\<open>cvm_algo_abstract.initial_state = initial_state\<close>
     unfolding cvm_algo_abstract.initial_state_def[OF abs] initial_state_def by auto
   show \<open>cvm_algo_abstract.run_steps thresh f subsample = run_steps\<close>
@@ -201,7 +204,7 @@ proof -
     unfolding cvm_algo_abstract.estimate_def[OF abs] estimate_def by auto
 qed
 
-theorem unbiasedness: 
+theorem unbiasedness:
   \<open>measure_pmf.expectation (run_steps xs) estimate = card (set xs)\<close>
   by (rule abs.unbiasedness)
 
@@ -209,9 +212,9 @@ theorem correctness:
   fixes \<epsilon> \<delta> :: real
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
   assumes \<open>real thresh \<ge> 12 / \<epsilon> ^ 2 * ln (3 * real (length xs) / \<delta>)\<close>
-  defines \<open>R \<equiv> real (card (set xs))\<close>
-  shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon> * R } \<le> \<delta>\<close> 
-  unfolding R_def by (intro abs.correctness assms)
+  defines \<open>A \<equiv> real (card (set xs))\<close>
+  shows \<open>\<P>(\<sigma> in run_algo xs. \<bar>\<sigma> - A\<bar> > \<epsilon> * A) \<le> \<delta>\<close>
+  using assms(3) unfolding A_def run_algo_def using abs.correctness[OF assms(1,2)] by auto
 
 lemma space_usage:
   \<open>AE \<sigma> in run_steps xs. card (state_\<chi> \<sigma>) < thresh \<and> finite (state_\<chi> \<sigma>)\<close>
@@ -229,7 +232,7 @@ proof -
       if \<open>\<tau> \<in> set_pmf (abs.run_state_pmf (FinalState xs))\<close> for \<tau>
       using 2(1) abs.state_\<chi>_finite[where \<rho>=\<open>FinalState xs\<close>] that by (simp add:AE_measure_pmf_iff)
     thus ?case
-      using 2(2) unfolding abs.step_1_def abs.run_state_pmf.simps Let_def map_pmf_def[symmetric] 
+      using 2(2) unfolding abs.step_1_def abs.run_state_pmf.simps Let_def map_pmf_def[symmetric]
       by (force simp:card_insert_if remove_def)
   next
     case (3 xs x)
@@ -238,7 +241,7 @@ proof -
     have a: \<open>abs.run_state_pmf (FinalState (xs@[x])) = p \<bind> abs.step_2\<close>
       by (simp add:p_def abs.run_steps_snoc)
 
-    have b:\<open>card \<chi> < card (state_\<chi> \<tau>)\<close> 
+    have b:\<open>card \<chi> < card (state_\<chi> \<tau>)\<close>
       if \<open>card (state_\<chi> \<tau>) = thresh\<close> \<open>\<chi> \<in> set_pmf (subsample (state_\<chi> \<tau>))\<close> \<open>\<tau> \<in> set_pmf p\<close> for \<chi> \<tau>
     proof -
       from subsample_finite_nonempty[OF that(1)]
@@ -251,10 +254,10 @@ proof -
       using 3(1) abs.state_\<chi>_finite[where \<rho>=\<open>IntermState xs x\<close>] that unfolding p_def
       by (auto simp:AE_measure_pmf_iff less_Suc_eq)
     hence \<open>card (state_\<chi> \<sigma>) < thresh\<close>
-      using 3(2) unfolding a abs.step_2_def Let_def by (auto intro!:b simp:if_distrib if_distribR)  
+      using 3(2) unfolding a abs.step_2_def Let_def by (auto intro!:b simp:if_distrib if_distribR)
     thus ?case by simp
   qed
-  thus ?thesis using abs.state_\<chi>_finite[where \<rho>=\<open>FinalState xs\<close>]  unfolding \<rho>_def 
+  thus ?thesis using abs.state_\<chi>_finite[where \<rho>=\<open>FinalState xs\<close>]  unfolding \<rho>_def
     by (simp add:AE_measure_pmf_iff)
 qed
 

@@ -1,7 +1,7 @@
 section \<open>Preliminary Definitions and Results\<close>
 
 theory CVM_Preliminary
-  imports "HOL-Probability.SPMF"
+  imports \<open>HOL-Probability.SPMF\<close>
 begin
 
 lemma bounded_finite:
@@ -29,7 +29,7 @@ abbreviation foldM_pmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b pmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b pmf\<close> where
   \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 
-lemma foldM_pmf_snoc: "foldM_pmf f (xs@[y]) val = bind_pmf (foldM_pmf f xs val) (f y)"
+lemma foldM_pmf_snoc: \<open>foldM_pmf f (xs@[y]) val = bind_pmf (foldM_pmf f xs val) (f y)\<close>
   by (induction xs arbitrary:val)
     (simp_all add: bind_return_pmf bind_return_pmf' bind_assoc_pmf cong:bind_pmf_cong)
 
@@ -37,7 +37,7 @@ abbreviation foldM_spmf
   :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
   \<open>foldM_spmf \<equiv> foldM bind_spmf return_spmf\<close>
 
-lemma foldM_spmf_snoc: "foldM_spmf f (xs@[y]) val = bind_spmf (foldM_spmf f xs val) (f y)"
+lemma foldM_spmf_snoc: \<open>foldM_spmf f (xs@[y]) val = bind_spmf (foldM_spmf f xs val) (f y)\<close>
   by (induction xs arbitrary:val) (simp_all cong:bind_spmf_cong)
 
 abbreviation \<open>prob_fail \<equiv> (\<lambda>x. pmf x None)\<close>
@@ -63,7 +63,7 @@ using assms(3) proof (induction xs arbitrary: val)
 next
   case (Cons x xs)
 
-  have p_ge_0: "p \<ge> 0" using Cons(2) assms(2) order_trans[OF pmf_nonneg] by metis
+  have p_ge_0: \<open>p \<ge> 0\<close> using Cons(2) assms(2) order_trans[OF pmf_nonneg] by metis
 
   let ?val' = \<open>f x val\<close>
   let ?\<mu>' = \<open>measure_spmf ?val'\<close>
@@ -75,7 +75,7 @@ next
   also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
     using assms(1)[OF Cons(2)]
     by (intro add_mono integral_mono_AE iffD2[OF AE_measure_spmf_iff] ballI assms(2) Cons
-         measure_spmf.integrable_const measure_spmf.integrable_const_bound[where B="1"])
+         measure_spmf.integrable_const measure_spmf.integrable_const_bound[where B=\<open>1\<close>])
      (simp_all add:pmf_le_1)
   also have \<open>\<dots> \<le> p + weight_spmf (f x val)* length xs * p\<close>
     by simp
