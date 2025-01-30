@@ -59,7 +59,7 @@ begin
 
 text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state \<equiv> \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
+  \<open>initial_state \<equiv> \<lparr>state_p = 1, state_\<chi> = {}\<rparr>\<close>
 
 definition f :: real
   where \<open>f \<equiv> subsample_size / thresh\<close>
@@ -68,10 +68,10 @@ text \<open>Lines 3--7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 x \<sigma> =
     do {
-      let k = state_k \<sigma>;
+      let p = state_p \<sigma>;
       let \<chi> = state_\<chi> \<sigma>;
 
-      insert_x_into_\<chi> \<leftarrow> bernoulli_pmf (f ^ k);
+      insert_x_into_\<chi> \<leftarrow> bernoulli_pmf p;
 
       let \<chi> = (
         if insert_x_into_\<chi>
@@ -88,13 +88,13 @@ definition subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close> where
 text \<open>Lines 8--10:\<close>
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 \<sigma> = do {
-    let k = state_k \<sigma>;
+    let p = state_p \<sigma>;
     let \<chi> = state_\<chi> \<sigma>;
 
     if card \<chi> = thresh
     then do {
       \<chi> \<leftarrow> subsample \<chi>;
-      return_pmf \<lparr>state_k = k + 1, state_\<chi> = \<chi>\<rparr>
+      return_pmf \<lparr>state_p = p * f, state_\<chi> = \<chi>\<rparr>
     } else
       return_pmf \<sigma>
     }\<close>
@@ -105,7 +105,7 @@ definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
 
 text \<open>Line 11:\<close>
 definition estimate :: \<open>'a state \<Rightarrow> real\<close> where
-  \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / f ^ state_k \<sigma>\<close>
+  \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / state_p \<sigma>\<close>
 
 definition run_algo :: \<open>'a list \<Rightarrow> real pmf\<close> where
   \<open>run_algo xs = map_pmf estimate (run_steps xs)\<close>
@@ -192,15 +192,15 @@ proof -
   next
     case (4 g U S) thus ?case by (intro int_prod_subsample_eq_prod_int) auto
   qed
-  have a:\<open>cvm_algo_abstract.step_1 f = step_1\<close>
+  have a:\<open>cvm_algo_abstract.step_1 = step_1\<close>
     unfolding cvm_algo_abstract.step_1_def[OF abs] step_1_def by auto
-  have b:\<open>cvm_algo_abstract.step_2 thresh subsample = step_2\<close>
+  have b:\<open>cvm_algo_abstract.step_2 thresh f subsample = step_2\<close>
     unfolding cvm_algo_abstract.step_2_def[OF abs] step_2_def Let_def by (auto simp:map_pmf_def)
   have c:\<open>cvm_algo_abstract.initial_state = initial_state\<close>
     unfolding cvm_algo_abstract.initial_state_def[OF abs] initial_state_def by auto
   show \<open>cvm_algo_abstract.run_steps thresh f subsample = run_steps\<close>
     unfolding cvm_algo_abstract.run_steps_def[OF abs] run_steps_def a b c by simp
-  show \<open>cvm_algo_abstract.estimate f = estimate\<close>
+  show \<open>cvm_algo_abstract.estimate = estimate\<close>
     unfolding cvm_algo_abstract.estimate_def[OF abs] estimate_def by auto
 qed
 

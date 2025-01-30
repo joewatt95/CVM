@@ -60,15 +60,15 @@ begin
 
 text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state = \<lparr>state_k = 0, state_\<chi> = {}\<rparr>\<close>
+  \<open>initial_state = \<lparr>state_p = 1, state_\<chi> = {}\<rparr>\<close>
 
 text \<open>Lines 3--7:\<close>
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_1 x \<sigma> = do {
-    let k = state_k \<sigma>;
+    let p = state_p \<sigma>;
     let \<chi> = state_\<chi> \<sigma>;
 
-    insert_x_into_\<chi> \<leftarrow> bernoulli_pmf (f ^ k);
+    insert_x_into_\<chi> \<leftarrow> bernoulli_pmf p;
 
     let \<chi> = (
       if insert_x_into_\<chi>
@@ -88,13 +88,13 @@ definition subsample :: \<open>'a set \<Rightarrow> 'a set spmf\<close> where
 text \<open>Lines 8--10:\<close>
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
   \<open>step_2 \<sigma> = do {
-    let k = state_k \<sigma>;
+    let p = state_p \<sigma>;
     let \<chi> = state_\<chi> \<sigma>;
 
     if card \<chi> = thresh
     then do {
       \<chi> \<leftarrow> subsample \<chi>;
-      return_spmf \<lparr>state_k = k + 1, state_\<chi> = \<chi>\<rparr>
+      return_spmf \<lparr>state_p = p * f, state_\<chi> = \<chi>\<rparr>
     } else
       return_spmf \<sigma>
     }\<close>
@@ -116,7 +116,7 @@ definition run_steps :: \<open>'a list \<Rightarrow> 'a state spmf\<close> where
 
 text \<open>Line 13:\<close>
 definition estimate :: \<open>'a state \<Rightarrow> real\<close> where
-  \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / f ^ state_k \<sigma>\<close>
+  \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / state_p \<sigma>\<close>
 
 definition run_algo :: \<open>'a list \<Rightarrow> real spmf\<close> where
   \<open>run_algo xs = map_spmf estimate (run_steps xs)\<close>
@@ -195,7 +195,7 @@ proof -
         using 4(1) by (intro prod.cong refl) auto
       finally show ?case by simp
     qed
-    show \<open>cvm_algo_abstract.estimate f = (estimate :: 'a state \<Rightarrow> real)\<close>
+    show \<open>cvm_algo_abstract.estimate = (estimate :: 'a state \<Rightarrow> real)\<close>
       unfolding cvm_algo_abstract.estimate_def[OF abs] estimate_def by simp
   qed
 
