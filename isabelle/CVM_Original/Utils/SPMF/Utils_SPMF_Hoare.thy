@@ -134,15 +134,10 @@ next
     (is \<open>_ = _ + \<integral> val'. ?prob_fail val' \<partial> _\<close>)
     by (simp add: pmf_bind_spmf_None)
 
-  also have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
-  proof (rule add_mono)
-    from assms show \<open>prob_fail ?val' \<le> p\<close> by simp
-
-    from Cons.IH assms
-    show \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
-      apply (intro integral_mono_AE)
-      by simp_all
-  qed
+  also from assms Cons.IH
+  have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
+    apply (intro add_mono integral_mono_AE)
+    by simp_all
 
   also from assms have \<open>\<dots> \<le> p + length xs * p\<close>
     apply simp
