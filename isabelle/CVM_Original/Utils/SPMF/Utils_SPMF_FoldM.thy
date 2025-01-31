@@ -35,23 +35,30 @@ qed
 
 lemma foldM_spmf_of_pmf_eq :
   \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs = spmf_of_pmf <<< foldM_pmf f xs\<close>
+  (is ?thesis_0)
   \<open>foldM_spmf (\<lambda> x. spmf_of_pmf <<< f x) xs val = spmf_of_pmf (foldM_pmf f xs val)\<close>
-  apply (induction xs)
-  by (simp_all add: spmf_of_pmf_bind)
+  (is ?thesis_1)
+proof -
+  show ?thesis_0
+    apply (induction xs)
+    by (simp_all add: spmf_of_pmf_bind)
+
+  then show ?thesis_1 by simp
+qed
 
 lemma pmf_foldM_spmf_nil :
-  \<open>spmf (foldM_spmf f [] acc) acc' = of_bool (acc = acc')\<close>
+  \<open>pmf (foldM_spmf f [] val) val' = of_bool (Some val = val')\<close>
   by simp
 
 lemma pmf_foldM_spmf_cons :
-  \<open>pmf (foldM_spmf f (x # xs) acc) a =
-    \<integral> acc'. (
-      case acc' of
-        None \<Rightarrow> pmf fail_spmf a |
-        Some acc' \<Rightarrow> pmf (foldM_spmf f xs acc') a)
-      \<partial> f x acc\<close>
-  apply (simp add: bind_spmf_def pmf_bind)
-  by (metis (mono_tags, lifting) option.case_eq_if)
+  \<open>pmf (foldM_spmf f (x # xs) val) y =
+    measure_pmf.expectation (f x val) (
+      \<lambda> val'. case val' of
+        None \<Rightarrow> of_bool (y = None) |
+        Some val' \<Rightarrow> pmf (foldM_spmf f xs val') y)\<close>
+  unfolding foldM.simps bind_spmf_def pmf_bind
+  apply (intro integral_cong_AE)
+  by (auto simp add: AE_measure_pmf_iff split: option.splits)
 
 lemma integrable_prob_fail_foldM_spmf :
   \<open>integrable
