@@ -57,22 +57,14 @@ For such a subsampling step, we can derive using \cref{le:neg_assoc_prod}:
 \begin{equation}\label{eq:subsample_with_n_subsets}
   \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(I(s \in \chi)) \leq \prod_{s \in S} \int_{\mathrm{subsample}(\chi)} g(I(s \in \chi)) = \prod_{s \in S}  \expect_{\Ber(f)} g \textrm{.}
 \end{equation}
-for any non-negative $g$ and $S \subseteq \chi$. Note that $g$ is only evaluated at two points and is thus either non-increasing or non-decreasing.Also, if $S$ is a singleton, the inequality becomes an equality.
+for any non-negative $g$ and $S \subseteq \chi$. Note that $g$ is only evaluated at two points and is thus either non-increasing or non-decreasing.
+Also, if $S$ is a singleton, the inequality becomes an equality.
 
-To understand, why the above is useful.
-When we want to establish the moment generating function, for the random variable $p^{-1} |\chi|$ --- i.e. the result --- inductively, we need to approximate the then-part of the following term, with the else-part.
-\[
-  \ift{|\chi|=n}{\left(\int_{\mathrm{subsample}(\chi)} \prod_{s \in S} h((pf)^{-1}I(s \in \tau)) \, d \tau\right)}{\prod_{s \in S} h(p^{-1}I(s \in \tau))}
-\]
-and the inequality (\cref{eq:subsample_with_n_subsets}) is exactly, what we need.
+Let us recall that this is the exact condition we needed for the subampling step (\cref{eq:subsample_condition}).
 This means the proof for the modified algorithm in \cref{sec:invariants} works just as well with the new subsampling method.
 
 The resulting algorithm is depicted in \cref{alg:cvm_new}.
-Note that it is possible to just choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.
-The key advantage is that there is no line 11 and the algorithm never returns $\bot$.
-And based on our discussion from the previous section it is unbiased.
-
-\begin{algorithm}[h!]
+\begin{algorithm}[t]
 	\caption{New unbiased and total CVM algorithm.}\label{alg:cvm_new}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
@@ -92,5 +84,8 @@ And based on our discussion from the previous section it is unbiased.
   \EndFor
   \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
   \end{algorithmic}
-\end{algorithm}
+\end{algorithm}%
+Note that it is possible to just choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.
+The key advantage is that there is no line 11 and the algorithm never returns $\bot$.
+And based on our discussion from the previous section it is also an unbiased algorithm, i.e., the expectation of the result is exactly $|A|$.
 

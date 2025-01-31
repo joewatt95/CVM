@@ -6,16 +6,18 @@ Let us, e.g., consider \cref{alg:example}.
 \caption{Example for sequential composition.}\label{alg:example}
 \begin{algorithmic}[1]
 \State $p \getsr \Ber(\frac{1}{2})$
-\State $q \getsr \Ber(\frac{1}{3}+p)$
+\State $q \getsr \Ber(\frac{1}{3}+\frac{p}{2})$
 \State \Return $q$
 \end{algorithmic}
 \end{algorithm}%
 
-In the first step the algorithm flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise.
-In the second step the algorithm flips a coin $q$ which is $1$ with probability $\frac{1}{3}$, if $p=0$ or $\frac{2}{3}$ if $q=1$.
-I.e., $q$ is a compound distribution a half-half combination of $\Ber(\frac{1}{3})$ and $\Ber(\frac{2}{3})$,
+In the first step the algorithm flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise. (The notation $\Ber(p)$ represents the Bernoulli distribution.)
+In the second step the algorithm flips a coin $q$ which depends on $p$.
+This has the consequence, that we have to consider probability space valued functions, like: $p \mapsto Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
+The resulting distribution for $q$ is a compound distribution: In this case a combination of $\Ber(\frac{1}{3})$ and $\Ber(\frac{2}{3})$.
 
-Any algorithm can be represented using only two combinators, the bind and return combinator, as well as, primitive random operations.
+The above example captures the main aspects about reasoning with respect to randomized algorithms.
+Indeed, any algorithm can be represented using only two combinators, the bind and return combinator, as well as, primitive random operations.
 
 \paragraph*{Primitive Random Operations}
 For example a simple fair coin flip is represented using the Bernoulli distribution $\Ber(\frac{1}{2})$.
@@ -38,5 +40,5 @@ Another interesting property is what we mentioned before in the introduction. If
   \label{eq:integral_bind}
   \expect_{m \isa{\isasymbind} f} [h] = \int_m \expect_{f(x)} [h] \, d x \textrm{.}
 \end{equation}
+The above is just a very brief presentation of the Giry monad~\cite{giry1982}, a more thorough discussion of the concept in the context of Isabelle has been written, for example, by Eberl et al.~\cite{eberl2020} or Lochbihler~\cite{lochbihler2016}.
 
-\todo{TODO: Add external references and what we have glossed over (infinite loops, measurability.)}

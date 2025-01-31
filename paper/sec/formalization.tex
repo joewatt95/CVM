@@ -1,2 +1,74 @@
+\begin{algorithm}[h]
+\caption{Formalized Version of \cref{alg:cvm_new}}\label{alg:cvm_formalized}
+\begin{isabelle_cm}
+\isacommand{context}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ real\ \isakeyword{and}\ n\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ nat\isanewline
+\ \ \isakeyword{assumes}\ f{\isacharunderscore}{\kern0pt}range{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}f\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{1}}{\isacharslash}{\kern0pt}{\isadigit{2}}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}\ \isakeyword{and}\ n{\isacharunderscore}{\kern0pt}gt{\isacharunderscore}{\kern0pt}{\isadigit{0}}{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}n\ {\isachargreater}{\kern0pt}\ {\isadigit{0}}{\isacartoucheclose}\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isacartoucheopen}initial{\isacharunderscore}{\kern0pt}state\ {\isacharequal}{\kern0pt}\ State\ {\isacharbraceleft}{\kern0pt}{\isacharbraceright}{\kern0pt}\ {\isadigit{1}}{\isacartoucheclose}\ %
+\hfill\isamarkupcmt{Setup initial state $\chi=\emptyset$ and $p=1$.\;%
+}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ subsample\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Subsampling operation: Sample random $n f$ subset.\;%
+}\isanewline
+\ \ {\isacartoucheopen}subsample\ {\isasymchi}\ {\isacharequal}{\kern0pt}\ pmf{\isacharunderscore}{\kern0pt}of{\isacharunderscore}{\kern0pt}set\ {\isacharbraceleft}{\kern0pt}S{\isachardot}{\kern0pt}\ S\ {\isasymsubseteq}\ {\isasymchi}\ {\isasymand}\ card\ S\ {\isacharequal}{\kern0pt}\ n\ {\isacharasterisk}{\kern0pt}\ f{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ step\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Loop body.\;%
+}\isanewline
+\ \ {\isacartoucheopen}step\ a\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\ {\isacharequal}{\kern0pt}\ do\ {\isacharbraceleft}{\kern0pt}\isanewline
+\ \ \ \ b\ {\isasymleftarrow}\ bernoulli{\isacharunderscore}{\kern0pt}pmf\ p{\isacharsemicolon}{\kern0pt}\isanewline
+\ \ \ \ let\ {\isasymchi}\ {\isacharequal}{\kern0pt}\ {\isacharparenleft}{\kern0pt}if\ b\ then\ {\isasymchi}\ {\isasymunion}\ {\isacharbraceleft}{\kern0pt}a{\isacharbraceright}{\kern0pt}\ else\ {\isasymchi}\ {\isacharminus}{\kern0pt}\ {\isacharbraceleft}{\kern0pt}a{\isacharbraceright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacharsemicolon}{\kern0pt}\isanewline
+\isanewline
+\ \ \ \ if\ card\ {\isasymchi}\ {\isacharequal}{\kern0pt}\ n\ then\ do\ {\isacharbraceleft}{\kern0pt}\isanewline
+\ \ \ \ \ \ {\isasymchi}\ {\isasymleftarrow}\ subsample\ {\isasymchi}{\isacharsemicolon}{\kern0pt}\isanewline
+\ \ \ \ \ \ return{\isacharunderscore}{\kern0pt}pmf\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ {\isacharparenleft}{\kern0pt}p\ {\isacharasterisk}{\kern0pt}\ f{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}\isanewline
+\ \ \ \ {\isacharbraceright}{\kern0pt}\ else\ do\ {\isacharbraceleft}{\kern0pt}\isanewline
+\ \ \ \ \ \ return{\isacharunderscore}{\kern0pt}pmf\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\isanewline
+\ \ \ \ {\isacharbraceright}{\kern0pt}\isanewline
+\ \ \ {\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ run{\isacharunderscore}{\kern0pt}steps\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Iterate loop over stream \isa{xs}.\;%
+}\isanewline
+\ \ {\isacartoucheopen}run{\isacharunderscore}{\kern0pt}steps\ xs\ {\isacharequal}{\kern0pt}\ foldM{\isacharunderscore}{\kern0pt}pmf\ step\ xs\ initial{\isacharunderscore}{\kern0pt}state{\isacartoucheclose}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ estimate\ \isakeyword{where}\ 
+{\isacartoucheopen}estimate\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\ {\isacharequal}{\kern0pt}\ card\ {\isasymchi}\ {\isacharslash}{\kern0pt}\ p{\isacartoucheclose}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ run{\isacharunderscore}{\kern0pt}algo\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Run algorithm and estimate.\;%
+}\isanewline
+\ \ {\isacartoucheopen}run{\isacharunderscore}{\kern0pt}algo\ xs\ {\isacharequal}{\kern0pt}\ map{\isacharunderscore}{\kern0pt}pmf\ estimate\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}steps\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ unbiasedness{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}expectation\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}algo\ xs{\isacharparenright}{\kern0pt}\ id\ {\isacharequal}{\kern0pt}\ card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ correctness{\isacharcolon}{\kern0pt}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymepsilon}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}real\ n\ {\isasymge}\ {\isadigit{1}}{\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isasymepsilon}\isactrlsup {\isadigit{2}}\ {\isacharasterisk}{\kern0pt}\ ln\ {\isacharparenleft}{\kern0pt}{\isadigit{3}}\ {\isacharasterisk}{\kern0pt}\ real\ {\isacharparenleft}{\kern0pt}length\ xs{\isacharparenright}{\kern0pt}\ {\isacharslash}{\kern0pt}\ {\isasymdelta}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{defines}\ {\isacartoucheopen}A\ {\isasymequiv}\ real\ {\isacharparenleft}{\kern0pt}card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}R\ in\ run{\isacharunderscore}{\kern0pt}algo\ xs{\isachardot}{\kern0pt}\ {\isasymbar}R\ {\isacharminus}{\kern0pt}\ A{\isasymbar}\ {\isachargreater}{\kern0pt}\ {\isasymepsilon}\ {\isacharasterisk}{\kern0pt}\ A{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isasymdelta}{\isacartoucheclose}\isanewline
+\isacommand{end}
+\end{isabelle_cm}
+\end{algorithm}
 \section{Formalization}
-\todo{Overview of the two AFP entries. Include main statement of correctness for the CVM algorithm.}
+This entry is accompanied by two \todo{sessions?}.
+
+The first is a formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) with the approach presented in \cref{sec:invariants}.
+The formalization of the algorithm is presented in \cref{alg:cvm_formalized}.
+We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
+The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
+Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
+\todo{Explain: card}
+\todo{Explain: map-pmf}
+\todo{Explain: pmf-of-set}
+\todo{Explain: return-pmf}
+

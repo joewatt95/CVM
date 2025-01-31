@@ -15,7 +15,7 @@
 %\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
 %\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
 
-\usepackage{bigints}
+\usepackage{mdframed}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
@@ -32,6 +32,9 @@
 \DeclareMathOperator{\expect}{\mathrm{E}}
 \DeclareMathOperator{\bigo}{\mathcal O}
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\definecolor{shadecolor}{gray}{0.95}
+\newenvironment{isabelle_cm}{\begin{mdframed}[backgroundcolor=shadecolor,nobreak=true,linewidth=0]\begin{isabelle}}{\end{isabelle}\end{mdframed}}%
 
 \usepackage{isabelle}
 \usepackage{isabellesym}
