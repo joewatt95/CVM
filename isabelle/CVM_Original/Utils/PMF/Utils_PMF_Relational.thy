@@ -5,19 +5,17 @@ imports
 
 begin
 
-lemmas rel_pmf_mono_strong = rel_spmf_mono_strong[
-  where f = \<open>spmf_of_pmf _\<close> and g = \<open>spmf_of_pmf _\<close>,
-  simplified]
+lemma rel_pmf_bindI1 :
+  assumes \<open>\<And> x. x \<in> set_pmf p \<Longrightarrow> rel_pmf R (f x) q\<close>
+  shows \<open>rel_pmf R (p \<bind> f) q\<close>
+  using assms rel_spmf_bindI1 rel_spmf_spmf_of_pmf
+  by (metis bind_spmf_of_pmf lossless_spmf_spmf_of_spmf set_spmf_spmf_of_pmf spmf_of_pmf_bind)
 
-lemmas rel_pmf_bindI1 = rel_spmf_bindI1[
-  where p = \<open>spmf_of_pmf _\<close> and q = \<open>spmf_of_pmf _\<close> and f = \<open>spmf_of_pmf <<< _\<close>,
-  simplified,
-  simplified spmf_of_pmf_bind[symmetric] rel_spmf_spmf_of_pmf]
-
-lemmas rel_pmf_bindI2 = rel_spmf_bindI2[
-  where p = \<open>spmf_of_pmf _\<close> and q = \<open>spmf_of_pmf _\<close> and f = \<open>spmf_of_pmf <<< _\<close>,
-  simplified,
-  simplified spmf_of_pmf_bind[symmetric] rel_spmf_spmf_of_pmf]
+lemma rel_pmf_bindI2 :
+  assumes \<open>\<And> x. x \<in> set_pmf q \<Longrightarrow> rel_pmf R p (f x)\<close>
+  shows \<open>rel_pmf R p (q \<bind> f)\<close>
+  using assms rel_spmf_bindI2 rel_spmf_spmf_of_pmf
+  by (metis bind_spmf_of_pmf lossless_spmf_spmf_of_spmf set_spmf_spmf_of_pmf spmf_of_pmf_bind)
 
 abbreviation relational_hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
@@ -41,10 +39,10 @@ context
 begin
 
 private abbreviation (input)
-  \<open>foldM_enumerate' fn \<equiv> foldM_pmf_enumerate fn xs offset\<close>
+  \<open>foldM_enumerate' \<equiv> \<lambda> f. foldM_pmf_enumerate f xs offset\<close>
 
 private abbreviation (input)
-  \<open>R' idx x val val' \<equiv>
+  \<open>R' \<equiv> \<lambda> idx x val val'.
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     R idx val val'\<close>
 

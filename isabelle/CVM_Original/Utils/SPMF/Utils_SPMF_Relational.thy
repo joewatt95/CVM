@@ -97,10 +97,10 @@ context
 begin
 
 private abbreviation (input)
-  \<open>foldM_enumerate' fn \<equiv> foldM_spmf_enumerate fn xs offset\<close>
+  \<open>foldM_enumerate' \<equiv> \<lambda> f. foldM_spmf_enumerate f xs offset\<close>
 
 private abbreviation (input)
-  \<open>R' idx x val val' \<equiv>
+  \<open>R' \<equiv> \<lambda> idx x val val'.
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     R idx val val'\<close>
 

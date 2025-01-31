@@ -51,7 +51,7 @@ context
 begin
 
 private abbreviation (input)
-  \<open>P' idx x val \<equiv>
+  \<open>P' \<equiv> \<lambda> idx x val.
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     P idx val\<close>
 
