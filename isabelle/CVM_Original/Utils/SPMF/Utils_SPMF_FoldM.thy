@@ -14,10 +14,7 @@ abbreviation
   \<open>foldM_spmf_enumerate \<equiv> foldM_enumerate bind_spmf return_spmf\<close>
 
 lemma foldM_spmf_eq_foldM_pmf_case :
-  \<open>foldM_spmf f xs =
-    foldM_pmf
-      (\<lambda> x. case_option fail_spmf (f x))
-      xs <<< Some\<close>
+  \<open>foldM_spmf f xs = foldM_pmf (case_option fail_spmf <<< f) xs <<< Some\<close>
   (is \<open>_ = Some >>> ?foldM_pmf\<close>)
 proof -
   have \<open>?foldM_pmf = case_option fail_spmf (foldM_spmf f xs)\<close>
@@ -28,7 +25,9 @@ proof -
   next
     case (Cons _ _)
     then show ?case
-      by (metis (mono_tags, lifting) bind_spmf_def foldM.simps(2) not_None_eq option.case(1,2) return_None_bind_spmf)
+      apply (intro ext)
+      apply (simp split: option.splits)
+      by (simp add: bind_return_pmf bind_spmf_def)
   qed
 
   then show ?thesis by simp 
