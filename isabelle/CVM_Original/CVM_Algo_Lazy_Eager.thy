@@ -310,24 +310,24 @@ proof -
     by (intro measure_pmf_cong) auto
   also have "... = (\<Prod>j \<in> {..<state_k \<sigma>}\<times>{l}. measure coin_pmf {True})"
     using assms(3) l_le_n unfolding space_def by (intro prob_prod_pmf' subsetI) auto
-  also from f have "... = f ^ state_k \<sigma>" by (simp add:measure_pmf_single)
-  also from f have "... = f ^ state_k \<sigma>" unfolding power_one_over by simp
-  finally have "f ^ state_k \<sigma> = measure space {x. \<forall>k'<state_k \<sigma>. x (k', l)}"
+  also have "\<dots> = f ^ state_k \<sigma>" using f by (simp add:measure_pmf_single)
+
+  finally have
+    "bernoulli_pmf (f ^ state_k \<sigma>) = map_pmf (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) space"
     using f
-    using \<open>(\<Prod>j\<in>{..<state_k \<sigma>} \<times> {l}. measure_pmf.prob coin_pmf {True}) = f ^ state_k \<sigma>\<close>
-    \<open>measure_pmf.prob local.space ({..<state_k \<sigma>} \<times> {l} \<rightarrow> {True}) = (\<Prod>j\<in>{..<state_k \<sigma>} \<times> {l}. measure_pmf.prob coin_pmf {True})\<close>
-    \<open>measure_pmf.prob local.space {x. \<forall>k'<state_k \<sigma>. x (k', l)} = measure_pmf.prob local.space ({..<state_k \<sigma>} \<times> {l} \<rightarrow> {True})\<close> by presburger
-  hence "bernoulli_pmf (f ^ state_k \<sigma>) = map_pmf (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) space"
-    by (intro bool_pmf_eqI) (simp add:pmf_map vimage_def)
-  also have "... = sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd)"
+    apply (intro bool_pmf_eqI)
+    by (simp add: pmf_map vimage_def power_le_one)
+
+  also have "\<dots> = sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd)"
     unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
-  finally have a: "sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd) = bernoulli_pmf (f ^ state_k \<sigma>)"
-    by simp
 
-  have step_1: "sample (step_1_eager (xs@[x]) l \<sigma>) = step_1_lazy (xs@[x]) l \<sigma>"
-    unfolding step_1_eager_def Let_def step_1_lazy_def by (subst lazify_bind_return) (simp_all add:a)
+  finally have step_1 :
+    "sample (step_1_eager (xs@[x]) l \<sigma>) = step_1_lazy (xs@[x]) l \<sigma>"
+    unfolding step_1_eager_def' step_1_lazy_def'
+    by (simp add: lazify_map map_pmf_comp)
 
-  have step_2: "sample (step_2_eager (xs@[x]) l \<sigma>') = step_2_lazy \<sigma>'" (is "?L1 = ?R1")
+  have step_2 :
+    "sample (step_2_eager (xs@[x]) l \<sigma>') = step_2_lazy \<sigma>'" (is "?L1 = ?R1")
     if "state_chi \<sigma>' \<subseteq> insert x (state_chi \<sigma>)" "state_k \<sigma>' = state_k \<sigma>" for \<sigma>'
   proof (cases "real (card (state_chi \<sigma>')) < threshold")
     case True
@@ -338,8 +338,7 @@ proof -
 
     from that(2) assms(3) have b: "?f ` state_chi \<sigma>' \<subseteq> {..< n} \<times> {..< n}"
       apply (intro image_subsetI)
-      apply simp
-      by (meson dual_order.trans l_le_n last_index_up_to_le not_le)
+      by (metis basic_trans_rules(21) l_le_n last_index_up_to_le lessThan_iff mem_Sigma_iff)
 
     have "inj_on (last_index (xs @ [x])) (set (xs @ [x]))"
       using inj_on_last_index by blast
