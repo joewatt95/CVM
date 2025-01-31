@@ -7,9 +7,10 @@ imports
 
 begin
 
-(* lemma pmf_return_pmf_1 [simp] :
-  \<open>pmf (return_pmf x) x = 1\<close>
-  by simp *)
+lemma integrable_measure_pmf_pmf [simp] :
+  \<open>integrable (measure_pmf p) <| \<lambda> x. pmf (f x) y\<close>
+  apply (intro measure_pmf.integrable_const_bound[where B = 1])
+  by (simp_all add: pmf_le_1)
 
 lemma pmf_map_pred_true_eq_prob :
   \<open>pmf (map_pmf P p) True = \<P>(x in measure_pmf p. P x)\<close>
@@ -33,11 +34,12 @@ lemma map_pmf_times_one [simp] :
   shows \<open>map_pmf ((*) <| Suc 0) p = p\<close>
   by (simp add: pmf.map_ident_strong)
 
-lemma foldM_pmf_snoc: "foldM_pmf f (xs@[y]) val = bind_pmf (foldM_pmf f xs val) (f y)"
+lemma foldM_pmf_snoc :
+  "foldM_pmf f (xs@[y]) val = bind_pmf (foldM_pmf f xs val) (f y)"
   by (induction xs arbitrary:val)
     (simp_all add: bind_return_pmf bind_return_pmf' bind_assoc_pmf cong:bind_pmf_cong)
 
-lemma prod_pmf_reindex:
+lemma prod_pmf_reindex :
   assumes "finite T" "f ` S \<subseteq> T" "inj_on f S"
   shows "map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf T F) = prod_pmf S (F \<circ> f)" (is "?L = ?R")
 proof -
@@ -78,22 +80,21 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma bool_pmf_eqI:
+lemma bool_pmf_eqI :
   assumes "pmf p True = pmf q True"
   shows "p = q"
   using assms pmf_False_conv_True by (intro pmf_eqI) (metis (full_types))
 
 text \<open>Better version of Pi_pmf_map.\<close>
-lemma Pi_pmf_map':
+lemma Pi_pmf_map' :
   assumes "finite I"
   shows
     "Pi_pmf I dflt (\<lambda> i. map_pmf (f i) (M i)) =
       map_pmf (\<lambda> x i. if i \<in> I then f i (x i) else dflt) (Pi_pmf I dflt' M)"
   unfolding map_pmf_def by (intro Pi_pmf_bind_return assms)
 
-lemma prod_pmf_uncurry:
-  fixes I :: "'a set"
-  fixes J :: "'b set"
+lemma prod_pmf_uncurry :
+  fixes I :: "'a set" and J :: "'b set"
   assumes "finite I" "finite J"
   shows "prod_pmf (I \<times> J) M =
     map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) (snd x))
@@ -128,9 +129,8 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma prod_pmf_swap:
-  fixes I :: "'a set"
-  fixes J :: "'b set"
+lemma prod_pmf_swap :
+  fixes I :: "'a set" and J :: "'b set"
   assumes "finite I" "finite J"
   shows
     "prod_pmf (I\<times>J) M =

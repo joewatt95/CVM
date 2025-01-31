@@ -6,6 +6,11 @@ imports
 
 begin
 
+lemma integrable_measure_spmf_pmf [simp] :
+  \<open>integrable (measure_spmf p) <| \<lambda> x. pmf (f x) y\<close>
+  apply (intro measure_spmf.integrable_const_bound[where B = 1])
+  by (simp_all add: pmf_le_1)
+
 lemma spmf_of_pmf_eq_iff_eq [simp] :
   \<open>spmf_of_pmf p = spmf_of_pmf q \<longleftrightarrow> p = q\<close>
   by (metis measure_pmf_inject measure_spmf_spmf_of_pmf)

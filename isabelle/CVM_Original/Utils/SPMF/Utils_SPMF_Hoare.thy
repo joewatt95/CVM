@@ -141,7 +141,7 @@ next
     from Cons.IH assms
     show \<open>(\<integral> val'. ?prob_fail val' \<partial> ?\<mu>') \<le> \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
       apply (intro integral_mono_AE)
-      by (simp_all add: integrable_prob_fail_foldM_spmf)
+      by simp_all
   qed
 
   also from assms have \<open>\<dots> \<le> p + length xs * p\<close>

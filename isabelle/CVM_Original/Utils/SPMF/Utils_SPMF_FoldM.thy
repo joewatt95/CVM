@@ -60,12 +60,4 @@ lemma pmf_foldM_spmf_cons :
   apply (intro integral_cong_AE)
   by (auto simp add: AE_measure_pmf_iff split: option.splits)
 
-lemma integrable_prob_fail_foldM_spmf :
-  \<open>integrable
-    (measure_spmf <| f x acc) <|
-    prob_fail <<< foldM_spmf f xs\<close>
-  by (auto
-    intro: measure_spmf.integrable_const_bound[where B = 1]
-    simp add: pmf_le_1)
-
 end
