@@ -53,30 +53,24 @@ begin
 
 context
   fixes f :: real
-  fixes thresh :: nat
+  fixes n :: nat
   assumes f_range: \<open>f \<in> {1/2..exp(-1/12)}\<close>
-  assumes thresh_gt_0: \<open>thresh > 0\<close>
+  assumes n_gt_0: \<open>n > 0\<close>
 begin
 
 text \<open>Line 1:\<close>
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state = \<lparr>state_p = 1, state_\<chi> = {}\<rparr>\<close>
+  \<open>initial_state = State {} 1\<close>
 
 text \<open>Lines 3--7:\<close>
-definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step_1 x \<sigma> = do {
-    let p = state_p \<sigma>;
-    let \<chi> = state_\<chi> \<sigma>;
+fun step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\<close> where
+  \<open>step_1 a (State \<chi> p) =
+    do {
+      b \<leftarrow> bernoulli_pmf p;
+      let \<chi> = (if b then \<chi> \<union> {a} else \<chi> - {a});
 
-    insert_x_into_\<chi> \<leftarrow> bernoulli_pmf p;
-
-    let \<chi> = (
-      if insert_x_into_\<chi>
-      then insert x \<chi>
-      else Set.remove x \<chi>
-    );
-
-    return_spmf (\<sigma>\<lparr>state_\<chi> := \<chi>\<rparr>) }\<close>
+      return_spmf (State \<chi> p)
+    }\<close>
 
 definition subsample :: \<open>'a set \<Rightarrow> 'a set spmf\<close> where
   \<open>subsample \<chi> =
@@ -86,28 +80,23 @@ definition subsample :: \<open>'a set \<Rightarrow> 'a set spmf\<close> where
     }\<close>
 
 text \<open>Lines 8--10:\<close>
-definition step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step_2 \<sigma> = do {
-    let p = state_p \<sigma>;
-    let \<chi> = state_\<chi> \<sigma>;
-
-    if card \<chi> = thresh
-    then do {
-      \<chi> \<leftarrow> subsample \<chi>;
-      return_spmf \<lparr>state_p = p * f, state_\<chi> = \<chi>\<rparr>
-    } else
-      return_spmf \<sigma>
+fun step_2 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
+  \<open>step_2 (State \<chi> p) =
+    do {
+      if card \<chi> = n then do {
+        \<chi> \<leftarrow> subsample \<chi>;
+        return_spmf (State \<chi> (p * f))
+      } else
+        return_spmf (State \<chi> p)
     }\<close>
 
 text \<open>Lines 11--12:\<close>
-definition step_3 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
-  \<open>step_3 \<sigma> =
+fun step_3 :: \<open>'a state \<Rightarrow> 'a state spmf\<close> where
+  \<open>step_3 (State \<chi> p) =
     do {
-      let \<chi> = state_\<chi> \<sigma>;
-
-      if card \<chi> = thresh
+      if card \<chi> = n
       then fail_spmf
-      else return_spmf \<sigma>
+      else return_spmf (State \<chi> p)
     }\<close>
 
 text \<open>Lines 1--12:\<close>
@@ -121,13 +110,23 @@ definition estimate :: \<open>'a state \<Rightarrow> real\<close> where
 definition run_algo :: \<open>'a list \<Rightarrow> real spmf\<close> where
   \<open>run_algo xs = map_spmf estimate (run_steps xs)\<close>
 
+
+schematic_goal step_1_m_def: \<open>step_1 x \<sigma> = ?x\<close>
+  by (subst state.collapse[symmetric], subst step_1.simps, rule refl)
+
+schematic_goal step_2_m_def: \<open>step_2 \<sigma> = ?x\<close>
+  by (subst state.collapse[symmetric], subst step_2.simps, rule refl)
+
+schematic_goal step_3_m_def: \<open>step_3 \<sigma> = ?x\<close>
+  by (subst state.collapse[symmetric], subst step_3.simps, rule refl)
+
 lemma ord_spmf_remove_step3:
   \<open>ord_spmf (=) (step_1 x \<sigma> \<bind> step_2 \<bind> step_3) (step_1 x \<sigma> \<bind> step_2)\<close>
 proof -
   have \<open>ord_spmf (=) (step_2 x \<bind> step_3) (step_2 x)\<close> for x :: \<open>'a state\<close>
   proof -
     have \<open>ord_spmf (=) (step_2 x \<bind> step_3) (step_2 x \<bind> return_spmf)\<close>
-      by (intro bind_spmf_mono') (simp_all add:step_3_def)
+      by (intro bind_spmf_mono') (simp_all add:step_3_m_def)
     thus ?thesis by simp
   qed
   thus ?thesis unfolding bind_spmf_assoc by (intro bind_spmf_mono') simp_all
@@ -158,21 +157,21 @@ text \<open>Main result:\<close>
 theorem correctness:
   fixes xs :: \<open>'a list\<close>
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
-  assumes \<open>real thresh \<ge> 12 / \<epsilon> ^ 2 * ln (6 * real (length xs) / \<delta>)\<close>
+  assumes \<open>real n \<ge> 12 / \<epsilon>\<^sup>2 * ln (6 * real (length xs) / \<delta>)\<close>
   defines \<open>A \<equiv> real (card (set xs))\<close>
-  shows \<open>\<P>(\<omega> in run_algo xs. fails_or_satisfies (\<lambda>x. \<bar>x - A\<bar> > \<epsilon> * A) \<omega>) \<le> \<delta>\<close>
+  shows \<open>\<P>(\<omega> in run_algo xs. fails_or_satisfies (\<lambda>R. \<bar>R - A\<bar> > \<epsilon> * A) \<omega>) \<le> \<delta>\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   define abs_subsample where
     \<open>abs_subsample \<chi> = map_pmf (\<lambda>\<omega>. Set.filter \<omega> \<chi>) (prod_pmf \<chi> (\<lambda>_. bernoulli_pmf f))\<close>
     for \<chi> :: \<open>'a set\<close>
 
-  interpret abs:cvm_algo_abstract thresh f abs_subsample
+  interpret abs:cvm_algo_abstract n f abs_subsample
     rewrites \<open>abs.estimate = estimate\<close>
   proof -
-    show abs:\<open>cvm_algo_abstract thresh f abs_subsample\<close>
+    show abs:\<open>cvm_algo_abstract n f abs_subsample\<close>
     proof (unfold_locales, goal_cases)
-      case 1 thus ?case by (rule thresh_gt_0)
+      case 1 thus ?case by (rule n_gt_0)
     next
       case 2 thus ?case using f_range_simple by auto
     next
@@ -180,7 +179,7 @@ proof -
       then show ?case unfolding abs_subsample_def by auto
     next
       case (4 g \<chi> S)
-      hence fin_U: \<open>finite \<chi>\<close> using thresh_gt_0 card_gt_0_iff by metis
+      hence fin_U: \<open>finite \<chi>\<close> using n_gt_0 card_gt_0_iff by metis
       note conv = Pi_pmf_subset[OF this 4(1)]
 
       have \<open>(\<integral>\<omega>. (\<Prod>s\<in>S. g (s \<in> \<omega>)) \<partial>abs_subsample \<chi>) =
@@ -200,10 +199,10 @@ proof -
   qed
 
   have a: \<open>step_1 \<sigma> x = spmf_of_pmf (abs.step_1 \<sigma> x)\<close> for \<sigma> x
-    unfolding step_1_def abs.step_1_def Let_def spmf_of_pmf_def by (simp add:map_bind_pmf)
+    unfolding step_1_m_def abs.step_1_def Let_def spmf_of_pmf_def by (simp add:map_bind_pmf)
 
   have b: \<open>step_2 \<sigma> = map_pmf Some (abs.step_2 \<sigma>)\<close> for \<sigma>
-    unfolding step_2_def abs.step_2_def subsample_def abs_subsample_def Let_def
+    unfolding step_2_m_def abs.step_2_def subsample_def abs_subsample_def Let_def
     by (simp add:map_bind_pmf bind_pmf_return_spmf)
 
   have c: \<open>abs.initial_state = initial_state\<close>
@@ -213,18 +212,18 @@ proof -
     unfolding subsample_def abs_subsample_def map_pmf_def[symmetric]
     by (simp add:spmf_of_pmf_def map_pmf_comp)
 
-  define \<alpha> :: real where \<open>\<alpha> = f ^ thresh\<close>
+  define \<alpha> :: real where \<open>\<alpha> = f ^ n\<close>
 
   have \<alpha>_range: \<open>\<alpha> \<in> {0..1}\<close>
     using f_range_simple unfolding \<alpha>_def by (auto intro:power_le_one)
   hence [simp]: \<open>\<bar>\<alpha>\<bar> \<le> 1\<close> by auto
 
-  have \<open>(\<integral>x. (if card x = thresh then 1 else 0) \<partial>abs_subsample \<chi>) \<le> \<alpha>\<close> (is \<open>?L1 \<le> _\<close>)
-    if that': \<open>card \<chi> = thresh\<close> for \<chi>
+  have \<open>(\<integral>x. (if card x = n then 1 else 0) \<partial>abs_subsample \<chi>) \<le> \<alpha>\<close> (is \<open>?L1 \<le> _\<close>)
+    if that': \<open>card \<chi> = n\<close> for \<chi>
   proof -
-    have fin_U: \<open>finite \<chi>\<close> using thresh_gt_0 that card_gt_0_iff by metis
+    have fin_U: \<open>finite \<chi>\<close> using n_gt_0 that card_gt_0_iff by metis
 
-    have \<open>(\<Prod>s\<in>\<chi>. of_bool (s \<in> x)::real) = of_bool(card x = thresh)\<close>
+    have \<open>(\<Prod>s\<in>\<chi>. of_bool (s \<in> x)::real) = of_bool(card x = n)\<close>
       if \<open>x \<in> set_pmf (abs_subsample \<chi>)\<close> for x
     proof -
       have x_ran: \<open>x \<subseteq> \<chi>\<close> using that unfolding abs_subsample_def by auto
@@ -233,7 +232,7 @@ proof -
         using fin_U x_ran by (induction \<chi> rule:finite_induct) auto
       also have \<open>\<dots> = of_bool (card x = card \<chi>)\<close>
         using x_ran fin_U card_subset_eq by (intro arg_cong[where f=\<open>of_bool\<close>]) blast
-      also have \<open>\<dots> = of_bool (card x = thresh)\<close> using that' by simp
+      also have \<open>\<dots> = of_bool (card x = n)\<close> using that' by simp
       finally show ?thesis by auto
     qed
     hence \<open>?L1 = (\<integral>x. (\<Prod>s \<in> \<chi>. of_bool(s \<in> x)) \<partial>abs_subsample \<chi>)\<close>
@@ -245,7 +244,7 @@ proof -
     finally show ?thesis by simp
   qed
   hence e: \<open>pmf (step_2 \<sigma> \<bind> step_3) None \<le> \<alpha>\<close> for \<sigma> :: \<open>'a state\<close>
-    using \<alpha>_range unfolding step_2_def step_3_def d Let_def
+    using \<alpha>_range unfolding step_2_m_def step_3_m_def d Let_def
     by (simp add:pmf_bind bind_pmf_return_spmf if_distrib if_distribR cong:if_cong)
 
   have \<open>pmf (step_1 x \<sigma> \<bind> step_2 \<bind> step_3) None \<le> \<alpha>\<close> for \<sigma> and x :: 'a
@@ -254,7 +253,7 @@ proof -
       unfolding bind_spmf_assoc pmf_bind_spmf_None[where p=\<open>step_1 x \<sigma>\<close>]
       by (intro add_mono integral_mono_AE measure_spmf.integrable_const_bound[where B=\<open>1\<close>]
           iffD2[OF AE_measure_spmf_iff] ballI e)
-         (simp_all add:pmf_le_1 step_1_def map_pmf_def[symmetric] pmf_map vimage_def Let_def)
+         (simp_all add:pmf_le_1 step_1_m_def map_pmf_def[symmetric] pmf_map vimage_def Let_def)
     also have \<open>\<dots> \<le> \<alpha>\<close> using \<alpha>_range by (simp add: mult_left_le_one_le weight_spmf_le_1)
     finally show ?thesis by simp
   qed
@@ -270,9 +269,9 @@ proof -
     also have \<open>\<dots> \<le> 6 * real (length xs)\<close>
       using False by (intro mult_mono order.refl) (cases xs, auto)
     finally have [simp]: \<open> \<delta> \<le> 6 * real (length xs)\<close> by simp
-    have \<open>2 * real (length xs) * f ^ thresh \<le> 2 * real (length xs) * exp (-1/12)^thresh\<close>
+    have \<open>2 * real (length xs) * f ^ n \<le> 2 * real (length xs) * exp (-1/12)^n\<close>
       using f_range by (intro mult_left_mono power_mono) auto
-    also have \<open>\<dots> =  2 * real (length xs) * exp (-real thresh / 12)\<close>
+    also have \<open>\<dots> =  2 * real (length xs) * exp (-real n / 12)\<close>
       unfolding exp_of_nat_mult[symmetric] by simp
     also have \<open>\<dots> \<le> 2 * real (length xs) * exp (-(12 / \<epsilon> ^ 2 * ln (6 * real (length xs) / \<delta>))/12)\<close>
       using assms(3) by (intro mult_left_mono iffD2[OF exp_le_cancel_iff] divide_right_mono) auto
@@ -288,7 +287,7 @@ proof -
       using assms(1,2) False by (subst exp_ln) auto
     also have \<open>\<dots> = \<delta> / 3\<close> using False assms(2) by auto
     also have \<open>\<dots> \<le> \<delta>\<close> using assms(2) by auto
-    finally have \<open>2 * real (length xs) * f^thresh \<le> \<delta>\<close> by simp
+    finally have \<open>2 * real (length xs) * f^n \<le> \<delta>\<close> by simp
     thus ?thesis unfolding \<alpha>_def by simp
   qed
   finally have f:\<open>prob_fail (run_steps xs) \<le> \<delta> / 2\<close> by simp
@@ -315,9 +314,9 @@ proof -
 qed
 
 lemma space_usage:
-  \<open>AE \<sigma> in measure_spmf (run_steps xs). card (state_\<chi> \<sigma>) < thresh \<and> finite (state_\<chi> \<sigma>)\<close>
+  \<open>AE \<sigma> in measure_spmf (run_steps xs). card (state_\<chi> \<sigma>) < n \<and> finite (state_\<chi> \<sigma>)\<close>
 proof (induction xs rule:rev_induct)
-  case Nil thus ?case using thresh_gt_0 by (simp add:run_steps_def initial_state_def)
+  case Nil thus ?case using n_gt_0 by (simp add:run_steps_def initial_state_def)
 next
   case (snoc x xs)
   define p1 where \<open>p1 = run_steps xs \<bind> step_1 x\<close>
@@ -327,18 +326,18 @@ next
   have a:\<open>run_steps (xs@[x]) = p3\<close>
     unfolding run_steps_def p1_def p2_def p3_def foldM_spmf_snoc by (simp add:bind_assoc_pmf)
 
-  have \<open>card (state_\<chi> \<sigma>) \<le> thresh \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p1\<close> for \<sigma>
+  have \<open>card (state_\<chi> \<sigma>) \<le> n \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p1\<close> for \<sigma>
     using snoc that less_imp_le unfolding p1_def
-    by (auto simp: step_1_def set_bind_spmf set_spmf_bind_pmf Let_def card_insert_if remove_def)+
+    by (auto simp: step_1_m_def set_bind_spmf set_spmf_bind_pmf Let_def card_insert_if)+
 
-  hence \<open>card (state_\<chi> \<sigma>) \<le> thresh \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p2\<close> for \<sigma>
+  hence \<open>card (state_\<chi> \<sigma>) \<le> n \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p2\<close> for \<sigma>
     using that card_filter_mono unfolding p2_def
-    by (auto intro!:card_filter_mono simp:step_2_def set_bind_spmf set_spmf_bind_pmf
+    by (auto intro!:card_filter_mono simp:step_2_m_def set_bind_spmf set_spmf_bind_pmf
         subsample_def Let_def if_distrib)
 
-  hence \<open>card (state_\<chi> \<sigma>) < thresh \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p3\<close> for \<sigma>
+  hence \<open>card (state_\<chi> \<sigma>) < n \<and> finite (state_\<chi> \<sigma>)\<close> if \<open>\<sigma> \<in> set_spmf p3\<close> for \<sigma>
     using that unfolding p3_def
-    by (auto intro:le_neq_implies_less simp:step_3_def set_bind_spmf if_distrib)
+    by (auto intro:le_neq_implies_less simp:step_3_m_def set_bind_spmf if_distrib)
 
   thus ?case unfolding a by simp
 qed

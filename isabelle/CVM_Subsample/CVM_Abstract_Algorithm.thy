@@ -66,9 +66,7 @@ begin
 
 unbundle no_vec_syntax
 
-record 'a state =
-  state_p :: real
-  state_\<chi> :: \<open>'a set\<close>
+datatype 'a state = State (state_\<chi>: \<open>'a set\<close>) (state_p: real)
 
 datatype 'a run_state = FinalState \<open>'a list\<close> | IntermState \<open>'a list\<close> \<open>'a\<close>
 
@@ -84,53 +82,49 @@ proof -
 qed
 
 locale cvm_algo_abstract =
-  fixes thresh :: nat and f :: real and subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close>
-  assumes thresh_gt_0: \<open>thresh > 0\<close>
+  fixes n :: nat and f :: real and subsample :: \<open>'a set \<Rightarrow> 'a set pmf\<close>
+  assumes n_gt_0: \<open>n > 0\<close>
   assumes f_range: \<open>f \<in> {1/2..<1}\<close>
   assumes subsample:
-    \<open>\<And>U x. card U = thresh \<Longrightarrow> x \<in> set_pmf (subsample U) \<Longrightarrow> x \<subseteq> U\<close>
+    \<open>\<And>U x. card U = n \<Longrightarrow> x \<in> set_pmf (subsample U) \<Longrightarrow> x \<subseteq> U\<close>
   assumes subsample_inequality:
     \<open>\<And>g U S. S \<subseteq> U
-      \<Longrightarrow> card U = thresh
+      \<Longrightarrow> card U = n
       \<Longrightarrow> range g \<subseteq> {0::real..}
       \<Longrightarrow> (\<integral>\<omega>. (\<Prod>s\<in>S. g(s \<in> \<omega>)) \<partial>subsample U) \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g \<omega> \<partial>bernoulli_pmf f))\<close>
 begin
 
 text \<open>Line 1 of Algorithm~\ref{alg:cvm_abs}:\<close>
 definition initial_state :: \<open>'a state\<close> where
-  \<open>initial_state \<equiv> \<lparr>state_p = 1, state_\<chi> = {}\<rparr>\<close>
+  \<open>initial_state \<equiv> State {} 1\<close>
 
 text \<open>Lines 3--7:\<close>
-definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step_1 x \<sigma> =
+fun step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
+  \<open>step_1 a (State \<chi> p) =
     do {
-      let p = state_p \<sigma>;
-      let \<chi> = state_\<chi> \<sigma>;
+      b \<leftarrow> bernoulli_pmf p;
+      let \<chi> = (if b then \<chi> \<union> {a} else \<chi> - {a});
 
-      insert_x_into_\<chi> \<leftarrow> bernoulli_pmf p;
-
-      let \<chi> = (
-        if insert_x_into_\<chi>
-        then insert x \<chi>
-        else Set.remove x \<chi>
-      );
-
-      return_pmf (\<sigma>\<lparr>state_\<chi> := \<chi>\<rparr>)
+      return_pmf (State \<chi> p)
     }\<close>
 
 text \<open>Lines 8--10:\<close>
-definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
-  \<open>step_2 \<sigma> = do {
-    let p = state_p \<sigma>;
-    let \<chi> = state_\<chi> \<sigma>;
+fun step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
+  \<open>step_2 (State \<chi> p) = do {
 
-    if card \<chi> = thresh
+    if card \<chi> = n
     then do {
       \<chi> \<leftarrow> subsample \<chi>;
-      return_pmf \<lparr>state_p = p*f, state_\<chi> = \<chi>\<rparr>
+      return_pmf (State \<chi> (p*f))
     } else
-      return_pmf \<sigma>
+      return_pmf (State \<chi> p)
     }\<close>
+
+schematic_goal step_1_def: \<open>step_1 x \<sigma> = ?x\<close>
+  apply (subst state.collapse[symmetric]) apply (subst step_1.simps) by (rule refl)
+
+schematic_goal step_2_def: \<open>step_2 \<sigma> = ?x\<close>
+  apply (subst state.collapse[symmetric]) apply (subst step_2.simps) by (rule refl)
 
 text \<open>Lines 1--10:\<close>
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
@@ -158,17 +152,17 @@ fun run_state_set where
 lemma finite_run_state_set[simp]: \<open>finite (run_state_set \<sigma>)\<close> by (cases \<sigma>) auto
 
 lemma subsample_finite_pmf:
-  assumes \<open>card U = thresh\<close>
+  assumes \<open>card U = n\<close>
   shows \<open>finite (set_pmf (subsample U))\<close>
 proof-
-  have \<open>finite (Pow U)\<close> unfolding finite_Pow_iff using assms thresh_gt_0 card_gt_0_iff by blast
+  have \<open>finite (Pow U)\<close> unfolding finite_Pow_iff using assms n_gt_0 card_gt_0_iff by blast
   from finite_subset[OF _ this] show ?thesis using subsample[OF assms] by auto
 qed
 
 lemma step_2_preserves_finite_support :
   assumes \<open>finite (set_pmf \<sigma>)\<close>
   shows \<open>finite (set_pmf (\<sigma> \<bind> step_2))\<close>
-  using assms subsample_finite_pmf by (auto simp:step_2_def Let_def)
+  using assms subsample_finite_pmf by (auto simp:step_2_def)
 
 lemma finite_run_state_pmf: \<open>finite (set_pmf (run_state_pmf \<rho>))\<close>
 proof (induction \<rho> rule:run_state_induct)
@@ -187,7 +181,7 @@ proof (induction \<rho> rule:run_state_induct)
   case 1 thus ?case by (simp add:run_steps_def AE_measure_pmf_iff initial_state_def)
 next
   case (2 xs x)
-  then show ?case by (simp add:AE_measure_pmf_iff Let_def step_1_def remove_def) auto
+  then show ?case by (simp add:AE_measure_pmf_iff Let_def step_1_def) auto
 next
   case (3 xs x)
   let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
@@ -297,7 +291,7 @@ next
     using finite_run_state_pmf[where \<rho>=\<open>FinalState (xs@[x])\<close>] a by simp
 
   have c: \<open>(\<integral>u. (\<Prod>s\<in>S. \<phi> (f * state_p \<tau>) (s \<in> u)) \<partial>subsample (state_\<chi> \<tau>)) \<le> aux S \<tau>\<close>
-    (is \<open>?L \<le> ?R\<close>) if that': \<open>card(state_\<chi> \<tau>) = thresh\<close> \<open>\<tau> \<in> set_pmf p\<close> for \<tau>
+    (is \<open>?L \<le> ?R\<close>) if that': \<open>card(state_\<chi> \<tau>) = n\<close> \<open>\<tau> \<in> set_pmf p\<close> for \<tau>
   proof -
     let ?q = \<open>subsample (state_\<chi> \<tau>)\<close>
     let ?U = \<open>state_\<chi> \<tau>\<close>
@@ -340,11 +334,11 @@ next
   have \<open>(\<integral>\<tau>. aux S \<tau> \<partial>run_state_pmf (FinalState (xs@[x]))) = (\<integral>\<tau>. aux S \<tau> \<partial>bind_pmf p step_2)\<close>
     unfolding a by simp
   also have \<open>\<dots> = (\<integral>\<tau>. (\<integral>u. aux S u \<partial>step_2 \<tau>) \<partial>p)\<close> by (intro integral_bind_pmf bounded_finite b)
-  also have \<open>\<dots> = (\<integral>\<tau>. (if card(state_\<chi> \<tau>) = thresh then
+  also have \<open>\<dots> = (\<integral>\<tau>. (if card(state_\<chi> \<tau>) = n then
     (\<integral>u. (\<Prod>s\<in>S. \<phi> (f * state_p \<tau>) (s \<in> u)) \<partial>subsample (state_\<chi> \<tau>)) else aux S \<tau>) \<partial>p)\<close>
     unfolding step_2_def map_pmf_def[symmetric] Let_def aux_def
     by (simp add:if_distrib if_distribR ac_simps cong:if_cong)
-  also have \<open>\<dots> \<le> (\<integral>\<tau>. (if card(state_\<chi> \<tau>) < thresh then aux S \<tau> else aux S \<tau>) \<partial>p)\<close>
+  also have \<open>\<dots> \<le> (\<integral>\<tau>. (if card(state_\<chi> \<tau>) < n then aux S \<tau> else aux S \<tau>) \<partial>p)\<close>
     using c by (intro integral_mono_AE AE_pmfI) auto
   also have \<open>\<dots> = (\<integral>\<tau>. aux S \<tau> \<partial>p)\<close> by simp
   also have \<open>\<dots> \<le> \<phi> 1 True ^ card S\<close> using 3(2) unfolding p_def by (intro 3(1)) auto
@@ -394,17 +388,17 @@ proof -
   finally show ?thesis by simp
 qed
 
-text \<open>Analysis of the case where @{term \<open>card (set xs) \<ge> thresh\<close>}:\<close>
+text \<open>Analysis of the case where @{term \<open>card (set xs) \<ge> n\<close>}:\<close>
 
 context
   fixes xs :: \<open>'a list\<close>
-  assumes set_larger_than_threshold: \<open>card (set xs) \<ge> thresh\<close>
+  assumes set_larger_than_nold: \<open>card (set xs) \<ge> n\<close>
 begin
 
-definition \<open>q = real thresh / (4 * card (set xs))\<close>
+definition \<open>q = real n / (4 * card (set xs))\<close>
 
 lemma q_range: \<open>q \<in> {0<..1/4}\<close>
-  using set_larger_than_threshold thresh_gt_0 unfolding q_def by auto
+  using set_larger_than_nold n_gt_0 unfolding q_def by auto
 
 lemma mono_nonnegI:
   assumes \<open>\<And>x. x \<in> I \<Longrightarrow> h' x \<ge> 0\<close>
@@ -470,7 +464,7 @@ lemma upper_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..1::real}\<close>
   assumes \<open>run_state_set \<rho> \<subseteq> set xs\<close>
   shows \<open>measure (run_state_pmf \<rho>) {\<omega>. estimate \<omega> \<ge> (1 + \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
-    \<le> exp(-real thresh/12 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
+    \<le> exp(-real n/12 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?p = \<open>run_state_pmf \<rho>\<close>
   define t where \<open>t = q * ln (1+\<epsilon>)\<close>
@@ -545,13 +539,13 @@ proof -
     using h_1_pos unfolding powr_def by (simp add:algebra_simps exp_diff)
   also have \<open>\<dots> \<le> exp (?c * (-q * \<epsilon>^2/3))\<close>
     by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a) simp
-  also have \<open>\<dots> = ?R\<close> using set_larger_than_threshold thresh_gt_0 unfolding q_def by auto
+  also have \<open>\<dots> = ?R\<close> using set_larger_than_nold n_gt_0 unfolding q_def by auto
   finally show ?thesis by simp
 qed
 
 text \<open>Lemma~\ref{le:low_p}:\<close>
 lemma low_p:
-  shows \<open>measure (run_steps xs) {\<sigma>. state_p \<sigma> < q} \<le> real (length xs) * exp(-real thresh/12)\<close>
+  shows \<open>measure (run_steps xs) {\<sigma>. state_p \<sigma> < q} \<le> real (length xs) * exp(-real n/12)\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   define \<rho> where \<open>\<rho> = FinalState xs\<close>
@@ -560,7 +554,7 @@ proof -
 
   have \<open>?L = measure (run_state_pmf \<rho>) {\<omega>. state_p \<omega> < q}\<close>
     unfolding \<rho>_def run_state_pmf.simps by simp
-  also have \<open>\<dots> \<le> real (len_run_state \<rho>) * exp(- real thresh/12)\<close>
+  also have \<open>\<dots> \<le> real (len_run_state \<rho>) * exp(- real n/12)\<close>
     using ih
   proof (induction \<rho> rule:run_state_induct)
     case 1
@@ -575,7 +569,7 @@ proof -
     also have \<open>\<dots> = (\<integral>\<sigma>. indicator {\<omega>. (state_p \<omega> < q)} \<sigma> \<partial>run_steps ys)\<close>
       by (intro integral_cong_AE AE_pmfI) simp_all
     also have \<open>\<dots> = measure (run_steps ys) {\<omega>. (state_p \<omega> < q)}\<close> by simp
-    also have \<open>\<dots> \<le> real (len_run_state (IntermState ys x)) * exp (- real thresh / 12)\<close>
+    also have \<open>\<dots> \<le> real (len_run_state (IntermState ys x)) * exp (- real n / 12)\<close>
       using 2(1)[OF a] by simp
     finally show ?case by simp
   next
@@ -592,49 +586,49 @@ proof -
       using 3(2) by simp
 
     have c:\<open>measure (step_2 \<sigma>) {\<sigma>. state_p \<sigma> < q} \<le>
-      indicator {\<sigma>. state_p \<sigma> < q \<or> (card (state_\<chi> \<sigma>) = thresh \<and> state_p \<sigma> \<in> {q..<q/f}) } \<sigma>\<close>
+      indicator {\<sigma>. state_p \<sigma> < q \<or> (card (state_\<chi> \<sigma>) = n \<and> state_p \<sigma> \<in> {q..<q/f}) } \<sigma>\<close>
       for \<sigma> :: \<open>'a state\<close>
       using f_range
       by (simp add:step_2_def Let_def indicator_def map_pmf_def[symmetric] divide_simps)
 
-    have d: \<open>2 * real (card (set xs)) \<le> real thresh / \<alpha>\<close> if \<open>\<alpha> \<in> {q..<q / f}\<close> for \<alpha>
+    have d: \<open>2 * real (card (set xs)) \<le> real n / \<alpha>\<close> if \<open>\<alpha> \<in> {q..<q / f}\<close> for \<alpha>
     proof -
       have \<open>\<alpha> \<le> q * (1/f)\<close> using that by simp
       also have \<open>\<dots> \<le> q * 2\<close> using q_range f_range by (intro mult_left_mono) (auto simp:divide_simps)
       finally have \<open>\<alpha> \<le> 2*q\<close> by simp
-      hence \<open>\<alpha> \<le> real thresh / (2 * real (card (set xs)))\<close>
-        using set_larger_than_threshold thresh_gt_0 unfolding q_def by (simp add:divide_simps)
+      hence \<open>\<alpha> \<le> real n / (2 * real (card (set xs)))\<close>
+        using set_larger_than_nold n_gt_0 unfolding q_def by (simp add:divide_simps)
       thus ?thesis
-        using set_larger_than_threshold thresh_gt_0 that q_range by (simp add:field_simps)
+        using set_larger_than_nold n_gt_0 that q_range by (simp add:field_simps)
     qed
 
-    hence \<open>measure p {\<sigma>. card (state_\<chi> \<sigma>) = thresh \<and> state_p \<sigma> \<in> {q..<q/f}} \<le>
+    hence \<open>measure p {\<sigma>. card (state_\<chi> \<sigma>) = n \<and> state_p \<sigma> \<in> {q..<q/f}} \<le>
       measure p {\<sigma>. (1+1) * real(card(set xs)) \<le> estimate \<sigma> \<and> q \<le> state_p \<sigma>}\<close>
       unfolding estimate_def by (intro pmf_mono) (simp add:estimate_def)
-    also have \<open>\<dots> \<le> exp (- real thresh / 12 * 1^2)\<close>
+    also have \<open>\<dots> \<le> exp (- real n / 12 * 1^2)\<close>
       unfolding p_def by (intro upper_tail_bound b) simp
     finally have e:
-      \<open>measure p {\<sigma>. card (state_\<chi> \<sigma>) = thresh \<and> state_p \<sigma> \<in> {q..<q/f}} \<le> exp (- real thresh / 12)\<close>
+      \<open>measure p {\<sigma>. card (state_\<chi> \<sigma>) = n \<and> state_p \<sigma> \<in> {q..<q/f}} \<le> exp (- real n / 12)\<close>
       by simp
 
     have \<open>measure (run_state_pmf (FinalState (ys @ [x]))) {\<omega>. state_p \<omega> < q} =
       (\<integral>s. measure (step_2 s) {\<omega>. state_p \<omega> < q} \<partial>p)\<close>
       unfolding a by (simp add:measure_bind_pmf)
-    also have \<open>\<dots> \<le> (\<integral>s. indicator {\<omega>. state_p \<omega> < q \<or> card (state_\<chi> \<omega>) = thresh \<and> state_p \<omega> \<in> {q..<q/f}} s \<partial>p)\<close>
+    also have \<open>\<dots> \<le> (\<integral>s. indicator {\<omega>. state_p \<omega> < q \<or> card (state_\<chi> \<omega>) = n \<and> state_p \<omega> \<in> {q..<q/f}} s \<partial>p)\<close>
       by (intro integral_mono_AE AE_pmfI c) simp_all
-    also have \<open>\<dots> = measure p {\<omega>. state_p \<omega> < q \<or> card (state_\<chi> \<omega>) = thresh \<and> state_p \<omega> \<in> {q..<q/f}}\<close>
+    also have \<open>\<dots> = measure p {\<omega>. state_p \<omega> < q \<or> card (state_\<chi> \<omega>) = n \<and> state_p \<omega> \<in> {q..<q/f}}\<close>
       by simp
     also have \<open>\<dots> \<le>
       measure p {\<omega>. state_p \<omega> < q} +
-      measure p {\<omega>. card (state_\<chi> \<omega>) = thresh \<and> state_p \<omega> \<in> {q..<q/f}}\<close>
+      measure p {\<omega>. card (state_\<chi> \<omega>) = n \<and> state_p \<omega> \<in> {q..<q/f}}\<close>
       by (intro pmf_add) auto
-    also have \<open>\<dots> \<le> length ys * exp (- real thresh / 12) + exp (- real thresh / 12)\<close>
+    also have \<open>\<dots> \<le> length ys * exp (- real n / 12) + exp (- real n / 12)\<close>
       using 3(1)[OF b] by (intro add_mono e) (simp add:p_def)
-    also have \<open>\<dots> = real (len_run_state (FinalState (ys @ [x]))) * exp (- real thresh / 12)\<close>
+    also have \<open>\<dots> = real (len_run_state (FinalState (ys @ [x]))) * exp (- real n / 12)\<close>
       by (simp add:algebra_simps)
     finally show ?case by simp
   qed
-  also have \<open>\<dots> = real (length xs) * exp(- real thresh/12)\<close> by (simp add:\<rho>_def)
+  also have \<open>\<dots> = real (length xs) * exp(- real n/12)\<close> by (simp add:\<rho>_def)
   finally show ?thesis by simp
 qed
 
@@ -680,7 +674,7 @@ text \<open>Lemma~\ref{le:lower_tail}:\<close>
 lemma lower_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close>
   shows \<open>measure (run_steps xs) {\<omega>. estimate \<omega> \<le> (1 - \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
-    \<le> exp(-real thresh/8 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
+    \<le> exp(-real n/8 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?p = \<open>run_state_pmf (FinalState xs)\<close>
   define t where \<open>t = q * ln (1-\<epsilon>)\<close>
@@ -758,14 +752,14 @@ proof -
     using h_1_pos unfolding powr_def by (simp add:algebra_simps exp_add[symmetric] exp_diff)
   also have \<open>\<dots> \<le> exp (?c * (- q * \<epsilon> ^ 2 / 2))\<close>
     by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a) simp
-  also have \<open>\<dots> = ?R\<close> using set_larger_than_threshold thresh_gt_0 unfolding q_def by auto
+  also have \<open>\<dots> = ?R\<close> using set_larger_than_nold n_gt_0 unfolding q_def by auto
   finally show ?thesis by simp
 qed
 
 lemma correctness_aux:
   fixes \<epsilon> \<delta> :: real
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
-  assumes \<open>real thresh \<ge> 12/\<epsilon>^2 * ln (3*real (length xs) /\<delta>)\<close>
+  assumes \<open>real n \<ge> 12/\<epsilon>^2 * ln (3*real (length xs) /\<delta>)\<close>
   defines \<open>R \<equiv> real (card (set xs))\<close>
   shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon>*R } \<le> \<delta>\<close>
     (is \<open>?L \<le> ?R\<close>)
@@ -774,41 +768,41 @@ proof -
   let ?pmf' = \<open>run_state_pmf (FinalState xs)\<close>
   let ?p = \<open>state_p\<close>
   let ?l = \<open>real (length xs)\<close>
-  have l_gt_0: \<open>length xs > 0\<close> using set_larger_than_threshold thresh_gt_0 by auto
+  have l_gt_0: \<open>length xs > 0\<close> using set_larger_than_nold n_gt_0 by auto
   hence l_ge_1: \<open>?l \<ge> 1\<close>  by linarith
 
   have a:\<open>ln (3 * real (length xs) / \<delta>) = - ln (\<delta> / (3 * ?l))\<close>
     using l_ge_1 assms(2) by (subst (1 2) ln_div) auto
 
-  have \<open>exp (- real thresh / 12 * 1) \<le> exp (- real thresh / 12 * \<epsilon> ^ 2)\<close>
+  have \<open>exp (- real n / 12 * 1) \<le> exp (- real n / 12 * \<epsilon> ^ 2)\<close>
     using assms(1) by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono_neg power_le_one) auto
   also have \<open>\<dots> \<le>  \<delta> / (3 * ?l)\<close>
     using assms(1-3) l_ge_1 unfolding a by (subst ln_ge_iff[symmetric]) (auto simp:divide_simps)
-  finally have \<open>exp (- real thresh / 12) \<le> \<delta> / (3*?l)\<close> by simp
-  hence b: \<open>?l * exp (- real thresh / 12) \<le> \<delta> / 3\<close> using l_gt_0 by (auto simp:field_simps)
+  finally have \<open>exp (- real n / 12) \<le> \<delta> / (3*?l)\<close> by simp
+  hence b: \<open>?l * exp (- real n / 12) \<le> \<delta> / 3\<close> using l_gt_0 by (auto simp:field_simps)
 
-  have \<open>exp(-real thresh/12 * \<epsilon>^2) \<le> \<delta> / (3*?l)\<close>
+  have \<open>exp(-real n/12 * \<epsilon>^2) \<le> \<delta> / (3*?l)\<close>
     using assms(1-3) l_ge_1 unfolding a by (subst ln_ge_iff[symmetric]) (auto simp:divide_simps)
   also have \<open>\<dots> \<le> \<delta> / 3\<close>
     using assms(1-3) l_ge_1 by (intro divide_left_mono) auto
-  finally have c: \<open>exp(-real thresh/12 * \<epsilon>^2) \<le> \<delta> / 3\<close> by simp
+  finally have c: \<open>exp(-real n/12 * \<epsilon>^2) \<le> \<delta> / 3\<close> by simp
 
-  have \<open>exp(-real thresh/8 * \<epsilon>^2) \<le> exp(-real thresh/12 * \<epsilon>^2)\<close>
+  have \<open>exp(-real n/8 * \<epsilon>^2) \<le> exp(-real n/12 * \<epsilon>^2)\<close>
     by (intro iffD2[OF exp_le_cancel_iff]) auto
   also have \<open>\<dots> \<le> \<delta>/3\<close> using c by simp
-  finally have d: \<open>exp(-real thresh/8 * \<epsilon>^2) \<le> \<delta> / 3\<close> by simp
+  finally have d: \<open>exp(-real n/8 * \<epsilon>^2) \<le> \<delta> / 3\<close> by simp
 
   have \<open>?L \<le> measure ?pmf {\<omega>. \<bar>estimate \<omega> - R\<bar> \<ge> \<epsilon> * R}\<close>
     by (intro pmf_mono) auto
   also have \<open>\<dots> \<le> measure ?pmf {\<omega>. \<bar>estimate \<omega> - R\<bar> \<ge> \<epsilon>*R \<and> ?p \<omega> \<ge> q} + measure ?pmf {\<omega>. ?p \<omega> < q}\<close>
     by (intro pmf_add) auto
   also have \<open>\<dots> \<le> measure ?pmf {\<omega>. (estimate \<omega> \<le> (1-\<epsilon>) * R \<or> estimate \<omega> \<ge> (1+\<epsilon>) * R) \<and> ?p \<omega> \<ge> q} +
-    ?l * exp(-real thresh/12)\<close>
+    ?l * exp(-real n/12)\<close>
     by (intro pmf_mono add_mono low_p) (auto simp:abs_real_def algebra_simps split:if_split_asm)
   also have \<open>\<dots> \<le> measure ?pmf {\<omega>. estimate \<omega> \<le> (1-\<epsilon>) *R \<and> ?p \<omega> \<ge> q} +
     measure ?pmf' {\<omega>. estimate \<omega> \<ge> (1+\<epsilon>) * R \<and> ?p \<omega> \<ge> q} + \<delta>/3\<close>
     unfolding run_state_pmf.simps by (intro add_mono pmf_add b) auto
-  also have \<open>\<dots> \<le> exp(-real thresh/8 * \<epsilon> ^ 2) + exp(-real thresh/12 * \<epsilon> ^ 2) + \<delta> / 3\<close>
+  also have \<open>\<dots> \<le> exp(-real n/8 * \<epsilon> ^ 2) + exp(-real n/12 * \<epsilon> ^ 2) + \<delta> / 3\<close>
     unfolding R_def using assms(1) by (intro upper_tail_bound add_mono lower_tail_bound) auto
   also have \<open>\<dots> \<le> \<delta> / 3 +  \<delta> / 3 + \<delta> / 3\<close> by (intro  add_mono d c) auto
   finally show ?thesis by simp
@@ -817,21 +811,21 @@ qed
 end
 
 lemma deterministic_phase:
-  assumes \<open>card (run_state_set \<sigma>) < thresh\<close>
-  shows \<open>run_state_pmf \<sigma> = return_pmf \<lparr> state_p = 1, state_\<chi> = run_state_set \<sigma> \<rparr>\<close>
+  assumes \<open>card (run_state_set \<sigma>) < n\<close>
+  shows \<open>run_state_pmf \<sigma> = return_pmf (State (run_state_set \<sigma>) 1)\<close>
   using assms
 proof (induction \<sigma> rule:run_state_induct)
   case 1 thus ?case by (simp add:run_steps_def initial_state_def)
 next
   case (2 xs x)
-  have \<open>card (set xs) < thresh\<close> using 2(2) by (simp add:card_insert_if) presburger
+  have \<open>card (set xs) < n\<close> using 2(2) by (simp add:card_insert_if) presburger
   moreover have \<open>bernoulli_pmf 1 = return_pmf True\<close>
     by (intro pmf_eqI) (auto simp:bernoulli_pmf.rep_eq)
   ultimately show ?case using 2(1) by (simp add:step_1_def bind_return_pmf)
 next
   case (3 xs x)
   let ?p = \<open>run_state_pmf (IntermState xs x)\<close>
-  have a: \<open>card (run_state_set (IntermState xs x)) < thresh\<close> using 3(2) by simp
+  have a: \<open>card (run_state_set (IntermState xs x)) < n\<close> using 3(2) by simp
   have b: \<open>run_state_pmf (FinalState (xs@[x])) = ?p \<bind> step_2\<close>
     by (simp add:run_steps_snoc)
   show ?case
@@ -842,16 +836,16 @@ text \<open>Theorem~\ref{th:concentration}:\<close>
 theorem correctness:
   fixes \<epsilon> \<delta> :: real
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
-  assumes \<open>real thresh \<ge> 12 / \<epsilon> ^ 2 * ln (3 * real (length xs) / \<delta>)\<close>
+  assumes \<open>real n \<ge> 12 / \<epsilon>\<^sup>2 * ln (3 * real (length xs) / \<delta>)\<close>
   defines \<open>A \<equiv> real (card (set xs))\<close>
   shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - A\<bar> > \<epsilon> * A} \<le> \<delta>\<close>
-proof (cases \<open>card (set xs) \<ge> thresh\<close>)
+proof (cases \<open>card (set xs) \<ge> n\<close>)
   case True
   show ?thesis
     unfolding A_def by (intro correctness_aux True assms)
 next
   case False
-  hence \<open>run_steps xs = return_pmf \<lparr> state_p = 1, state_\<chi> = (set xs) \<rparr>\<close>
+  hence \<open>run_steps xs = return_pmf (State (set xs) 1)\<close>
     using deterministic_phase[where \<sigma>=\<open>FinalState xs\<close>] by simp
   thus ?thesis using assms(1,2) by (simp add:indicator_def estimate_def A_def not_less)
 qed
