@@ -136,7 +136,6 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
-  using loop[where ?R = \<open>\<lambda> _ x. R x\<close> and ?offset = 0] assms
   using assms loop[where offset = 0 and R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
 (* lemma hoare_ord_option_iff_ord_spmf :
