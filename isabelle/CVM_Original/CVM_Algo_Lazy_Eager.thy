@@ -47,7 +47,7 @@ lemmas step_1_lazy_def' = step_1_lazy_def[
   simplified map_pmf_def[symmetric] Let_def if_distribR]
 
 lemmas step_2_lazy_def' = step_2_lazy_def[
-  simplified map_pmf_def[symmetric] Let_def]
+  simplified map_pmf_def[symmetric] map_comp_rd Let_def]
 
 end
 
@@ -209,7 +209,8 @@ proof -
 
   thus ?thesis
     unfolding step_1_eager_def' Let_def
-    by (intro depends_on_bind depends_on_return depends_on_map) auto
+    apply (intro depends_on_map_get)
+    by auto
 qed
 
 lemma depends_on_step_2 :
@@ -240,9 +241,9 @@ next
 
   have "depends_on keep_in_chi ({state_k \<sigma>} \<times> {.. l})"
     unfolding keep_in_chi_def
-    apply (intro depends_on_map ext)
+    apply (intro depends_on_map_get ext)
     apply simp
-    by (smt (verit, del_insts) atMost_iff last_index_up_to_le insertI1 mem_Sigma_iff restrict_apply')
+    by (metis SigmaI atMost_iff insert_iff last_index_up_to_le restrict_apply')
 
   then show ?thesis
     unfolding a b map_rd_def

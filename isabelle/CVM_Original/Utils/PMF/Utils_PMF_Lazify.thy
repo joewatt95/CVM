@@ -120,7 +120,13 @@ proof (rule depends_onI)
     by (auto simp add:run_reader_simps)
 qed
 
-lemma depends_on_map:
+lemma depends_on_map :
+  assumes "depends_on \<phi> S"
+  shows "depends_on (map_rd f \<phi>) S"
+  using assms
+  unfolding map_rd_def by (intro depends_on_bind depends_on_return)
+
+lemma depends_on_map_get :
   assumes "\<And> c1 c2.
     \<lbrakk>c1 \<in> set_pmf space; c2 \<in> set_pmf space; restrict c1 S = restrict c2 S\<rbrakk> \<Longrightarrow>
     f c1 = f c2"
