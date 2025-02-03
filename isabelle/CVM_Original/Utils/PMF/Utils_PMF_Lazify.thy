@@ -121,16 +121,13 @@ proof (rule depends_onI)
 qed
 
 lemma depends_on_map:
-  assumes "\<And>c1 c2. c1 \<in> set_pmf space \<Longrightarrow>
-    c2 \<in> set_pmf space \<Longrightarrow> restrict c1 S = restrict c2 S \<Longrightarrow> f c1 = f c2"
+  assumes "\<And> c1 c2.
+    \<lbrakk>c1 \<in> set_pmf space; c2 \<in> set_pmf space; restrict c1 S = restrict c2 S\<rbrakk> \<Longrightarrow>
+    f c1 = f c2"
   shows "depends_on (map_rd f get_rd) S"
-proof (rule depends_onI)
-  fix c1 c2 :: "'a \<Rightarrow> 'c"
-  assume "c1 \<in> set_pmf space" "c2 \<in> set_pmf space" "restrict c1 S = restrict c2 S"
-  hence "f c1 = f c2" by (rule assms)
-  thus "run_reader (map_rd f get_rd) c1 = run_reader (map_rd f get_rd) c2"
-    by (simp add:run_reader_simps)
-qed
+  using assms
+  apply (intro depends_onI)
+  unfolding run_reader_simps by blast
 
 definition independent_bind where
   "independent_bind m f \<equiv>
