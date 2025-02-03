@@ -153,7 +153,7 @@ lemma lazify_bind:
 proof -
   let ?r = "\<lambda>x \<phi>. run_reader x \<phi>"
 
-  define \<delta> where "\<delta> i = (if i \<in> I then (SOME x. x \<in> set_pmf (M i)) else d)" for i
+  define \<delta> where "\<delta> \<equiv> \<lambda> i. if i \<in> I then SOME x. x \<in> set_pmf (M i) else d"
   have \<delta>_ran_1: "\<delta> i \<in> set_pmf (M i)" if "i \<in> I" for i
     unfolding \<delta>_def using that set_pmf_not_empty by (auto simp:some_in_eq)
   have \<delta>_ran_2: "\<delta> i = d" if "i \<notin> I" for i using that unfolding \<delta>_def by simp
@@ -166,20 +166,16 @@ proof -
       unfolding space_def set_Pi_pmf[OF fin_I] set_Pi_pmf[OF fin_K] PiE_dflt_def by auto
   qed
 
-  have 1:"(\<lambda>i. if i \<in> J then f i else \<delta> i) \<in> set_pmf space" if "f \<in> Pi_pmf J d M" "J \<subseteq> I" for J f
-    using that 0 by auto
-
-  have 2:"(\<lambda>i. if i \<in> J then f i else \<delta> i) \<in> set_pmf space" if "f \<in> set_pmf space" "J \<subseteq> I" for J f
-    using that 0 unfolding space_def by auto
-
-  have a:"map_pmf (\<lambda>\<phi>. let v=?r m \<phi> in (v,?r (f v) \<phi>)) space =
-    sample m \<bind> (\<lambda>v. map_pmf (Pair v) (sample (f v)))"
+  have a:
+    "map_pmf (\<lambda>\<phi>. let v = ?r m \<phi> in (v, ?r (f v) \<phi>)) space =
+      sample m \<bind> (\<lambda>v. map_pmf (Pair v) (sample (f v)))"
     (is "?L1 = ?R1")
   proof (rule pmf_eqI)
     fix \<omega> :: "'b \<times> 'd"
-    obtain J where J_dep: "depends_on (map_rd ((=) (fst \<omega>)) m) J \<and> depends_on (f (fst \<omega>)) (UNIV-J)"
+    obtain J where J_dep:
+      "depends_on (map_rd ((=) (fst \<omega>)) m) J" "depends_on (f (fst \<omega>)) (UNIV-J)"
       using assms(1) unfolding independent_bind_def by auto
-    moreover have " I-J = (UNIV - J) \<inter> I" by blast
+    moreover have "I - J = (UNIV - J) \<inter> I" by blast
     ultimately have J_dep:"depends_on (map_rd ((=) (fst \<omega>)) m) (J\<inter>I)" "depends_on (f (fst \<omega>)) (I-J)"
       using depends_on_restrict by auto
 
@@ -201,7 +197,9 @@ proof -
       if "(x,y) \<in> set_pmf (pair_pmf ?q1 ?q2)" for x y
     proof -
       have "?r (map_rd ((=) (fst \<omega>)) m) (?c (x,y)) = ?r (map_rd ((=) (fst \<omega>)) m) (?c1 x)"
-        using that by (intro depends_onD[OF J_dep(1)] c_space 1) auto
+        using that
+        apply (intro depends_onD[OF J_dep(1)] c_space 0)
+        by auto
       hence "?r m (?c (x,y)) = fst \<omega> \<longleftrightarrow> ?r (map_rd ((=) (fst \<omega>)) m) (?c1 x) = True"
         by (auto simp: run_reader_simps)
       also have "... \<longleftrightarrow>  ?r m (?c1 x) = fst \<omega>" by (auto simp: run_reader_simps)
@@ -210,13 +208,15 @@ proof -
 
     have d: "?r (f (fst \<omega>)) (?c (x,y)) = ?r (f (fst \<omega>)) (?c2 y)"
       if "(x,y) \<in> set_pmf (pair_pmf ?q1 ?q2)" for x y using that
-      by (intro depends_onD[OF J_dep(2)] 1 c_space) (simp_all add:restrict_def cong:if_cong)
+      apply (intro depends_onD[OF J_dep(2)] 0 c_space)
+      by auto
 
     have e:"?r m (?c1 x) = fst \<omega> \<longleftrightarrow> ?r m x = fst \<omega>"
       if "(x,y) \<in> set_pmf (pair_pmf space space)" for x y
     proof -
       have "?r (map_rd ((=) (fst \<omega>)) m) (?c1 x) = ?r (map_rd ((=) (fst \<omega>)) m) x" using that
-        by (intro depends_onD[OF J_dep(1)] 2) (simp_all add:space_def restrict_def cong:if_cong)
+        apply (intro depends_onD[OF J_dep(1)] 0)
+        by (auto simp add: space_def)
       hence "?r m (?c1 x) = fst \<omega> \<longleftrightarrow> ?r (map_rd ((=) (fst \<omega>)) m) x = True"
         by (auto simp: run_reader_simps)
       also have "\<dots> \<longleftrightarrow> ?r m x = fst \<omega>" by (auto simp: run_reader_simps)
@@ -225,7 +225,8 @@ proof -
 
     have f: "?r (f (fst \<omega>)) (?c2 y) = ?r (f (fst \<omega>)) y" if "(x,y) \<in> set_pmf (pair_pmf space space)"
       for x y using that
-      by (intro depends_onD[OF J_dep(2)] 2) (simp_all add:space_def restrict_def cong:if_cong)
+      apply (intro depends_onD[OF J_dep(2)] 0)
+      by (auto simp add: space_def)
 
     have "pmf ?L1 \<omega> = measure space {x. (run_reader m x, run_reader (f (run_reader m x)) x) = \<omega>}"
       unfolding pmf_map by (simp add:Let_def vimage_def)
@@ -262,19 +263,17 @@ proof -
     by (intro map_pmf_cong refl) (simp add:run_reader_simps Let_def)
   also have "\<dots> = map_pmf snd (bind_pmf (sample m) (\<lambda>v. map_pmf (Pair v) (sample (f v))))"
     unfolding a by simp
-  also have "\<dots> = ?R"
-    unfolding map_bind_pmf by (simp add:map_pmf_comp)
-  finally show ?thesis
-    by simp
+  also have "\<dots> = ?R" unfolding map_bind_pmf by (simp add:map_pmf_comp)
+  finally show ?thesis .
 qed
 
 lemma lazify_return :
   "sample (return_rd x) = return_pmf x" (is "?L = ?R")
 proof -
-  have "?L = map_pmf (\<lambda>_. x) space" unfolding sample_def
+  have "?L = map_pmf (\<lambda> _. x) space" unfolding sample_def
     by (intro map_pmf_cong refl) (simp add:run_reader_simps)
   also have "\<dots> = ?R" by simp
-  finally show ?thesis by simp
+  finally show ?thesis .
 qed
 
 lemma lazify_map :
