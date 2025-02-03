@@ -10,6 +10,8 @@ begin
 
 hide_const (open) Misc_CryptHOL.coin_pmf
 
+type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
+
 context cvm_algo_assms
 begin
 
@@ -108,8 +110,6 @@ next
   ultimately show ?case
     unfolding run_steps_lazy_snoc foldM_pmf_snoc by presburger
 qed
-
-type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
 
 context
   fixes xs :: \<open>'a list\<close> and i :: nat
@@ -470,6 +470,7 @@ theorem sample_run_steps_eager_eq_run_steps_lazy :
   assumes "length xs \<le> n"
   shows
     "sample (run_steps_eager xs initial_state) = run_steps_lazy xs initial_state"
+    (is \<open>?L xs = ?R xs\<close>)
 using assms proof (induction xs rule: rev_induct)
   case Nil
   then show ?case by (simp add: lazify_return)
@@ -479,17 +480,16 @@ next
     a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" and
     b: "length xs \<le> n" by simp_all 
 
-  have "sample (run_steps_eager (xs@[x]) initial_state) = sample (run_steps_eager xs initial_state \<bind> step_eager (xs @ [x]) (length xs))"
+  have "?L (xs @ [x]) = sample (run_steps_eager xs initial_state \<bind> step_eager (xs @ [x]) (length xs))"
     unfolding run_steps_eager_snoc by simp
   also have "\<dots> = run_steps_lazy xs initial_state \<bind> (\<lambda> r. sample (step_eager (xs@[x]) (length xs) r))"
     unfolding snoc(1)[OF b, symmetric] by (intro lazify_bind independent_bind)
   also have "\<dots> = run_steps_lazy xs initial_state \<bind> step_lazy (xs@[x]) (length xs)"
     using run_steps_lazy_preserves_well_formedness snoc(2)
-    apply (intro bind_pmf_cong refl eager_lazy_step snoc(2))
+    apply (intro bind_pmf_cong refl eager_lazy_step)
     by (fastforce simp add: AE_measure_pmf_iff)+
-  also have "\<dots> = run_steps_lazy (xs@[x]) initial_state"
-    unfolding run_steps_lazy_snoc by simp
-  finally show ?case by simp
+  also have "\<dots> = ?R (xs @ [x])" unfolding run_steps_lazy_snoc by simp
+  finally show ?case .
 qed
 
 corollary run_steps_no_fail_eq_run_steps_eager_bernoulli_matrix :

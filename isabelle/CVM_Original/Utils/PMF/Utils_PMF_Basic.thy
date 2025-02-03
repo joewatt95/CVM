@@ -97,7 +97,7 @@ lemma prod_pmf_uncurry :
   fixes I :: "'a set" and J :: "'b set"
   assumes "finite I" "finite J"
   shows "prod_pmf (I \<times> J) M =
-    map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) (snd x))
+    map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> I \<times> J. \<omega> x y)
     (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i,j))))" (is "?L = ?R")
 proof -
   let ?map1 = "map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) x)"
@@ -126,7 +126,7 @@ proof -
         case_prod_beta' restrict_def mem_Times_iff
       cong: if_cong)
 
-  finally show ?thesis by simp
+  finally show ?thesis by (simp add: case_prod_beta')
 qed
 
 lemma prod_pmf_swap :
