@@ -41,7 +41,9 @@ lemma foldM_pmf_snoc :
 
 lemma prod_pmf_reindex :
   assumes "finite T" "f ` S \<subseteq> T" "inj_on f S"
-  shows "map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf T F) = prod_pmf S (F \<circ> f)" (is "?L = ?R")
+  shows
+    "map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf T F) = prod_pmf S (F \<circ> f)"
+    (is "?L = ?R")
 proof -
   have a:"finite S" using assms inj_on_finite by blast
 
@@ -133,7 +135,7 @@ lemma prod_pmf_swap :
   fixes I :: "'a set" and J :: "'b set"
   assumes "finite I" "finite J"
   shows
-    "prod_pmf (I\<times>J) M =
+    "prod_pmf (I \<times> J) M =
       map_pmf (\<lambda> \<omega>. \<omega> \<circ> prod.swap)
         (prod_pmf (J \<times> I) (M \<circ> prod.swap))" (is "?L = ?R")
 proof -
