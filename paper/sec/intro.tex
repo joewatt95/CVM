@@ -66,7 +66,7 @@ The loop invariants are established, essentially, using the key property of the 
 \]
 Here $m \isa{\isasymbind} f$ denotes distribution of a randomized algorithm, which represents the sequential composition of $m$ with $f$.
 
-The verification of algorithm using our new technique requires only 1044 lines, while the orignal proof required \todo{x} lines.
+The verification of algorithm using our new technique requires only 1044 lines using Isabelle~\cite{nipkow2002}, while the orignal proof required \todo{x} lines.
 To show that our new technique is more powerful, we introduce a new variant of the CVM algorithm, where the subsampling step in line 9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$, instead of independently deciding for each element, whether to keep it.
 This new version has the benefit, that it is total, note that the second check in line 11 now becomes obsolete.
 Indeed, more interestingly, it can be shown that the resulting algorithm is unbiased, i.e., the expected result is exactly the cardinality of the elements in the stream.

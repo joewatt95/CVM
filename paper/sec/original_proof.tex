@@ -1,3 +1,72 @@
 \section{Original Proof}
+In this section we describe the interesting parts of the original proof by Chakraborty et al.~\cite{chakraborty2022}.
+This highlights in part, why it requires a lot of work to formalize, and why we were motivated to develop our new approach using probabilistic invariants.
+
+As we mentioned in the introduction, the main difficulty is the fact that \cref{alg:cvm}'s state variables are not independent.
+The trick Chakraborty et al. use to circumvent the problem is by modifying the algorithm, in a manner that obviously preserves its distribution, such that the resulting algorithm's state can be described in terms of independent coin flips.
+
+Let us consider a state, where $k$ subsampling steps have been performed, i.e., $p = 2^{-k}$. 
+Then the algorithm would normally perform a coin flip with probability $p$.
+In the modified algorithm, we perform a fixed number of coin flips for each sequence element at the beginning.
+The element is put into the sample, whenever the first $k$ coin flips associated with the sequence element are $1$.
+Note that this happens exactly with probability $2^{-k}$, which means the behaviour of the algorithm is unchanged.
+
+Moreover, during the subsampling operation those elements are kept, whose $k+1$-th associated coin flip is $1$.
+This again preserves the behaviour, that each element is discared independently with probability $1/2$.
+The operation $p \mapsto \frac{p}{2}$ is replaced with $k \mapsto k+1$.
+For this modified algorithm, it is easy to see that the set of elements in any state are exactly, those stream elements for which the first $k$ entries of their associated coin flips are $1$.
+
+In \cref{alg:cvm_simul} we describe the new algorithm, that behaves exactly as the original one (\cref{alg:cvm}), but performs indepenent coin flips.
+Note that the function $\mathrm{last{\textunderscore}index}$ returns the index of the last-occurence of an element in the sequence, before the current loop iteration.
+It should be noted that the algorithm keeps track of the number of subsampling iterations $k$, instead of the value $p = 2^{-k}$ as the original algorithm does.
+%Like, we did in \cref{sec:invariants}, we ignore the second check, whether the subsampling operation succeeded.
+%As we explained there, the total variational difference between these two variants is $\frac{\delta}{2}$.
+%
+\begin{algorithm}[h!]
+	\caption{Modified CVM algorithm with independent coin flips.}\label{alg:cvm_simul}
+	\begin{algorithmic}[1]
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \State $b[i,j] \getsr \Ber(1/2)$ for $i,j \in \{1,\cdots,l\}$ \Comment perform $l^2$ unbiased independent coin flips
+  \For{$i \gets 1$ to $l$}
+    \If{$b[i,1]=b[i,2]=\cdots=b[i,k]=1$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \gets \{a \in \chi | b[\mathrm{last{\textunderscore}index}(a),k+1] = 1\}$
+      \State $k \gets k+1$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State \Return $\bot$
+    \EndIf
+  \EndFor
+  \State \Return $2^k |\chi|$ \Comment estimate cardinality of $A$
+  \end{algorithmic}
+\end{algorithm}
+To roughly explain, how tail bounds can be derived for this new variant:
+It is possible to union bound the probability that the estimate exceeds the desired interval, with the probability of the event in conjunction with a specific value of $k$, which can be bounded by the probability that the number of stream elements with whose associated coin flips start with $k$ ones, is outside of $2^{-k} |A| (1 \pm \varepsilon)$.
+This is explained in more detail by Chakraborty et al.~\cite{chakraborty2022}.
+
+One of the key questions is, how to formalize the transformation from \cref{alg:cvm} to this new variant.
+What we discovered is that it best to solve the problem backwards, i.e., we start with the modified algorithm, which performs all the coin-flips in advance --- eagerly --- and convert it to the version, that performs the coin flips --- lazily --- at the point they are needed.
+
+We can push down the coin flips through the expression tree.
+To explain how this works.
+Let us first define the \emph{sampling} function, i.e., let $f$ be a function that depends on coin flips, more precisely $f$ takes as argument a vector of coin flips indexed by $I$, then we can express the distribution of $f$ with respect to indepenent unbiased coin flips as.
+\begin{isabelle_cm}
+  sample\ f\ \isacharequal\ map{\isacharunderscore}pmf\ f\ {\isacharparenleft}prod{\isacharunderscore}pmf\ I\ {\isacharparenleft}\isasymlambda\isacharunderscore\isachardot\ bernoulli{\isacharunderscore}pmf \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright\isacharparenright\isacharparenright
+\end{isabelle_cm}
+%For example, we could use our modified algorithm as $f$, with the index set $I = \{0, \ldots, l-1\} \times \{0, \ldots, l-1\}$.
+The interesting fact is that we can distribute the sampling operation over composition, e.g.:
+\begin{isabelle_cm}
+  sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ f\ \isasymomega\ \isasymcirc\ g\ \isasymomega{\isacharparenright}\ \isacharequal\ sample\ g\ \isasymbind\ \isacharparenleft{\isasymlambda}x\isachardot\ sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ f\ \isasymomega\isachardot\ x\isacharparenright\isacharparenright
+\end{isabelle_cm}
+if $f$ and $g$ depend on disjoint subsets of the coin flips.
+
+
+
+
 \todo{Explain how we formalized the original proof by Chakraborty et al. + brief section on the lazify}  
 

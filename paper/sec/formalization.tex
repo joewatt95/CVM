@@ -59,16 +59,56 @@
 \isacommand{end}
 \end{isabelle_cm}
 \end{algorithm}
-\section{Formalization}
-This entry is accompanied by two \todo{sessions?}.
+\section{Formalization of the CVM algorithm}
+The supplementary material contains a formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) with the approach presented in \cref{sec:invariants}.
 
-The first is a formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) with the approach presented in \cref{sec:invariants}.
-The formalization of the algorithm is presented in \cref{alg:cvm_formalized}.
+A snippet of the formalization of the new version of the algorithm is presented in \cref{alg:cvm_formalized}.
+The snippet also includes the relevant correctness statements, both unbiasedness and tail bounds. 
 We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
 The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
 Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
-\todo{Explain: card}
-\todo{Explain: map-pmf}
-\todo{Explain: pmf-of-set}
-\todo{Explain: return-pmf}
+Isabelle provides notation closely related to informal pseudocode, such that it is usually feasible to read a formalization without expert knowledge.
+For readers not familiar with Isabelle, the following table contains brief descriptions of the syntactic elements used in the listing: 
+
+\medskip
+\noindent\begin{tabular}{l p{9cm}}
+\toprule
+Term & Description \\
+\midrule
+\isa{card\ S} & Cardinality of a finite set $S$. \\
+\isa{set\ xs} & For a sequence \isa{xs} the set of elements in the sequence. \\
+\isa{length\ xs} & For a sequence \isa{xs} the length of the sequence. \\
+\isa{real} & Type of real numbers and conversion between natural numbers into real numbers. \\
+\isa{nat} & Type of natural numbers (non-negative integers). \\
+\isa{bernoulli{\isacharunderscore}pmf\ p} & The probability space over the boolean values, where the probability of \isa{True} is $p$. (Bernoulli distribution.) \\
+\isa{pmf{\isacharunderscore}of{\isacharunderscore}set\ S} & For a finite set $S$, the uniform probability space on $S$. (Every element of $S$ is equiprobable.) \\
+\isa{map{\isacharunderscore}pmf\ f\ A} & The probability space representing the distribution of the random variable $f$ over the probability space $A$. \\
+\isa{return{\isacharunderscore}pmf\ x} & The probability space of the singleton $\{x\}$. \\
+\isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} & Iterate randomized algorithm $f$ over the sequence $xs$ using the initial state $a$. \\
+\isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} & Probability of predicate $P$ in the probability space $M$. \\
+\isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} & Expectation of the random variable $f$ over the probability space $M$. \\
+\bottomrule
+\end{tabular}
+
+\medskip
+The formalization contains four theory files.
+Of course, we do not verify \cref{alg:cvm} and \cref{alg:cvm_new} separately,
+as most of the proof is identical.
+The entry CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, wiht an abstract subsampling operation, which is required to fullfill \cref{eq:subsample_condition}.
+The specialization happens in the following theories CVM{\textunderscore}Original{\textunderscore}Algorithm (resp. CVM{\textunderscore}New{\textunderscore}Algorithm).
+It should be noted that only the last file, for the new unbiased algorithm, dependends on the new library (\cref{sec:formalization_neg_dep}) on negatively associated random variables.
+The total number of lines required for the verification of the original algorithm is 1004 lines.
+This is in contrast to the original proof, for which the verification required \todo{x} lines.
+
+\medskip
+\noindent\begin{tabular}{l l l l}
+\toprule
+Name & Description & Lines of Code & Comments \\
+\midrule
+CVM{\textunderscore}Preliminary & 79 \\
+CVM{\textunderscore}Abstract{\textunderscore}Algorithm & 675 \\
+CVM{\textunderscore}Original{\textunderscore}Algorithm & 250 \\
+CVM{\textunderscore}New{\textunderscore}Unbiased{\textunderscore}Algorithm & 139 \\
+\bottomrule
+\end{tabular}
 
