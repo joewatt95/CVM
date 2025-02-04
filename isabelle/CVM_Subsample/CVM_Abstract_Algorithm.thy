@@ -857,8 +857,7 @@ proof -
     by (metis combine_common_factor distrib_right linear mult_1_left)
 
   have \<open>1 / M + 1 - ?L = (\<integral>\<omega>. 1 / M + 1 - of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega> \<partial>run_steps xs)\<close>
-    apply (subst Bochner_Integration.integral_diff)
-    using int by auto
+    by (auto simp:int)
   also have \<open>\<dots> = (\<integral>\<tau>. (\<Prod>x\<in>{i}. of_bool (M \<le> state_p \<tau>) *
     (1 / M + 1 - of_bool (x \<in> state_\<chi> \<tau>) / state_p \<tau>)) \<partial>run_state_pmf (FinalState xs))\<close>
     using * by (auto intro!: integral_cong_AE)
