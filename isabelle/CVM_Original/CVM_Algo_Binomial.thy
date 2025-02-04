@@ -46,7 +46,7 @@ lemma step_2_eager_inv :
   using assms
   unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
   apply (simp add: run_reader_simps)
-  by (smt (z3) dual_order.strict_trans1 last_index_less_size_conv length_take less_Suc_eq min_def not_less_simps(2))
+  by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min_def min_less_iff_conj not_less_simps(2))
 
 lemma step_eager_inv :
   assumes
@@ -102,13 +102,12 @@ proof -
     map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < k. f y k'})
     (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
     proof -
-      have
+      from assms have
         \<open>map_pmf ?go =
           map_pmf (\<lambda> f. {x \<in> set xs. \<forall> k' < k. f x k'}) \<circ>
           map_pmf (\<lambda> f. \<lambda> x \<in> set xs. f (last_index xs x))\<close>
-        using assms
         unfolding nondet_alg_aux_def map_pmf_compose[symmetric]
-        apply (intro ext map_pmf_cong refl)
+        apply (intro ext map_pmf_cong)
         by auto
 
       with assms show ?thesis
@@ -122,16 +121,17 @@ proof -
       (\<lambda> f. {y \<in> set xs. f y})
       (prod_pmf (set xs)
         \<lblot>map_pmf (\<lambda> f. \<forall> k' < k. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)\<close>
-    by (auto
-      intro: map_pmf_cong
-      simp add: Pi_pmf_map'[where dflt' = undefined] map_pmf_comp)
+    apply (subst Pi_pmf_map'[OF finite_set])
+    unfolding map_pmf_comp
+    apply (intro map_pmf_cong)
+    by auto
 
   also from assms f bernoulli_eq_map_Pi_pmf[where I = \<open>{..< k}\<close>, unfolded Ball_def]
   have \<open>\<dots> = ?R\<close>
-    apply (intro map_pmf_cong arg_cong2[where f = prod_pmf] refl ext)
+    apply (intro map_pmf_cong arg_cong2[where f = prod_pmf] refl)
     apply (cases k)
     by simp_all
-    
+
   finally show ?thesis .
 qed
 
@@ -144,8 +144,7 @@ proof -
   have \<open>?go nondet_alg = map_pmf card (?go nondet_alg_aux)\<close>
     by (simp add: map_pmf_comp)
 
-  with assms f
-  show ?thesis
+  with assms f show ?thesis
     apply (subst binomial_pmf_altdef')
     by (simp_all add: map_pmf_nondet_alg_aux_eq power_le_one map_pmf_comp)
 qed

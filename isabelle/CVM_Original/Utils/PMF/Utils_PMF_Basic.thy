@@ -100,7 +100,7 @@ lemma prod_pmf_uncurry :
   assumes "finite I" "finite J"
   shows "prod_pmf (I \<times> J) M =
     map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> I \<times> J. \<omega> x y)
-    (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i,j))))" (is "?L = ?R")
+    (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j))))" (is "?L = ?R")
 proof -
   let ?map1 = "map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) x)"
   let ?map2 = "map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) (snd x))"
@@ -118,7 +118,7 @@ proof -
       (simp_all add:restrict_dfl_def restrict_def vimage_def)
 
   also have "\<dots> = ?map1 (Pi_pmf I \<lblot>undefined\<rblot> (\<lambda> i. prod_pmf ({i} \<times> J) ((\<lambda> j. M (i, j)) \<circ> snd)))"
-    by (intro map_pmf_cong Pi_pmf_cong refl) auto
+    by (intro map_pmf_cong Pi_pmf_cong) auto
 
   also have "\<dots> = ?map2 (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j))))"
     apply (subst prod_pmf_reindex[OF assms(2) _ a, symmetric])

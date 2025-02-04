@@ -148,13 +148,13 @@ proof -
     unfolding bernoulli_matrix_def m'_def n'_def
     by (auto simp add: prod_pmf_uncurry)
 
-  thm prod_pmf_uncurry prod_pmf_swap
-
-  then show ?thesis_1
-    unfolding m'_def n'_def
-    thm trans[OF prod_pmf_uncurry[symmetric] prod_pmf_swap]
-    apply (simp add: trans[OF prod_pmf_uncurry[symmetric] prod_pmf_swap])
-    sorry
+  show ?thesis_1
+    unfolding bernoulli_matrix_def m'_def n'_def
+    apply (subst prod_pmf_swap[OF finite_lessThan finite_lessThan])
+    apply (subst prod_pmf_uncurry[OF finite_lessThan finite_lessThan])
+    unfolding map_pmf_comp
+    apply (intro map_pmf_cong)
+    by fastforce+
 qed
 
 end
