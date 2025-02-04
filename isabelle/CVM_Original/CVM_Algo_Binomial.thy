@@ -109,7 +109,7 @@ proof -
         using assms
         unfolding nondet_alg_aux_def map_pmf_compose[symmetric]
         apply (intro ext map_pmf_cong refl)
-        by fastforce
+        by auto
 
       with assms show ?thesis
         apply simp
