@@ -139,19 +139,18 @@ lemma prod_pmf_swap :
       map_pmf (\<lambda> \<omega> (x, y). \<omega> (y, x))
         (prod_pmf (J \<times> I) (\<lambda> (x, y). M (y, x)))" (is "?L = ?R")
 proof -
-  have
-    "?R =
-      map_pmf (\<lambda> \<omega> (x, y). curry \<omega> y x)
-        (map_pmf (\<lambda> \<phi>. \<lambda> (y, x) \<in> J \<times> I. curry \<phi> x y)
-        (prod_pmf (I \<times> J) M))"
-    unfolding case_prod_beta' curry_def
+  have "?R =
+    map_pmf (\<lambda> \<omega> (x, y). \<omega> (y, x))
+      (map_pmf (\<lambda> \<phi>. \<lambda> (y, x) \<in> J \<times> I. \<phi> (x, y))
+      (prod_pmf (I \<times> J) M))"
+    unfolding case_prod_beta'
     apply (subst prod_pmf_reindex)
     by (auto simp add: comp_def inj_on_def)
 
   also have "\<dots> = ?L"
-    unfolding map_pmf_comp
+    unfolding map_pmf_comp case_prod_beta'
     apply (intro map_pmf_idI)
-    by (fastforce split: if_splits simp add: set_prod_pmf case_prod_beta')
+    by (fastforce split: if_splits simp add: set_prod_pmf)
 
   finally show ?thesis by simp
 qed
