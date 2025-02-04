@@ -48,7 +48,7 @@ begin
 
 fun foldM ::
   \<open>('d \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> 'd list \<Rightarrow> 'b \<Rightarrow> 'c\<close> where
-  \<open>foldM  _ [] = return\<close> |
+  \<open>foldM _ [] = return\<close> |
   \<open>foldM f (x # xs) = (\<lambda> val. bind (f x val) (foldM f xs))\<close>
 
 lemma foldM_cong:
@@ -79,27 +79,5 @@ lemma last_index_up_to_le :
   \<open>last_index_up_to n xs x \<le> n\<close>
   unfolding last_index_up_to_def
   using min.cobounded1 by blast
-
-context
-  fixes i xs
-  assumes \<open>i < length xs\<close>
-begin
-
-lemma last_index_up_to_self_eq :
-  \<open>last_index_up_to i xs (xs ! i) = i\<close>
-  using \<open>i < length xs\<close>
-  unfolding last_index_up_to_def
-  by (simp add: take_Suc_conv_app_nth)
-
-lemma find_last_before_eq_find_last_iff :
-  assumes \<open>x \<in> set (take i xs)\<close>
-  shows
-    \<open>last_index_up_to i xs x = last_index (take i xs) x
-    \<longleftrightarrow> x \<noteq> xs ! i\<close>
-  using assms \<open>i < length xs\<close>
-  unfolding last_index_up_to_def
-  by (metis last_index_Snoc last_index_less_size_conv last_index_size_conv le_eq_less_or_eq length_take min.absorb2 take_Suc_conv_app_nth)
-
-end
 
 end

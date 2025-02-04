@@ -130,20 +130,33 @@ definition bernoulli_matrix ::
 abbreviation
   \<open>fair_bernoulli_matrix m n \<equiv> bernoulli_matrix m n (1 / 2)\<close>
 
-lemma bernoulli_matrix_eq_uncurry_prod :
+lemma
   fixes m n
-  defines
-    [simp] : \<open>m' \<equiv> {..< m}\<close> and 
-    [simp] : \<open>n' \<equiv> {..< n}\<close>
+  defines \<open>m' \<equiv> {..< m}\<close> and \<open>n' \<equiv> {..< n}\<close>
   shows
-    \<open>bernoulli_matrix m n p = (
-      prod_pmf n' \<lblot>prod_pmf m' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
-        |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> y x))\<close>
-  by (auto
-    intro: map_pmf_cong
-    simp add:
-      bernoulli_matrix_def map_pmf_comp fun_eq_iff
-      prod_pmf_swap[of m' n', simplified]
-      prod_pmf_uncurry[of n' m', simplified])
+    bernoulli_matrix_eq_uncurry_prod :
+      \<open>bernoulli_matrix m n p = (
+        prod_pmf m' \<lblot>prod_pmf n' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
+          |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> x y))\<close> (is ?thesis_0) and
+
+    bernoulli_matrix_eq_uncurry_prod' :
+      \<open>bernoulli_matrix m n p = (
+        prod_pmf n' \<lblot>prod_pmf m' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
+          |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> y x))\<close> (is ?thesis_1)
+proof -
+  show ?thesis_0
+    unfolding bernoulli_matrix_def m'_def n'_def
+    by (simp add: prod_pmf_uncurry)
+
+  (* TODO: tidy, maybe split up the uncurry / swap part into separate lemma *)
+  then show ?thesis_1
+    unfolding m'_def n'_def
+    apply (subst (asm) prod_pmf_uncurry[OF finite_lessThan finite_lessThan, symmetric])
+    apply (subst (asm) prod_pmf_swap[OF finite_lessThan finite_lessThan])
+    apply (subst (asm) prod_pmf_uncurry[OF finite_lessThan finite_lessThan])
+    apply (simp add: map_pmf_comp)
+    apply (intro map_pmf_cong ext)
+    by auto
+qed
 
 end

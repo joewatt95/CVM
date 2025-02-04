@@ -111,20 +111,20 @@ fun step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close
 text \<open>Lines 8--10:\<close>
 fun step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2 (State \<chi> p) = do {
-
     if card \<chi> = n
     then do {
       \<chi> \<leftarrow> subsample \<chi>;
       return_pmf (State \<chi> (p*f))
-    } else
+    } else do {
       return_pmf (State \<chi> p)
-    }\<close>
+    }
+  }\<close>
 
 schematic_goal step_1_def: \<open>step_1 x \<sigma> = ?x\<close>
-  apply (subst state.collapse[symmetric]) apply (subst step_1.simps) by (rule refl)
+  by (subst state.collapse[symmetric], subst step_1.simps, rule refl)
 
 schematic_goal step_2_def: \<open>step_2 \<sigma> = ?x\<close>
-  apply (subst state.collapse[symmetric]) apply (subst step_2.simps) by (rule refl)
+  by (subst state.collapse[symmetric], subst step_2.simps, rule refl)
 
 text \<open>Lines 1--10:\<close>
 definition run_steps :: \<open>'a list \<Rightarrow> 'a state pmf\<close> where
@@ -159,11 +159,6 @@ proof-
   from finite_subset[OF _ this] show ?thesis using subsample[OF assms] by auto
 qed
 
-lemma step_2_preserves_finite_support :
-  assumes \<open>finite (set_pmf \<sigma>)\<close>
-  shows \<open>finite (set_pmf (\<sigma> \<bind> step_2))\<close>
-  using assms subsample_finite_pmf by (auto simp:step_2_def)
-
 lemma finite_run_state_pmf: \<open>finite (set_pmf (run_state_pmf \<rho>))\<close>
 proof (induction \<rho> rule:run_state_induct)
   case 1 thus ?case by (simp add:run_steps_def)
@@ -173,7 +168,8 @@ next
   case (3 xs x)
   have a: \<open>run_state_pmf (FinalState (xs@[x])) = run_state_pmf (IntermState xs x) \<bind> step_2\<close>
     by (simp add:run_steps_snoc)
-  show ?case unfolding a using step_2_preserves_finite_support[OF 3] by simp
+  show ?case unfolding a using 3 subsample_finite_pmf
+    by (auto simp:step_2_def simp del:run_state_pmf.simps)
 qed
 
 lemma state_\<chi>_run_state_pmf: \<open>AE \<sigma> in run_state_pmf \<rho>. state_\<chi> \<sigma> \<subseteq> run_state_set \<rho>\<close>
@@ -392,13 +388,18 @@ text \<open>Analysis of the case where @{term \<open>card (set xs) \<ge> n\<clos
 
 context
   fixes xs :: \<open>'a list\<close>
-  assumes set_larger_than_nold: \<open>card (set xs) \<ge> n\<close>
 begin
 
-definition \<open>q = real n / (4 * card (set xs))\<close>
+private abbreviation \<open>A \<equiv> real (card (set xs))\<close>
+
+context
+  assumes set_larger_than_n: \<open>card (set xs) \<ge> n\<close>
+begin
+
+private definition \<open>q = real n / (4 * card (set xs))\<close>
 
 lemma q_range: \<open>q \<in> {0<..1/4}\<close>
-  using set_larger_than_nold n_gt_0 unfolding q_def by auto
+  using set_larger_than_n n_gt_0 unfolding q_def by auto
 
 lemma mono_nonnegI:
   assumes \<open>\<And>x. x \<in> I \<Longrightarrow> h' x \<ge> 0\<close>
@@ -452,94 +453,118 @@ proof -
 
     have \<open>h' x = q * (-2*x/3 - 1/(1+q*x) + ln (1+x) + 1)\<close>
       unfolding h'_def by (simp add:algebra_simps)
-    also have \<open>\<dots> \<ge> 0\<close>  using c q_range by (intro mult_nonneg_nonneg) auto
+    also have \<open>\<dots> \<ge> 0\<close> using c q_range by (intro mult_nonneg_nonneg) auto
     finally show ?thesis by simp
   qed
 
   show ?thesis by (rule mono_nonnegI[where I=\<open>{0..1}\<close>, OF b a]) (use assms(1) h_def in simp_all)
 qed
 
+private definition \<theta> where \<open>\<theta> t x = 1 + q * x * (exp (t / q) - 1)\<close>
+
+lemma \<theta>_concave: \<open>concave_on {0..1 / q} (\<theta> t)\<close>
+  unfolding \<theta>_def by (intro concave_on_linorderI) (auto simp:algebra_simps)
+
+lemma \<theta>_ge_exp_1:
+  assumes \<open>x \<in> {0..1/q}\<close>
+  shows \<open>exp (t * x) \<le> \<theta> t x\<close>
+proof -
+  have \<open>exp (t * x) = exp ((1-q*x) *\<^sub>R 0 + (q*x) *\<^sub>R (t/q))\<close> using q_range by simp
+  also have \<open>\<dots> \<le> (1-q*x) * exp 0 + (q*x) * exp (t/q)\<close> using assms q_range
+    by (intro convex_onD[OF exp_convex]) (auto simp:field_simps)
+  also have \<open>\<dots> = \<theta> t x\<close> unfolding \<theta>_def by (simp add:algebra_simps)
+  finally show ?thesis by simp
+qed
+
+lemma \<theta>_ge_exp:
+  assumes \<open>y \<ge> q\<close>
+  shows \<open>exp (t / y) \<le> \<theta> t (1 / y)\<close>
+  using assms \<theta>_ge_exp_1[where x=\<open>1/y\<close> and t=t] q_range by (auto simp:field_simps)
+
+lemma \<theta>_nonneg:
+  assumes \<open>x \<in> {0..1/q}\<close>
+  shows \<open>\<theta> t x \<ge> 0\<close> \<open>\<theta> t x > 0\<close>
+proof -
+  have \<open>0 < exp (t * x)\<close> by simp
+  also have \<open>\<dots> \<le> \<theta> t x\<close> by (intro \<theta>_ge_exp_1 assms)
+  finally show \<open>\<theta> t x > 0\<close> by simp
+  thus \<open>\<theta> t x \<ge> 0\<close> by simp
+qed
+
+lemma \<theta>_0: \<open>\<theta> t 0 = 1\<close> unfolding \<theta>_def by simp
+
+lemma tail_bound_aux:
+  assumes \<open>run_state_set \<rho> \<subseteq> set xs\<close> \<open>c > 0\<close>
+  defines \<open>A' \<equiv> real (card (run_state_set \<rho>))\<close>
+  shows \<open>measure (run_state_pmf \<rho>) {\<omega>. exp (t * estimate \<omega>) \<ge> c \<and> state_p \<omega> \<ge> q} \<le> \<theta> t 1 powr A'/c\<close>
+    (is \<open>?L \<le> ?R\<close>)
+proof -
+  let ?p = \<open>run_state_pmf \<rho>\<close>
+  note [simp] = integrable_measure_pmf_finite[OF finite_run_state_pmf]
+
+  let ?A' = \<open>run_state_set \<rho>\<close>
+  let ?X = \<open>\<lambda>i \<omega>. of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega>\<close>
+
+  have a: \<open>0 < \<theta> t 1\<close> using q_range by (intro \<theta>_nonneg) auto
+
+  have \<open>?L \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q) * exp (t*estimate \<omega>) \<ge> c)\<close>
+    by (intro pmf_mono) auto
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp (t*estimate \<omega>) \<partial>?p) / c\<close>
+    by (intro integral_Markov_inequality_measure[where A=\<open>{}\<close>] assms(2)) simp_all
+  also have \<open>\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/c\<close>
+    using state_\<chi>_run_state_pmf[where \<rho>=\<open>\<rho>\<close>] Int_absorb1
+    unfolding sum_divide_distrib[symmetric] sum_distrib_left[symmetric] estimate_def
+    by (intro integral_cong_AE arg_cong2[where f=\<open>(/)\<close>])
+      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f=\<open>card\<close>])
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q) * exp(t * ?X i \<omega>)) \<partial>?p) / c\<close>
+    unfolding exp_sum[OF finite_run_state_set] prod.distrib using assms(2)
+    by (intro divide_right_mono integral_mono_AE AE_pmfI)
+      (auto intro!:mult_nonneg_nonneg prod_nonneg)
+  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q) * \<theta> t (?X i \<omega>)) \<partial>?p) / c\<close>
+    using assms(2) \<theta>_ge_exp \<theta>_0 by (intro divide_right_mono integral_mono_AE AE_pmfI prod_mono) auto
+  also have \<open>\<dots> \<le> \<theta> t 1 ^ card ?A' / c\<close> using q_range \<theta>_concave assms(2)
+    by (intro divide_right_mono run_steps_preserves_expectation_le' \<theta>_nonneg)
+     (auto intro!:\<theta>_nonneg simp:field_simps)
+  also have \<open>\<dots> \<le> ?R\<close>
+    unfolding A'_def using card_mono[OF _ assms(1)] assms(2) a
+    by (subst powr_realpow) (auto intro!:power_increasing divide_right_mono)
+  finally show ?thesis by simp
+qed
+
 text \<open>Lemma \ref{le:upper_tail}:\<close>
 lemma upper_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..1::real}\<close>
   assumes \<open>run_state_set \<rho> \<subseteq> set xs\<close>
-  shows \<open>measure (run_state_pmf \<rho>) {\<omega>. estimate \<omega> \<ge> (1 + \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
-    \<le> exp(-real n/12 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
+  shows \<open>measure (run_state_pmf \<rho>) {\<omega>. estimate \<omega> \<ge> (1+\<epsilon>)*A \<and> state_p \<omega> \<ge> q} \<le> exp(-real n/12*\<epsilon>\<^sup>2)\<close>
+    (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?p = \<open>run_state_pmf \<rho>\<close>
   define t where \<open>t = q * ln (1+\<epsilon>)\<close>
-  define h where \<open>h x = 1 + q * x * (exp (t / q) - 1)\<close> for x
-
-  let ?A' = \<open>run_state_set \<rho>\<close>
-  note [simp] = integrable_measure_pmf_finite[OF finite_run_state_pmf]
-
-  let ?X = \<open>\<lambda>i \<omega>. of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega>\<close>
-  let ?c = \<open>real (card (set xs))\<close>
 
   have t_gt_0: \<open>t > 0\<close> unfolding t_def using q_range assms(1) by auto
 
   have mono_exp_t: \<open>strict_mono (\<lambda>(x::real). exp (t * x))\<close>
     using t_gt_0 by (intro strict_monoI) auto
 
-  have h_1_eq: \<open>h 1 = 1 + q * \<epsilon>\<close> using assms(1) unfolding h_def t_def by simp
-  have h_1_pos: \<open>h 1 \<ge> 1\<close> unfolding h_1_eq using q_range assms(1) by auto
+  have a: \<open>\<theta> t 1 = 1 + q * \<epsilon>\<close> using assms(1) unfolding \<theta>_def t_def by simp
+  have b: \<open>\<theta> t 1 \<ge> 1\<close> unfolding a using q_range assms(1) by auto
 
-  have a: \<open>ln (h 1) - t * (1 + \<epsilon>) \<le> - q * \<epsilon>^2 / 3\<close>
+  have c: \<open>ln (\<theta> t 1) - t * (1 + \<epsilon>) \<le> - q * \<epsilon>^2 / 3\<close>
     using upper_tail_bound_helper[OF assms(1)]
-    unfolding h_1_eq t_def by (simp add:algebra_simps)
+    unfolding a unfolding t_def by (simp add:algebra_simps)
 
-  have b: \<open>exp (t / y) \<le> h (1 / y)\<close> if \<open>y \<ge> q\<close> for y
-  proof -
-    have \<open>exp (t / y) = exp ((1-q/y) *\<^sub>R 0 + (q/y) *\<^sub>R (t/q))\<close> using q_range by simp
-    also have \<open>\<dots> \<le> (1-q/y) * exp 0 + (q/y) * exp (t/q)\<close> using that q_range
-      by (intro convex_onD[OF exp_convex]) simp_all
-    also have \<open>\<dots> = h (1 / y)\<close> unfolding h_def by (simp add:algebra_simps)
-    finally show ?thesis by simp
-  qed
-
-  have c: \<open>1 \<le> h 0\<close> unfolding h_def by simp
-
-  have h_concave: \<open>concave_on {0..1 / q} h\<close>
-    unfolding h_def by (intro concave_on_linorderI) (auto simp:algebra_simps)
-
-  have h_nonneg: \<open>h y \<ge> 0\<close> if \<open>y \<in> {0..1/q}\<close> for y
-  proof -
-    have \<open>0 \<le> (1-q*y) + q*y * 0\<close> using that q_range by (auto simp:field_simps)
-    also have \<open>\<dots> \<le> (1-q*y) + q*y*exp(t/q)\<close> using that q_range
-      by (intro add_mono mult_left_mono mult_nonneg_nonneg) auto
-    also have \<open>\<dots> = h y\<close> unfolding h_def by (simp add:algebra_simps)
-    finally show ?thesis by simp
-  qed
-
-  have \<open>?L = measure ?p {\<omega>. exp (t * estimate \<omega>) \<ge> exp (t*((1+\<epsilon>)* ?c))\<and>state_p \<omega>\<ge> q}\<close>
+  have \<open>?L = measure ?p {\<omega>. exp (t * estimate \<omega>) \<ge> exp (t*((1+\<epsilon>)* A))\<and>state_p \<omega>\<ge> q}\<close>
     by (subst strict_mono_less_eq[OF mono_exp_t]) simp
-  also have \<open>\<dots> \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q)*exp (t*estimate \<omega>)\<ge> exp (t*((1+\<epsilon>)*?c)))\<close>
-    by (intro pmf_mono) auto
-  also have \<open>\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q)* exp (t*estimate \<omega>)\<partial>?p) / exp (t*((1+\<epsilon>)*?c))\<close>
-    by (intro integral_Markov_inequality_measure[where A=\<open>{}\<close>]) simp_all
-  also have \<open>\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/exp(t*((1+\<epsilon>)*?c))\<close>
-    using state_\<chi>_run_state_pmf[where \<rho>=\<open>\<rho>\<close>] Int_absorb1
-    unfolding sum_divide_distrib[symmetric] sum_distrib_left[symmetric] estimate_def state_p_def
-    by (intro integral_cong_AE arg_cong2[where f=\<open>(/)\<close>])
-      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f=\<open>card\<close>])
-  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*exp( t* ?X i \<omega>)) \<partial>?p)/ exp(t*((1+\<epsilon>)*?c))\<close>
-    unfolding exp_sum[OF finite_run_state_set] prod.distrib
-    by (intro divide_right_mono integral_mono_AE AE_pmfI)
-      (auto intro!:mult_nonneg_nonneg prod_nonneg)
-  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*h( ?X i \<omega>)) \<partial>?p)/ exp (t*((1+\<epsilon>)*?c))\<close>
-    using b c by (intro divide_right_mono integral_mono_AE AE_pmfI) (auto intro!:prod_mono)
-  also have \<open>\<dots> \<le> h 1 ^ card ?A' / exp (t * ((1+\<epsilon>)* ?c))\<close>
-    using q_range h_concave
-    by (intro divide_right_mono run_steps_preserves_expectation_le')
-      (auto intro!:h_nonneg simp:field_simps)
-  also have \<open>\<dots> \<le> h 1 powr ?c / exp (t * ((1+\<epsilon>)* ?c))\<close>
-    using card_mono[OF _ assms(2)] h_1_pos
-    by (subst powr_realpow) (auto intro!:power_increasing divide_right_mono)
-  also have \<open>\<dots> = exp (?c * (ln (h 1) - t * (1 + \<epsilon>)))\<close>
-    using h_1_pos unfolding powr_def by (simp add:algebra_simps exp_diff)
-  also have \<open>\<dots> \<le> exp (?c * (-q * \<epsilon>^2/3))\<close>
-    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a) simp
-  also have \<open>\<dots> = ?R\<close> using set_larger_than_nold n_gt_0 unfolding q_def by auto
+  also have \<open>\<dots> \<le> \<theta> t 1 powr real (card (run_state_set \<rho>)) / exp (t * ((1+\<epsilon>)* A))\<close>
+    by (intro tail_bound_aux assms) auto
+  also have \<open>\<dots> \<le> \<theta> t 1 powr A / exp (t * ((1+\<epsilon>)* A))\<close>
+    using card_mono[OF finite_set assms(2)] b
+    by (intro powr_mono divide_right_mono) auto
+  also have \<open>\<dots> = exp (A * (ln (\<theta> t 1) - t * (1 + \<epsilon>)))\<close>
+    using b unfolding powr_def by (simp add:algebra_simps exp_diff)
+  also have \<open>\<dots> \<le> exp (A * (-q * \<epsilon>^2/3))\<close>
+    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono c) simp
+  also have \<open>\<dots> = ?R\<close> using set_larger_than_n n_gt_0 unfolding q_def by auto
   finally show ?thesis by simp
 qed
 
@@ -561,7 +586,7 @@ proof -
     then show ?case using q_range by (simp add:run_steps_def initial_state_def)
   next
     case (2 ys x)
-    let ?pmf = \<open>(run_state_pmf (IntermState ys x))\<close>
+    let ?pmf = \<open>run_state_pmf (IntermState ys x)\<close>
     have a:\<open>run_state_set (FinalState ys) \<subseteq> set xs\<close> using 2(2) by auto
 
     have \<open>measure ?pmf {\<omega>. state_p \<omega> < q} = (\<integral>\<sigma>. of_bool (state_p \<sigma> < q) \<partial>run_steps ys)\<close>
@@ -597,13 +622,13 @@ proof -
       also have \<open>\<dots> \<le> q * 2\<close> using q_range f_range by (intro mult_left_mono) (auto simp:divide_simps)
       finally have \<open>\<alpha> \<le> 2*q\<close> by simp
       hence \<open>\<alpha> \<le> real n / (2 * real (card (set xs)))\<close>
-        using set_larger_than_nold n_gt_0 unfolding q_def by (simp add:divide_simps)
+        using set_larger_than_n n_gt_0 unfolding q_def by (simp add:divide_simps)
       thus ?thesis
-        using set_larger_than_nold n_gt_0 that q_range by (simp add:field_simps)
+        using set_larger_than_n n_gt_0 that q_range by (simp add:field_simps)
     qed
 
     hence \<open>measure p {\<sigma>. card (state_\<chi> \<sigma>) = n \<and> state_p \<sigma> \<in> {q..<q/f}} \<le>
-      measure p {\<sigma>. (1+1) * real(card(set xs)) \<le> estimate \<sigma> \<and> q \<le> state_p \<sigma>}\<close>
+      measure p {\<sigma>. (1+1) * A \<le> estimate \<sigma> \<and> q \<le> state_p \<sigma>}\<close>
       unfolding estimate_def by (intro pmf_mono) (simp add:estimate_def)
     also have \<open>\<dots> \<le> exp (- real n / 12 * 1^2)\<close>
       unfolding p_def by (intro upper_tail_bound b) simp
@@ -618,9 +643,7 @@ proof -
       by (intro integral_mono_AE AE_pmfI c) simp_all
     also have \<open>\<dots> = measure p {\<omega>. state_p \<omega> < q \<or> card (state_\<chi> \<omega>) = n \<and> state_p \<omega> \<in> {q..<q/f}}\<close>
       by simp
-    also have \<open>\<dots> \<le>
-      measure p {\<omega>. state_p \<omega> < q} +
-      measure p {\<omega>. card (state_\<chi> \<omega>) = n \<and> state_p \<omega> \<in> {q..<q/f}}\<close>
+    also have \<open>\<dots> \<le>measure p {\<omega>. state_p \<omega><q}+measure p {\<omega>. card(state_\<chi> \<omega>)=n\<and>state_p \<omega>\<in>{q..<q/f}}\<close>
       by (intro pmf_add) auto
     also have \<open>\<dots> \<le> length ys * exp (- real n / 12) + exp (- real n / 12)\<close>
       using 3(1)[OF b] by (intro add_mono e) (simp add:p_def)
@@ -673,102 +696,49 @@ qed
 text \<open>Lemma~\ref{le:lower_tail}:\<close>
 lemma lower_tail_bound:
   assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close>
-  shows \<open>measure (run_steps xs) {\<omega>. estimate \<omega> \<le> (1 - \<epsilon>) * card (set xs) \<and> state_p \<omega> \<ge> q}
-    \<le> exp(-real n/8 * \<epsilon>^2)\<close> (is \<open>?L \<le> ?R\<close>)
+  shows \<open>measure (run_steps xs) {\<omega>. estimate \<omega> \<le> (1-\<epsilon>) * A \<and> state_p \<omega> \<ge> q} \<le> exp(-real n/8*\<epsilon>\<^sup>2)\<close>
+    (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?p = \<open>run_state_pmf (FinalState xs)\<close>
   define t where \<open>t = q * ln (1-\<epsilon>)\<close>
-  define h where \<open>h x = 1 + q * x * (exp (t / q) - 1)\<close> for x
-
-  let ?A' = \<open>set xs\<close>
-  have \<open>finite (set_pmf (run_steps xs))\<close>
-    using finite_run_state_pmf[where \<rho>=\<open>FinalState xs\<close>] by simp
-  note [simp] = integrable_measure_pmf_finite[OF this]
-
-  let ?X = \<open>\<lambda>i \<omega>. of_bool(i \<in> state_\<chi> \<omega>)/state_p \<omega>\<close>
-  let ?c = \<open>real (card (set xs))\<close>
 
   have t_lt_0: \<open>t < 0\<close>
     unfolding t_def using q_range assms(1) by (intro mult_pos_neg ln_less_zero) auto
 
-  have mono_exp_t: \<open>exp (t * x) \<le> exp (t * y) \<longleftrightarrow> y \<le> x\<close> for x y
-    using t_lt_0 by auto
+  have mono_exp_t: \<open>exp (t * x) \<le> exp (t * y) \<longleftrightarrow> y \<le> x\<close> for x y using t_lt_0 by auto
 
-  have h_1_eq: \<open>h 1 = 1 - q * \<epsilon>\<close> using assms(1) unfolding h_def t_def by simp
+  have a: \<open>\<theta> t 1 = 1 - q * \<epsilon>\<close> using assms(1) unfolding \<theta>_def t_def by simp
   have \<open>\<epsilon> * (q * 4) \<le> 1 * 1\<close> using q_range assms(1) by (intro mult_mono) auto
-  hence h_1_pos: \<open>h 1 \<ge> 3/4\<close> unfolding h_1_eq by (auto simp:algebra_simps)
+  hence b: \<open>\<theta> t 1 \<ge> 3/4\<close> unfolding a by (auto simp:algebra_simps)
 
-  have a: \<open>ln (h 1) - t * (1 - \<epsilon>) \<le> - q * \<epsilon>^2 / 2\<close>
-    unfolding h_1_eq t_def using lower_tail_bound_helper[OF assms(1)]
+  have c: \<open>ln (\<theta> t 1) - t * (1 - \<epsilon>) \<le> - q * \<epsilon>^2 / 2\<close>
+    unfolding a unfolding t_def using lower_tail_bound_helper[OF assms(1)]
     by (simp add:divide_simps)
 
-  have b: \<open>exp (t / y) \<le> h (1 / y)\<close> if \<open>y \<ge> q\<close> for y
-  proof -
-    have \<open>exp (t / y) = exp ((1-q/y) *\<^sub>R 0 + (q/y) *\<^sub>R (t/q))\<close> using q_range by simp
-    also have \<open>\<dots> \<le> (1-q/y) * exp 0 + (q/y) * exp (t/q)\<close> using that q_range
-      by (intro convex_onD[OF exp_convex]) simp_all
-    also have \<open>\<dots> = h (1 / y)\<close> unfolding h_def by (simp add:algebra_simps)
-    finally show ?thesis by simp
-  qed
-
-  have c: \<open>1 \<le> h 0\<close> unfolding h_def by simp
-
-  have h_concave: \<open>concave_on {0..1 / q} h\<close>
-    unfolding h_def by (intro concave_on_linorderI) (auto simp:algebra_simps)
-
-  have h_nonneg: \<open>h y \<ge> 0\<close> if \<open>y \<in> {0..1/q}\<close> for y
-  proof -
-    have \<open>0 \<le> (1 - q * y) + q * y * 0\<close> using that q_range by (auto simp:field_simps)
-    also have \<open>\<dots> \<le> (1 - q * y) + q * y * exp(t / q)\<close> using that q_range
-      by (intro add_mono mult_left_mono mult_nonneg_nonneg) auto
-    also have \<open>\<dots> = h y\<close> unfolding h_def by (simp add:algebra_simps)
-    finally show ?thesis by simp
-  qed
-
-  have \<open>?L = measure ?p {\<omega>. exp (t * estimate \<omega>) \<ge> exp (t * ((1-\<epsilon>) * ?c)) \<and> state_p \<omega> \<ge> q}\<close>
-    by (subst  mono_exp_t) simp
-  also have \<open>\<dots> \<le> \<P>(\<omega> in ?p. of_bool(state_p \<omega> \<ge> q)*exp (t * estimate \<omega>)\<ge> exp (t * ((1-\<epsilon>) * ?c)))\<close>
-    by (intro pmf_mono) auto
-  also have \<open>\<dots> \<le> (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q)* exp (t * estimate \<omega>)\<partial>?p) / exp (t * ((1-\<epsilon>) * ?c))\<close>
-    by (intro integral_Markov_inequality_measure[where A=\<open>{}\<close>]) simp_all
-  also have \<open>\<dots> = (\<integral>\<omega>. of_bool(state_p \<omega> \<ge> q) * exp((\<Sum>i\<in>?A'. t * ?X i \<omega>)) \<partial>?p)/exp(t*((1-\<epsilon>)*?c))\<close>
-    using state_\<chi>_run_state_pmf[where \<rho>=\<open>FinalState xs\<close>] Int_absorb1
-    unfolding sum_divide_distrib[symmetric] sum_distrib_left[symmetric] estimate_def state_p_def
-    by (intro integral_cong_AE arg_cong2[where f=\<open>(/)\<close>])
-      (auto simp:AE_measure_pmf_iff intro!:arg_cong[where f=\<open>card\<close>])
-  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*exp( t* ?X i \<omega>)) \<partial>?p)/ exp(t*((1-\<epsilon>)*?c))\<close>
-    unfolding exp_sum[OF finite_set] prod.distrib
-    by (intro divide_right_mono integral_mono_AE AE_pmfI)
-     (auto intro!:mult_nonneg_nonneg prod_nonneg)
-  also have \<open>\<dots> \<le> (\<integral>\<omega>. (\<Prod>i \<in> ?A'. of_bool(state_p \<omega> \<ge> q)*h (?X i \<omega>)) \<partial>?p)/ exp (t * ((1-\<epsilon>)*?c))\<close>
-    using b c by (intro divide_right_mono integral_mono_AE AE_pmfI) (auto intro!:prod_mono)
-  also have \<open>\<dots> \<le> h 1 ^ card ?A' / exp (t * ((1 - \<epsilon>) * ?c))\<close>
-    using q_range h_concave
-    by (intro divide_right_mono run_steps_preserves_expectation_le')
-      (auto intro!:h_nonneg simp:field_simps)
-  also have \<open>\<dots> \<le> h 1 powr ?c / exp (t * ((1 - \<epsilon>) * ?c))\<close>
-    using h_1_pos by (subst powr_realpow) (auto intro!:power_increasing divide_right_mono)
-  also have \<open>\<dots> = exp (?c * (ln (h 1) - t * (1 - \<epsilon>)))\<close>
-    using h_1_pos unfolding powr_def by (simp add:algebra_simps exp_add[symmetric] exp_diff)
-  also have \<open>\<dots> \<le> exp (?c * (- q * \<epsilon> ^ 2 / 2))\<close>
-    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono a) simp
-  also have \<open>\<dots> = ?R\<close> using set_larger_than_nold n_gt_0 unfolding q_def by auto
+  have \<open>?L = measure ?p {\<omega>. exp (t * estimate \<omega>) \<ge> exp (t * ((1-\<epsilon>) * A)) \<and> state_p \<omega> \<ge> q}\<close>
+    by (subst mono_exp_t) simp
+  also have \<open>\<dots> \<le> \<theta> t 1 powr card (run_state_set (FinalState xs)) / exp (t * ((1 - \<epsilon>) * A))\<close>
+    by (intro tail_bound_aux assms) auto
+  also have \<open>\<dots> \<le> \<theta> t 1 powr A / exp (t * ((1 - \<epsilon>) * A))\<close> by simp
+  also have \<open>\<dots> = exp (A * (ln (\<theta> t 1) - t * (1 - \<epsilon>)))\<close>
+    using b unfolding powr_def by (simp add:algebra_simps exp_add[symmetric] exp_diff)
+  also have \<open>\<dots> \<le> exp (A * (- q * \<epsilon> ^ 2 / 2))\<close>
+    by (intro iffD2[OF exp_le_cancel_iff] mult_left_mono c) simp
+  also have \<open>\<dots> = ?R\<close> using set_larger_than_n n_gt_0 unfolding q_def by auto
   finally show ?thesis by simp
 qed
 
 lemma correctness_aux:
-  fixes \<epsilon> \<delta> :: real
-  assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
+  assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close> \<open>\<delta> \<in> {0<..<1::real}\<close>
   assumes \<open>real n \<ge> 12/\<epsilon>^2 * ln (3*real (length xs) /\<delta>)\<close>
-  defines \<open>R \<equiv> real (card (set xs))\<close>
-  shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - R\<bar> > \<epsilon>*R } \<le> \<delta>\<close>
+  shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - A\<bar> > \<epsilon>*A } \<le> \<delta>\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof -
   let ?pmf = \<open>run_steps xs\<close>
   let ?pmf' = \<open>run_state_pmf (FinalState xs)\<close>
   let ?p = \<open>state_p\<close>
   let ?l = \<open>real (length xs)\<close>
-  have l_gt_0: \<open>length xs > 0\<close> using set_larger_than_nold n_gt_0 by auto
+  have l_gt_0: \<open>length xs > 0\<close> using set_larger_than_n n_gt_0 by auto
   hence l_ge_1: \<open>?l \<ge> 1\<close>  by linarith
 
   have a:\<open>ln (3 * real (length xs) / \<delta>) = - ln (\<delta> / (3 * ?l))\<close>
@@ -783,27 +753,24 @@ proof -
 
   have \<open>exp(-real n/12 * \<epsilon>^2) \<le> \<delta> / (3*?l)\<close>
     using assms(1-3) l_ge_1 unfolding a by (subst ln_ge_iff[symmetric]) (auto simp:divide_simps)
-  also have \<open>\<dots> \<le> \<delta> / 3\<close>
-    using assms(1-3) l_ge_1 by (intro divide_left_mono) auto
+  also have \<open>\<dots> \<le> \<delta> / 3\<close> using assms(1-3) l_ge_1 by (intro divide_left_mono) auto
   finally have c: \<open>exp(-real n/12 * \<epsilon>^2) \<le> \<delta> / 3\<close> by simp
 
-  have \<open>exp(-real n/8 * \<epsilon>^2) \<le> exp(-real n/12 * \<epsilon>^2)\<close>
-    by (intro iffD2[OF exp_le_cancel_iff]) auto
+  have \<open>exp(-real n/8 * \<epsilon>^2) \<le> exp(-real n/12 * \<epsilon>^2)\<close> by (intro iffD2[OF exp_le_cancel_iff]) auto
   also have \<open>\<dots> \<le> \<delta>/3\<close> using c by simp
   finally have d: \<open>exp(-real n/8 * \<epsilon>^2) \<le> \<delta> / 3\<close> by simp
 
-  have \<open>?L \<le> measure ?pmf {\<omega>. \<bar>estimate \<omega> - R\<bar> \<ge> \<epsilon> * R}\<close>
-    by (intro pmf_mono) auto
-  also have \<open>\<dots> \<le> measure ?pmf {\<omega>. \<bar>estimate \<omega> - R\<bar> \<ge> \<epsilon>*R \<and> ?p \<omega> \<ge> q} + measure ?pmf {\<omega>. ?p \<omega> < q}\<close>
+  have \<open>?L \<le> measure ?pmf {\<omega>. \<bar>estimate \<omega> - A\<bar> \<ge> \<epsilon> * A}\<close> by (intro pmf_mono) auto
+  also have \<open>\<dots> \<le> measure ?pmf {\<omega>. \<bar>estimate \<omega> - A\<bar> \<ge> \<epsilon>*A \<and> ?p \<omega> \<ge> q} + measure ?pmf {\<omega>. ?p \<omega> < q}\<close>
     by (intro pmf_add) auto
-  also have \<open>\<dots> \<le> measure ?pmf {\<omega>. (estimate \<omega> \<le> (1-\<epsilon>) * R \<or> estimate \<omega> \<ge> (1+\<epsilon>) * R) \<and> ?p \<omega> \<ge> q} +
+  also have \<open>\<dots> \<le> measure ?pmf {\<omega>. (estimate \<omega> \<le> (1-\<epsilon>) * A \<or> estimate \<omega> \<ge> (1+\<epsilon>) * A) \<and> ?p \<omega> \<ge> q} +
     ?l * exp(-real n/12)\<close>
     by (intro pmf_mono add_mono low_p) (auto simp:abs_real_def algebra_simps split:if_split_asm)
-  also have \<open>\<dots> \<le> measure ?pmf {\<omega>. estimate \<omega> \<le> (1-\<epsilon>) *R \<and> ?p \<omega> \<ge> q} +
-    measure ?pmf' {\<omega>. estimate \<omega> \<ge> (1+\<epsilon>) * R \<and> ?p \<omega> \<ge> q} + \<delta>/3\<close>
+  also have \<open>\<dots> \<le> measure ?pmf {\<omega>. estimate \<omega> \<le> (1-\<epsilon>) * A \<and> state_p \<omega> \<ge> q} +
+    measure ?pmf' {\<omega>. estimate \<omega> \<ge> (1+\<epsilon>) * A \<and> state_p \<omega> \<ge> q} + \<delta>/3\<close>
     unfolding run_state_pmf.simps by (intro add_mono pmf_add b) auto
   also have \<open>\<dots> \<le> exp(-real n/8 * \<epsilon> ^ 2) + exp(-real n/12 * \<epsilon> ^ 2) + \<delta> / 3\<close>
-    unfolding R_def using assms(1) by (intro upper_tail_bound add_mono lower_tail_bound) auto
+    using assms(1) by (intro upper_tail_bound add_mono lower_tail_bound) auto
   also have \<open>\<dots> \<le> \<delta> / 3 +  \<delta> / 3 + \<delta> / 3\<close> by (intro  add_mono d c) auto
   finally show ?thesis by simp
 qed
@@ -837,22 +804,18 @@ theorem correctness:
   fixes \<epsilon> \<delta> :: real
   assumes \<open>\<epsilon> \<in> {0<..<1}\<close> \<open>\<delta> \<in> {0<..<1}\<close>
   assumes \<open>real n \<ge> 12 / \<epsilon>\<^sup>2 * ln (3 * real (length xs) / \<delta>)\<close>
-  defines \<open>A \<equiv> real (card (set xs))\<close>
   shows \<open>measure (run_steps xs) {\<omega>. \<bar>estimate \<omega> - A\<bar> > \<epsilon> * A} \<le> \<delta>\<close>
 proof (cases \<open>card (set xs) \<ge> n\<close>)
   case True
-  show ?thesis
-    unfolding A_def by (intro correctness_aux True assms)
+  show ?thesis by (intro correctness_aux True assms)
 next
   case False
   hence \<open>run_steps xs = return_pmf (State (set xs) 1)\<close>
     using deterministic_phase[where \<sigma>=\<open>FinalState xs\<close>] by simp
-  thus ?thesis using assms(1,2) by (simp add:indicator_def estimate_def A_def not_less)
+  thus ?thesis using assms(1,2) by (simp add:indicator_def estimate_def not_less)
 qed
 
-lemma p_pos:
-  fixes \<rho> :: \<open>'a run_state\<close>
-  shows \<open>\<exists>M\<in>{0<..1}. AE \<omega> in run_steps xs. state_p \<omega> \<ge> M\<close>
+lemma p_pos: \<open>\<exists>M\<in>{0<..1}. AE \<omega> in run_steps xs. state_p \<omega> \<ge> M\<close>
 proof -
   have fin:\<open>finite (set_pmf (run_steps xs))\<close>
     using finite_run_state_pmf[where \<rho>=\<open>FinalState xs\<close>] by simp
@@ -880,32 +843,30 @@ proof -
 
   obtain M where *: \<open>AE \<sigma> in run_steps xs. M \<le> state_p \<sigma>\<close> and M_range: \<open>M \<in> {0<..1}\<close>
     using p_pos by blast
-  then have \<open>(\<integral>\<omega>. of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega> \<partial>run_steps xs) =
-    (\<integral>\<tau>. (\<Prod>x\<in>{i}. of_bool (M \<le> state_p \<tau>) * (of_bool (x \<in> state_\<chi> \<tau>) / state_p \<tau>))
+  then have \<open>?L = (\<integral>\<tau>. (\<Prod>x\<in>{i}. of_bool (M \<le> state_p \<tau>) * (of_bool (x \<in> state_\<chi> \<tau>) / state_p \<tau>))
       \<partial>run_state_pmf (FinalState xs))\<close>
     by (auto intro!: integral_cong_AE)
 
   also have \<open>\<dots> \<le> 1 ^ card {i}\<close>
     using M_range i by (intro run_steps_preserves_expectation_le') (auto simp:concave_on_iff)
-  finally have
-    le: \<open>?L \<le> 1\<close> by auto
+  finally have le: \<open>?L \<le> 1\<close> by auto
 
   have concave: \<open>concave_on {0..1 / M} ((-) (1 / M + 1))\<close>
     unfolding concave_on_iff
     using M_range apply (clarsimp simp add: field_simps)
     by (metis combine_common_factor distrib_right linear mult_1_left)
 
-  have \<open>1 / M + 1 - (\<integral>\<omega>. of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega> \<partial>run_steps xs) =
-    (\<integral>\<omega>. 1 / M + 1 - of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega> \<partial>run_steps xs) \<close>
+  have \<open>1 / M + 1 - ?L = (\<integral>\<omega>. 1 / M + 1 - of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega> \<partial>run_steps xs)\<close>
     apply (subst Bochner_Integration.integral_diff)
     using int by auto
   also have \<open>\<dots> = (\<integral>\<tau>. (\<Prod>x\<in>{i}. of_bool (M \<le> state_p \<tau>) *
     (1 / M + 1 - of_bool (x \<in> state_\<chi> \<tau>) / state_p \<tau>)) \<partial>run_state_pmf (FinalState xs))\<close>
     using * by (auto intro!: integral_cong_AE)
   also have \<open>\<dots> \<le> (1 / M + 1 - 1) ^ card {i}\<close>
-    using i M_range by (intro run_steps_preserves_expectation_le'[OF _ _ concave]) (auto simp: field_simps)
+    using i M_range
+    by (intro run_steps_preserves_expectation_le'[OF _ _ concave]) (auto simp: field_simps)
   also have \<open>\<dots> = 1 / M\<close> by auto
-  finally have ge:\<open> -(\<integral>\<sigma>. of_bool (i \<in> state_\<chi> \<sigma>) / state_p \<sigma> \<partial>run_steps xs) \<le> -1\<close> by auto
+  finally have ge:\<open> -?L \<le> -1\<close> by auto
   show ?thesis using le ge by auto
 qed
 
@@ -926,14 +887,16 @@ proof -
     unfolding estimate_def state_p_def[symmetric]
     by (auto intro!: integral_cong_AE intro: AE_mp[OF s] simp add: Int_absorb1)
 
-  also have \<open>\<dots> = (\<integral>\<omega>. (\<Sum>i\<in>set xs. of_bool (i \<in> state_\<chi> \<omega>) /state_p \<omega>) \<partial>run_steps xs)\<close>
+  also have \<open>\<dots> = (\<integral>\<omega>. (\<Sum>i\<in>set xs. of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega>) \<partial>run_steps xs)\<close>
     by (metis (no_types) sum_divide_distrib)
-  also have \<open>\<dots> = (\<Sum>i\<in>set xs. (\<integral>\<omega>. of_bool (i \<in> state_\<chi> \<omega>) /state_p \<omega> \<partial>run_steps xs))\<close>
+  also have \<open>\<dots> = (\<Sum>i\<in>set xs. (\<integral>\<omega>. of_bool (i \<in> state_\<chi> \<omega>) / state_p \<omega> \<partial>run_steps xs))\<close>
     by (auto intro: Bochner_Integration.integral_sum)
   also have \<open>\<dots> = (\<Sum>i\<in>set xs. 1)\<close>
     using run_steps_expectation_sing by (auto cong:sum.cong)
   finally show ?thesis by auto
 qed
+
+end (* fixes xs *)
 
 end (* cvm_algo_abstract *)
 

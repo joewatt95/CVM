@@ -57,8 +57,8 @@ context
 begin
 
 definition \<open>initial_state = State {} 1\<close> \<comment> \<open>Setup initial state $\chi=\emptyset$ and $p=1$.\;\<close>
-definition subsample where
-  \<open>subsample \<chi> = pmf_of_set {S. S \<subseteq> \<chi> \<and> card S = n * f}\<close> \<comment> \<open>Sample random $n f$ subset.\;\<close>
+fun subsample where \<comment> \<open>Subsampling operation: Sample random $n f$ subset.\;\<close>
+  \<open>subsample \<chi> = pmf_of_set {S. S \<subseteq> \<chi> \<and> card S = n * f}\<close>
 
 fun step where \<comment> \<open>Loop body.\;\<close>
   \<open>step a (State \<chi> p) = do {
@@ -73,11 +73,18 @@ fun step where \<comment> \<open>Loop body.\;\<close>
     }
    }\<close>
 
-definition \<open>run_steps xs = foldM_pmf step xs initial_state\<close> \<comment> \<open>Iterate loop over stream @{term xs}.\;\<close>
-definition \<open>estimate \<sigma> = card (state_\<chi> \<sigma>) / state_p \<sigma>\<close>
-definition \<open>run_algo xs = map_pmf estimate (run_steps xs)\<close> \<comment> \<open>Run algorithm and estimate.\;\<close>
+fun run_steps where \<comment> \<open>Iterate loop over stream @{term xs}.\;\<close>
+  \<open>run_steps xs = foldM_pmf step xs initial_state\<close>
+
+fun estimate where
+  \<open>estimate (State \<chi> p) = card \<chi> / p\<close>
+
+fun run_algo where \<comment> \<open>Run algorithm and estimate.\;\<close>
+  \<open>run_algo xs = map_pmf estimate (run_steps xs)\<close>
 
 definition \<open>subsample_size = (THE x. real x = n * f)\<close>
+
+declare subsample.simps [simp del]
 
 lemma subsample_size_eq:
   \<open>real subsample_size = n * f\<close>
@@ -115,8 +122,8 @@ proof -
   have a: \<open>card U choose subsample_size > 0\<close>
     using subsample_size assms by (intro zero_less_binomial) auto
   show b:\<open>subsample U = pmf_of_set ?C\<close>
-    using subsample_size_eq
-    unfolding subsample_def by (intro arg_cong[where f=\<open>pmf_of_set\<close>] Collect_cong) auto
+    using subsample_size_eq unfolding subsample.simps
+    by (intro arg_cong[where f=\<open>pmf_of_set\<close>] Collect_cong) auto
   with assms subsample_size have \<open>card ?C > 0\<close>
     using n_subsets[OF fin_U] by simp
   thus \<open>?C \<noteq> {}\<close> \<open>finite ?C\<close> using card_gt_0_iff by blast+
@@ -164,7 +171,8 @@ proof -
       by (intro n_subsets_prob subssample_size_le_card_U that fin_U)
     also have \<open>\<dots> = f\<close> unfolding subsample_size_eq  assms(1) using n_gt_0 by auto
     finally have \<open>measure (pmf_of_set ?C) {x. s \<in> x} = f\<close> by simp
-    thus ?thesis by (intro eq_bernoulli_pmfI) (simp add: pmf_map vimage_def subsample)
+    thus ?thesis
+      unfolding subsample by (intro eq_bernoulli_pmfI) (simp add: pmf_map vimage_def)
   qed
 
   have \<open>?L \<le> (\<Prod>s\<in>S. (\<integral>\<omega>. g (s \<in> \<omega>) \<partial>subsample U))\<close>
@@ -196,20 +204,21 @@ proof -
   have c:\<open>cvm_algo_abstract.initial_state = initial_state\<close>
     unfolding cvm_algo_abstract.initial_state_def[OF abs] initial_state_def by auto
   show \<open>cvm_algo_abstract.run_steps n f subsample = run_steps\<close>
-    unfolding cvm_algo_abstract.run_steps_def[OF abs] run_steps_def a c by simp
+    unfolding cvm_algo_abstract.run_steps_def[OF abs] run_steps.simps a c by simp
   show \<open>cvm_algo_abstract.estimate = estimate\<close>
-    unfolding cvm_algo_abstract.estimate_def[OF abs] estimate_def by auto
+    unfolding cvm_algo_abstract.estimate_def[OF abs]
+    by (intro ext) (metis estimate.simps state.collapse)
 qed
 
 theorem unbiasedness: \<open>measure_pmf.expectation (run_algo xs) id = card (set xs)\<close>
-  unfolding run_algo_def integral_map_pmf using abs.unbiasedness by simp
+  unfolding run_algo.simps integral_map_pmf using abs.unbiasedness by simp
 
 theorem correctness:
   assumes \<open>\<epsilon> \<in> {0<..<1::real}\<close> \<open>\<delta> \<in> {0<..<1::real}\<close>
   assumes \<open>real n \<ge> 12 / \<epsilon>\<^sup>2 * ln (3 * real (length xs) / \<delta>)\<close>
   defines \<open>A \<equiv> real (card (set xs))\<close>
   shows \<open>\<P>(R in run_algo xs. \<bar>R - A\<bar> > \<epsilon> * A) \<le> \<delta>\<close>
-  using assms(3) unfolding A_def run_algo_def using abs.correctness[OF assms(1,2)] by auto
+  using assms(3) unfolding A_def using abs.correctness[OF assms(1,2)] by auto
 
 lemma space_usage:
   \<open>AE \<sigma> in run_steps xs. card (state_\<chi> \<sigma>) < n \<and> finite (state_\<chi> \<sigma>)\<close>
@@ -220,7 +229,7 @@ proof -
     using that
   proof (induction \<rho> arbitrary:\<sigma> rule:run_state_induct)
     case 1
-    then show ?case using n_gt_0 by (simp add:run_steps_def initial_state_def)
+    then show ?case using n_gt_0 by (simp add:initial_state_def)
   next
     case (2 xs x)
     have \<open>card (state_\<chi> \<tau>) < n \<and> finite (state_\<chi> \<tau>)\<close>
@@ -234,7 +243,7 @@ proof -
     define p where \<open>p = abs.run_state_pmf (IntermState xs x)\<close>
 
     have a: \<open>abs.run_state_pmf (FinalState (xs@[x])) = p \<bind> abs.step_2\<close>
-      by (simp add:p_def abs.run_steps_snoc)
+      by (simp add:p_def abs.run_steps_snoc del:run_steps.simps)
 
     have b:\<open>card \<chi> < card (state_\<chi> \<tau>)\<close>
       if \<open>card (state_\<chi> \<tau>) = n\<close> \<open>\<chi> \<in> set_pmf (subsample (state_\<chi> \<tau>))\<close> \<open>\<tau> \<in> set_pmf p\<close> for \<chi> \<tau>

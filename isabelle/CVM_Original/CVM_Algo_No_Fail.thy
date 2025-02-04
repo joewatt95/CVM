@@ -83,7 +83,7 @@ proof -
     apply (subst integral_bind_pmf)
     by (fastforce simp add: AE_measure_pmf_iff)+
 
-  also have \<open>\<dots> \<le> measure_pmf.expectation (step_1 x state) (\<lambda> _. f ^ threshold)\<close>
+  also have \<open>\<dots> \<le> measure_pmf.expectation (step_1 x state) \<lblot>f ^ threshold\<rblot>\<close>
   proof -
     have
       \<open>?prob_fail_step_3_after_step_2 state \<le> f ^ threshold\<close> (is \<open>?L' \<le> ?R'\<close>)
@@ -93,14 +93,14 @@ proof -
 
       have \<open>?L' =
         of_bool (card ?chi = threshold) *
-        measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+        measure_pmf.expectation (prod_pmf ?chi \<lblot>bernoulli_pmf f\<rblot>)
           (\<lambda> keep_in_chi.
             of_bool (card (Set.filter keep_in_chi ?chi) = card ?chi))\<close>
         by (auto intro!: integral_cong_AE simp add: step_2_def' step_3_def)
 
       also from that have \<open>\<dots> =
         of_bool (card ?chi = threshold) *
-        measure_pmf.expectation (prod_pmf ?chi (\<lambda> _. bernoulli_pmf f))
+        measure_pmf.expectation (prod_pmf ?chi \<lblot>bernoulli_pmf f\<rblot>)
           (\<lambda> keep_in_chi. \<Prod> x \<in> ?chi. of_bool (keep_in_chi x))\<close>
         by (auto
           intro!: integral_cong_AE
@@ -128,7 +128,8 @@ lemma prob_fail_run_steps_le :
 
 lemma step_le_step_no_fail :
   \<open>step x state \<sqsubseteq>\<^bsub>(=)\<^esub> spmf_of_pmf (step_no_fail x state)\<close>
-  apply (simp add: step_def step_3_def spmf_of_pmf_bind)
+  unfolding step_def step_3_def 
+  apply (simp add: spmf_of_pmf_bind)
   by (smt (verit) bind_return_spmf ord_spmf_None ord_spmf_bind_reflI spmf.leq_refl)
 
 lemma run_steps_le_run_steps_no_fail :

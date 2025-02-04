@@ -10,6 +10,8 @@ begin
 
 hide_const (open) Misc_CryptHOL.coin_pmf
 
+type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
+
 context cvm_algo_assms
 begin
 
@@ -47,7 +49,7 @@ lemmas step_1_lazy_def' = step_1_lazy_def[
   simplified map_pmf_def[symmetric] Let_def if_distribR]
 
 lemmas step_2_lazy_def' = step_2_lazy_def[
-  simplified map_pmf_def[symmetric] Let_def]
+  simplified map_pmf_def[symmetric] map_comp_rd Let_def]
 
 end
 
@@ -57,7 +59,7 @@ abbreviation
 lemma step_lazy_cong :
   assumes "xs ! i = ys ! i"
   shows "step_lazy xs i = step_lazy ys i"
-  unfolding step_lazy_def step_1_lazy_def step_2_lazy_def
+  unfolding step_lazy_def step_1_lazy_def' step_2_lazy_def'
   using assms by (simp cong: if_cong)
 
 lemma run_steps_lazy_snoc :
@@ -80,9 +82,8 @@ proof -
       ?P index state)\<rbrakk>
     step_lazy xs i
     \<lbrakk>?P (Suc index)\<rbrakk>\<close> for index i
-    by (auto simp add:
-      step_lazy_def step_1_lazy_def' step_2_lazy_def'
-      AE_measure_pmf_iff in_set_enumerate_eq)
+    unfolding step_lazy_def step_1_lazy_def' step_2_lazy_def'
+    by (auto simp add: AE_measure_pmf_iff in_set_enumerate_eq)
 
   then show ?thesis
     apply (intro Utils_PMF_Hoare.loop[
@@ -110,8 +111,6 @@ next
     unfolding run_steps_lazy_snoc foldM_pmf_snoc by presburger
 qed
 
-type_synonym coin_matrix = \<open>nat \<times> nat \<Rightarrow> bool\<close>
-
 context
   fixes xs :: \<open>'a list\<close> and i :: nat
 begin
@@ -120,6 +119,7 @@ definition step_1_eager ::
   \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
   \<open>step_1_eager \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
+
     insert_x_into_chi \<leftarrow> map_rd (\<lambda> \<phi>. (\<forall> k' < k. \<phi> (k', i))) get_rd;
 
     let chi = (chi |>
@@ -138,7 +138,7 @@ definition step_2_eager ::
     then do {
       keep_in_chi \<leftarrow> map_rd
         (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, last_index_up_to i xs x)) get_rd;
-      return_rd \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr> }
+      return_rd \<lparr>state_k = Suc k, state_chi = Set.filter keep_in_chi chi\<rparr> }
     else return_rd state }\<close>
 
 definition step_eager ::
@@ -192,13 +192,11 @@ interpretation lazify "{..< n} \<times> {..< n}" "undefined" "\<lambda> _. coin_
 
 lemma depends_on_step_1 :
   fixes xs x \<phi> state
-  defines "l \<equiv> length xs"
   shows "depends_on
     (step_1_eager (xs @ [x]) l state)
     ({..< state_k state} \<times> {l})"
+    (is \<open>depends_on _ ?S\<close>)
 proof -
-  let ?S = "{..< state_k state} \<times> {l}"
-
   have "c1 (k',l) = c2 (k',l)"
     if "restrict c1 ?S = restrict c2 ?S" "k' < state_k state"
     for c1 c2 :: "nat \<times> nat \<Rightarrow> bool" and k'
@@ -211,14 +209,14 @@ proof -
 
   thus ?thesis
     unfolding step_1_eager_def' Let_def
-    by (intro depends_on_bind depends_on_return depends_on_map) auto
+    apply (intro depends_on_map_get)
+    by auto
 qed
 
 lemma depends_on_step_2 :
-  fixes xs x \<sigma>
+  fixes \<sigma>
   defines
-    "k' \<equiv> state_k \<sigma> + of_bool (card (state_chi \<sigma>) = threshold)" and
-    "l \<equiv> length xs"
+    "k' \<equiv> state_k \<sigma> + of_bool (card (state_chi \<sigma>) = threshold)"
   shows "depends_on
     (step_2_eager (xs @ [x]) l \<sigma>)
     ({state_k \<sigma> ..< k'} \<times> {.. l})"
@@ -239,30 +237,28 @@ next
     map_rd
       (\<lambda>c. \<lparr>state_k = (Suc <| state_k \<sigma>), state_chi = Set.filter c (state_chi \<sigma>)\<rparr>)
       keep_in_chi"
-    unfolding step_2_eager_def' by (simp flip: keep_in_chi_def)
+    unfolding step_2_eager_def' keep_in_chi_def by (simp add: map_comp_rd)
 
   have "depends_on keep_in_chi ({state_k \<sigma>} \<times> {.. l})"
     unfolding keep_in_chi_def
-    apply (intro depends_on_map ext)
+    apply (intro depends_on_map_get ext)
     apply simp
-    by (smt (verit, del_insts) atMost_iff last_index_up_to_le insertI1 mem_Sigma_iff restrict_apply')
+    by (metis SigmaI atMost_iff insert_iff last_index_up_to_le restrict_apply')
 
-  thus ?thesis
+  then show ?thesis
     unfolding a b map_rd_def
     apply (intro depends_on_bind depends_on_return)
     by simp
 qed
 
 lemma depends_on_step_2_eq :
-  fixes xs x \<sigma>
-  defines "l \<equiv> length xs"
-  shows "depends_on
+  "depends_on
     (map_rd ((=) v) (step_2_eager (xs @ [x]) l \<sigma>))
     ({state_k \<sigma> ..< state_k v} \<times> {.. l})"
 proof (cases "state_k v = state_k \<sigma> + of_bool (card (state_chi \<sigma>) = threshold)")
   case True
   show ?thesis
-    unfolding map_rd_def l_def True
+    unfolding map_rd_def True
     by (intro depends_on_bind depends_on_return depends_on_step_2)
 next
   case False
@@ -304,12 +300,12 @@ lemma eager_lazy_step:
   shows "sample (step_eager (xs@[x]) l \<sigma>) = step_lazy (xs@[x]) l \<sigma>"
     (is "?L = ?R")
 proof -
-  have l_le_n: "l < n" unfolding l_def using assms(2) by simp
+  have l_lt_n: "l < n" unfolding l_def using assms(2) by simp
 
   have "measure space {x. \<forall>k'<state_k \<sigma>. x (k', l)} = measure space (({..<state_k \<sigma>}\<times>{l}) \<rightarrow> {True})"
     by (intro measure_pmf_cong) auto
-  also have "... = (\<Prod>j \<in> {..<state_k \<sigma>}\<times>{l}. measure coin_pmf {True})"
-    using assms(3) l_le_n unfolding space_def by (intro prob_prod_pmf' subsetI) auto
+  also have "\<dots> = (\<Prod>j \<in> {..<state_k \<sigma>}\<times>{l}. measure coin_pmf {True})"
+    using assms(3) l_lt_n unfolding space_def by (intro prob_prod_pmf' subsetI) auto
   also have "\<dots> = f ^ state_k \<sigma>" using f by (simp add:measure_pmf_single)
 
   finally have
@@ -329,16 +325,16 @@ proof -
   have step_2 :
     "sample (step_2_eager (xs@[x]) l \<sigma>') = step_2_lazy \<sigma>'" (is "?L1 = ?R1")
     if "state_chi \<sigma>' \<subseteq> insert x (state_chi \<sigma>)" "state_k \<sigma>' = state_k \<sigma>" for \<sigma>'
-  proof (cases "real (card (state_chi \<sigma>')) < threshold")
-    case True
+  proof (cases "real (card (state_chi \<sigma>')) = threshold")
+    case False
     then show ?thesis unfolding step_2_eager_def' step_2_lazy_def' by (simp add:lazify_return)
   next
-    case False
+    case True
     let ?f = "\<lambda> i. (state_k \<sigma>', last_index_up_to l (xs @ [x]) i)"
 
     from that(2) assms(3) have b: "?f ` state_chi \<sigma>' \<subseteq> {..< n} \<times> {..< n}"
       apply (intro image_subsetI)
-      by (metis basic_trans_rules(21) l_le_n last_index_up_to_le lessThan_iff mem_Sigma_iff)
+      by (metis basic_trans_rules(21) l_lt_n last_index_up_to_le lessThan_iff mem_Sigma_iff)
 
     have "inj_on (last_index (xs @ [x])) (set (xs @ [x]))"
       using inj_on_last_index by blast
@@ -359,9 +355,9 @@ proof -
     also have "... = prod_pmf (state_chi \<sigma>') (\<lambda>_. coin_pmf)" by (simp add:comp_def)
     finally have "sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd) = prod_pmf (state_chi \<sigma>') (\<lambda>_. coin_pmf)"
       by simp
-    with False show ?thesis
-      unfolding step_2_eager_def'
-      by (simp add:step_2_eager_def' step_2_lazy_def' lazify_map lazify_return)
+    with True show ?thesis
+      unfolding step_2_eager_def' step_2_lazy_def'
+      by (simp add: lazify_map lazify_return)
   qed
 
   have "?L = sample (step_1_eager (xs@[x]) l \<sigma>) \<bind> (\<lambda>\<sigma>'. sample (step_2_eager (xs@[x]) l \<sigma>'))"
@@ -377,45 +373,39 @@ qed
 
 lemma depends_on_step_approx :
   fixes xs
-  defines "l \<equiv> length xs"
   shows "depends_on
     (step_eager (xs @ [x]) l \<sigma>)
     ({state_k \<sigma> ..< Suc (state_k \<sigma>)} \<times> {.. l} \<union> {..< state_k \<sigma>} \<times> {l})"
 proof -
   have "state_k \<sigma>' = state_k \<sigma>"
     if "\<sigma>' \<in> set_pmf (sample (step_1_eager (xs @ [x]) l \<sigma>))" for \<sigma>'
-    using that unfolding l_def by (simp add:step_1_eager_def sample_def)
+    using that by (simp add:step_1_eager_def sample_def)
       (auto simp add:run_reader_simps)
 
-  thus ?thesis unfolding step_eager_def l_def
+  thus ?thesis unfolding step_eager_def
     by (intro depends_on_bind depends_on_mono[OF depends_on_step_1]
         depends_on_mono[OF depends_on_step_2]) auto
 qed
 
 lemma depends_on_step :
-  fixes xs
-  defines "l \<equiv> length xs"
-  shows "depends_on
+  "depends_on
     (map_rd ((=) v) (step_eager (xs @ [x]) l \<sigma>))
     ({state_k \<sigma> ..< state_k v} \<times> {.. l} \<union> {..< state_k \<sigma>} \<times> {l})"
+  (is "depends_on _ ?S")
 proof -
-  show ?thesis unfolding l_def step_eager_def
+  show ?thesis unfolding step_eager_def
   proof (intro depends_on_bind_eq conjI)
-    fix w
-    assume
-      a:"w \<in> set_pmf (sample (step_1_eager (xs @ [x]) (length xs) \<sigma>))" and
-      "v \<in> set_pmf (sample (step_2_eager (xs @ [x]) (length xs) w))"
+    fix w assume "w \<in> set_pmf (sample (step_1_eager (xs @ [x]) l \<sigma>))"
 
-    show "depends_on (map_rd ((=) w) (step_1_eager (xs @ [x]) (length xs) \<sigma>))
-          ({state_k \<sigma> ..< state_k v} \<times> {.. length xs} \<union> {..< state_k \<sigma>} \<times> {length xs})"
+    then have "state_k \<sigma> = state_k w"
+      unfolding sample_def step_1_eager_def by (auto simp:run_reader_simps)
+
+    then show "depends_on (map_rd ((=) v) (step_2_eager (xs @ [x]) l w)) ?S"
+      by (intro depends_on_mono[OF depends_on_step_2_eq]) auto
+
+    show "depends_on (map_rd ((=) w) (step_1_eager (xs @ [x]) l \<sigma>)) ?S"
       unfolding map_rd_def
       by (intro depends_on_bind depends_on_mono[OF depends_on_step_1] depends_on_return) auto
-
-    have "state_k \<sigma> = state_k w"
-      using a unfolding sample_def step_1_eager_def by (auto simp:run_reader_simps)
-    thus "depends_on (map_rd ((=) v) (step_2_eager (xs @ [x]) (length xs) w))
-          ({state_k \<sigma>..<state_k v} \<times> {.. length xs} \<union> {..< state_k \<sigma>} \<times> {length xs})"
-      by (intro depends_on_mono[OF depends_on_step_2_eq]) auto
   qed
 qed
 
@@ -423,6 +413,7 @@ lemma depends_on_algorithm :
   "depends_on
     (map_rd ((=) v) (run_steps_eager xs initial_state))
     ({..< state_k v} \<times> {..< length xs})"
+    (is \<open>depends_on _ (?S v xs)\<close>)
 proof (induction xs arbitrary:v rule:rev_induct)
   case Nil
   then show ?case by (simp add: depends_on_return map_rd_def depends_on_bind)
@@ -439,33 +430,35 @@ next
     hence a: "state_k w \<le> state_k v"
       unfolding sample_def by (auto simp: run_reader_simps step_eager_def step_1_eager_def' step_2_eager_def')
 
-    show "depends_on
+    from a show "depends_on
       (map_rd ((=) w) (run_steps_eager xs initial_state))
-      ({..< state_k v} \<times> {..< length (xs @ [x])})"
-      using a by (intro depends_on_mono[OF snoc]) auto
+      (?S v <| xs @ [x])"
+      by (intro depends_on_mono[OF snoc]) auto
 
-    show "depends_on
+    from a show "depends_on
       (map_rd ((=) v) (step_eager (xs @ [x]) (length xs) w))
-      ({..< state_k v} \<times> {..< length (xs @ [x])})"
-      using a by (intro depends_on_mono[OF depends_on_step]) auto
+      (?S v <| xs @ [x])"
+      by (intro depends_on_mono[OF depends_on_step]) auto
   qed
 qed
 
-lemma independent_bind:
-  "independent_bind
+lemma independent_bind :
+  fixes xs :: "'a list"
+  defines "F \<equiv> \<lambda> v :: 'a state. {..< state_k v} \<times> {..< length xs}"
+  shows "independent_bind
     (run_steps_eager xs initial_state)
     (step_eager (xs @ [x]) (length xs))"
-proof (intro independent_bindI[where F = "\<lambda> v. {..< state_k v} \<times> {..< length xs}"] conjI)
+proof (intro independent_bindI[where F = F] conjI)
   fix v
 
   show "depends_on
-    (map_rd ((=) v) (run_steps_eager xs initial_state))
-    ({..< state_k v} \<times> {..< length xs})"
-    by (intro depends_on_algorithm)
+    (map_rd ((=) v) (run_steps_eager xs initial_state)) (F v)"
+    unfolding F_def by (intro depends_on_algorithm)
 
   show "depends_on
     (step_eager (xs @ [x]) (length xs) v)
-    (UNIV - {..< state_k v} \<times> {..< length xs})"
+    (UNIV - F v)"
+    unfolding F_def
     apply (intro depends_on_mono[OF depends_on_step_approx]) 
     by auto
 qed
@@ -477,26 +470,26 @@ theorem sample_run_steps_eager_eq_run_steps_lazy :
   assumes "length xs \<le> n"
   shows
     "sample (run_steps_eager xs initial_state) = run_steps_lazy xs initial_state"
+    (is \<open>?L xs = ?R xs\<close>)
 using assms proof (induction xs rule: rev_induct)
   case Nil
   then show ?case by (simp add: lazify_return)
 next
   case (snoc x xs)
+  then have
+    a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" and
+    b: "length xs \<le> n" by simp_all 
 
-  have a: "[0..<length (xs @ [x])] = [0..<length xs]@[length xs]" by simp
-  have b: "length xs \<le> n" using snoc by simp
-
-  have "sample (run_steps_eager (xs@[x]) initial_state) = sample (run_steps_eager xs initial_state \<bind> step_eager (xs @ [x]) (length xs))"
+  have "?L (xs @ [x]) = sample (run_steps_eager xs initial_state \<bind> step_eager (xs @ [x]) (length xs))"
     unfolding run_steps_eager_snoc by simp
   also have "\<dots> = run_steps_lazy xs initial_state \<bind> (\<lambda> r. sample (step_eager (xs@[x]) (length xs) r))"
     unfolding snoc(1)[OF b, symmetric] by (intro lazify_bind independent_bind)
   also have "\<dots> = run_steps_lazy xs initial_state \<bind> step_lazy (xs@[x]) (length xs)"
     using run_steps_lazy_preserves_well_formedness snoc(2)
-    apply (intro bind_pmf_cong refl eager_lazy_step snoc(2))
+    apply (intro bind_pmf_cong refl eager_lazy_step)
     by (fastforce simp add: AE_measure_pmf_iff)+
-  also have "\<dots> = run_steps_lazy (xs@[x]) initial_state"
-    unfolding run_steps_lazy_snoc by simp
-  finally show ?case by simp
+  also have "\<dots> = ?R (xs @ [x])" unfolding run_steps_lazy_snoc by simp
+  finally show ?case .
 qed
 
 corollary run_steps_no_fail_eq_run_steps_eager_bernoulli_matrix :
