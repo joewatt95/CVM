@@ -126,11 +126,10 @@ proof -
       intro: map_pmf_cong
       simp add: Pi_pmf_map'[where dflt' = undefined] map_pmf_comp)
 
-  also from
-    assms f bernoulli_eq_map_Pi_pmf[where I = \<open>{.. k - 1}\<close>, unfolded Ball_def]
-  have \<open>\<dots> = ?R\<close>
+  also have \<open>\<dots> = ?R\<close>
     apply (intro map_pmf_cong arg_cong2[where f = prod_pmf] refl ext)
     apply (cases k)
+    using assms f bernoulli_eq_map_Pi_pmf[where I = \<open>{.. k - 1}\<close>, unfolded Ball_def]
     by (simp_all add: Iic_subset_Iio_iff less_Suc_eq_le)
     
   finally show ?thesis .
