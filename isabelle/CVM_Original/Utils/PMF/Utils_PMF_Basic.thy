@@ -136,8 +136,8 @@ lemma prod_pmf_swap :
   assumes [simp] : "finite I" "finite J"
   shows
     "prod_pmf (I \<times> J) M =
-      map_pmf (\<lambda> \<omega> (x, y). curry \<omega> y x)
-        (prod_pmf (J \<times> I) (\<lambda> (x, y). curry M y x))" (is "?L = ?R")
+      map_pmf (\<lambda> \<omega> (x, y). \<omega> (y, x))
+        (prod_pmf (J \<times> I) (\<lambda> (x, y). M (y, x)))" (is "?L = ?R")
 proof -
   have
     "?R =
