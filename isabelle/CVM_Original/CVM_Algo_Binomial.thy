@@ -147,7 +147,7 @@ proof -
 
   with assms f
   show ?thesis
-    apply (subst binomial_pmf_altdef'[where dflt = undefined])
+    apply (subst binomial_pmf_altdef')
     by (simp_all add: map_pmf_nondet_alg_aux_eq power_le_one map_pmf_comp)
 qed
 
