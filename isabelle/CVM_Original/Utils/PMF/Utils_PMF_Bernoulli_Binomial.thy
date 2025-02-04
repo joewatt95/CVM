@@ -146,15 +146,17 @@ lemma
 proof -
   show ?thesis_0
     unfolding bernoulli_matrix_def m'_def n'_def
-    by (auto simp add: prod_pmf_uncurry)
+    by (simp add: prod_pmf_uncurry)
 
-  show ?thesis_1
-    unfolding bernoulli_matrix_def m'_def n'_def
-    apply (subst prod_pmf_swap[OF finite_lessThan finite_lessThan])
-    apply (subst prod_pmf_uncurry[OF finite_lessThan finite_lessThan])
-    unfolding map_pmf_comp
-    apply (intro map_pmf_cong)
-    by fastforce+
+  (* TODO: tidy, maybe split up the uncurry / swap part into separate lemma *)
+  then show ?thesis_1
+    unfolding m'_def n'_def
+    apply (subst (asm) prod_pmf_uncurry[OF finite_lessThan finite_lessThan, symmetric])
+    apply (subst (asm) prod_pmf_swap[OF finite_lessThan finite_lessThan])
+    apply (subst (asm) prod_pmf_uncurry[OF finite_lessThan finite_lessThan])
+    apply (simp add: map_pmf_comp)
+    apply (intro map_pmf_cong ext)
+    by auto
 qed
 
 end

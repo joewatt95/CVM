@@ -133,27 +133,25 @@ qed
 
 lemma prod_pmf_swap :
   fixes I :: "'a set" and J :: "'b set"
-  assumes "finite I" "finite J"
+  assumes [simp] : "finite I" "finite J"
   shows
     "prod_pmf (I \<times> J) M =
-      map_pmf (\<lambda> \<omega>. \<omega> \<circ> prod.swap)
-        (prod_pmf (J \<times> I) (M \<circ> prod.swap))" (is "?L = ?R")
+      map_pmf (\<lambda> \<omega> (x, y). curry \<omega> y x)
+        (prod_pmf (J \<times> I) (\<lambda> (x, y). curry M y x))" (is "?L = ?R")
 proof -
-  have f :"finite (I \<times> J)"
-    using assms by auto
-  have a: "inj_on prod.swap (J \<times> I)" for i :: 'a
-    by (intro inj_onI) auto
-
-  have "?R =
-    map_pmf (\<lambda>\<omega>. \<omega> \<circ> prod.swap)
-     (map_pmf (\<lambda> \<phi>. \<lambda> i \<in> J \<times> I. \<phi> (prod.swap i))
-       (prod_pmf (I \<times> J) M))"
-    by (simp add: f prod_pmf_reindex product_swap)
+  have
+    "?R =
+      map_pmf (\<lambda> \<omega> (x, y). curry \<omega> y x)
+        (map_pmf (\<lambda> \<phi>. \<lambda> (y, x) \<in> J \<times> I. curry \<phi> x y)
+        (prod_pmf (I \<times> J) M))"
+    unfolding case_prod_beta' curry_def
+    apply (subst prod_pmf_reindex)
+    by (auto simp add: comp_def inj_on_def)
 
   also have "\<dots> = ?L"
-    by (auto
-      intro!: map_pmf_idI elim!: PiE_E
-      simp add: map_pmf_comp comp_def set_prod_pmf[OF f] fun_eq_iff)
+    unfolding map_pmf_comp
+    apply (intro map_pmf_idI)
+    by (fastforce split: if_splits simp add: set_prod_pmf case_prod_beta')
 
   finally show ?thesis by simp
 qed
