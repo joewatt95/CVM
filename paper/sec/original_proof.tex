@@ -35,7 +35,7 @@ It should be noted that the algorithm keeps track of the number of subsampling i
       \State $\chi \gets \chi - \{a_i\}$
     \EndIf
     \If{$|\chi| = n$}
-      \State $\chi \gets \{a \in \chi | b[\mathrm{last{\textunderscore}index}(a),k+1] = 1\}$
+      \State $\chi \gets \{a \in \chi \;|\; b[\mathrm{last{\textunderscore}index}(a),k+1] = 1\}$
       \State $k \gets k+1$
     \EndIf
     \If{$|\chi| = n$}
@@ -63,7 +63,24 @@ The interesting fact is that we can distribute the sampling operation over compo
 \begin{isabelle_cm}
   sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ f\ \isasymomega\ \isasymcirc\ g\ \isasymomega{\isacharparenright}\ \isacharequal\ sample\ g\ \isasymbind\ \isacharparenleft{\isasymlambda}x\isachardot\ sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ f\ \isasymomega\isachardot\ x\isacharparenright\isacharparenright
 \end{isabelle_cm}
-if $f$ and $g$ depend on disjoint subsets of the coin flips.
+if $f$ and $g$ depend on disjoint subsets of the coin flips, i.e., if $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.
+
+%% It is possible to express the above in a point-free manner.
+%% For that, we need to introduce the reader monad.
+%% This is a deterministic monad, which provides a read operation to a global value, such as our set of coin flips.
+%% (In Haskell, the reader monad is commonly used to provide a fixed enviroment to algorithms, such as global configuration options, paths or command lines parameters~\cite{jones1995}.)
+
+%% \begin{isabelle_cm}
+%% \isacommand{datatype}\ \isacharparenleft{\isacharprime}c\isacharcomma\ {\isacharprime}a\isacharparenright\ reader{\isacharunderscore}monad\ =\ Reader\ {\isacharparenleft}run{\isacharunderscore}reader\isacharcolon\ \isacartoucheopen{\isacharprime}c\ \isasymRightarrow\ {\isacharprime}a\isacartoucheclose\isacharparenright)\isanewline
+%% \isanewline
+%% \isacommand{definition}\ bind{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}bind{\isacharunderscore}rd\ m\ f\ \isacharequal\ Reader\ \isacharparenleft{\isasymlambda}r\isachardot\ run{\isacharunderscore}reader\ {\isacharparenleft}f\ {\isacharparenleft}run{\isacharunderscore}reader\ m\ r\isacharparenright\isacharparenright\ r\isacharparenright\isacartoucheclose\isanewline
+%% \isacommand{definition}\ return{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}return{\isacharunderscore}rd\ x\ \isacharequal\ Reader\ \isacharparenleft{\isasymlambda}{\isacharunderscore}\isachardot\ x\isacharparenright\isacartoucheclose\isanewline
+%% \isacommand{definition}\ get{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}get{\isacharunderscore}rd\ x\ \isacharequal\ Reader\ id\isacartoucheclose
+%% \end{isabelle_cm}
+%% With the definition above, we can define our sampling function with respect to the reader monad, where the environment is the entire set of coin flips, which is now a monad morphism (from the reader monad to the Giry monad):
+%% \begin{isabelle_cm}
+%%   sample{\isacharunderscore}rd\ \isacharequal\ sample\ \isasymcirc\ run{\isacharunderscore}reader
+%% \end{isabelle_cm}
 
 
 

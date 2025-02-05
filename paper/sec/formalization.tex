@@ -91,24 +91,12 @@ Term & Description \\
 \end{tabular}
 
 \medskip
-The formalization contains four theory files.
+The formalization contains four theory files. The file CVM{\textunderscore}Preliminary definitions and lemmas, such as properties about the \isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} operation we introduced.
 Of course, we do not verify \cref{alg:cvm} and \cref{alg:cvm_new} separately,
 as most of the proof is identical.
-The entry CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, wiht an abstract subsampling operation, which is required to fullfill \cref{eq:subsample_condition}.
+The file CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, wiht an abstract subsampling operation, which is required to fullfill \cref{eq:subsample_condition}.
 The specialization happens in the following theories CVM{\textunderscore}Original{\textunderscore}Algorithm (resp. CVM{\textunderscore}New{\textunderscore}Algorithm).
 It should be noted that only the last file, for the new unbiased algorithm, dependends on the new library (\cref{sec:formalization_neg_dep}) on negatively associated random variables.
 The total number of lines required for the verification of the original algorithm is 1004 lines.
 This is in contrast to the original proof, for which the verification required \todo{x} lines.
-
-\medskip
-\noindent\begin{tabular}{l l l l}
-\toprule
-Name & Description & Lines of Code & Comments \\
-\midrule
-CVM{\textunderscore}Preliminary & 79 \\
-CVM{\textunderscore}Abstract{\textunderscore}Algorithm & 675 \\
-CVM{\textunderscore}Original{\textunderscore}Algorithm & 250 \\
-CVM{\textunderscore}New{\textunderscore}Unbiased{\textunderscore}Algorithm & 139 \\
-\bottomrule
-\end{tabular}
 
