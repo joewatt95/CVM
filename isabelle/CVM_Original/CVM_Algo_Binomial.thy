@@ -91,35 +91,34 @@ lemma map_pmf_nondet_alg_aux_eq :
     (prod_pmf (set xs) \<lblot>bernoulli_pmf <| f ^ k\<rblot>)\<close>
   (is \<open>?L = ?R\<close>)
 proof -
+  let ?m' = \<open>{..< m}\<close> let ?n' = \<open>{..< n}\<close>
+  let ?M = \<open>\<lambda> I. prod_pmf I \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>\<close>
+
   have \<open>?L =
     map_pmf
-    (\<lambda> \<phi>. nondet_alg_aux k xs (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. \<phi> y x))
-    (prod_pmf {..< n} \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
-    (is \<open>_ = map_pmf ?go _\<close>)
+      (\<lambda> \<phi>. nondet_alg_aux k xs (\<lambda> (x, y) \<in> ?m' \<times> ?n'. \<phi> y x))
+      (?M ?n')\<close>
     unfolding bernoulli_matrix_eq_uncurry_prod
     apply (subst prod_pmf_swap_uncurried)
     by (simp_all add: map_pmf_comp)
 
-  also have \<open>\<dots> =
-    map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < k. f y k'})
-    (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
-  proof -
-    from assms have
-      \<open>map_pmf ?go =
-        map_pmf (\<lambda> f. {x \<in> set xs. \<forall> k' < k. f x k'}) \<circ>
-        map_pmf (\<lambda> f. \<lambda> x \<in> set xs. f (last_index xs x))\<close>
-      unfolding nondet_alg_aux_def map_pmf_compose[symmetric]
-      by (fastforce intro: map_pmf_cong)
-
-    then show ?thesis
-      apply simp
-      apply (subst prod_pmf_reindex)
-      using assms inj_on_last_index by auto
-  qed
+  also have \<open>\<dots> = (
+    ?M ?n' 
+      |> map_pmf (\<lambda> P. \<lambda> x \<in> set xs. P (last_index xs x))
+      |> map_pmf (\<lambda> P. {x \<in> set xs. \<forall> k' < k. P x k'}))\<close>
+    unfolding nondet_alg_aux_def map_pmf_comp
+    using assms by (fastforce intro: map_pmf_cong)
 
   also have \<open>\<dots> =
     map_pmf
-      (\<lambda> f. {y \<in> set xs. f y})
+      (\<lambda> P. {x \<in> set xs. \<forall> k' < k. P x k'})
+      (?M (set xs))\<close>
+    apply (subst prod_pmf_reindex)
+    using assms inj_on_last_index by auto
+
+  also have \<open>\<dots> =
+    map_pmf
+      (\<lambda> P. {y \<in> set xs. P y})
       (prod_pmf (set xs)
         \<lblot>map_pmf (\<lambda> f. \<forall> k' < k. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)\<close>
     apply (subst Pi_pmf_map'[OF finite_set])
