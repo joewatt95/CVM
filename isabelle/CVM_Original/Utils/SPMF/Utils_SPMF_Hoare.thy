@@ -87,13 +87,13 @@ lemma loop_unindexed :
 lemma (in loop_spmf) while :
   assumes \<open>\<turnstile>spmf \<lbrace>(\<lambda> x. guard x \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> while \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close>
-using assms proof (induction rule: while_fixp_induct)
+proof (induction rule: while_fixp_induct)
   (* Initial ordinal. *)
   case bottom show ?case by simp 
 next
   (* Successor ordinal. *)
   case (step _)
-  then show ?case
+  with assms show ?case
     by (smt (z3) AE_measure_spmf_iff UN_E bind_UNION o_apply set_bind_spmf set_return_spmf singletonD)
 next
   (* Transfinite ordinal. *)
