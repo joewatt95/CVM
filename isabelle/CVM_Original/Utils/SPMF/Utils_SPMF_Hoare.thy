@@ -84,27 +84,20 @@ lemma loop_unindexed :
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
   using assms loop[where offset = 0 and P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
-lemma
+lemma (in loop_spmf) while :
   assumes \<open>\<turnstile>spmf \<lbrace>(\<lambda> x. guard x \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
-  shows
-    while : \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close> and
-    while' : \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>P\<rbrace>\<close>
-proof -
-  show \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close>
-  proof (induction rule: loop_spmf.while_fixp_induct)
-    (* Transfinite ordinal. *)
-    case 1 show ?case by simp
-  next
-    (* Initial ordinal. *)
-    case 2 show ?case by simp 
-  next
-    (* Successor ordinal. *)
-    case 3
-    with assms show ?case
-      by (smt (z3) AE_measure_spmf_iff UN_E bind_UNION o_apply set_bind_spmf set_return_spmf singletonD)
-  qed
-
-  then show \<open>\<turnstile>spmf \<lbrace>P\<rbrace> loop_spmf.while guard body \<lbrace>P\<rbrace>\<close> by simp
+  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> while \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close>
+using assms proof (induction rule: while_fixp_induct)
+  (* Initial ordinal. *)
+  case bottom show ?case by simp 
+next
+  (* Successor ordinal. *)
+  case (step _)
+  then show ?case
+    by (smt (z3) AE_measure_spmf_iff UN_E bind_UNION o_apply set_bind_spmf set_return_spmf singletonD)
+next
+  (* Transfinite ordinal. *)
+  case adm show ?case by simp
 qed
 
 lemma prob_fail_foldM_spmf_le :
