@@ -114,8 +114,9 @@ lemma binomial_pmf_eq_map_sum_of_bernoullis :
       |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
   (is \<open>?L = ?R\<close>)
 proof -
-  from p have \<open>?L = map_pmf
-    (\<lambda> P. card {m. m < n \<and> P m}) (prod_pmf {..< n} \<lblot>bernoulli_pmf p\<rblot>)\<close>
+  from p have \<open>?L = (
+    prod_pmf {..< n} \<lblot>bernoulli_pmf p\<rblot>
+      |> map_pmf (\<lambda> P. card {m. m < n \<and> P m}))\<close>
     apply (subst binomial_pmf_altdef'[where A = \<open>{..< n}\<close> and dflt = undefined])
     by simp_all
 
@@ -139,9 +140,6 @@ definition bernoulli_matrix ::
   \<open>nat \<Rightarrow> nat \<Rightarrow> real \<Rightarrow> (nat \<times> nat \<Rightarrow> bool) pmf\<close> where
   \<open>bernoulli_matrix m n p \<equiv>
     prod_pmf ({..< m} \<times> {..< n}) \<lblot>bernoulli_pmf p\<rblot>\<close>
-
-abbreviation
-  \<open>fair_bernoulli_matrix m n \<equiv> bernoulli_matrix m n (1 / 2)\<close>
 
 lemma bernoulli_matrix_eq_uncurry_prod :
   fixes m n

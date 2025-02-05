@@ -87,7 +87,7 @@ begin
 lemma map_pmf_nondet_alg_aux_eq :
   \<open>map_pmf (nondet_alg_aux k xs)
     (bernoulli_matrix m n f) =
-  map_pmf (\<lambda> P. {y \<in> set xs. P y})
+  map_pmf (\<lambda> P. {x \<in> set xs. P x})
     (prod_pmf (set xs) \<lblot>bernoulli_pmf <| f ^ k\<rblot>)\<close>
   (is \<open>?L = ?R\<close>)
 proof -
