@@ -19,7 +19,7 @@ lemma
 
 context
   fixes p :: real
-  assumes \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
+  assumes p [simp] : \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
 begin
 
 lemma bernoulli_pmf_eq_bernoulli_pmfs :
@@ -29,41 +29,47 @@ lemma bernoulli_pmf_eq_bernoulli_pmfs :
       b \<leftarrow> bernoulli_pmf p;
       b' \<leftarrow> bernoulli_pmf p';
       return_pmf <| b \<and> b' }\<close>
-proof -
-  have \<open>- (p * p') = (1 - p') * p - p\<close> by argo
+  using assms p
+  apply (intro pmf_eqI)
+  by (simp add: mult_le_one bernoulli_pmf.rep_eq pmf_bind algebra_simps)
 
-  with assms \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> show ?thesis
-    by (auto
-      intro: pmf_eqI
-      simp add: mult_le_one bernoulli_pmf.rep_eq pmf_bind)
-qed
+lemmas bernoulli_pmf_eq_bernoulli_pmfs' = bernoulli_pmf_eq_bernoulli_pmfs[
+  simplified map_pmf_def[symmetric]]
 
-lemma bernoulli_eq_map_Pi_pmf_aux : 
+private lemma bernoulli_eq_map_Pi_pmf_aux : 
   assumes \<open>card I = Suc k\<close>
   shows
     \<open>bernoulli_pmf (p ^ Suc k) = (
       \<lblot>bernoulli_pmf p\<rblot>
         |> Pi_pmf I dflt
         |> map_pmf (Ball I))\<close>
+    (is \<open>?L k = ?R I\<close>)
 using assms proof (induction k arbitrary: I)
   case 0
   then show ?case
-    by (auto simp add:
-      \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> Pi_pmf_singleton card_1_singleton_iff map_pmf_comp)
+    by (auto simp add: Pi_pmf_singleton card_1_singleton_iff map_pmf_comp)
 next
   case (Suc k)
-
-  then obtain x J where
+  moreover from calculation obtain x J where
     \<open>finite J\<close> \<open>card J = Suc k\<close> \<open>I = insert x J\<close> \<open>x \<notin> J\<close>
     by (metis card_Suc_eq_finite)
 
-  with
-    Suc.IH[of J] \<open>0 \<le> p\<close> \<open>p \<le> 1\<close> power_le_one[of p]
-    bernoulli_pmf_eq_bernoulli_pmfs[of \<open>p ^ Suc k\<close>]
-  show ?case
-    by (fastforce
-      intro: bind_pmf_cong
-      simp add: Pi_pmf_insert' map_bind_pmf bind_map_pmf)
+  moreover from calculation have
+    \<open>?L (Suc k)  = do {
+      b \<leftarrow> bernoulli_pmf p;
+      b' \<leftarrow> ?R J;
+      return_pmf <| b \<and> b' }\<close>
+    by (simp add: bernoulli_pmf_eq_bernoulli_pmfs mult_le_one power_le_one_iff)
+
+  moreover from calculation
+  have \<open>\<dots> = ?R (insert x J)\<close>
+    apply (subst Pi_pmf_insert')
+    by (auto
+      intro: bind_pmf_cong map_pmf_cong
+      simp flip: map_pmf_def
+      simp add: map_pmf_comp map_bind_pmf)
+
+  ultimately show ?case by simp
 qed
 
 text
@@ -79,15 +85,14 @@ text
   3. Viewing the outcome as a characteristic function of J, we check if the
      subset it defines contains I, outputting \<top> iff that is the case.\<close>
 lemma bernoulli_eq_map_Pi_pmf :
-  assumes
-    \<open>card I > 0\<close> \<open>I \<subseteq> J\<close> \<open>finite J\<close>
+  assumes \<open>finite J\<close> \<open>card I > 0\<close> \<open>I \<subseteq> J\<close>
   shows
     \<open>bernoulli_pmf (p ^ card I) = (
       \<lblot>bernoulli_pmf p\<rblot>
         |> Pi_pmf J dflt
         |> map_pmf (Ball I))\<close>
   using
-    assms \<open>0 \<le> p\<close> \<open>p \<le> 1\<close>
+    assms p 
     bernoulli_eq_map_Pi_pmf_aux[of I \<open>card I - 1\<close> dflt]
     Pi_pmf_subset[of J I dflt \<open>\<lblot>bernoulli_pmf p\<rblot>\<close>]
   by (fastforce simp add: map_pmf_comp)
@@ -107,11 +112,19 @@ lemma binomial_pmf_eq_map_sum_of_bernoullis :
   \<open>binomial_pmf n p = (
     Pi_bernoulli_nat_pmf
       |> map_pmf (\<lambda> P. \<Sum> m < n. P m))\<close>
-  using p
-  by (simp add:
-    map_pmf_comp Collect_conj_eq lessThan_def
-    binomial_pmf_altdef'[where A = \<open>{..< n}\<close> and dflt = undefined]
-    Pi_pmf_map'[where dflt' = undefined])
+  (is \<open>?L = ?R\<close>)
+proof -
+  from p have \<open>?L = map_pmf
+    (\<lambda> P. card {m. m < n \<and> P m}) (prod_pmf {..< n} \<lblot>bernoulli_pmf p\<rblot>)\<close>
+    apply (subst binomial_pmf_altdef'[where A = \<open>{..< n}\<close> and dflt = undefined])
+    by simp_all
+
+  also have \<open>\<dots> = ?R\<close>
+    unfolding Pi_pmf_map'[OF finite_lessThan, where dflt' = undefined] map_pmf_comp
+    by (fastforce simp add: Collect_conj_eq lessThan_def)
+
+  finally show ?thesis .
+qed
 
 lemma expectation_binomial_pmf :
   \<open>measure_pmf.expectation (binomial_pmf n p) id = n * p\<close>
@@ -130,33 +143,14 @@ definition bernoulli_matrix ::
 abbreviation
   \<open>fair_bernoulli_matrix m n \<equiv> bernoulli_matrix m n (1 / 2)\<close>
 
-lemma
+lemma bernoulli_matrix_eq_uncurry_prod :
   fixes m n
   defines \<open>m' \<equiv> {..< m}\<close> and \<open>n' \<equiv> {..< n}\<close>
   shows
-    bernoulli_matrix_eq_uncurry_prod :
-      \<open>bernoulli_matrix m n p = (
-        prod_pmf m' \<lblot>prod_pmf n' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
-          |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> x y))\<close> (is ?thesis_0) and
-
-    bernoulli_matrix_eq_uncurry_prod' :
-      \<open>bernoulli_matrix m n p = (
-        prod_pmf n' \<lblot>prod_pmf m' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
-          |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> y x))\<close> (is ?thesis_1)
-proof -
-  show ?thesis_0
-    unfolding bernoulli_matrix_def m'_def n'_def
-    by (simp add: prod_pmf_uncurry)
-
-  (* TODO: tidy, maybe split up the uncurry / swap part into separate lemma *)
-  then show ?thesis_1
-    unfolding m'_def n'_def
-    apply (subst (asm) prod_pmf_uncurry[OF finite_lessThan finite_lessThan, symmetric])
-    apply (subst (asm) prod_pmf_swap[OF finite_lessThan finite_lessThan])
-    apply (subst (asm) prod_pmf_uncurry[OF finite_lessThan finite_lessThan])
-    apply (simp add: map_pmf_comp)
-    apply (intro map_pmf_cong ext)
-    by auto
-qed
+    \<open>bernoulli_matrix m n p = (
+      prod_pmf m' \<lblot>prod_pmf n' \<lblot>bernoulli_pmf p\<rblot>\<rblot>
+        |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> x y))\<close>
+  unfolding bernoulli_matrix_def m'_def n'_def
+  by (simp add: prod_pmf_uncurry)
 
 end

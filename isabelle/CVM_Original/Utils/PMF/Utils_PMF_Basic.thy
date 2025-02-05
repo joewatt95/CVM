@@ -95,64 +95,93 @@ lemma Pi_pmf_map' :
       map_pmf (\<lambda> x i. if i \<in> I then f i (x i) else dflt) (Pi_pmf I dflt' M)"
   unfolding map_pmf_def by (intro Pi_pmf_bind_return assms)
 
+context
+  fixes I :: \<open>'a set\<close> and J :: \<open>'b set\<close>
+  assumes finsets [simp] : \<open>finite I\<close> \<open>finite J\<close>
+begin
+
 lemma prod_pmf_uncurry :
-  fixes I :: "'a set" and J :: "'b set"
-  assumes "finite I" "finite J"
-  shows "prod_pmf (I \<times> J) M =
-    map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> I \<times> J. \<omega> x y)
-    (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j))))" (is "?L = ?R")
+  "prod_pmf (I \<times> J) M =
+    map_pmf (\<lambda> \<omega>. \<lambda> (i, j) \<in> I \<times> J. \<omega> i j)
+    (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j))))"
+  (is "?L = ?R")
 proof -
-  let ?map1 = "map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) x)"
-  let ?map2 = "map_pmf (\<lambda> \<omega>. \<lambda> x \<in> I \<times> J. \<omega> (fst x) (snd x))"
+  let ?map1 = "map_pmf (\<lambda> \<omega>. \<lambda> ij \<in> I \<times> J. \<omega> (fst ij) ij)"
+  let ?map2 = "map_pmf (\<lambda> \<omega>. \<lambda> (i, j) \<in> I \<times> J. \<omega> i j)"
 
-  have a: "inj_on snd ({i} \<times> J)" for i::'a
-    by (intro inj_onI) auto
-
-  have "?L =
-    ?map1
-      (Pi_pmf I \<lblot>undefined\<rblot>
-        (\<lambda> i. prod_pmf ({x. fst x = i} \<inter> I \<times> J)
-        (\<lambda> ij. M ij)))"
-    using assms
-    by (subst pi_pmf_decompose[where f="fst"])
+  have "?L = ?map1
+    (Pi_pmf I \<lblot>undefined\<rblot>
+      (\<lambda> i. prod_pmf ({ij. fst ij = i} \<inter> I \<times> J) M))"
+    by (subst pi_pmf_decompose[where f = fst])
       (simp_all add:restrict_dfl_def restrict_def vimage_def)
 
-  also have "\<dots> = ?map1 (Pi_pmf I \<lblot>undefined\<rblot> (\<lambda> i. prod_pmf ({i} \<times> J) ((\<lambda> j. M (i, j)) \<circ> snd)))"
-    by (intro map_pmf_cong Pi_pmf_cong) auto
+  also have "\<dots> = ?map1
+    (Pi_pmf I \<lblot>undefined\<rblot> (\<lambda> i. prod_pmf ({i} \<times> J)
+      ((\<lambda> j. M (i, j)) \<circ> snd)))"
+    by (fastforce intro: map_pmf_cong Pi_pmf_cong)
 
-  also have "\<dots> = ?map2 (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j))))"
-    apply (subst prod_pmf_reindex[OF assms(2) _ a, symmetric])
-    by (simp_all
-      add:
-        Pi_pmf_map'[OF assms(1), where dflt' = undefined] map_pmf_comp
-        case_prod_beta' restrict_def mem_Times_iff
-      cong: if_cong)
+  also have "\<dots> = ?map1
+    (Pi_pmf I \<lblot>undefined\<rblot>
+    (\<lambda> i. map_pmf (\<lambda> \<phi>. \<lambda> i \<in> {i} \<times> J. \<phi> (snd i)) (prod_pmf J (\<lambda>j. M (i, j)))))"
+    apply (subst prod_pmf_reindex[symmetric])
+    by (auto intro: inj_onI)
 
-  finally show ?thesis by (simp add: case_prod_beta')
+  also have "\<dots> = ?R"
+    unfolding
+      Pi_pmf_map'[OF finsets(1), where dflt' = undefined]
+      map_pmf_comp case_prod_beta
+    by (fastforce intro: map_pmf_cong)
+
+  finally show ?thesis .
 qed
 
 lemma prod_pmf_swap :
-  fixes I :: "'a set" and J :: "'b set"
-  assumes [simp] : "finite I" "finite J"
-  shows
-    "prod_pmf (I \<times> J) M =
-      map_pmf (\<lambda> \<omega> (x, y). \<omega> (y, x))
-        (prod_pmf (J \<times> I) (\<lambda> (x, y). M (y, x)))" (is "?L = ?R")
+  "prod_pmf (I \<times> J) M =
+    map_pmf (\<lambda> \<omega> (i, j). \<omega> (j, i))
+      (prod_pmf (J \<times> I) (\<lambda> (i, j). M (j, i)))"
+  (is "?L = ?R")
 proof -
   have "?R =
-    map_pmf (\<lambda> \<omega> (x, y). \<omega> (y, x))
-      (map_pmf (\<lambda> \<phi>. \<lambda> (y, x) \<in> J \<times> I. \<phi> (x, y))
+    map_pmf (\<lambda> \<omega> (i, j). \<omega> (j, i))
+      (map_pmf (\<lambda> \<phi>. \<lambda> (j, i) \<in> J \<times> I. \<phi> (i, j))
       (prod_pmf (I \<times> J) M))"
-    unfolding case_prod_beta'
+    unfolding case_prod_beta
     apply (subst prod_pmf_reindex)
-    by (auto simp add: comp_def inj_on_def)
+    by (auto intro: inj_onI simp add: comp_def)
 
   also have "\<dots> = ?L"
-    unfolding map_pmf_comp case_prod_beta'
-    apply (intro map_pmf_idI)
-    by (fastforce split: if_splits simp add: set_prod_pmf)
+    unfolding map_pmf_comp case_prod_beta
+    by (fastforce intro: map_pmf_idI split: if_splits simp add: set_prod_pmf)
 
   finally show ?thesis by simp
+qed
+
+end
+
+lemma prod_pmf_swap_uncurried :
+  assumes \<open>finite I\<close> \<open>finite J\<close>
+  shows
+    \<open>map_pmf
+      (\<lambda> \<omega>. \<lambda> (i, j) \<in> I \<times> J. \<omega> i j)
+      (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j)))) =
+    map_pmf
+      (\<lambda> \<omega>. \<lambda> (i, j) \<in> I \<times> J. \<omega> j i)
+      (prod_pmf J (\<lambda> j. prod_pmf I (\<lambda> i. M (i, j))))\<close>
+    (is \<open>?L = ?R\<close>)
+proof -
+  have \<open>?L = map_pmf
+    (\<lambda> \<omega> (i, j). \<omega> (j, i))
+    (prod_pmf (J \<times> I) (\<lambda> (i, j). M (j, i)))\<close>
+    using assms by (metis prod_pmf_swap prod_pmf_uncurry)
+
+  also have \<open>\<dots> = map_pmf
+    (\<lambda> \<omega> (i, j). (\<lambda> (j, i) \<in> J \<times> I. \<omega> j i) (j, i))
+    (prod_pmf J (\<lambda> i. prod_pmf I (\<lambda> j. M (j, i))))\<close>
+    using assms by (simp add: prod_pmf_uncurry map_pmf_comp)
+
+  also have \<open>\<dots> = ?R\<close> by (fastforce intro: map_pmf_cong)
+  
+  finally show ?thesis .
 qed
 
 end

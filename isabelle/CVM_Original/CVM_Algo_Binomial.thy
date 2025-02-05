@@ -96,25 +96,27 @@ proof -
     (\<lambda> \<phi>. nondet_alg_aux k xs (\<lambda> (x, y) \<in> {..< m} \<times> {..< n}. \<phi> y x))
     (prod_pmf {..< n} \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
     (is \<open>_ = map_pmf ?go _\<close>)
-    by (simp add: bernoulli_matrix_eq_uncurry_prod' map_pmf_comp)
+    unfolding bernoulli_matrix_eq_uncurry_prod
+    apply (subst prod_pmf_swap_uncurried)
+    by (simp_all add: map_pmf_comp)
 
   also have \<open>\<dots> =
     map_pmf (\<lambda> f. {y \<in> set xs. \<forall> k' < k. f y k'})
     (prod_pmf (set xs) \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>)\<close>
-    proof -
-      from assms have
-        \<open>map_pmf ?go =
-          map_pmf (\<lambda> f. {x \<in> set xs. \<forall> k' < k. f x k'}) \<circ>
-          map_pmf (\<lambda> f. \<lambda> x \<in> set xs. f (last_index xs x))\<close>
-        unfolding nondet_alg_aux_def map_pmf_compose[symmetric]
-        apply (intro ext map_pmf_cong)
-        by auto
+  proof -
+    from assms have
+      \<open>map_pmf ?go =
+        map_pmf (\<lambda> f. {x \<in> set xs. \<forall> k' < k. f x k'}) \<circ>
+        map_pmf (\<lambda> f. \<lambda> x \<in> set xs. f (last_index xs x))\<close>
+      unfolding nondet_alg_aux_def map_pmf_compose[symmetric]
+      apply (intro ext map_pmf_cong)
+      by auto
 
-      with assms show ?thesis
-        apply simp
-        apply (subst prod_pmf_reindex)
-        using inj_on_last_index by auto
-    qed
+    then show ?thesis
+      apply simp
+      apply (subst prod_pmf_reindex)
+      using assms inj_on_last_index by auto
+  qed
 
   also have \<open>\<dots> =
     map_pmf
