@@ -109,8 +109,7 @@ proof -
         map_pmf (\<lambda> f. {x \<in> set xs. \<forall> k' < k. f x k'}) \<circ>
         map_pmf (\<lambda> f. \<lambda> x \<in> set xs. f (last_index xs x))\<close>
       unfolding nondet_alg_aux_def map_pmf_compose[symmetric]
-      apply (intro ext map_pmf_cong)
-      by auto
+      by (fastforce intro: map_pmf_cong)
 
     then show ?thesis
       apply simp
@@ -125,8 +124,7 @@ proof -
         \<lblot>map_pmf (\<lambda> f. \<forall> k' < k. f k') (prod_pmf {..< m} \<lblot>coin_pmf\<rblot>)\<rblot>)\<close>
     apply (subst Pi_pmf_map'[OF finite_set])
     unfolding map_pmf_comp
-    apply (intro map_pmf_cong)
-    by auto
+    by (auto intro: map_pmf_cong)
 
   also from assms f bernoulli_eq_map_Pi_pmf[where I = \<open>{..< k}\<close>, unfolded Ball_def]
   have \<open>\<dots> = ?R\<close>

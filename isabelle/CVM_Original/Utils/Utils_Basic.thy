@@ -75,9 +75,9 @@ end
 definition last_index_up_to :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> nat\<close> where
   \<open>last_index_up_to \<equiv> \<lambda> k xs. min k <<< last_index (take (Suc k) xs)\<close>
 
-lemma last_index_up_to_le :
+(* lemma last_index_up_to_le :
   \<open>last_index_up_to n xs x \<le> n\<close>
   unfolding last_index_up_to_def
-  using min.cobounded1 by blast
+  using min.cobounded1 by blast *)
 
 end

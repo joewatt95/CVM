@@ -240,15 +240,12 @@ next
     unfolding step_2_eager_def' keep_in_chi_def by (simp add: map_comp_rd)
 
   have "depends_on keep_in_chi ({state_k \<sigma>} \<times> {.. l})"
-    unfolding keep_in_chi_def
+    unfolding keep_in_chi_def last_index_up_to_def
     apply (intro depends_on_map_get ext)
     apply simp
-    by (metis SigmaI atMost_iff insert_iff last_index_up_to_le restrict_apply')
+    by (metis SigmaI atMost_iff insertI1 min.cobounded1 restrict_apply')
 
-  then show ?thesis
-    unfolding a b map_rd_def
-    apply (intro depends_on_bind depends_on_return)
-    by simp
+  then show ?thesis unfolding a b by (auto intro: depends_on_map)
 qed
 
 lemma depends_on_step_2_eq :
@@ -257,12 +254,10 @@ lemma depends_on_step_2_eq :
     ({state_k \<sigma> ..< state_k v} \<times> {.. l})"
 proof (cases "state_k v = state_k \<sigma> + of_bool (card (state_chi \<sigma>) = threshold)")
   case True
-  show ?thesis
-    unfolding map_rd_def True
-    by (intro depends_on_bind depends_on_return depends_on_step_2)
+  then show ?thesis by (simp add: depends_on_map depends_on_step_2)
 next
   case False
-  hence "map_rd ((=) v) (step_2_eager (xs @ [x]) l \<sigma>) = return_rd False"
+  then have "map_rd ((=) v) (step_2_eager (xs @ [x]) l \<sigma>) = return_rd False"
     unfolding step_2_eager_def
     by (intro reader_monad_eqI) (auto simp add:run_reader_simps Let_def)
   then show ?thesis by (simp add:depends_on_return)
@@ -279,14 +274,14 @@ proof (intro independent_bindI[where F = "\<lambda> v. {..< state_k v} \<times> 
     ({..< state_k v} \<times> UNIV)"
   proof (cases "state_k v = state_k \<sigma>")
     case True
-    thus ?thesis
-      unfolding map_rd_def by (intro depends_on_bind depends_on_return depends_on_mono[OF depends_on_step_1]) auto
+    then show ?thesis
+      by (auto intro: depends_on_map depends_on_mono[OF depends_on_step_1])
   next
     case False
-    hence "map_rd ((=) v) (step_1_eager (xs @ [x]) (length xs) \<sigma>) = return_rd False"
-      unfolding step_1_eager_def by (intro reader_monad_eqI) (auto simp add:run_reader_simps Let_def)
-    then show ?thesis
-      using depends_on_return by simp
+    then have
+      "map_rd ((=) v) (step_1_eager (xs @ [x]) (length xs) \<sigma>) = return_rd False"
+      unfolding step_1_eager_def' by (auto intro: reader_monad_eqI simp add:run_reader_simps Let_def)
+    then show ?thesis using depends_on_return by simp
   qed
 
   show "depends_on (step_2_eager (xs @ [x]) (length xs) v) (UNIV - {..< state_k v} \<times> UNIV)"
@@ -303,19 +298,18 @@ proof -
   have l_lt_n: "l < n" unfolding l_def using assms(2) by simp
 
   have "measure space {x. \<forall>k'<state_k \<sigma>. x (k', l)} = measure space (({..<state_k \<sigma>}\<times>{l}) \<rightarrow> {True})"
-    by (intro measure_pmf_cong) auto
+    by (auto intro: measure_pmf_cong)
   also have "\<dots> = (\<Prod>j \<in> {..<state_k \<sigma>}\<times>{l}. measure coin_pmf {True})"
-    using assms(3) l_lt_n unfolding space_def by (intro prob_prod_pmf' subsetI) auto
+    using assms(3) l_lt_n unfolding space_def by (fastforce intro: prob_prod_pmf')
   also have "\<dots> = f ^ state_k \<sigma>" using f by (simp add:measure_pmf_single)
 
   finally have
     "bernoulli_pmf (f ^ state_k \<sigma>) = map_pmf (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) space"
     using f
-    apply (intro bool_pmf_eqI)
-    by (simp add: pmf_map vimage_def power_le_one)
+    by (auto intro: bool_pmf_eqI simp add: pmf_map vimage_def power_le_one)
 
   also have "\<dots> = sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd)"
-    unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
+    unfolding sample_def by (auto intro: map_pmf_cong simp add:run_reader_simps)
 
   finally have step_1 :
     "sample (step_1_eager (xs@[x]) l \<sigma>) = step_1_lazy (xs@[x]) l \<sigma>"
@@ -333,8 +327,9 @@ proof -
     let ?f = "\<lambda> i. (state_k \<sigma>', last_index_up_to l (xs @ [x]) i)"
 
     from that(2) assms(3) have b: "?f ` state_chi \<sigma>' \<subseteq> {..< n} \<times> {..< n}"
+      unfolding last_index_up_to_def
       apply (intro image_subsetI)
-      by (metis basic_trans_rules(21) l_lt_n last_index_up_to_le lessThan_iff mem_Sigma_iff)
+      using dual_order.strict_trans2 infinite_cartesian_product l_lt_n by auto
 
     have "inj_on (last_index (xs @ [x])) (set (xs @ [x]))"
       using inj_on_last_index by blast
@@ -401,11 +396,11 @@ proof -
       unfolding sample_def step_1_eager_def by (auto simp:run_reader_simps)
 
     then show "depends_on (map_rd ((=) v) (step_2_eager (xs @ [x]) l w)) ?S"
-      by (intro depends_on_mono[OF depends_on_step_2_eq]) auto
+      by (auto intro: depends_on_mono[OF depends_on_step_2_eq])
 
     show "depends_on (map_rd ((=) w) (step_1_eager (xs @ [x]) l \<sigma>)) ?S"
       unfolding map_rd_def
-      by (intro depends_on_bind depends_on_mono[OF depends_on_step_1] depends_on_return) auto
+      by (auto intro: depends_on_bind depends_on_mono[OF depends_on_step_1] depends_on_return)
   qed
 qed
 
@@ -419,8 +414,7 @@ proof (induction xs arbitrary:v rule:rev_induct)
   then show ?case by (simp add: depends_on_return map_rd_def depends_on_bind)
 next
   case (snoc x xs)
-  show ?case
-    unfolding run_steps_eager_snoc
+  show ?case unfolding run_steps_eager_snoc
   proof (intro depends_on_bind_eq conjI)
     fix w
     assume
@@ -433,12 +427,12 @@ next
     from a show "depends_on
       (map_rd ((=) w) (run_steps_eager xs initial_state))
       (?S v <| xs @ [x])"
-      by (intro depends_on_mono[OF snoc]) auto
+      by (auto intro: depends_on_mono[OF snoc])
 
     from a show "depends_on
       (map_rd ((=) v) (step_eager (xs @ [x]) (length xs) w))
       (?S v <| xs @ [x])"
-      by (intro depends_on_mono[OF depends_on_step]) auto
+      by (auto intro: depends_on_mono[OF depends_on_step])
   qed
 qed
 
@@ -459,8 +453,7 @@ proof (intro independent_bindI[where F = F] conjI)
     (step_eager (xs @ [x]) (length xs) v)
     (UNIV - F v)"
     unfolding F_def
-    apply (intro depends_on_mono[OF depends_on_step_approx]) 
-    by auto
+    by (auto intro: depends_on_mono[OF depends_on_step_approx]) 
 qed
 
 text \<open>Equivalence of the algorithm sampling coin flips in advance and the algorithm
@@ -486,7 +479,7 @@ next
     unfolding snoc(1)[OF b, symmetric] by (intro lazify_bind independent_bind)
   also have "\<dots> = run_steps_lazy xs initial_state \<bind> step_lazy (xs@[x]) (length xs)"
     using run_steps_lazy_preserves_well_formedness snoc(2)
-    apply (intro bind_pmf_cong refl eager_lazy_step)
+    apply (intro bind_pmf_cong eager_lazy_step)
     by (fastforce simp add: AE_measure_pmf_iff)+
   also have "\<dots> = ?R (xs @ [x])" unfolding run_steps_lazy_snoc by simp
   finally show ?case .
