@@ -42,7 +42,7 @@ lemma foldM_pmf_snoc :
 lemma prod_pmf_reindex :
   assumes "finite T" "f ` S \<subseteq> T" "inj_on f S"
   shows
-    "map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf T F) = prod_pmf S (F \<circ> f)"
+    "map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf T F) = prod_pmf S (F <<< f)"
     (is "?L = ?R")
 proof -
   have a:"finite S" using assms inj_on_finite by blast
@@ -51,7 +51,7 @@ proof -
     unfolding map_pmf_comp restrict_def by (intro map_pmf_cong refl) (simp cong:if_cong)
   also have "... = map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf (f ` S) F)"
     unfolding restrict_def by (intro map_pmf_cong refl Pi_pmf_subset[symmetric] assms(1,2))
-  also have "... = prod_pmf S (F \<circ> f)" using a  assms(3)
+  also have "... = prod_pmf S (F <<< f)" using a assms(3)
   proof (induction S rule:finite_induct)
     case empty
     then show ?case by simp
@@ -67,14 +67,14 @@ proof -
       using insert(1,2,4)
       by (intro map_pmf_cong refl ext) (auto simp add:case_prod_beta restrict_def rev_image_eqI cong:if_cong)
     also have "\<dots> =  map_pmf (\<lambda> (y, f). f(x := y))
-      (map_pmf (\<lambda> (a, b). (id a, \<lambda> i \<in> S. b (f i))) (pair_pmf ((F \<circ> f) x) (prod_pmf (f ` S) F)))"
+      (map_pmf (\<lambda> (a, b). (id a, \<lambda> i \<in> S. b (f i))) (pair_pmf ((F <<< f) x) (prod_pmf (f ` S) F)))"
       unfolding map_pmf_comp comp_def by (intro map_pmf_cong refl) (simp add:restrict_def case_prod_beta' ext)
     also have "\<dots> = map_pmf (\<lambda> (y, f). f(x := y))
-      (pair_pmf (map_pmf id ((F \<circ> f) x)) ((map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf (f ` S) F))))"
+      (pair_pmf (map_pmf id (F <| f x)) ((map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf (f ` S) F))))"
       by (subst map_pair[symmetric]) auto
-    also have "\<dots> = map_pmf (\<lambda> (y, f). f(x := y)) (pair_pmf ((F \<circ> f) x) (prod_pmf S (F \<circ> f)))"
-      using insert(4) inj_on_subset by (subst insert(3)) auto
-    also have "\<dots> = prod_pmf (insert x S) (F \<circ> f)"
+    also have "\<dots> = map_pmf (\<lambda> (y, f). f(x := y)) (pair_pmf (F <| f x) (prod_pmf S (F <<< f)))"
+      using insert(4) inj_on_subset by (subst insert(3)) (auto simp add: comp_def)
+    also have "\<dots> = prod_pmf (insert x S) (F <<< f)"
       using insert by (intro Pi_pmf_insert[symmetric]) auto
 
     finally show ?case by blast
@@ -113,18 +113,18 @@ proof -
     (Pi_pmf I \<lblot>undefined\<rblot>
       (\<lambda> i. prod_pmf ({ij. fst ij = i} \<inter> I \<times> J) M))"
     by (subst pi_pmf_decompose[where f = fst])
-      (simp_all add:restrict_dfl_def restrict_def vimage_def)
+      (simp_all add: restrict_dfl_def restrict_def vimage_def)
 
   also have "\<dots> = ?map1
-    (Pi_pmf I \<lblot>undefined\<rblot> (\<lambda> i. prod_pmf ({i} \<times> J)
-      ((\<lambda> j. M (i, j)) \<circ> snd)))"
+    (Pi_pmf I \<lblot>undefined\<rblot> <| \<lambda> i. prod_pmf ({i} \<times> J) M)"
     by (fastforce intro: map_pmf_cong Pi_pmf_cong)
 
   also have "\<dots> = ?map1
-    (Pi_pmf I \<lblot>undefined\<rblot>
-    (\<lambda> i. map_pmf (\<lambda> \<phi>. \<lambda> i \<in> {i} \<times> J. \<phi> (snd i)) (prod_pmf J (\<lambda>j. M (i, j)))))"
-    apply (subst prod_pmf_reindex[symmetric])
-    by (auto intro: inj_onI)
+    (Pi_pmf I \<lblot>undefined\<rblot> (\<lambda> i.
+      map_pmf (\<lambda> \<phi>. \<lambda> i \<in> {i} \<times> J. \<phi> (snd i))
+        (prod_pmf J <| \<lambda> j. M (i, j))))"
+    apply (subst prod_pmf_reindex)
+    by (fastforce intro: inj_onI map_pmf_cong Pi_pmf_cong)+
 
   also have "\<dots> = ?R"
     unfolding
