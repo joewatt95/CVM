@@ -22,23 +22,19 @@ begin
 definition step_1_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1_lazy \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
-
-    insert_x_into_chi \<leftarrow> bernoulli_pmf (f ^ k);
-
+    insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ k;
     let chi = (chi |>
       if insert_x_into_chi
       then insert (xs ! i)
       else Set.remove (xs ! i));
-
     return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition step_2_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_2_lazy \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
-
     if card chi = threshold
     then do {
-      keep_in_chi \<leftarrow> prod_pmf chi (\<lambda> _. bernoulli_pmf f);
+      keep_in_chi \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
       return_pmf \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr> }
     else return_pmf state }\<close>
 
@@ -119,14 +115,11 @@ definition step_1_eager ::
   \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
   \<open>step_1_eager \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
-
-    insert_x_into_chi \<leftarrow> map_rd (\<lambda> \<phi>. (\<forall> k' < k. \<phi> (k', i))) get_rd;
-
+    \<phi> \<leftarrow> get_rd;
     let chi = (chi |>
-      if insert_x_into_chi
+      if \<forall> k' < k. \<phi> (k', i)
       then insert (xs ! i)
       else Set.remove (xs ! i));
-
     return_rd (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition last_index_up_to :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> nat\<close> where
@@ -136,12 +129,12 @@ definition step_2_eager ::
   \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
   \<open>step_2_eager \<equiv> \<lambda> state. do {
     let k = state_k state; let chi = state_chi state;
-
     if real (card chi) = threshold
     then do {
-      keep_in_chi \<leftarrow> map_rd
-        (\<lambda> \<phi>. \<lambda> x \<in> chi. \<phi> (k, last_index_up_to i xs x)) get_rd;
-      return_rd \<lparr>state_k = Suc k, state_chi = Set.filter keep_in_chi chi\<rparr> }
+      \<phi> \<leftarrow> get_rd;
+      let chi = Set.filter
+        (\<lambda> x \<in> chi. \<phi> (k, last_index_up_to i xs x)) chi;
+      return_rd \<lparr>state_k = Suc k, state_chi = chi\<rparr> }
     else return_rd state }\<close>
 
 definition step_eager ::
@@ -149,7 +142,7 @@ definition step_eager ::
   \<open>step_eager \<equiv> \<lambda> state. step_1_eager state \<bind> step_2_eager\<close>
 
 lemmas step_1_eager_def' = step_1_eager_def[
-  simplified map_rd_def[symmetric] map_comp_rd Let_def if_distribR]
+  simplified map_rd_def[symmetric] Let_def if_distribR]
 
 lemmas step_2_eager_def' = step_2_eager_def[
   simplified map_rd_def[symmetric] Let_def]
@@ -347,13 +340,16 @@ proof -
     ultimately have c:"inj_on ?f (state_chi \<sigma>')" using inj_on_subset by blast
 
     have "sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd) = map_pmf (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) space"
+      (is \<open>?L' = _\<close>)
       unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
-    also have "\<dots> = prod_pmf (state_chi \<sigma>') (\<lblot>coin_pmf\<rblot> <<< ?f)"
+    also have "\<dots> = prod_pmf (state_chi \<sigma>') (\<lblot>coin_pmf\<rblot> <<< ?f)" (is \<open>_ = ?R'\<close>)
       unfolding space_def by (intro prod_pmf_reindex b c) auto
-    finally show ?thesis
+    finally have "?R' = ?L'" by simp
+
+    then show ?thesis
       using True
       unfolding step_2_eager_def' step_2_lazy_def'
-      by (simp add: lazify_map lazify_return)
+      by (simp add: lazify_map map_pmf_comp)
   qed
 
   have "?L = sample (step_1_eager (xs@[x]) l \<sigma>) \<bind> (\<lambda>\<sigma>'. sample (step_2_eager (xs@[x]) l \<sigma>'))"
