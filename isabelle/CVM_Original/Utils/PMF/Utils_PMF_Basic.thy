@@ -49,9 +49,9 @@ proof -
 
   have "?L = map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (map_pmf (\<lambda> \<omega>. \<lambda> x \<in> f ` S. \<omega> x) (prod_pmf T F))"
     unfolding map_pmf_comp restrict_def by (intro map_pmf_cong refl) (simp cong:if_cong)
-  also have "... = map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf (f ` S) F)"
+  also have "\<dots> = map_pmf (\<lambda> \<phi>. \<lambda> i \<in> S. \<phi> (f i)) (prod_pmf (f ` S) F)"
     unfolding restrict_def by (intro map_pmf_cong refl Pi_pmf_subset[symmetric] assms(1,2))
-  also have "... = prod_pmf S (F <<< f)" using a assms(3)
+  also have "\<dots> = prod_pmf S (F <<< f)" using a assms(3)
   proof (induction S rule:finite_induct)
     case empty
     then show ?case by simp

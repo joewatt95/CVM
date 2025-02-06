@@ -129,6 +129,9 @@ definition step_1_eager ::
 
     return_rd (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
+definition last_index_up_to :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> nat\<close> where
+  \<open>last_index_up_to \<equiv> \<lambda> k xs. min k <<< last_index (take (Suc k) xs)\<close>
+
 definition step_2_eager ::
   \<open>'a state \<Rightarrow> (coin_matrix, 'a state) reader_monad\<close> where
   \<open>step_2_eager \<equiv> \<lambda> state. do {
@@ -345,12 +348,10 @@ proof -
 
     have "sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd) = map_pmf (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) space"
       unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
-    also have "... = prod_pmf (state_chi \<sigma>') ((\<lambda>_. coin_pmf) \<circ> ?f)"
+    also have "\<dots> = prod_pmf (state_chi \<sigma>') (\<lblot>coin_pmf\<rblot> <<< ?f)"
       unfolding space_def by (intro prod_pmf_reindex b c) auto
-    also have "... = prod_pmf (state_chi \<sigma>') (\<lambda>_. coin_pmf)" by (simp add:comp_def)
-    finally have "sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd) = prod_pmf (state_chi \<sigma>') (\<lambda>_. coin_pmf)"
-      by simp
-    with True show ?thesis
+    finally show ?thesis
+      using True
       unfolding step_2_eager_def' step_2_lazy_def'
       by (simp add: lazify_map lazify_return)
   qed
