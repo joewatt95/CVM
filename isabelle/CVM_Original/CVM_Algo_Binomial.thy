@@ -7,20 +7,18 @@ imports
 
 begin
 
-definition nondet_alg_aux ::
+definition nondet_algo ::
   \<open>nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set\<close> where
-  \<open>nondet_alg_aux \<equiv> \<lambda> k xs \<phi>.
+  \<open>nondet_algo \<equiv> \<lambda> k xs \<phi>.
     {x \<in> set xs. \<forall> k' < k. curry \<phi> k' (last_index xs x)}\<close>
-
-abbreviation \<open>nondet_alg \<equiv> \<lambda> k xs. card <<< nondet_alg_aux k xs\<close>
 
 definition state_inv ::
   \<open>'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a state \<Rightarrow> bool\<close> where
   \<open>state_inv \<equiv> \<lambda> xs \<phi> state.
-    state_chi state = nondet_alg_aux (state_k state) xs \<phi>\<close>
+    state_chi state = nondet_algo (state_k state) xs \<phi>\<close>
 
 lemmas state_inv_def' =
-  state_inv_def[simplified nondet_alg_aux_def set_eq_iff, simplified]
+  state_inv_def[simplified nondet_algo_def set_eq_iff, simplified]
 
 context cvm_algo_assms
 begin
@@ -60,12 +58,12 @@ next
     by (smt (verit, del_insts) append_eq_append_conv_if append_eq_conv_conj length_append_singleton lessI run_reader_simps(3) run_steps_eager_snoc)
 qed
 
-theorem prob_eager_algo_le_nondet_alg_aux :
+theorem prob_eager_algo_le_nondet_algo_aux :
   \<open>\<P>(bool_matrix in measure_pmf rand_bool_matrix.
     let state = run_reader (run_steps_eager xs initial_state) bool_matrix
     in state_k state = k \<and> P (state_chi state))
   \<le> \<P>(bool_matrix in measure_pmf rand_bool_matrix.
-      P (nondet_alg_aux k xs bool_matrix))\<close>
+      P (nondet_algo k xs bool_matrix))\<close>
   by (smt (verit, ccfv_SIG) eager_algorithm_inv mem_Collect_eq pmf_mono state_inv_def)
 
 context
@@ -73,8 +71,8 @@ context
   assumes assms : \<open>length xs \<le> n\<close> \<open>k \<le> m\<close>
 begin
 
-lemma map_pmf_nondet_alg_aux_eq :
-  \<open>map_pmf (nondet_alg_aux k xs)
+lemma map_pmf_nondet_algo_eq :
+  \<open>map_pmf (nondet_algo k xs)
     (bernoulli_matrix m n f) =
   map_pmf (\<lambda> P. {x \<in> set xs. P x})
     (prod_pmf (set xs) \<lblot>bernoulli_pmf <| f ^ k\<rblot>)\<close>
@@ -85,7 +83,7 @@ proof -
 
   have \<open>?L =
     map_pmf
-      (\<lambda> \<phi>. nondet_alg_aux k xs (\<lambda> (x, y) \<in> ?m' \<times> ?n'. \<phi> y x))
+      (\<lambda> \<phi>. nondet_algo k xs (\<lambda> (x, y) \<in> ?m' \<times> ?n'. \<phi> y x))
       (?M ?n')\<close>
     unfolding bernoulli_matrix_eq_uncurry_prod
     apply (subst prod_pmf_swap_uncurried)
@@ -95,7 +93,7 @@ proof -
     ?M ?n' 
       |> map_pmf (\<lambda> P. \<lambda> x \<in> set xs. P (last_index xs x))
       |> map_pmf (\<lambda> P. {x \<in> set xs. \<forall> k' < k. P x k'}))\<close>
-    unfolding nondet_alg_aux_def map_pmf_comp
+    unfolding nondet_algo_def map_pmf_comp
     using assms by (fastforce intro: map_pmf_cong)
 
   also have \<open>\<dots> =
@@ -124,17 +122,18 @@ proof -
 qed
 
 theorem map_pmf_nondet_alg_eq_binomial :
-  \<open>map_pmf (nondet_alg k xs) (bernoulli_matrix m n f) =
+  \<open>map_pmf (card <<< nondet_algo k xs) (bernoulli_matrix m n f) =
     binomial_pmf (card <| set xs) (f ^ k)\<close>
+  (is \<open>map_pmf (?card_nondet_algo _ _) _ = _\<close>)
 proof -
   let ?go = \<open>\<lambda> g. map_pmf (g k xs) (bernoulli_matrix m n f)\<close>
 
-  have \<open>?go nondet_alg = map_pmf card (?go nondet_alg_aux)\<close>
+  have \<open>?go ?card_nondet_algo = map_pmf card (?go nondet_algo)\<close>
     by (simp add: map_pmf_comp)
 
   with assms f show ?thesis
     apply (subst binomial_pmf_altdef')
-    by (simp_all add: map_pmf_nondet_alg_aux_eq power_le_one map_pmf_comp)
+    by (simp_all add: map_pmf_nondet_algo_eq power_le_one map_pmf_comp)
 qed
 
 corollary prob_eager_algo_le_binomial :
@@ -142,7 +141,7 @@ corollary prob_eager_algo_le_binomial :
     let state = run_reader (run_steps_eager xs initial_state) bool_matrix
     in state_k state = k \<and> P (card <| state_chi state))
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
-  using prob_eager_algo_le_nondet_alg_aux
+  using prob_eager_algo_le_nondet_algo_aux
   by (simp flip: map_pmf_nondet_alg_eq_binomial)
 
 end
