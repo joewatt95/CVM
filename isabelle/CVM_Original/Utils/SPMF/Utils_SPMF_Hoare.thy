@@ -7,17 +7,6 @@ imports
 
 begin
 
-(* abbreviation possibly_evals_to
-  (\<open>\<turnstile>spmf _ \<Rightarrow>? _\<close> [20, 2] 60) where
-  \<open>\<turnstile>spmf p \<Rightarrow>? x \<equiv> x \<in> set_spmf p\<close> *)
-
-(* lemma bind_spmfE :
-  assumes \<open>\<turnstile>spmf f x \<bind> g \<Rightarrow>? z\<close>
-  obtains y where
-    \<open>\<turnstile>spmf f x \<Rightarrow>? y\<close>
-    \<open>\<turnstile>spmf g y \<Rightarrow>? z\<close>
-  using assms by auto *)
-
 abbreviation hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_spmf <| f x. Q y)\<close>
@@ -31,10 +20,10 @@ lemma hoare_triple_altdef :
   apply standard
   using AE_measure_spmf_iff_AE_measure_pmf by blast+
 
-lemma skip [simp] :
+(* lemma skip [simp] :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
-  by simp_all
+  by simp_all *)
 
 (* lemma seq :
   assumes
@@ -89,7 +78,7 @@ lemma (in loop_spmf) while :
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> while \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close>
 proof (induction rule: while_fixp_induct)
   (* Initial ordinal. *)
-  case bottom show ?case by simp 
+  case bottom show ?case by simp
 next
   (* Successor ordinal. *)
   case (step _)

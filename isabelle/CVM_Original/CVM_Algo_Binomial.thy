@@ -7,9 +7,6 @@ imports
 
 begin
 
-(* After processing the list xs, the chi is the set of
-     distinct elements x in xs where the last time
-     we flipped coins for x, the first k elements were heads. *)
 definition nondet_alg_aux ::
   \<open>nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set\<close> where
   \<open>nondet_alg_aux \<equiv> \<lambda> k xs \<phi>.
@@ -29,19 +26,14 @@ context cvm_algo_assms
 begin
 
 lemma step_1_eager_inv :
-  assumes
-    \<open>i < length xs\<close>
-    \<open>state_inv (take i xs) \<phi> state\<close>
-  shows
-    \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_1_eager xs i state) \<phi>)\<close>
+  assumes \<open>i < length xs\<close> \<open>state_inv (take i xs) \<phi> state\<close>
+  shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_1_eager xs i state) \<phi>)\<close>
   using assms
   unfolding step_1_eager_def' state_inv_def'
   by (simp add: run_reader_simps take_Suc_conv_app_nth)
 
 lemma step_2_eager_inv :
-  assumes
-    \<open>i < length xs\<close>
-    \<open>state_inv (take (Suc i) xs) \<phi> state\<close>
+  assumes \<open>i < length xs\<close> \<open>state_inv (take (Suc i) xs) \<phi> state\<close>
   shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_2_eager xs i state) \<phi>)\<close>
   using assms
   unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
@@ -49,15 +41,13 @@ lemma step_2_eager_inv :
   by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min_def min_less_iff_conj not_less_simps(2))
 
 lemma step_eager_inv :
-  assumes
-    \<open>i < length xs\<close>
-    \<open>state_inv (take i xs) \<phi> state\<close>
+  assumes \<open>i < length xs\<close> \<open>state_inv (take i xs) \<phi> state\<close>
   shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_eager xs i state) \<phi>)\<close>
   unfolding step_eager_def
   using assms step_1_eager_inv step_2_eager_inv 
   by (fastforce simp add: run_reader_simps)
 
-theorem eager_algorithm_inv :
+lemma eager_algorithm_inv :
   \<open>state_inv xs \<phi> <| run_reader (run_steps_eager xs initial_state) \<phi>\<close>
 proof (induction xs rule: rev_induct)
   case Nil
@@ -70,14 +60,13 @@ next
     by (smt (verit, del_insts) append_eq_append_conv_if append_eq_conv_conj length_append_singleton lessI run_reader_simps(3) run_steps_eager_snoc)
 qed
 
-(* lemma nondet_measureD :
-  assumes \<open>\<And> \<phi>. state_inv xs \<phi> (run_reader m \<phi>)\<close>
-  shows
-    \<open>\<P>(state in map_pmf (run_reader m) p.
-      state_k state = k \<and> P (state_chi state))
-    \<le> \<P>(chi in map_pmf (nondet_alg_aux k xs) p. P chi)\<close>
-  apply simp
-  by (metis (mono_tags, lifting) assms state_inv_def mem_Collect_eq pmf_mono) *)
+theorem prob_eager_algo_le_nondet_alg_aux :
+  \<open>\<P>(bool_matrix in measure_pmf rand_bool_matrix.
+    let state = run_reader (run_steps_eager xs initial_state) bool_matrix
+    in state_k state = k \<and> P (state_chi state))
+  \<le> \<P>(bool_matrix in measure_pmf rand_bool_matrix.
+      P (nondet_alg_aux k xs bool_matrix))\<close>
+  by (smt (verit, ccfv_SIG) eager_algorithm_inv mem_Collect_eq pmf_mono state_inv_def)
 
 context
   fixes xs and m n k :: nat
@@ -148,7 +137,13 @@ proof -
     by (simp_all add: map_pmf_nondet_alg_aux_eq power_le_one map_pmf_comp)
 qed
 
-end
+corollary prob_eager_algo_le_binomial :
+  \<open>\<P>(bool_matrix in bernoulli_matrix m n f.
+    let state = run_reader (run_steps_eager xs initial_state) bool_matrix
+    in state_k state = k \<and> P (card <| state_chi state))
+  \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
+  using prob_eager_algo_le_nondet_alg_aux
+  by (simp flip: map_pmf_nondet_alg_eq_binomial)
 
 end
 

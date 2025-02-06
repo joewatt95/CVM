@@ -57,7 +57,8 @@ lemma pmf_foldM_spmf_cons :
         None \<Rightarrow> of_bool (y = None) |
         Some val' \<Rightarrow> pmf (foldM_spmf f xs val') y)\<close>
   unfolding foldM.simps bind_spmf_def pmf_bind
-  apply (intro integral_cong_AE)
-  by (auto simp add: AE_measure_pmf_iff split: option.splits)
+  by (auto
+    intro: integral_cong_AE split: option.splits
+    simp add: AE_measure_pmf_iff)
 
 end

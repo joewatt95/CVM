@@ -9,25 +9,6 @@ abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
 
-lemma skip [simp] :
-  \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> return_pmf \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
-  \<open>(\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. return_pmf (f x)) \<lbrakk>Q\<rbrakk>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
-  by (simp_all add: AE_measure_pmf_iff)
-
-(* lemma seq :
-  assumes
-    \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<close>
-    \<open>\<turnstile>pmf \<lbrakk>Q\<rbrakk> g \<lbrakk>R\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g) \<lbrakk>R\<rbrakk>\<close>
-  using assms by (auto iff: AE_measure_pmf_iff simp add: hoare_triple_def)
-
-lemma seq' :
-  assumes
-    \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk>\<close>
-    \<open>\<And> x. P x \<Longrightarrow> \<turnstile>pmf \<lbrakk>Q\<rbrakk> g x \<lbrakk>R\<rbrakk>\<close>
-  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> (\<lambda> x. f x \<bind> g x) \<lbrakk>R\<rbrakk>\<close>
-  using assms by (smt (verit, ccfv_threshold) hoare_triple_def seq) *)
-
 context
   fixes
     P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> and
