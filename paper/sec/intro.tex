@@ -33,13 +33,13 @@ Another property is its simplicity---which is why the authors called it ``an alg
 \end{algorithm}
 
 %Curiously, our formalization takes a substantially different route compared to the original proof~\cite{chakraborty2022,DBLP:journals/corr/abs-2301-10191}.
-Briefly, the pen-and-paper analysis for CVM relies on a sequence of transformations of the algorithm.
+The pen-and-paper analysis for CVM relies on a sequence of transformations of the algorithm.
 The reason for these transformations is that standard methods for analyzing randomized algorithms, such as Chernoff--Hoeffding bounds, usually make statements about independent random variables.
-Yet, for \cref{alg:cvm} the random operations are far from being independent.\footnote{This was an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022}; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
+Yet, for \cref{alg:cvm} the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
 The original error serves as a side motivation for this work.}
 For example, in line 3 the Bernoulli distribution is sampled for a value $p$, which itself depends on previous random operations; similarly, the subsampling step in line 9 is only applied if the buffer is full, which also depends on previous random operations.
 The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, from which the desired results about the original algorithm can be deduced.
-Indeed, it seems impossible to analyze~\cref{alg:cvm} directly using known methods.
+Indeed, it seems impossible to analyze \cref{alg:cvm} directly using known methods.
 
 In this paper, we present a new technique for analyzing randomized algorithms.
 The technique yields a direct and substantially more general proof of the CVM algorithm.
@@ -49,7 +49,7 @@ The key difference is that our choice of ``loop invariant'' for the randomized s
   \expect [ h ] \leq h(c)
 \]
 where $h$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
-By first establishing such an invariant for~\cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
+By first establishing such an invariant for \cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
 For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a simple but substantially more general proof of the CVM algorithm.
 We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to interactive theorem proving.
 
