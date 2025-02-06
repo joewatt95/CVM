@@ -159,7 +159,7 @@ end
 abbreviation
   \<open>run_steps_eager \<equiv> \<lambda> xs. foldM_rd (step_eager xs) [0 ..< length xs]\<close>
 
-lemma step_eager_cong:
+lemma step_eager_cong :
   assumes \<open>i < length xs\<close> \<open>i < length ys\<close> \<open>take (Suc i) xs = take (Suc i) ys\<close>
   shows
     \<open>step_1_eager xs i = step_1_eager ys i\<close> (is ?thesis_0)
@@ -400,8 +400,7 @@ proof -
       by (auto intro: depends_on_mono[OF depends_on_step_2_eq])
 
     show "depends_on (map_rd ((=) w) (step_1_eager (xs @ [x]) l \<sigma>)) ?S"
-      unfolding map_rd_def
-      by (auto intro: depends_on_bind depends_on_mono[OF depends_on_step_1] depends_on_return)
+      by (auto intro: depends_on_map depends_on_mono[OF depends_on_step_1])
   qed
 qed
 
@@ -480,8 +479,7 @@ next
     unfolding snoc(1)[OF b, symmetric] by (intro lazify_bind independent_bind)
   also have "\<dots> = run_steps_lazy xs initial_state \<bind> step_lazy (xs@[x]) (length xs)"
     using run_steps_lazy_preserves_well_formedness snoc(2)
-    apply (intro bind_pmf_cong eager_lazy_step)
-    by (fastforce simp add: AE_measure_pmf_iff)+
+    by (fastforce intro: bind_pmf_cong eager_lazy_step simp add: AE_measure_pmf_iff)
   also have "\<dots> = ?R (xs @ [x])" unfolding run_steps_lazy_snoc by simp
   finally show ?case .
 qed
