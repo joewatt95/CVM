@@ -140,6 +140,7 @@ session CVM_Original in "CVM_Original" = "CryptHOL" +
     "Utils_Basic"
     "Utils_Reader_Monad"
     "Utils_Approx_Algo"
+    "Utils_Concentration_Inequalities"
 
     "Utils_PMF_Basic"
     "Utils_PMF_FoldM_Hoare"
