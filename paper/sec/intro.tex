@@ -20,12 +20,12 @@ Another property is its simplicity---which is why the authors called it ``an alg
     \Else
       \State $\chi \gets \chi - \{a_i\}$
     \EndIf
-    \If{$|\chi| = n$}
+    \If{$|\chi| = n$} \Comment if buffer $\chi$ is full
       \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment discard elements of $\chi$ independently with prob. $\frac{1}{2}$
       \State $p \gets \frac{p}{2}$
     \EndIf
     \If{$|\chi| = n$}
-      \Return $\bot$ \Comment fail if $\chi$ remains too large
+      \Return $\bot$ \Comment fail if $\chi$ remains full
     \EndIf
   \EndFor
   \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
