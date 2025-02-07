@@ -1,5 +1,4 @@
 \section{Negative Dependence and an Unbiased CVM Algorithm\label{sec:negdep}}
-
 Sometimes, sets of random variables possess a property called negative association.
 The concept is a generalization of independence.
 It has similar closure properties as independent random variables.
@@ -12,7 +11,7 @@ The following preliminary definition is useful, for the definition of the concep
 For a function defined on $n$-tuples $f: V^n \rightarrow W$, we will denote by $\mathrm{dep}(f)$ the set of coordinates the function depends on, e.g., $dep(f) \subseteq \{1,\ldots,n\}$ is minimal, s.t., $f(x) = f(y)$ for all $x, y \in V^n$ with $x_i = y_i$ for all $i \in dep(f)$.
 \end{definition}
 
-\begin{definition}[Negative Association]
+\begin{definition}[Negative Association]\label{def:neg_assoc}
 A set of random variables $X_1,..,X_n: \Omega \rightarrow \mathbb R$ is negatively associated if for all non-decreasing functions $f,g: \mathbb R^n \rightarrow \mathbb R$, which depend on disjoint sets of the variables, i.e., $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$ then
 \[
 \expect [f(X_1,\ldots,X_n) g(X_1,\ldots,X_n)] \leq \expect [f(X_1,\ldots,X_n)] \expect [g(X_1,\ldots,X_n)] \textrm{.}
@@ -64,7 +63,7 @@ Let us recall that this is the exact condition we needed for the subampling step
 This means the proof for the modified algorithm in \cref{sec:invariants} works just as well with the new subsampling method.
 
 The resulting algorithm is depicted in \cref{alg:cvm_new}.
-\begin{algorithm}[t]
+\begin{algorithm}[h]
 	\caption{New unbiased and total CVM algorithm.}\label{alg:cvm_new}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.

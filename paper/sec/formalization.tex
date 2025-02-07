@@ -1,4 +1,4 @@
-\begin{algorithm}[h]
+\begin{algorithm}[t]
 \caption{Formalized Version of \cref{alg:cvm_new}}\label{alg:cvm_formalized}
 \begin{isabelle_cm}
 \isacommand{context}\isamarkupfalse%
@@ -68,9 +68,10 @@ We use the same variables as in the informal presentation: $n$ for the maximal s
 The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
 Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
 Isabelle provides notation closely related to informal pseudocode, such that it is usually feasible to read a formalization without expert knowledge.
-For readers not familiar with Isabelle, the following table contains brief descriptions of the syntactic elements used in the listing: 
-
-\medskip
+For readers not familiar with Isabelle, \cref{tab:isabelle_syntax} contains brief descriptions of the syntactic elements used in the listing.
+%\medskip
+\begin{table}
+\caption{Isabelle syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
 \noindent\begin{tabular}{l p{9cm}}
 \toprule
 Term & Description \\
@@ -89,8 +90,8 @@ Term & Description \\
 \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} & Expectation of the random variable $f$ over the probability space $M$. \\
 \bottomrule
 \end{tabular}
-
-\medskip
+\end{table}
+%\medskip
 The formalization contains four theory files. The file CVM{\textunderscore}Preliminary definitions and lemmas, such as properties about the \isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} operation we introduced.
 Of course, we do not verify \cref{alg:cvm} and \cref{alg:cvm_new} separately,
 as most of the proof is identical.

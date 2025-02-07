@@ -1,3 +1,31 @@
 \section{Formalization of the concept of negative association}\label{sec:formalization_neg_dep}
-TODO
+As mentioned in the previous section, the formalization of the new unbiased variant of the CVM algorithm, requires results from the theory of negative association.
+The supplementary material contains a formalization of the concept in the directory Negative{\textunderscore}Association, which we intend to submit to the AFP as a separate contribution.
+
+The formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
+However, the authors did not correctly define the constrains for the possible set of test functions $f$ and $g$ in \cref{def:neg_assoc}, which does not make sense formally.
+In the formalization, we assume that the functions are bounded and measurable.
+On the other hand, we derive that the condition is still true, if $f, g$ are square integrable.
+Or alternatively integrable, and non-negative.
+This is derived using the monotone-convergence theorem.
+
+Another deviation from the original work is that we do not require that the random variables need to be real-valued.
+In the formalization any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
+In this case the test functions must be monotone with respect ot the respective order on that space.
+
+The formalization contains the standard Chernoff bounds for negatively associated random variables.
+This includes the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multipicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
+Although, these results are not needed for the proof of the CVM algorithm.
+
+A key issue, we faced during formalization, was the fact that there are many theorems of the form if a set of functions are either simultaneously monotone or anti-monotone.
+For this we introduce a notation, that allows us to abstract over the direction of relations: \isa{\isasymle\isasymge\isactrlbsub\isasymeta\isactrlesub}.
+Which evaluates to the forward version of the relation $\leq$ if \isa{\isasymeta\ \isacharequal\ Fwd} and the converse: $\geq$ if \isa{\isasymeta\ \isacharequal\ Rev}.
+For example the FKG inequality
+\[
+  \expect [f g] \geq \expect [f] \expect [g]
+\]
+is true, if $f$ and $g$ are both montone, or both antimontone.
+On the other hand the reverse inequality is true, if $f$ is montone and $g$ is antimontone, or vice versa.
+Using our parameterized relation symbol, we could state all variants in a concise manner.
+
 
