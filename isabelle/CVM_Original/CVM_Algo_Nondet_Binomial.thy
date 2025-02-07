@@ -1,4 +1,4 @@
-theory CVM_Algo_Binomial
+theory CVM_Algo_Nondet_Binomial
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
@@ -143,6 +143,8 @@ corollary prob_eager_algo_le_binomial :
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
   using prob_eager_algo_le_nondet_algo_aux
   by (simp flip: map_pmf_nondet_alg_eq_binomial)
+
+end
 
 end
 

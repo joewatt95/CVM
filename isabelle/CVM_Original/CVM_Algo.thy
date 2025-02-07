@@ -27,14 +27,11 @@ text
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {
     let k = state_k state; let chi = state_chi state;
-
     insert_x_into_chi \<leftarrow> bernoulli_pmf <| f ^ k;
-
     let chi = (chi |>
       if insert_x_into_chi
       then insert x
       else Set.remove x);
-
     return_pmf (state\<lparr>state_chi := chi\<rparr>) }\<close>
 
 definition step_2 :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where
