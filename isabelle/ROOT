@@ -141,12 +141,10 @@ session CVM_Original in "CVM_Original" = "CryptHOL" +
     "Utils_Approx_Algo"
 
     "Utils_PMF_Basic"
-    "Utils_PMF_Hoare"
-    "Utils_PMF_Relational"
-    "Utils_PMF_Bernoulli_Binomial"
+    "Utils_PMF_FoldM_Hoare"
+    "Utils_PMF_Relational_Hoare"
     "Utils_PMF_Lazify"
 
     "Utils_SPMF_Basic"
-    "Utils_SPMF_FoldM"
-    "Utils_SPMF_Hoare"
-    "Utils_SPMF_Relational"
+    "Utils_SPMF_FoldM_Hoare"
+    "Utils_SPMF_Relational_Hoare"

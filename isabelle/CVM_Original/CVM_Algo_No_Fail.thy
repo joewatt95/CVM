@@ -3,8 +3,7 @@ theory CVM_Algo_No_Fail
 
 imports
   CVM_Algo
-  Utils_SPMF_Hoare
-  Utils_SPMF_Relational
+  Utils_SPMF_Relational_Hoare
 
 begin
 
@@ -12,23 +11,16 @@ context cvm_algo
 begin
 
 abbreviation \<open>step_no_fail \<equiv> \<lambda> x state. step_1 x state \<bind> step_2\<close>
-
 abbreviation \<open>step_no_fail_spmf \<equiv> \<lambda> x. spmf_of_pmf <<< step_no_fail x\<close>
 
 abbreviation \<open>run_steps_no_fail \<equiv> foldM_pmf step_no_fail\<close>
 
-abbreviation \<open>finite_chi \<equiv> \<lambda> state. finite (state_chi state)\<close>
+abbreviation \<open>finite_chi \<equiv> finite <<< state_chi\<close>
 
 end
 
 context cvm_algo_assms
 begin
-
-(* not convinced this is needed, at least here...*)
-(* definition
-  \<open>wf_state \<equiv> \<lambda> R state. (
-    let chi = state_chi state
-    in finite chi \<and> R (card chi) threshold)\<close> *)
 
 lemma finite_initial_state :
   \<open>finite_chi initial_state\<close>

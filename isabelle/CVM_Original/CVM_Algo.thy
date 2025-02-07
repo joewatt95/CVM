@@ -2,8 +2,8 @@ section \<open> Definition of the CVM algorithm \<close>
 theory CVM_Algo
 
 imports
-  Utils_SPMF_FoldM
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  Utils_SPMF_FoldM_Hoare
 
 begin
 

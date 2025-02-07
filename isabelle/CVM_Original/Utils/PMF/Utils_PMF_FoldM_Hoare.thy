@@ -1,9 +1,19 @@
-theory Utils_PMF_Hoare
+theory Utils_PMF_FoldM_Hoare
 
 imports
   Utils_PMF_Basic
 
 begin
+
+abbreviation \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
+abbreviation \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
+
+lemma foldM_pmf_snoc :
+  "foldM_pmf f (xs @ [x]) val = bind_pmf (foldM_pmf f xs val) (f x)"
+  apply (induction xs arbitrary:val)
+  by (simp_all
+    add: bind_return_pmf bind_return_pmf' bind_assoc_pmf
+    cong: bind_pmf_cong)
 
 abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where

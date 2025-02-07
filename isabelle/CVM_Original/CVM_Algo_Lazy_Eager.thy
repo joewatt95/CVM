@@ -4,7 +4,6 @@ imports
   CVM_Algo_No_Fail
   Utils_Reader_Monad
   Utils_PMF_Lazify
-  Utils_PMF_Bernoulli_Binomial
 
 begin
 
@@ -339,12 +338,17 @@ proof -
     moreover have "state_chi \<sigma>' \<subseteq> set (xs@[x])" using assms(4) that by auto
     ultimately have c:"inj_on ?f (state_chi \<sigma>')" using inj_on_subset by blast
 
-    have "sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd) = map_pmf (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) space"
-      (is \<open>?L' = _\<close>)
-      unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
-    also have "\<dots> = prod_pmf (state_chi \<sigma>') (\<lblot>coin_pmf\<rblot> <<< ?f)" (is \<open>_ = ?R'\<close>)
-      unfolding space_def by (intro prod_pmf_reindex b c) auto
-    finally have "?R' = ?L'" by simp
+    have
+      "prod_pmf (state_chi \<sigma>') (\<lblot>coin_pmf\<rblot> <<< ?f) =
+        sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd)"
+      (is "?L' = ?R'")
+    proof- 
+      have "?R' = map_pmf (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) space"
+        unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
+      also have "\<dots> = ?L'"
+        unfolding space_def by (intro prod_pmf_reindex b c) auto
+      finally show ?thesis by simp
+    qed
 
     then show ?thesis
       using True

@@ -1,10 +1,9 @@
-theory Utils_SPMF_Relational
+theory Utils_SPMF_Relational_Hoare
 
 imports
   ABY3_Protocols.Spmf_Common
-  Utils_SPMF_Hoare
-  Utils_PMF_Relational
-  Utils_SPMF_FoldM
+  Utils_SPMF_FoldM_Hoare
+  Utils_PMF_Relational_Hoare
 
 begin
 
@@ -165,7 +164,7 @@ proof -
 
   from assms have \<open>\<turnstile>pmf
     \<lbrakk>le_option\<rbrakk> \<langle>foldM_pmf (?go f) xs | foldM_pmf (?go f') xs\<rangle> \<lbrakk>le_option\<rbrakk>\<close>
-    apply (intro Utils_PMF_Relational.loop_unindexed)
+    apply (intro Utils_PMF_Relational_Hoare.loop_unindexed)
     by (auto split: option.splits)
 
   then show ?thesis by (simp add: foldM_spmf_eq_foldM_pmf_case)

@@ -1,7 +1,7 @@
-theory Utils_PMF_Relational
+theory Utils_PMF_Relational_Hoare
 
 imports
-  Utils_PMF_Hoare
+  Utils_PMF_FoldM_Hoare
 
 begin
 
