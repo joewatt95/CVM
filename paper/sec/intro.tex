@@ -32,26 +32,24 @@ Another property is its simplicity---which is why the authors called it ``an alg
   \end{algorithmic}
 \end{algorithm}
 
-%Curiously, our formalization takes a substantially different route compared to the original proof~\cite{chakraborty2022,DBLP:journals/corr/abs-2301-10191}.
-The pen-and-paper analysis for CVM relies on a sequence of transformations of the algorithm.
+The pen-and-paper analysis of CVM~\cite{chakraborty2022,chakraborty2023} relies on a sequence of transformations of the algorithm.
 The reason for these transformations is that standard methods for analyzing randomized algorithms, such as Chernoff--Hoeffding bounds, usually make statements about independent random variables.
-Yet, for \cref{alg:cvm} the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
+Yet, for \cref{alg:cvm}, the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are independent; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
 The original error serves as a side motivation for this work.}
 For example, in line 3 the Bernoulli distribution is sampled for a value $p$, which itself depends on previous random operations; similarly, the subsampling step in line 9 is only applied if the buffer is full, which also depends on previous random operations.
-The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, from which the desired results about the original algorithm can be deduced.
-Indeed, it seems impossible to analyze \cref{alg:cvm} directly using known methods.
+The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, from which the estimation results for the original algorithm can be deduced.
+To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known methods.
 
-In this paper, we present a new technique for analyzing randomized algorithms.
-The technique yields a direct and substantially more general proof of the CVM algorithm.
-It is very similar to how deterministic algorithms are verified using a loop invariant.
+In this paper, we present a new technique for analyzing randomized algorithms which yields a direct and substantially more general proof of the CVM algorithm.
+Our approach is very similar to how deterministic algorithms are verified using a loop invariant.
 The key difference is that our choice of ``loop invariant'' for the randomized streaming algorithm is a functional probabilistic inequality, namely, we consider invariants of the form:
 \[
   \expect [ h ] \leq h(c)
 \]
 where $h$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
 By first establishing such an invariant for \cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
-For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a simple but substantially more general proof of the CVM algorithm.
-We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to interactive theorem proving.
+For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
+We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to ideas from interactive theorem proving.
 
 The main contributions of this work are:
 \begin{itemize}
@@ -61,23 +59,24 @@ The main contributions of this work are:
 \item Formalization of a theory of negatively associated random variables used to analyze the new CVM variant.
 \end{itemize}
 
-The verification of the CVM algorithm using our new technique requires only 1044 lines in Isabelle~\cite{nipkow2002}, while the original proof required \todo{x} lines.
-We detail some of the challenges faced when mechanizing the reduction arguments used by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023} in \cref{sec:transformation_based_proof}.
+The verification of the CVM algorithm using our new technique requires only 1044 lines in Isabelle~\cite{nipkow2002}, while the original proof (which we also mechanized) required \todo{x} lines.
+We detail some of the challenges faced when mechanizing the transformation arguments used by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023} in \cref{sec:transformation_based_proof}.
 
 To show that our new technique is more general, we introduce a new variant of the CVM algorithm, where the subsampling step in line 9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$, instead of independently deciding for each element, whether to keep it.
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in line 11 becomes obsolete.
 More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property, that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
-To analyze the new variant, we use results from the theory of negatively dependent random variables to establish the desired functional invariant.
+To analyze the new variant, we use results from the theory of negatively dependent random variables~\cite{joagdev1983} to establish the desired functional invariant.
 The concept of negative association is a generalization of independence; negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
 It should be stressed that the theory of negatively associated RVs is orthogonal to our new technique, but the formalization of such a theory is also a contribution of this work.
 
-The following section provides more background information, in particular, about the semantics of randomized algorithms.
-After which, we introduce our new technique, showing how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
+\cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle~\cite{nipkow2002}.
+\cref{sec:invariants} introduces our new technique, and shows how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
 \cref{sec:formalization} and \cref{sec:formalization_neg_dep} present details about the formal verification of both variants of the algorithm, as well as, our new library on negatively associated random variables.
 In \cref{sec:transformation_based_proof}, we present details about our alternative verification of the CVM using the transformation based proof by Chakraborty et al.
 The last sections conclude with a brief overview of related work and a summary of our results.
+
 % TODO: move it into the discussion of the variant, I think it is better once the algorithm is shown
 %This is because indicator functions of $n$-subsets form negatively associated random variables (RV), even though they are not independent, with which we can modify the subsampling step to the form we described above.
 
@@ -96,13 +95,6 @@ The last sections conclude with a brief overview of related work and a summary o
 %% The algorithm iterates over stream elements, adding each one to the buffer with probability $p$ or conversely -- if the current stream element is already in the buffer -- removing them with probability $(1-p)$.
 %% If the buffer gets too large, approximately half of the elements are removed by discarding each element in $\chi$ independently with probability $\frac{1}{2}$; then, $p$ is adjusted to reflect the fact that the buffer now contains each element with probability $p_\text{new} = \frac{p_\text{old}}{2}$.
 %% After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as an approximation of the number of distinct elements in the stream.
-%% This output is probably-approximately correct, i.e., the probability that the relative error of $\frac{|\chi|}{p}$ exceeds $\varepsilon$ is at most $\delta$.
-%The output of CVM is \emph{probably-approximately correct}, i.e., the probability that the relative error of its output exceeds $\varepsilon$ is at most $\delta$.
-%Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state---far less than storing each stream element deterministically.%
-%\footnote{The optimal randomized algorithm requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as used in \cref{alg:cvm}, and involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.}
-%
-
-%% We set out to formalize the proof as described in the literature~\cite{chakraborty2022}, hoping to show that it would also be an easy formalization exercise.
 
 %% %TODO: a bit too long in details, we should trim this and move to later section
 %% \subparagraph*{The road not taken:}
