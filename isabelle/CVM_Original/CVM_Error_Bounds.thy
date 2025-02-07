@@ -81,13 +81,15 @@ proof (cases xs)
 next
   let ?exp_bound =
     \<open>exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
+  (* let ?exp_term = \<open>\<lambda> k.
+    exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close> *)
+
   let ?exp_term = \<open>\<lambda> k.
-    exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close>
+    exp (- (real (card (set xs)) * f ^ k * \<epsilon>\<^sup>2 / (2 + 2 * \<epsilon> / 3)))\<close>
 
   case (Cons _ _)
-  then have \<open>?exp_term k < 1\<close> for k
-    using \<open>\<epsilon> > 0\<close>
-    by (simp add: field_split_simps add_strict_increasing2 card_gt_0_iff)
+  with f \<open>\<epsilon> > 0\<close> have \<open>?exp_term k < 1\<close> for k
+    by (simp add: field_simps add_strict_increasing2 card_gt_0_iff)
 
   let ?binom_mean = \<open>\<lambda> k. f ^ k * real (card <| set xs)\<close>
 
@@ -99,10 +101,9 @@ next
         \<Union> k \<le> l. {x. f x = k \<and> P x})\<close> for f :: \<open>'b \<Rightarrow> nat\<close> and P by auto
 
     show ?thesis
-      sorry
-      (* by (auto
+      by (auto
         intro: measure_pmf.finite_measure_subadditive_finite
-        simp add: vimage_def) *)
+        simp add: vimage_def)
   qed
 
   text \<open>Transform to binomial distribution and weaken > to >=.\<close>
@@ -114,30 +115,27 @@ next
   proof (rule sum_mono, unfold atMost_iff)
     fix k assume \<open>k \<le> l\<close>
     with
-      \<open>\<epsilon> > 0\<close> f l_le_length_xs
-      prob_eager_algo_le_binomial[
-        where
-          k = k and xs = xs and m = \<open>length xs\<close> and n = \<open>length xs\<close> and
-          P = \<open>\<lambda> est. est / f ^ k >[\<epsilon>] card (set xs)\<close>]
+      f \<open>\<epsilon> > 0\<close> l_le_length_xs
+      prob_eager_algo_le_binomial[where
+        k = k and xs = xs and m = \<open>length xs\<close> and n = \<open>length xs\<close> and
+        P = \<open>\<lambda> est. est / f ^ k >[\<epsilon>] card (set xs)\<close>]
     show \<open>?L k \<le> ?R k\<close>
       unfolding compute_estimate_def
       apply (simp add: Let_def field_simps)
-      by (smt (verit, del_insts) mem_Collect_eq mult.commute pmf_mono)
+      by (smt (verit, ccfv_threshold) mem_Collect_eq mult.commute pmf_mono)
   qed
 
   text \<open>Apply Chernoff bound to each term.\<close>
   also have
-    \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * ?exp_term k)\<close>
-    (is \<open>(\<Sum> k \<le> _. ?L k) \<le> (\<Sum> k \<le> _. ?R k)\<close>)
+    \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * ?exp_term k)\<close> (is \<open>(\<Sum> k \<le> _. ?L k) \<le> (\<Sum> k \<le> _. ?R k)\<close>)
   proof (rule sum_mono)
     fix k
-    from \<open>\<epsilon> > 0\<close> f
+    from f \<open>\<epsilon> > 0\<close>
       binomial_distribution.chernoff_prob_abs_ge[
-        where n = \<open>card <| set xs\<close> and p = \<open>f ^ k\<close> and \<delta> = \<epsilon>,
-        simplified binomial_distribution_def]
+        where n = \<open>card <| set xs\<close> and p = \<open>f ^ k\<close> and \<delta> = \<epsilon>]
     show \<open>?L k \<le> ?R k\<close>
-      apply (simp add: power_le_one field_simps)
-      sorry
+      unfolding binomial_distribution_def
+      by (simp add: power_le_one algebra_simps)
   qed
 
   text
