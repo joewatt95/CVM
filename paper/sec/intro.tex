@@ -80,14 +80,6 @@ The last sections conclude with a brief overview of related work and a summary o
 % TODO: move it into the discussion of the variant, I think it is better once the algorithm is shown
 %This is because indicator functions of $n$-subsets form negatively associated random variables (RV), even though they are not independent, with which we can modify the subsampling step to the form we described above.
 
-% TODO: move it into explanation of the technique
-%Note that we are able to establish tail bounds using these invariants, which has, so far, not been possible using a simple loop invariant for randomized algorithms.
-%The loop invariants are established, essentially, using the key property of the Giry monad:
-%\[
-%  \expect_{m \isa{\isasymbind} f} [h] = \int_m \expect_{f (x)} [h] \, d x \textrm{.}
-%\]
-%Here $m \isa{\isasymbind} f$ denotes distribution of a randomized algorithm, which represents the sequential composition of $m$ with $f$.
-
 %TODO: I think this should be later, we can give a forward reference
 %% The algorithm's state is a buffer $\chi$  (initially empty) and a fraction $p > 0$ (initially set to $1$).
 %% The buffer contains a subset of the elements of the stream encountered so far, with maximal size $n$.

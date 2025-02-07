@@ -1,7 +1,20 @@
-\section{Semantics of randomized algorithms}
-It is useful to briefly review how reasoning about randomized algorithms works in Isabelle using the Giry monad.
+\section{Background}
+\label{sec:background}
+
+\subsection{Randomized Algorithms and Distinct Elements}
+
+The CVM algorithm is a \emph{streaming} algorithm for the distinct elements problem.
+As shown in~\cref{alg:cvm}, given a data stream $a_1,\dots, a_l$, the goal of such algorithms is to return an accurate cardinality estimate for $A = \{a_1,\dots,a_l\}$.
+
+Importantly, the CVM algorithm is \emph{probably-approximately correct}, i.e., the probability that the relative error of its output estimate $R$ satisfies $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$ for parameters $\varepsilon$ and $\delta$.
+Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.\footnote{The optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.}
+
+\subsection{Semantics of Randomized Algorithms}
+We briefly review how reasoning about randomized algorithms works in Isabelle using the Giry monad~\cite{giry1982}.
+A more thorough discussion of the concept in the context of Isabelle has been written, for example, by Eberl et al.~\cite{eberl2020} and Lochbihler~\cite{lochbihler2016}.
+
 The key idea is to model a randomized algorithm as a probability space representing the distributions of its result.
-Let us, e.g., consider \cref{alg:example}.
+For simplicity, consider \cref{alg:example}.
 \begin{algorithm}[h!]
 \caption{Example for sequential composition.}\label{alg:example}
 \begin{algorithmic}[1]
@@ -13,32 +26,36 @@ Let us, e.g., consider \cref{alg:example}.
 
 In the first step the algorithm flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise. (The notation $\Ber(p)$ represents the Bernoulli distribution.)
 In the second step the algorithm flips a coin $q$ which depends on $p$.
-This has the consequence, that we have to consider probability space valued functions, like: $p \mapsto Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
-The resulting distribution for $q$ is a compound distribution: In this case a combination of $\Ber(\frac{1}{3})$ and $\Ber(\frac{2}{3})$.
+This has the consequence, that we have to consider probability space-valued functions, like: $p \mapsto \Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
+The resulting distribution for $q$ is a compound distribution, a combination of $\Ber(\frac{1}{3})$ and $\Ber(\frac{2}{3})$.
 
-The above example captures the main aspects about reasoning with respect to randomized algorithms.
-Indeed, any algorithm can be represented using only two combinators, the bind and return combinator, as well as, primitive random operations.
+This example captures the main aspects of modeling randomized algorithms in the Giry monad.
+Indeed, randomized algorithms can be modeled using the following ingredients:
 
-\paragraph*{Primitive Random Operations}
-For example a simple fair coin flip is represented using the Bernoulli distribution $\Ber(\frac{1}{2})$.
+\begin{description}
+\item[Primitive Random Operations.] For example, a simple fair coin flip is represented using the Bernoulli distribution $\Ber(\frac{1}{2})$.
+\item[Return Combinator.]
+Given a singleton element $x$, we can construct the singleton probability space, assigning probability $1$ to $x$ and $0$ to everything else.
+In monad notation, this is written as: $\mathrm{\bf return}\, x$.
 
-\paragraph*{Return Combinator}
-Given a singleton element $x$, we can construct the singleton probabilty space, e.g., we assign the probability $1$ to $x$ and $0$ to everything else.
-In notation, this is written as: $\mathrm{return}\, x$. 
+\item[Bind Combinator.]
+The bind combinator represents sequential composition of two randomized algorithms $m$ and $f$, where the second randomized algorithm consumes the output of the first; in monad notation, this is: $m \isa{\isasymbind} f$.
+Mathematically, this is the most involved operation, because $f$ is a function returning probability spaces, which takes inputs from the probability space $m$.
 
-\paragraph*{Bind Combinator}
-The bind combinator represents sequential composition of two randomized algorithms $m$ and $f$, where the second randomized algorithm consumes the output of the first.
-In notation, this can be expressed using $m \isa{\isasymbind} f$.
-Mathematically, this is the most involved operation, because $f$ is a function returning probability spaces, which are then mixed using the first probability space $m$.
-
-Let us consider an event $A$ in the probability space $m \isa{\isasymbind} f$, then its probability can be evaluated by integrating over its probabilities in $f$ with respect to $m$:
+Let us consider an event $A$ in the probability space $m \isa{\isasymbind} f$.
+Its probability can be evaluated by integrating over its probabilities in $f$ with respect to $m$:
 \[
   \prob_{m \isa{\isasymbind} f} (A) = \int_m \prob_{f(x)} (A) \, d x \textrm{.}
 \]
-Another interesting property is what we mentioned before in the introduction. If $h$ is a random variable over $m \isa{\isasymbind} f$, we can compute its expectation as:
+
+Another key property is the calculation of expectations;
+if $h$ is a random variable over $m \isa{\isasymbind} f$, we can compute its expectation as:
 \begin{equation}
   \label{eq:integral_bind}
   \expect_{m \isa{\isasymbind} f} [h] = \int_m \expect_{f(x)} [h] \, d x \textrm{.}
 \end{equation}
-The above is just a very brief presentation of the Giry monad~\cite{giry1982}, a more thorough discussion of the concept in the context of Isabelle has been written, for example, by Eberl et al.~\cite{eberl2020} or Lochbihler~\cite{lochbihler2016}.
 
+\cref{eq:integral_bind} is crucially used to establish invariants of the form introduced in~\cref{sec:intro}.
+\end{description}
+
+\todo{I think we should briefly say that a streaming algorithm is modeled as folding over the monad?}
