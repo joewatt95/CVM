@@ -66,6 +66,7 @@ To show that our new technique is more general, we introduce a new variant of th
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in line 11 becomes obsolete.
 More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property, that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
+Note that the new variant would not possible to verify without our new probabilisitic invariant based approach.
 To analyze the new variant, we use results from the theory of negatively dependent random variables~\cite{joagdev1983} to establish the desired functional invariant.
 The concept of negative association is a generalization of independence; negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
 It should be stressed that the theory of negatively associated RVs is orthogonal to our new technique, but the formalization of such a theory is also a contribution of this work.
