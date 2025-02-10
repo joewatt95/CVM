@@ -91,27 +91,25 @@ lemma prod_pmf_uncurry :
     (prod_pmf I (\<lambda> i. prod_pmf J (\<lambda> j. M (i, j))))"
   (is "?L = ?R")
 proof -
-  let ?map1 = "map_pmf (\<lambda> \<omega>. \<lambda> ij \<in> I \<times> J. \<omega> (fst ij) ij)"
-  let ?map2 = "map_pmf (\<lambda> \<omega>. \<lambda> (i, j) \<in> I \<times> J. \<omega> i j)"
+  let ?map =
+    \<open>map_pmf (\<lambda> \<omega>. \<lambda> ij \<in> I \<times> J. \<omega> (fst ij) ij)
+      <<< Pi_pmf I \<lblot>undefined\<rblot>\<close>
 
-  have "?L = ?map1
-    (Pi_pmf I \<lblot>undefined\<rblot>
-      (\<lambda> i. prod_pmf ({ij. fst ij = i} \<inter> I \<times> J) M))"
+  have \<open>?L = ?map (\<lambda> i. prod_pmf ({ij. fst ij = i} \<inter> I \<times> J) M)\<close>
     by (subst pi_pmf_decompose[where f = fst])
       (simp_all add: restrict_dfl_def restrict_def vimage_def)
 
-  also have "\<dots> = ?map1
-    (Pi_pmf I \<lblot>undefined\<rblot> <| \<lambda> i. prod_pmf ({i} \<times> J) M)"
+  also have \<open>\<dots> = ?map (\<lambda> i. prod_pmf ({i} \<times> J) M)\<close>
     by (fastforce intro: map_pmf_cong Pi_pmf_cong)
 
-  also have "\<dots> = ?map1
-    (Pi_pmf I \<lblot>undefined\<rblot> (\<lambda> i.
-      map_pmf (\<lambda> \<phi>. \<lambda> i \<in> {i} \<times> J. \<phi> (snd i))
-        (prod_pmf J <| \<lambda> j. M (i, j))))"
+  also have \<open>\<dots> =
+    ?map (\<lambda> i. map_pmf
+      (\<lambda> \<phi>. \<lambda> i \<in> {i} \<times> J. \<phi> (snd i))
+      (prod_pmf J <| \<lambda> j. M (i, j)))\<close>
     apply (subst prod_pmf_reindex)
     by (fastforce intro: inj_onI map_pmf_cong Pi_pmf_cong)+
 
-  also have "\<dots> = ?R"
+  also have \<open>\<dots> = ?R\<close>
     unfolding
       Pi_pmf_map'[OF finsets(1), where dflt' = undefined]
       map_pmf_comp case_prod_beta
