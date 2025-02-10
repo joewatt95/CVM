@@ -170,8 +170,7 @@ next
   text \<open>Upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (1 / (1 - ?exp_term l))\<close>
   proof -
-    from \<open>\<epsilon> > 0\<close> Cons have \<open>?exp_term l < 1\<close>
-      using order_less_le by fastforce
+    from Cons \<open>\<epsilon> > 0\<close> have \<open>?exp_term l < 1\<close> using order_less_le by fastforce
     with \<open>\<epsilon> > 0\<close> show ?thesis
       by (auto intro: sum_le_suminf simp flip: suminf_geometric)
   qed
