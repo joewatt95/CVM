@@ -17,7 +17,7 @@ The operation $p \mapsto \frac{p}{2}$ is replaced with $k \mapsto k+1$.
 For this modified algorithm, it is easy to see that the set of elements in any state are exactly, those stream elements for which the first $k$ entries of their associated coin flips are $1$.
 
 In \cref{alg:cvm_simul} we describe the new algorithm, that behaves exactly as the original one (\cref{alg:cvm}), but performs indepenent coin flips.
-Note that the function $\mathrm{last{\textunderscore}index}$ returns the index of the last-occurence of an element in the sequence, before the current loop iteration.
+Note that the function last{\textunderscore}index returns the index of the last-occurence of an element in the sequence, before the current loop iteration.
 It should be noted that the algorithm keeps track of the number of subsampling iterations $k$, instead of the value $p = 2^{-k}$ as the original algorithm does.
 %Like, we did in \cref{sec:invariants}, we ignore the second check, whether the subsampling operation succeeded.
 %As we explained there, the total variational difference between these two variants is $\frac{\delta}{2}$.
@@ -35,7 +35,7 @@ It should be noted that the algorithm keeps track of the number of subsampling i
       \State $\chi \gets \chi - \{a_i\}$
     \EndIf
     \If{$|\chi| = n$}
-      \State $\chi \gets \{a \in \chi \;|\; b[\mathrm{last{\textunderscore}index}(a),k+1] = 1\}$
+      \State $\chi \gets \{a \in \chi \;|\; b[\textrm{last{\textunderscore}index}(a),k+1] = 1\}$
       \State $k \gets k+1$
     \EndIf
     \If{$|\chi| = n$}

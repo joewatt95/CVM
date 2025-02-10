@@ -1,3 +1,67 @@
+@article{alon1999,
+	title = {The Space Complexity of Approximating the Frequency Moments},
+	author = {Noga Alon and Yossi Matias and Mario Szegedy},
+	year = 1999,
+	journal = {Journal of Computer and System Sciences},
+	volume = 58,
+	number = 1,
+	pages = {137--147},
+	issn = {0022-0000},
+	doi = {10.1006/jcss.1997.1545},
+	_url = {https://www.sciencedirect.com/science/article/pii/S0022000097915452}
+}
+
+@InProceedings{bartocci2019,
+author="Bartocci, Ezio
+and Kov{\'a}cs, Laura
+and Stankovi{\v{c}}, Miroslav",
+editor="Chen, Yu-Fang
+and Cheng, Chih-Hong
+and Esparza, Javier",
+title="Automatic Generation of Moment-Based Invariants for Prob-Solvable Loops",
+booktitle="Automated Technology for Verification and Analysis",
+year="2019",
+publisher="Springer International Publishing",
+address="Cham",
+pages="255--276",
+abstract="One of the main challenges in the analysis of probabilistic programs is to compute invariant properties that summarise loop behaviours. Automation of invariant generation is still at its infancy and most of the times targets only expected values of the program variables, which is insufficient to recover the full probabilistic program behaviour. We present a method to automatically generate moment-based invariants of a subclass of probabilistic programs, called Prob-solvable loops, with polynomial assignments over random variables and parametrised distributions. We combine methods from symbolic summation and statistics to derive invariants as valid properties over higher-order moments, such as expected values or variances, of program variables. We successfully evaluated our work on several examples where full automation for computing higher-order moments and invariants over program variables was not yet possible.",
+isbn="978-3-030-31784-3",
+doi={10.1007/978-3-030-31784-3_15},
+}
+
+
+@inproceedings{baryossef2002,
+	title = {Counting Distinct Elements in a Data Stream},
+	author = {Bar-Yossef, Ziv and Jayram, T. S. and Kumar, Ravi and Sivakumar, D. and Trevisan, Luca},
+	year = 2002,
+	booktitle = {Randomization and Approximation Techniques in Computer Science},
+	publisher = {Springer Berlin Heidelberg},
+	pages = {1--10},
+	_address = {Berlin, Heidelberg},
+  	doi = {10.1007/3-540-45726-7_1},
+}
+
+@inproceedings{batz2023,
+  author="Batz, Kevin
+  and Chen, Mingshuai
+  and Junges, Sebastian
+  and Kaminski, Benjamin Lucien
+  and Katoen, Joost-Pieter
+  and Matheja, Christoph",
+  editor="Sankaranarayanan, Sriram
+  and Sharygina, Natasha",
+  title="Probabilistic Program Verification via Inductive Synthesis of Inductive Invariants",
+  booktitle="Tools and Algorithms for the Construction and Analysis of Systems",
+  year="2023",
+  publisher="Springer Nature Switzerland",
+  address="Cham",
+  pages="410--429",
+  abstract="Essential tasks for the verification of probabilistic programs include bounding expected outcomes and proving termination in finite expected runtime. We contribute a simple yet effective inductive synthesis approach for proving such quantitative reachability properties by generating inductive invariants on source-code level. Our implementation shows promise: It finds invariants for (in)finite-state programs, can beat state-of-the-art probabilistic model checkers, and is competitive with modern tools dedicated to invariant synthesis and expected runtime reasoning.",
+  isbn="978-3-031-30820-8",
+  doi={10.1007/978-3-031-30820-8_25},
+}
+
+
 @article{blasiok2020,
   author = {Jaros\l{}aw B\l{}asiok},
   title     = {Optimal Streaming and Tracking Distinct Elements with High Probability},
@@ -12,6 +76,24 @@
   _biburl    = {https://dblp.org/rec/journals/talg/Blasiok20.bib},
   _bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+
+@inproceedings{bosshard2024,
+  author = { Bosshard, Azucena Garvia and Bootle, Jonathan and Sprenger, Christoph },
+  booktitle = { 2024 IEEE 37th Computer Security Foundations Symposium (CSF) },
+  title = {{ Formal Verification of the Sumcheck Protocol }},
+  year = {2024},
+  volume = {},
+  ISSN = {},
+  pages = {605-619},
+  abstract = { The sumcheck protocol, introduced in 1992, is an interactive proof which is a key component of many probabilistic proof systems in computational complexity theory and cryptography, some of which have been deployed. However, none of these proof systems based on the sumcheck protocol enjoy a formally-verified security analysis. In this paper, we make progress in this direction by providing a formally verified security analysis of the sumcheck protocol using the interactive theorem prover Isabelle/HOL. We follow a general and modular approach. First, we give a general formalization of public-coin interactive proofs. We then define a generalized sumcheck protocol for which we axiomatize the underlying mathematical structure and we establish its soundness and completeness. Finally, we prove that these axioms hold for multivariate polynomials, the original setting of the sumcheck protocol. Our modular analysis facilitates formal verification of sumcheck instances based on different mathematical structures with little effort, by simply proving that these structures satisfy the axioms. Moreover, the analysis supports the development and formal verification of future cryptographic protocols using the sumcheck protocol as a building block. },
+  keywords = {Protocols;Probabilistic logic;Polynomials;Cryptography;Computer security;Computational complexity;Formal verification},
+  doi = {10.1109/CSF61375.2024.00014},
+  _url = {https://doi.ieeecomputersociety.org/10.1109/CSF61375.2024.00014},
+  publisher = {IEEE Computer Society},
+  address = {Los Alamitos, CA, USA},
+  month =Jul
+}
+
 
 @inproceedings{chakraborty2022,
   author       = {Sourav Chakraborty and
@@ -52,6 +134,35 @@
   bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
+@article{dean2010,
+	author = {Dean, Jeffrey and Ghemawat, Sanjay},
+	title = {MapReduce: A Flexible Data Processing Tool},
+	year = {2010},
+	issue_date = {January 2010},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	volume = {53},
+	number = {1},
+	issn = {0001-0782},
+	url = {https://doi.org/10.1145/1629175.1629198},
+	doi = {10.1145/1629175.1629198},
+	abstract = {MapReduce advantages over parallel databases include storage-system independence and fine-grain fault tolerance for large jobs.},
+	journal = {Commun. ACM},
+	month = {jan},
+	pages = {72--77},
+	numpages = {6}
+}
+
+@misc{demedeiros2024,
+    title={Verified Foundations for Differential Privacy}, 
+    author={Markus de Medeiros and Muhammad Naveed and Tancrede Lepoint and Temesghen Kahsai and Tristan Ravitch and Stefan Zetzsche and Anjali Joshi and Joseph Tassarotti and Aws Albarghouthi and Jean-Baptiste Tristan},
+    year={2024},
+    eprint={2412.01671},
+    archivePrefix={arXiv},
+    primaryClass={cs.CR},
+    url={https://arxiv.org/abs/2412.01671}, 
+}
+
 @article{dubhashi1996,
   title={Negative dependence through the {FKG} Inequality},
   author={Devdatt P. Dubhashi and Volker Priebe and Desh Ranjan},
@@ -89,6 +200,42 @@
   bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
+@article{flajolet1985,
+	title = {Probabilistic counting algorithms for data base applications},
+	author = {Philippe Flajolet and G. {Nigel Martin}},
+	year = 1985,
+	journal = {Journal of Computer and System Sciences},
+	volume = 31,
+	number = 2,
+	pages = {182--209},
+	issn = {0022-0000},
+	doi = {10.1016/0022-0000(85)90041-8}
+}
+
+
+@article{flajolet2012,
+author = {Flajolet, Philippe and Fusy, Eric and Gandouet, Olivier and Meunier, Frédéric},
+year = {2012},
+month = {03},
+pages = {},
+title = {HyperLogLog: The analysis of a near-optimal cardinality estimation algorithm},
+volume = {DMTCS Proceedings vol. AH,...},
+journal = {Discrete Mathematics & Theoretical Computer Science},
+doi = {10.46298/dmtcs.3545}
+}
+
+@inproceedings{flajolet2007,
+  title={Hyperloglog: the analysis of a near-optimal cardinality estimation algorithm},
+  author={Flajolet, Philippe and Fusy, {\'E}ric and Gandouet, Olivier and Meunier, Fr{\'e}d{\'e}ric},
+  booktitle={Conference on Analysis of Algorithm},
+  year={2007},
+  month={1},
+  pages={137--156},
+  volume={AH},
+  publisher={Discrete mathematics \& theoretical computer science},
+  doi = {10.46298/dmtcs.3545}
+}
+
 @InProceedings{giry1982,
   author={Giry, Mich{\`e}le},
   editor={Banaschewski, B.},
@@ -99,6 +246,29 @@
   publisher={Springer Berlin Heidelberg},
   pages={68--85},
 }
+
+@inproceedings{haas1995,
+author = {Haas, Peter J. and Naughton, Jeffrey F. and Seshadri, S. and Stokes, Lynne},
+title = {Sampling-Based Estimation of the Number of Distinct Values of an Attribute},
+year = {1995},
+isbn = {1558603794},
+publisher = {Morgan Kaufmann Publishers Inc.},
+address = {San Francisco, CA, USA},
+booktitle = {Proceedings of the 21th International Conference on Very Large Data Bases},
+pages = {311–322},
+numpages = {12},
+doi={10.5555/645921.673295},
+series = {VLDB '95}
+}
+
+@inproceedings{heule2013,
+  title	= {HyperLogLog in Practice: Algorithmic Engineering of a State of The Art Cardinality Estimation Algorithm},
+  author	= {Stefan Heule and Marc Nunkesser and Alex Hall},
+  year	= {2013},
+  booktitle	= {Proceedings of the EDBT 2013 Conference},
+  address	= {Genoa, Italy}
+}
+
 
 @article{hoeffding1963,
  author = {Wassily Hoeffding},
@@ -154,6 +324,25 @@
 	keywords = {streaming, query optimization, distinct elements, data mining}
 }
 
+@InProceedings{karayel2022,
+  author =	{Karayel, Emin},
+  title =	{{Formalization of Randomized Approximation Algorithms for Frequency Moments}},
+  booktitle =	{13th International Conference on Interactive Theorem Proving (ITP 2022)},
+  pages =	{21:1--21:21},
+  series =	{Leibniz International Proceedings in Informatics (LIPIcs)},
+  ISBN =	{978-3-95977-252-5},
+  ISSN =	{1868-8969},
+  year =	{2022},
+  volume =	{237},
+  editor =	{Andronick, June and de Moura, Leonardo},
+  publisher =	{Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik},
+  address =	{Dagstuhl, Germany},
+  URL =		{https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2022.21},
+  URN =		{urn:nbn:de:0030-drops-167308},
+  doi =		{10.4230/LIPIcs.ITP.2022.21},
+  annote =	{Keywords: Formal Verification, Isabelle/HOL, Randomized Algorithms, Frequency Moments}
+}
+
 @InProceedings{karayel2023,
   author =	{Karayel, Emin},
   title =	{{An Embarrassingly Parallel Optimal-Space Cardinality Estimation Algorithm}},
@@ -191,6 +380,19 @@
   pages={503--531},
 }
 
+@Inbook{mciver2005,
+  author={Annabelle McIver and Carroll Morgan},
+  title={Probabilistic loops: Invariants and variants},
+  bookTitle={Abstraction, Refinement and Proof for Probabilistic Systems},
+  year={2005},
+  publisher={Springer},
+  address={New York, NY},
+  pages={37--78},
+  isbn={978-0-387-27006-7},
+  doi={10.1007/0-387-27006-X_2},
+  _url="https://doi.org/10.1007/0-387-27006-X_2"
+}
+
 @book{motwani1995, 
   place={Cambridge}, 
   title={Randomized Algorithms}, 
@@ -211,6 +413,52 @@
   isbn          = {978-3540433767}
 }
 
+@book{mitzenmacher2005, 
+  place={Cambridge}, 
+  title={Probability and Computing: Randomized Algorithms and Probabilistic Analysis},
+  publisher={Cambridge University Press}, 
+  author={Mitzenmacher, Michael and Upfal, Eli}, 
+  year={2005}
+}
+
+@article{morris1978,
+  author = {Morris, Robert},
+  title = {Counting large numbers of events in small registers},
+  year = {1978},
+  issue_date = {Oct. 1978},
+  _publisher = {Association for Computing Machinery},
+  address = {New York, USA},
+  volume = {21},
+  number = {10},
+  issn = {0001-0782},
+  _url = {https://doi.org/10.1145/359619.359627},
+  doi = {10.1145/359619.359627},
+  abstract = {It is possible to use a small counter to keep approximate counts of large numbers. The resulting expected error can be rather precisely controlled. An example is given in which 8-bit counters (bytes) are used to keep track of as many as 130,000 events with a relative error which is substantially independent of the number n of events. This relative error can be expected to be 24 percent or less 95 percent of the time (i.e. σ = n/8). The techniques could be used to advantage in multichannel counting hardware or software used for the monitoring of experiments or processes.},
+  journal = {Commun. ACM},
+  month = oct,
+  pages = {840–842},
+  numpages = {3},
+  keywords = {counting}
+}
+
+@inproceedings{pettie2021,
+  author = {Pettie, Seth and Wang, Dingyu},
+  title = {Information theoretic limits of cardinality estimation: Fisher meets Shannon},
+  year = {2021},
+  isbn = {9781450380539},
+  publisher = {Association for Computing Machinery},
+  address = {New York, USA},
+  _url = {https://doi.org/10.1145/3406325.3451032},
+  doi = {10.1145/3406325.3451032},
+  abstract = {Estimating the cardinality (number of distinct elements) of a large multiset is a classic problem in streaming and sketching, dating back to Flajolet and Martin’s classic Probabilistic Counting (PCSA) algorithm from 1983. In this paper we study the intrinsic tradeoff between the space complexity of the sketch and its estimation error in the random oracle model. We define a new measure of efficiency for cardinality estimators called the Fisher-Shannon (Fish) number H/I. It captures the tension between the limiting Shannon entropy (H) of the sketch and its normalized Fisher information (I), which characterizes the variance of a statistically efficient, asymptotically unbiased estimator. Our results are as follows. (i) We prove that all base-q variants of Flajolet and Martin’s PCSA sketch have Fish-number H0/I0 ≈ 1.98016 and that every base-q variant of (Hyper)LogLog has Fish-number worse than H0/I0, but that they tend to H0/I0 in the limit as q→ ∞. Here H0,I0 are precisely defined constants. (ii) We describe a sketch called Fishmonger that is based on a smoothed, entropy-compressed variant of PCSA with a different estimator function. It is proved that with high probability, Fishmonger processes a multiset of [U] such that at all times, its space is O(log2logU) + (1+o(1))(H0/I0)b ≈ 1.98b bits and its standard error is 1/√b. (iii) We give circumstantial evidence that H0/I0 is the optimum Fish-number of mergeable sketches for Cardinality Estimation. We define a class of linearizable sketches and prove that no member of this class can beat H0/I0. The popular mergeable sketches are, in fact, also linearizable.},
+  booktitle = {Proceedings of the 53rd Annual ACM SIGACT Symposium on Theory of Computing},
+  pages = {556–569},
+  numpages = {14},
+  keywords = {streaming algorithm, cardinality estimation},
+  location = {Virtual, Italy},
+  series = {STOC 2021}
+}
+
 @misc{quanta,
   author       = {Steve Nadis},
   title        = {Computer Scientists Invent an Efficient New Way to Count},
@@ -219,3 +467,51 @@
   note         = {Accessed: 2025-01-14}
 }
 
+@inproceedings{tan2024,
+  author="Tan, Yong Kiam
+  and Yang, Jiong
+  and Soos, Mate
+  and Myreen, Magnus O.
+  and Meel, Kuldeep S.",
+  editor="Gurfinkel, Arie
+  and Ganesh, Vijay",
+  title="Formally Certified Approximate Model Counting",
+  booktitle="Computer Aided Verification",
+  year="2024",
+  publisher="Springer Nature Switzerland",
+  address="Cham",
+  pages="153--177",
+  abstract="Approximate model counting is the task of approximating the number of solutions to an input Boolean formula. The state-of-the-art approximate model counter for formulas in conjunctive normal form (CNF), {\$}{\$}{\backslash}textsf{\{}ApproxMC{\}}{\$}{\$}ApproxMC, provides a scalable means of obtaining model counts with probably approximately correct (PAC)-style guarantees. Nevertheless, the validity of {\$}{\$}{\backslash}textsf{\{}ApproxMC{\}}{\$}{\$}ApproxMC's approximation relies on a careful theoretical analysis of its randomized algorithm and the correctness of its highly optimized implementation, especially the latter's stateful interactions with an incremental CNF satisfiability solver capable of natively handling parity (XOR) constraints.",
+  isbn="978-3-031-65627-9",
+  doi={10.1007/978-3-031-65627-9_8},
+}
+
+@InProceedings{kofnov2022,
+  author="Kofnov, Andrey
+  and Moosbrugger, Marcel
+  and Stankovi{\v{c}}, Miroslav
+  and Bartocci, Ezio
+  and Bura, Efstathia",
+  editor="{\'A}brah{\'a}m, Erika
+  and Paolieri, Marco",
+  title="Moment-Based Invariants for Probabilistic Loops with Non-polynomial Assignments",
+  booktitle="Quantitative Evaluation of Systems",
+  year="2022",
+  publisher="Springer International Publishing",
+  address="Cham",
+  pages="3--25",
+  doi={10.1007/978-3-031-16336-4_1},
+  abstract="We present a method to automatically approximate moment-based invariants of probabilistic programs with non-polynomial updates of continuous state variables to accommodate more complex dynamics. Our approach leverages polynomial chaos expansion to approximate non-linear functional updates as sums of orthogonal polynomials. We exploit this result to automatically estimate state-variable moments of all orders in Prob-solvable loops with non-polynomial updates. We showcase the accuracy of our estimation approach in several examples, such as the turning vehicle model and the Taylor rule in monetary policy.",
+  isbn="978-3-031-16336-4"
+}
+
+@article{Probabilistic_Prime_Tests-AFP,
+  author  = {Daniel Stüwe and Manuel Eberl},
+  title   = {Probabilistic Primality Testing},
+  journal = {Archive of Formal Proofs},
+  month   = {February},
+  year    = {2019},
+  note    = {\url{https://isa-afp.org/entries/Probabilistic_Prime_Tests.html},
+             Formal proof development},
+  ISSN    = {2150-914x},
+}
