@@ -15,11 +15,13 @@ definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
 locale cvm_algo =
-  fixes threshold :: nat and f :: real
+  fixes threshold :: nat 
 begin
 
+abbreviation f :: real where \<open>f \<equiv> 1 / 2\<close>
+
 definition compute_estimate :: \<open>'a state \<Rightarrow> real\<close> where
-  \<open>compute_estimate \<equiv> \<lambda> state. card (state_chi state) / f ^ (state_k state)\<close>
+  \<open>compute_estimate \<equiv> \<lambda> state. card (state_chi state) * 2  ^ (state_k state)\<close>
 
 text
   \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
@@ -66,8 +68,6 @@ lemmas step_2_def' =
 end
 
 locale cvm_algo_assms = cvm_algo + ord_spmf_syntax +
-  assumes
-    threshold : \<open>threshold > 0\<close> and
-    f : \<open>0 < f\<close> \<open>f < 1\<close>
+  assumes threshold : \<open>threshold > 0\<close>
 
 end

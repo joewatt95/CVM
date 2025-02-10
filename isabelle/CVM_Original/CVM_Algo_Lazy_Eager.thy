@@ -296,11 +296,10 @@ proof -
     by (auto intro: measure_pmf_cong)
   also have "\<dots> = (\<Prod>j \<in> {..<state_k \<sigma>}\<times>{l}. measure coin_pmf {True})"
     using assms(3) l_lt_n unfolding space_def by (fastforce intro: prob_prod_pmf')
-  also have "\<dots> = f ^ state_k \<sigma>" using f by (simp add:measure_pmf_single)
+  also have "\<dots> = f ^ state_k \<sigma>" by (simp add:measure_pmf_single)
 
   finally have
     "bernoulli_pmf (f ^ state_k \<sigma>) = map_pmf (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) space"
-    using f
     by (auto intro: bool_pmf_eqI simp add: pmf_map vimage_def power_le_one)
 
   also have "\<dots> = sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd)"

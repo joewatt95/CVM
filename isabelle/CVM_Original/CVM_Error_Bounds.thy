@@ -1,6 +1,7 @@
 theory CVM_Error_Bounds
 
 imports
+  "HOL-Decision_Procs.Approximation"
   CVM_Algo_Nondet_Binomial
   Utils_Concentration_Inequalities
 
@@ -60,8 +61,7 @@ qed
 
 lemma r_pos :
   \<open>r > 0\<close>
-  using
-    \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> threshold power_eq_0_iff
+  using \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> threshold power_eq_0_iff
   by fastforce
 
 theorem prob_eager_algo_k_le_l_and_est_out_of_range_le :
@@ -75,22 +75,17 @@ theorem prob_eager_algo_k_le_l_and_est_out_of_range_le :
 proof (cases xs)
   case Nil
   with \<open>\<epsilon> > 0\<close> show ?thesis
-    unfolding compute_estimate_def prob_k_le_l_and_est_out_of_range_bound_def
-    apply simp
-    sorry
+    unfolding
+      compute_estimate_def prob_k_le_l_and_est_out_of_range_bound_def
+      initial_state_def
+    by (simp add: run_reader_simps)
 next
+  case (Cons _ _)
+
   let ?exp_bound =
     \<open>exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
-  (* let ?exp_term = \<open>\<lambda> k.
-    exp (- real (card <| set xs) * \<epsilon>\<^sup>2 / (2 ^ k * (2 + 2 * \<epsilon> / 3)))\<close> *)
-
   let ?exp_term = \<open>\<lambda> k.
     exp (- (real (card (set xs)) * f ^ k * \<epsilon>\<^sup>2 / (2 + 2 * \<epsilon> / 3)))\<close>
-
-  case (Cons _ _)
-  with f \<open>\<epsilon> > 0\<close> have \<open>?exp_term k < 1\<close> for k
-    by (simp add: field_simps add_strict_increasing2 card_gt_0_iff)
-
   let ?binom_mean = \<open>\<lambda> k. f ^ k * real (card <| set xs)\<close>
 
   text \<open>Apply subadditivity.\<close>
@@ -112,10 +107,10 @@ next
       \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k.
         \<bar>real estimate - ?binom_mean k\<bar> \<ge> \<epsilon> * ?binom_mean k))\<close>
     (is \<open>(\<Sum> k \<le> _. ?L k) \<le> (\<Sum> k \<le> _. ?R k)\<close>)
-  proof (rule sum_mono, unfold atMost_iff)
+  proof (intro sum_mono, unfold atMost_iff)
     fix k assume \<open>k \<le> l\<close>
     with
-      f \<open>\<epsilon> > 0\<close> l_le_length_xs
+      \<open>\<epsilon> > 0\<close> l_le_length_xs
       prob_eager_algo_le_binomial[where
         k = k and xs = xs and m = \<open>length xs\<close> and n = \<open>length xs\<close> and
         P = \<open>\<lambda> est. est / f ^ k >[\<epsilon>] card (set xs)\<close>]
@@ -128,9 +123,9 @@ next
   text \<open>Apply Chernoff bound to each term.\<close>
   also have
     \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * ?exp_term k)\<close> (is \<open>(\<Sum> k \<le> _. ?L k) \<le> (\<Sum> k \<le> _. ?R k)\<close>)
-  proof (rule sum_mono)
+  proof (intro sum_mono)
     fix k
-    from f \<open>\<epsilon> > 0\<close>
+    from \<open>\<epsilon> > 0\<close>
       binomial_distribution.chernoff_prob_abs_ge[
         where n = \<open>card <| set xs\<close> and p = \<open>f ^ k\<close> and \<delta> = \<epsilon>]
     show \<open>?L k \<le> ?R k\<close>
@@ -147,8 +142,8 @@ next
   also from \<open>\<epsilon> > 0\<close> have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * ?exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
     apply (intro sum.cong refl)
-    apply (simp flip: exp_of_nat_mult power_add add: field_split_simps)
-    by (smt (verit, best) mult_sign_intros(5) one_le_power)
+    apply (simp flip: exp_of_nat_mult power_add add: field_split_simps Cons)
+    by (metis Multiseries_Expansion.intyness_simps(6) add_sign_intros(2) less_numeral_extra(3) of_nat_zero_less_power_iff zero_less_mult_iff zero_less_numeral)
 
   text
     \<open>Now we do the following:
@@ -158,60 +153,63 @@ next
     3. Pull out a factor of `2 * exp_term l` from each term.\<close>
   also have
     \<open>\<dots> = 2 * ?exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. ?exp_term l ^ (r - 1))\<close>
-    using
+    unfolding
+      sum_distrib_left
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
-      power_add[of "?exp_term l" "1" "2 ^ _ - 1"]
-    by (auto
-      intro!: sum.reindex_bij_witness[of _ floor_log \<open>power 2\<close>]
-      simp add: sum_distrib_left)
+    apply (intro sum.reindex_bij_witness[of _ floor_log \<open>power 2\<close>])
+    by (auto simp add: power_eq_if[of "exp (- (real (card (set xs)) * (1 / 2) ^ l * \<epsilon>\<^sup>2 / (2 + 2 * \<epsilon> / 3)))" "2 ^ _"])
 
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
     up to `2 ^ l`.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (\<Sum> r \<le> 2 ^ l - 1. ?exp_term l ^ r)\<close>
-    using diff_le_mono[of "2 ^ _" "2 ^ l" 1]
-    by (force intro!: sum_le_included[where i = Suc])
+    apply (intro mult_mono sum_le_included[where i = Suc] sum_nonneg)
+    apply simp_all
+    by (meson Suc_pred atMost_iff diff_le_mono less_eq_real_def nat_zero_less_power_iff pos2 power_increasing rel_simps(25))
 
   text \<open>Upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (1 / (1 - ?exp_term l))\<close>
-    using \<open>?exp_term l < 1\<close> \<open>\<epsilon> > 0\<close>
-    by (auto intro: sum_le_suminf simp flip: suminf_geometric)
+  proof -
+    from \<open>\<epsilon> > 0\<close> Cons have \<open>?exp_term l < 1\<close>
+      using order_less_le by fastforce
+    with \<open>\<epsilon> > 0\<close> show ?thesis
+      by (auto intro: sum_le_suminf simp flip: suminf_geometric)
+  qed
 
   also have \<open>\<dots> \<le> 4 * ?exp_bound\<close>
   proof -
     have
       \<open>2 * x / (1 - x) \<le> 4 * y\<close>
       if \<open>0 \<le> x\<close> \<open>x \<le> y\<close> \<open>y \<le> 1 / 2\<close> for x y :: real
-      using that by sos
+      using that
+      by (sos "((((A<0 * A<1) * R<1) + (((A<=1 * (A<0 * R<1)) * (R<4 * [1]^2)) + ((A<=0 * (A<=2 * (A<0 * R<1))) * (R<2 * [1]^2)))))")
 
     then show ?thesis when
       \<open>?exp_term l \<le> ?exp_bound\<close> (is ?thesis_0)
       \<open>?exp_bound \<le> 1 / 2\<close> (is ?thesis_1) 
       using that by simp_all
 
-    from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> \<open>\<epsilon> > 0\<close> r_pos 
+    from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> \<open>\<epsilon> > 0\<close> r_pos threshold
     show ?thesis_0
-      using
-        not_less[of "6 * 2 ^ l + \<epsilon> * (2 * 2 ^ l)" "0"]
-        of_nat_le_iff[of "threshold * 2 ^ l" "card (set xs) * 2 * r"]
+      unfolding approximation_preproc_nat
       by (auto
         intro: add_mono
-        simp add: field_split_simps power_numeral_reduce pos_add_strict)
+        simp add: field_simps power_numeral_reduce pos_add_strict)
 
-    have
+    from \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> have
       \<open>4 * r * (1 + 1 * \<epsilon> / 3) \<le> \<epsilon>\<^sup>2 * threshold\<close>
-      if \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>r \<ge> 1\<close> for r threshold :: real
-      using \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> that by sos
+      if \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>r \<ge> 1\<close> for r threshold
+      using that
+      by (sos "((R<1 + (((A<1 * R<1) * (R<3/2 * [1]^2)) + (((A<=2 * R<1) * (R<1 * [1]^2)) + (((A<=1 * R<1) * (R<3/2 * [1]^2)) + (((A<=0 * R<1) * (R<2 * [1]^2)) + ((A<=0 * (A<=2 * R<1)) * (R<2 * [1]^2))))))))")
 
     with \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>\<epsilon> > 0\<close> r_pos
     have \<open>?exp_bound \<le> exp (- 1)\<close> by simp
-
-    with exp_minus_one_le_half show ?thesis_1 by argo
+    also have \<open>\<dots> \<le> 1 / 2\<close> by (approximation 0)
+    finally show ?thesis_1 .
   qed
 
   finally show ?thesis unfolding prob_k_le_l_and_est_out_of_range_bound_def .
 qed
-
 
 subsection \<open>Proof for k > l case.\<close>
 

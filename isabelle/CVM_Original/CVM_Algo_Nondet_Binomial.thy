@@ -112,7 +112,7 @@ proof -
     unfolding map_pmf_comp
     by (auto intro: map_pmf_cong)
 
-  also from assms f bernoulli_eq_map_Pi_pmf[where I = \<open>{..< k}\<close>, unfolded Ball_def]
+  also from assms bernoulli_eq_map_Pi_pmf[where I = \<open>{..< k}\<close>, unfolded Ball_def]
   have \<open>\<dots> = ?R\<close>
     apply (intro map_pmf_cong arg_cong2[where f = prod_pmf] refl)
     apply (cases k)
@@ -131,7 +131,7 @@ proof -
   have \<open>?go ?card_nondet_algo = map_pmf card (?go nondet_algo)\<close>
     by (simp add: map_pmf_comp)
 
-  with assms f show ?thesis
+  with assms show ?thesis
     apply (subst binomial_pmf_altdef')
     by (simp_all add: map_pmf_nondet_algo_eq power_le_one map_pmf_comp)
 qed

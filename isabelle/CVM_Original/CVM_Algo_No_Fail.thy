@@ -99,7 +99,7 @@ proof -
           simp add: AE_measure_pmf_iff finset_card_filter_eq_iff_Ball)
 
       also have \<open>\<dots> \<le> ?R'\<close>
-        using assms that f
+        using assms that
         apply (subst expectation_prod_Pi_pmf)
         by (simp_all add: integrable_measure_pmf_finite)
 
