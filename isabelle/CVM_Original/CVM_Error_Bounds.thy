@@ -48,10 +48,10 @@ proof -
   have \<open>l \<le> floor_log (2 * r * card (set xs) div threshold)\<close>
     by (metis floor_log_le_iff less_eq_div_iff_mult_less_eq floor_log_power threshold)
 
-  also from \<open>threshold \<ge> r\<close>
+  also from \<open>threshold \<ge> r\<close> threshold
   have \<open>\<dots> \<le> floor_log (2 * length xs)\<close>
-    apply (intro floor_log_le_iff)
-    by (metis card_length cross3_simps(12) div_le_mono div_mult_self1_is_m more_arith_simps(11) mult_le_mono mult_le_mono2 threshold)
+    by (smt (verit, del_insts) Groups.mult_ac(2,3) card_length div_mult_self1_is_m floor_log_le_iff less_eq_div_iff_mult_less_eq mult_le_mono nat_le_linear
+      verit_la_disequality)
 
   also have \<open>\<dots> \<le> length xs\<close>
     by (metis floor_log_le_iff less_exp floor_log_exp2_le floor_log_power floor_log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
@@ -140,10 +140,13 @@ next
     Note that `exp_term l < 1` and that this is important for obtaining a tight
     bound later on.\<close>
   also from \<open>\<epsilon> > 0\<close> have
-    \<open>\<dots> = (\<Sum> k \<le> l. 2 * ?exp_term l ^ 2 ^ (l - k))\<close> (is \<open>_ = sum ?g _\<close>)
+    \<open>\<dots> = (\<Sum> k \<le> l. 2 * ((?exp_term l) powr (1 / f ^ (l - k))))\<close>
+    (is \<open>_ = (\<Sum> k \<le> _. ?g k)\<close>)
     apply (intro sum.cong refl)
-    apply (simp flip: exp_of_nat_mult power_add add: field_split_simps Cons)
-    by (metis Multiseries_Expansion.intyness_simps(6) add_sign_intros(2) less_numeral_extra(3) of_nat_zero_less_power_iff zero_less_mult_iff zero_less_numeral)
+    apply (simp add: exp_powr_real field_split_simps)
+    unfolding Multiseries_Expansion.intyness_simps
+    by (smt (verit, best) Multiseries_Expansion.intyness_simps(5) linordered_semidom_class.add_diff_inverse more_arith_simps(11) mult.commute mult_pos_pos not_less of_nat_0_less_iff power_add
+      rel_simps(51) zero_less_power)
 
   text
     \<open>Now we do the following:
@@ -157,7 +160,9 @@ next
       sum_distrib_left
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
     apply (intro sum.reindex_bij_witness[of _ floor_log \<open>power 2\<close>])
-    by (auto simp add: power_eq_if[of "exp (- (real (card (set xs)) * (1 / 2) ^ l * \<epsilon>\<^sup>2 / (2 + 2 * \<epsilon> / 3)))" "2 ^ _"])
+    by (auto
+      simp flip: exp_of_nat_mult exp_add
+      simp add: exp_powr_real field_split_simps)
 
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
@@ -190,10 +195,9 @@ next
 
     from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> \<open>\<epsilon> > 0\<close> r_pos threshold
     show ?thesis_0
-      unfolding approximation_preproc_nat
       by (auto
-        intro: add_mono
-        simp add: field_simps power_numeral_reduce pos_add_strict)
+        intro!: add_mono
+        simp add: field_split_simps pos_add_strict approximation_preproc_nat(13))
 
     from \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> have
       \<open>4 * r * (1 + 1 * \<epsilon> / 3) \<le> \<epsilon>\<^sup>2 * threshold\<close>
@@ -211,6 +215,59 @@ next
 qed
 
 subsection \<open>Proof for k > l case.\<close>
+
+abbreviation
+  \<open>run_steps_eager_then_step_1 \<equiv> \<lambda> i xs.
+    run_steps_eager (take i xs) initial_state \<bind> step_1_eager xs i\<close>
+
+lemma exists_index_threshold_exceeded_of_k_exceeds :
+  assumes \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) > l\<close>
+  shows
+    \<open>\<exists> i < length xs.
+      state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l \<and>
+      card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>) \<ge> threshold\<close>
+    (is \<open>?thesis' xs\<close>)
+using assms proof (induction xs rule: rev_induct)
+  case Nil
+  then show ?case by (simp add: run_reader_simps initial_state_def)
+next
+  let ?not_thesis' = \<open>\<lambda> xs length.
+    \<forall> i < length.
+      state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l \<longrightarrow>
+      card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>)
+      < threshold\<close>
+
+  case (snoc x xs)
+  then have ih :
+    \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
+    if \<open>?not_thesis' xs (length xs)\<close> using that not_le by blast
+
+  show ?case
+  proof (rule ccontr)
+    assume \<open>\<not> ?thesis' (xs @ [x])\<close>
+    then have assm : \<open>?not_thesis' (xs @ [x]) <| Suc <| length xs\<close> by (simp add: not_le)
+
+    then have
+      \<open>card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>) < threshold\<close>
+      if
+        \<open>i < length xs\<close>
+        \<open>state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l\<close> for i
+      using that
+      unfolding step_1_eager_def' initial_state_def
+      apply (simp add: run_reader_simps Let_def)
+      by (smt (verit, best) less_SucI nth_append_left)
+
+    with ih have \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
+      by blast
+
+    with assm snoc.prems show False
+      unfolding step_eager_def step_1_eager_def' step_2_eager_def' initial_state_def
+      apply (auto
+        simp add: run_reader_simps foldM_rd_snoc less_Suc_eq_le
+        split: if_splits)
+      sorry
+  qed
+qed
 
 end
 

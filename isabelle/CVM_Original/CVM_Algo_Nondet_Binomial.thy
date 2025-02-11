@@ -131,7 +131,7 @@ proof -
   have \<open>?go ?card_nondet_algo = map_pmf card (?go nondet_algo)\<close>
     by (simp add: map_pmf_comp)
 
-  with assms show ?thesis
+  with assms  show ?thesis
     apply (subst binomial_pmf_altdef')
     by (simp_all add: map_pmf_nondet_algo_eq power_le_one map_pmf_comp)
 qed
