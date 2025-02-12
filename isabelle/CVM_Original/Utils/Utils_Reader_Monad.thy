@@ -2,7 +2,7 @@ theory Utils_Reader_Monad
   imports "HOL-Library.Monad_Syntax" "Utils_Basic"
 begin
 
-datatype ('c,'a) reader_monad = Reader (run_reader: "'c \<Rightarrow> 'a")
+datatype ('c, 'a) reader_monad = Reader (run_reader: "'c \<Rightarrow> 'a")
 
 definition bind_rd :: "('c,'a) reader_monad \<Rightarrow> ('a \<Rightarrow> ('c,'b) reader_monad) \<Rightarrow> ('c,'b) reader_monad"
   where "bind_rd m f = Reader (\<lambda>r. run_reader (f (run_reader m r)) r)"
@@ -35,10 +35,10 @@ abbreviation
 lemma foldM_rd_snoc: "foldM_rd f (xs@[y]) val = bind_rd (foldM_rd f xs val) (f y)"
   by (induction xs arbitrary:val) (auto simp:bind_rd_def return_rd_def)
 
-lemma run_reader_simps:
+lemma run_reader_simps [simp] :
   "run_reader (return_rd x) \<phi> = x"
-  "run_reader (get_rd) \<phi> = \<phi>"
-  "run_reader (bind_rd m f) \<phi> = run_reader (f (run_reader m \<phi>)) \<phi>"
+  "run_reader get_rd \<phi> = \<phi>"
+  "run_reader (m \<bind> f) \<phi> = run_reader (f (run_reader m \<phi>)) \<phi>"
   "run_reader (map_rd g m) \<phi> = (g (run_reader m \<phi>))"
   unfolding map_rd_def return_rd_def get_rd_def bind_rd_def by auto
 
@@ -52,7 +52,7 @@ lemma bind_assoc_rd :
   by (simp add: bind_rd_def)
 
 lemma reader_monad_eqI:
-  assumes "\<And>\<phi>. run_reader m \<phi> = run_reader n \<phi>"
+  assumes "\<And> \<phi>. run_reader m \<phi> = run_reader n \<phi>"
   shows "m = n"
   using assms
   by (metis (mono_tags) reader_monad.rel_eq reader_monad.rel_sel rel_fun_eq_rel)
