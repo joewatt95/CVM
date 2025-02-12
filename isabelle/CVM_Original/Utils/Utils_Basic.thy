@@ -40,6 +40,10 @@ lemma finset_card_filter_eq_iff_Ball :
   using assms
   by (metis card_seteq dual_order.refl member_filter subsetI subset_antisym)
 
+lemma take_length_eq_self :
+  \<open>take (length xs) (xs @ ys) = xs\<close>
+  by simp
+
 context
   fixes
     bind :: \<open>'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c\<close> and

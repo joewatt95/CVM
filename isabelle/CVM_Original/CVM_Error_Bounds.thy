@@ -231,41 +231,56 @@ using assms proof (induction xs rule: rev_induct)
   case Nil
   then show ?case by (simp add: run_reader_simps initial_state_def)
 next
-  let ?not_thesis' = \<open>\<lambda> xs length.
-    \<forall> i < length.
-      state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l \<longrightarrow>
-      card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>)
-      < threshold\<close>
-
   case (snoc x xs)
-  then have ih :
-    \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
-    if \<open>?not_thesis' xs (length xs)\<close> using that not_le by blast
-
   show ?case
   proof (rule ccontr)
+    let ?not_thesis' = \<open>\<lambda> xs length.
+      \<forall> i < length.
+        state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l \<longrightarrow>
+        card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>)
+        < threshold\<close>
+
     assume \<open>\<not> ?thesis' (xs @ [x])\<close>
-    then have assm : \<open>?not_thesis' (xs @ [x]) <| Suc <| length xs\<close> by (simp add: not_le)
+    then have not_thesis' : \<open>?not_thesis' (xs @ [x]) (Suc <| length xs)\<close>
+      by (simp add: not_le)
 
-    then have
-      \<open>card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>) < threshold\<close>
-      if
-        \<open>i < length xs\<close>
-        \<open>state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l\<close> for i
-      using that
+    then have \<open>?not_thesis' xs (length xs)\<close>
       unfolding step_1_eager_def' initial_state_def
-      apply (simp add: run_reader_simps Let_def)
-      by (smt (verit, best) less_SucI nth_append_left)
+      apply (simp add: run_reader_simps split: if_splits)
+      by (metis less_Suc_eq nth_append_left)
 
-    with ih have \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
-      by blast
+    with snoc.IH have
+      \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
+      (is \<open>?P xs (\<le>)\<close>) using not_le by blast
 
-    with assm snoc.prems show False
-      unfolding step_eager_def step_1_eager_def' step_2_eager_def' initial_state_def
-      apply (auto
-        simp add: run_reader_simps foldM_rd_snoc less_Suc_eq_le
-        split: if_splits)
-      sorry
+    then show False
+    proof (unfold le_less, elim disjE)
+      assume \<open>?P xs (<)\<close> 
+
+      then have \<open>?P (xs @ [x]) (\<le>)\<close>
+        unfolding run_steps_eager_snoc
+        unfolding step_eager_def step_1_eager_def' step_2_eager_def'
+        by (simp add: run_reader_simps)
+
+      with snoc.prems show False by simp
+    next
+      assume \<open>?P xs (=)\<close>
+
+      with snoc.prems have
+        \<open>card (state_chi <| run_reader (run_steps_eager_then_step_1 (length xs) (xs @ [x])) \<phi>)
+        = threshold\<close> (is \<open>?Q (=)\<close>)
+        unfolding take_length_eq_self run_steps_eager_snoc
+        unfolding step_eager_def step_1_eager_def' step_2_eager_def'
+        by (auto simp add: run_reader_simps split: if_splits)
+
+      moreover from \<open>?P xs (=)\<close> not_thesis' have \<open>?Q (<)\<close>
+        unfolding run_steps_eager_snoc
+        unfolding step_1_eager_def'
+        apply (simp add: run_reader_simps split: if_splits)
+        by (metis append.right_neutral lessI nth_append_length take_length_eq_self)
+
+      ultimately show False by simp
+    qed
   qed
 qed
 
