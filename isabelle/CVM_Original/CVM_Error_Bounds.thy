@@ -225,7 +225,8 @@ lemma exists_index_threshold_exceeded_of_k_exceeds :
   shows
     \<open>\<exists> i < length xs.
       state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l \<and>
-      card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>) \<ge> threshold\<close>
+      card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>)
+      \<ge> threshold\<close>
     (is \<open>?thesis' xs\<close>)
 using assms proof (induction xs rule: rev_induct)
   case Nil
@@ -254,7 +255,7 @@ next
 
     then show False
     proof (unfold le_less, elim disjE)
-      assume \<open>?P xs (<)\<close> 
+      assume \<open>?P xs (<)\<close>
 
       then have \<open>?P (xs @ [x]) (\<le>)\<close>
         unfolding run_steps_eager_snoc
