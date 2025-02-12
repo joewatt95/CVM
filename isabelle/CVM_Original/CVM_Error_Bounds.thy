@@ -266,7 +266,8 @@ next
       assume \<open>?P xs (=)\<close>
 
       with snoc.prems have
-        \<open>card (state_chi <| run_reader (run_steps_eager_then_step_1 (length xs) (xs @ [x])) \<phi>)
+        \<open>card (state_chi <|
+          run_reader (run_steps_eager_then_step_1 (length xs) ?xs') \<phi>)
         = threshold\<close> (is \<open>?Q (=)\<close>)
         unfolding take_length_eq_self run_steps_eager_snoc
         unfolding step_eager_def step_1_eager_def' step_2_eager_def'
