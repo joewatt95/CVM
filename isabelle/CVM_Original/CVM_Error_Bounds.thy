@@ -232,19 +232,18 @@ using assms proof (induction xs rule: rev_induct)
   then show ?case by (simp add: run_reader_simps initial_state_def)
 next
   case (snoc x xs)
+  let ?xs' = \<open>xs @ [x]\<close>
   show ?case
   proof (rule ccontr)
-    let ?not_thesis' = \<open>\<lambda> xs length.
-      \<forall> i < length.
-        state_k (run_reader (run_steps_eager_then_step_1 i xs) \<phi>) = l \<longrightarrow>
-        card (state_chi <| run_reader (run_steps_eager_then_step_1 i xs) \<phi>)
+    assume \<open>\<not> ?thesis' ?xs'\<close>
+    then have not_thesis' :
+      \<open>\<forall> i < length ?xs'.
+        state_k (run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>) = l \<longrightarrow>
+        card (state_chi <| run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>)
         < threshold\<close>
+      (is \<open>?not_thesis' (_ @ _)\<close>) by (simp add: not_le)
 
-    assume \<open>\<not> ?thesis' (xs @ [x])\<close>
-    then have not_thesis' : \<open>?not_thesis' (xs @ [x]) (Suc <| length xs)\<close>
-      by (simp add: not_le)
-
-    then have \<open>?not_thesis' xs (length xs)\<close>
+    then have \<open>?not_thesis' xs\<close>
       unfolding step_1_eager_def' initial_state_def
       apply (simp add: run_reader_simps split: if_splits)
       by (metis less_Suc_eq nth_append_left)
