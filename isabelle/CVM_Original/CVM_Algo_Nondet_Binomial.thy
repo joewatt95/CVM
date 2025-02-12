@@ -28,14 +28,14 @@ lemma step_1_eager_inv :
   shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_1_eager xs i state) \<phi>)\<close>
   using assms
   unfolding step_1_eager_def' state_inv_def'
-  by (simp add: run_reader_simps take_Suc_conv_app_nth)
+  by (simp add:take_Suc_conv_app_nth)
 
 lemma step_2_eager_inv :
   assumes \<open>i < length xs\<close> \<open>state_inv (take (Suc i) xs) \<phi> state\<close>
   shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_2_eager xs i state) \<phi>)\<close>
   using assms
   unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
-  apply (simp add: run_reader_simps)
+  apply simp
   by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min_def min_less_iff_conj not_less_simps(2))
 
 lemma step_eager_inv :
@@ -43,15 +43,15 @@ lemma step_eager_inv :
   shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_eager xs i state) \<phi>)\<close>
   unfolding step_eager_def
   using assms step_1_eager_inv step_2_eager_inv 
-  by (fastforce simp add: run_reader_simps)
+  by fastforce
 
-lemma eager_algorithm_inv :
+lemma eager_algo_inv :
   \<open>state_inv xs \<phi> <| run_reader (run_steps_eager xs initial_state) \<phi>\<close>
 proof (induction xs rule: rev_induct)
   case Nil
   then show ?case
     unfolding state_inv_def' initial_state_def
-    by (simp add: run_reader_simps)
+    by simp
 next
   case (snoc _ _)
   with step_eager_inv show ?case
@@ -64,7 +64,7 @@ theorem prob_eager_algo_le_nondet_algo_aux :
     in state_k state = k \<and> P (state_chi state))
   \<le> \<P>(bool_matrix in measure_pmf rand_bool_matrix.
       P (nondet_algo k xs bool_matrix))\<close>
-  by (smt (verit, ccfv_SIG) eager_algorithm_inv mem_Collect_eq pmf_mono state_inv_def)
+  by (smt (verit, ccfv_SIG) eager_algo_inv mem_Collect_eq pmf_mono state_inv_def)
 
 context
   fixes xs and m n k :: nat
@@ -121,7 +121,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorem map_pmf_nondet_alg_eq_binomial :
+theorem map_pmf_nondet_algo_eq_binomial :
   \<open>map_pmf (card <<< nondet_algo k xs) (bernoulli_matrix m n f) =
     binomial_pmf (card <| set xs) (f ^ k)\<close>
   (is \<open>map_pmf (?card_nondet_algo _ _) _ = _\<close>)
@@ -142,7 +142,7 @@ corollary prob_eager_algo_le_binomial :
     in state_k state = k \<and> P (card <| state_chi state))
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
   using prob_eager_algo_le_nondet_algo_aux
-  by (simp flip: map_pmf_nondet_alg_eq_binomial)
+  by (simp flip: map_pmf_nondet_algo_eq_binomial)
 
 end
 

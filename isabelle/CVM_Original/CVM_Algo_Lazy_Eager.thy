@@ -254,7 +254,7 @@ next
   case False
   then have "map_rd ((=) v) (step_2_eager (xs @ [x]) l \<sigma>) = return_rd False"
     unfolding step_2_eager_def
-    by (intro reader_monad_eqI) (auto simp add:run_reader_simps Let_def)
+    by (intro reader_monad_eqI) (auto simp add: Let_def)
   then show ?thesis by (simp add:depends_on_return)
 qed
 
@@ -275,7 +275,7 @@ proof (intro independent_bindI[where F = "\<lambda> v. {..< state_k v} \<times> 
     case False
     then have
       "map_rd ((=) v) (step_1_eager (xs @ [x]) (length xs) \<sigma>) = return_rd False"
-      unfolding step_1_eager_def' by (auto intro: reader_monad_eqI simp add:run_reader_simps Let_def)
+      unfolding step_1_eager_def' by (auto intro: reader_monad_eqI simp add: Let_def)
     then show ?thesis using depends_on_return by simp
   qed
 
@@ -303,7 +303,7 @@ proof -
     by (auto intro: bool_pmf_eqI simp add: pmf_map vimage_def power_le_one)
 
   also have "\<dots> = sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd)"
-    unfolding sample_def by (auto intro: map_pmf_cong simp add:run_reader_simps)
+    unfolding sample_def by (auto intro: map_pmf_cong)
 
   finally have step_1 :
     "sample (step_1_eager (xs@[x]) l \<sigma>) = step_1_lazy (xs@[x]) l \<sigma>"
@@ -330,9 +330,9 @@ proof -
     hence "inj_on (last_index_up_to l (xs @ [x])) (set (xs @ [x]))"
       unfolding last_index_up_to_def l_def
       by (smt (verit, del_insts) inf.absorb4 inf_min inj_on_cong last_index_less_size_conv length_append_singleton less_Suc_eq less_or_eq_imp_le min_def take_all_iff)
-    moreover have "inj (\<lambda>i. (state_k \<sigma>',i))" by (intro inj_onI) auto
-    ultimately have "inj_on ((\<lambda>i. (state_k \<sigma>',i)) \<circ> (last_index_up_to l (xs@[x]))) (set (xs@[x]))"
-      using inj_on_subset by (intro comp_inj_on) force+
+    moreover have "inj (\<lambda> i. (state_k \<sigma>', i))" by (intro inj_onI) auto
+    ultimately have "inj_on ((\<lambda> i. (state_k \<sigma>', i)) \<circ> (last_index_up_to l (xs@[x]))) (set (xs@[x]))"
+      using inj_on_subset by (intro comp_inj_on) fastforce+
     hence "inj_on ?f (set (xs@[x]))" unfolding comp_def by simp
     moreover have "state_chi \<sigma>' \<subseteq> set (xs@[x])" using assms(4) that by auto
     ultimately have c:"inj_on ?f (state_chi \<sigma>')" using inj_on_subset by blast
@@ -343,7 +343,7 @@ proof -
       (is "?L' = ?R'")
     proof- 
       have "?R' = map_pmf (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) space"
-        unfolding sample_def by (intro map_pmf_cong refl) (simp add:run_reader_simps)
+        unfolding sample_def by (auto intro: map_pmf_cong)
       also have "\<dots> = ?L'"
         unfolding space_def by (intro prod_pmf_reindex b c) auto
       finally show ?thesis by simp
@@ -374,8 +374,7 @@ lemma depends_on_step_approx :
 proof -
   have "state_k \<sigma>' = state_k \<sigma>"
     if "\<sigma>' \<in> set_pmf (sample (step_1_eager (xs @ [x]) l \<sigma>))" for \<sigma>'
-    using that by (simp add:step_1_eager_def sample_def)
-      (auto simp add:run_reader_simps)
+    using that by (auto simp add:step_1_eager_def sample_def)
 
   thus ?thesis unfolding step_eager_def
     by (intro depends_on_bind depends_on_mono[OF depends_on_step_1]
@@ -393,7 +392,7 @@ proof -
     fix w assume "w \<in> set_pmf (sample (step_1_eager (xs @ [x]) l \<sigma>))"
 
     then have "state_k \<sigma> = state_k w"
-      unfolding sample_def step_1_eager_def by (auto simp:run_reader_simps)
+      unfolding sample_def step_1_eager_def by auto 
 
     then show "depends_on (map_rd ((=) v) (step_2_eager (xs @ [x]) l w)) ?S"
       by (auto intro: depends_on_mono[OF depends_on_step_2_eq])
@@ -421,7 +420,7 @@ next
       "v \<in> set_pmf (sample (step_eager (xs @ [x]) (length xs) w))"
 
     hence a: "state_k w \<le> state_k v"
-      unfolding sample_def by (auto simp: run_reader_simps step_eager_def step_1_eager_def' step_2_eager_def')
+      unfolding sample_def by (auto simp: step_eager_def step_1_eager_def' step_2_eager_def')
 
     from a show "depends_on
       (map_rd ((=) w) (run_steps_eager xs initial_state))

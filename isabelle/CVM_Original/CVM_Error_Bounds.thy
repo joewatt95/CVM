@@ -230,24 +230,24 @@ lemma exists_index_threshold_exceeded_of_k_exceeds :
     (is \<open>?thesis' xs\<close>)
 using assms proof (induction xs rule: rev_induct)
   case Nil
-  then show ?case by (simp add: run_reader_simps initial_state_def)
+  then show ?case by (simp add: initial_state_def)
 next
   case (snoc x xs)
   let ?xs' = \<open>xs @ [x]\<close>
   show ?case
   proof (rule ccontr)
     assume \<open>\<not> ?thesis' ?xs'\<close>
-    then have not_thesis' :
-      \<open>\<forall> i < length ?xs'.
-        state_k (run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>) = l \<longrightarrow>
-        card (state_chi <| run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>)
-        < threshold\<close>
-      (is \<open>?not_thesis' (_ @ _)\<close>) by (simp add: not_le)
+    then have not_thesis' : \<open>\<And> i.
+      \<lbrakk>i < length ?xs';
+        state_k (run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>) = l\<rbrakk> \<Longrightarrow>
+      card (state_chi <| run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>)
+      < threshold\<close>
+      (is \<open>PROP ?not_thesis' (_ @ _)\<close>) by (simp add: not_le)
 
-    then have \<open>?not_thesis' xs\<close>
-      unfolding step_1_eager_def' initial_state_def
-      apply (simp add: run_reader_simps split: if_splits)
-      by (metis less_Suc_eq nth_append_left)
+    then have \<open>PROP ?not_thesis' _ xs\<close>
+      unfolding step_1_eager_def'
+      apply simp
+      by (smt (verit, best) less_SucI nth_append_left)
 
     with snoc.IH have
       \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
@@ -260,7 +260,7 @@ next
       then have \<open>?P (xs @ [x]) (\<le>)\<close>
         unfolding run_steps_eager_snoc
         unfolding step_eager_def step_1_eager_def' step_2_eager_def'
-        by (simp add: run_reader_simps)
+        by simp
 
       with snoc.prems show False by simp
     next
@@ -272,18 +272,147 @@ next
         = threshold\<close> (is \<open>?Q (=)\<close>)
         unfolding take_length_eq_self run_steps_eager_snoc
         unfolding step_eager_def step_1_eager_def' step_2_eager_def'
-        by (auto simp add: run_reader_simps split: if_splits)
+        by (auto split: if_splits)
 
       moreover from \<open>?P xs (=)\<close> not_thesis' have \<open>?Q (<)\<close>
         unfolding run_steps_eager_snoc
         unfolding step_1_eager_def'
-        apply (simp add: run_reader_simps split: if_splits)
-        by (metis append.right_neutral lessI nth_append_length take_length_eq_self)
+        apply simp
+        by (smt (verit, ccfv_threshold) append.right_neutral lessI nth_append_length take_length_eq_self)
 
       ultimately show False by simp
     qed
   qed
 qed
+
+theorem prob_eager_algo_k_gt_l_le :
+  assumes \<open>r \<ge> 2\<close> \<open>2 ^ l * threshold \<ge> r * card (set xs)\<close>
+  shows
+    \<open>\<P>(state in
+      run_with_bernoulli_matrix <| run_reader <<< flip run_steps_eager initial_state.
+      state_k state > l)
+    \<le> prob_k_gt_l_bound\<close>
+    (is \<open>?L \<le> _\<close>)
+proof (cases \<open>l > length xs\<close>)
+  case True
+  then have \<open>?L = 0\<close>
+    apply simp
+    sorry
+    (* using dual_order.strict_trans1
+    by (fastforce simp add: measure_pmf.prob_eq_0) *)
+  then show ?thesis by (simp add: prob_k_gt_l_bound_def) 
+next
+  case False
+  then have \<open>l \<le> length xs\<close> by simp
+
+  let ?exp_term = \<open>exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
+
+  (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
+    after running step_1_eager.
+    TODO: can this me made cleaner with only eager_algorithm? *)
+  have \<open>?L \<le>
+    \<P>(\<phi> in bernoulli_matrix (length xs) (length xs) f.
+      \<exists> i < length xs. (
+        let state = run_reader (run_steps_eager_then_step_1 i xs) \<phi>
+        in state_k state = l \<and> card (state_chi state) \<ge> threshold))\<close>
+    using exists_index_threshold_exceeded_of_k_exceeds
+    by (auto intro: pmf_mono simp add: Let_def)
+
+  (* union bound *)
+  also have \<open>\<dots> \<le> (
+    \<Sum> i < length xs.
+      \<P>(\<phi> in bernoulli_matrix (length xs) (length xs) f.
+        let state = run_reader (run_steps_eager_then_step_1 i xs) \<phi>
+        in state_k state = l \<and> card (state_chi state) \<ge> threshold))\<close>
+    proof -
+      have [simp] : \<open>{\<omega>. \<exists> i < n. P i \<omega>} = (\<Union> i < n. {\<omega>. P i \<omega>})\<close>
+        for n and P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> by blast
+      show ?thesis by (auto intro: measure_pmf.finite_measure_subadditive_finite)
+    qed
+
+  also have \<open>\<dots> \<le> (
+    \<Sum> i < length xs.
+      \<P>(chi in run_with_bernoulli_matrix <| nondet_algo l <<< take (Suc i).
+        card chi \<ge> threshold))\<close>
+    using eager_algo_inv \<open>l \<le> length xs\<close>
+    apply (intro sum_mono)
+    unfolding nondet_algo_def state_inv_def step_1_eager_def' Let_def
+    apply simp
+    apply (intro pmf_mono)
+    apply (auto simp add: not_le)
+    sorry
+    (* by (smt (verit, best) eager_algorithm_inv eager_state_inv_def step_1_eager_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174)) *)
+
+  also have \<open>\<dots> = (
+    \<Sum> i < length xs.
+      \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) (1 / 2 ^ l).
+        real estimate \<ge> threshold))\<close>
+    (is \<open>_ = sum ?prob _\<close>)
+    sorry
+    (* by (auto
+      intro: sum.cong
+      simp add:
+        map_pmf_nondet_algo_eq_binomial[
+          where m = \<open>length xs\<close> and n = \<open>length xs\<close>, symmetric]
+        \<open>l \<le> length xs\<close>) *)
+
+  also have \<open>\<dots> \<le> real (length xs) * ?exp_term\<close>
+  proof (rule sum_bounded_above[where A = \<open>{..< length xs}\<close>, simplified card_lessThan])
+    fix i show \<open>?prob i \<le> ?exp_term\<close>
+    proof (cases xs)
+      case Nil
+      then show ?thesis
+        by (simp add: binomial_pmf_0 threshold initial_state_def)
+    next
+      define p :: real and n \<mu> \<alpha> where
+        [simp] : \<open>p \<equiv> 1 / 2 ^ l\<close> and
+        \<open>n \<equiv> card (set <| take (Suc i) xs)\<close> and
+        [simp] : \<open>\<mu> \<equiv> n * p\<close> and
+        \<open>\<alpha> \<equiv> threshold / \<mu>\<close>
+
+      case (Cons _ _)
+      then have \<open>n \<ge> 1\<close> by (simp add: n_def leI)
+      then have \<open>\<alpha> \<ge> r\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
+        using
+          \<open>2 ^ l * threshold \<ge> r * (card <| set xs)\<close>
+          card_set_take_le_card_set[of "Suc i" xs]
+          of_nat_le_iff[of "r * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
+          mult_le_mono2[of "card (set (take (Suc i) xs))" "card (set xs)" r]
+          order.trans[of "r * card (set (take (Suc i) xs))" "r * card (set xs)" "threshold * 2 ^ l"]
+        by (auto simp add: \<alpha>_def n_def field_simps)
+
+      with binomial_distribution.chernoff_prob_ge[
+        of p \<open>\<alpha> - 1\<close> n, simplified binomial_distribution_def]
+      have \<open>?prob i \<le> exp (- real n * p * (\<alpha> - 1)\<^sup>2 / (2 + 2 * (\<alpha> - 1) / 3))\<close>
+        using \<open>r \<ge> 2\<close> by (simp add: n_def algebra_simps)
+
+      also have \<open>\<dots> \<le> ?exp_term\<close>
+      proof -
+        have
+          \<open>c * (27*\<alpha>\<^sup>2*r - 24*\<alpha>*r\<^sup>2 - 6*\<alpha>*r - 6*\<alpha>\<^sup>2 + 6*r\<^sup>2 - 12*\<alpha> + 15*r) \<ge> 0\<close>
+          if \<open>c \<ge> 0\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> for c r :: real
+          apply (rule mult_nonneg_nonneg[OF \<open>c \<ge> 0\<close>])
+          using that by sos
+
+        note this[of \<open>2 ^ l * real n\<close> r]
+
+        moreover have \<open>4 * 2 ^ l + \<alpha> * (2 * 2 ^ l) > 0\<close>
+          using \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> by (simp add: pos_add_strict)
+
+        ultimately show ?thesis
+          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close>
+          by (auto simp add:
+            field_split_simps power_numeral_reduce add_increasing less_le_not_le
+            Multiseries_Expansion.of_nat_diff_real)
+      qed
+
+      finally show ?thesis .
+    qed
+  qed
+
+  finally show ?thesis unfolding prob_k_gt_l_bound_def .
+qed
+
 
 end
 
