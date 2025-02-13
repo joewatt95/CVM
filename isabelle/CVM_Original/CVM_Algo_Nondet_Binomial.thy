@@ -36,7 +36,7 @@ lemma step_2_eager_inv :
   using assms
   unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
   apply simp
-  by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min_def min_less_iff_conj not_less_simps(2))
+  by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min.absorb4 min_def min_less_iff_conj)
 
 lemma step_eager_inv :
   assumes \<open>i < length xs\<close> \<open>state_inv (take i xs) \<phi> state\<close>
@@ -58,13 +58,15 @@ next
     by (smt (verit, del_insts) append_eq_append_conv_if append_eq_conv_conj length_append_singleton lessI run_reader_simps(3) run_steps_eager_snoc)
 qed
 
-theorem prob_eager_algo_le_nondet_algo_aux :
-  \<open>\<P>(bool_matrix in measure_pmf rand_bool_matrix.
-    let state = run_reader (run_steps_eager xs initial_state) bool_matrix
-    in state_k state = k \<and> P (state_chi state))
-  \<le> \<P>(bool_matrix in measure_pmf rand_bool_matrix.
-      P (nondet_algo k xs bool_matrix))\<close>
-  by (smt (verit, ccfv_SIG) eager_algo_inv mem_Collect_eq pmf_mono state_inv_def)
+theorem prob_eager_algo_le_nondet_algo :
+  assumes \<open>\<turnstile>rd \<lbrakk>state_inv xs\<rbrakk> g \<lbrakk>state_inv xs\<rbrakk>\<close>
+  shows
+    \<open>\<P>(\<phi>' in measure_pmf \<phi>.
+      let state = run_reader (run_steps_eager xs initial_state \<bind> g) \<phi>'
+      in state_k state = k \<and> P (state_chi state))
+    \<le> \<P>(\<phi>' in measure_pmf \<phi>. P (nondet_algo k xs \<phi>'))\<close>
+  using assms eager_algo_inv
+  by (smt (verit, ccfv_threshold) mem_Collect_eq pmf_mono run_reader_simps(3) state_inv_def)
 
 context
   fixes xs and m n k :: nat
@@ -137,14 +139,29 @@ proof -
 qed
 
 corollary prob_eager_algo_le_binomial :
-  \<open>\<P>(bool_matrix in bernoulli_matrix m n f.
-    let state = run_reader (run_steps_eager xs initial_state) bool_matrix
+  \<open>\<P>(\<phi> in bernoulli_matrix m n f.
+    let state = run_reader (run_steps_eager xs initial_state) \<phi>
     in state_k state = k \<and> P (card <| state_chi state))
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
-  using prob_eager_algo_le_nondet_algo_aux
-  by (simp flip: map_pmf_nondet_algo_eq_binomial)
+  using prob_eager_algo_le_nondet_algo eager_algo_inv
+  by (fastforce simp flip: map_pmf_nondet_algo_eq_binomial)
 
 end
+
+abbreviation
+  \<open>run_steps_eager_then_step_1 \<equiv> \<lambda> i xs.
+    run_steps_eager (take i xs) initial_state \<bind> step_1_eager xs i\<close>
+
+corollary prob_eager_algo_then_step_1_le_binomial :
+  assumes \<open>i < length xs\<close> \<open>length xs \<le> n\<close> \<open>k \<le> m\<close>
+  shows
+    \<open>\<P>(\<phi> in bernoulli_matrix m n f.
+      let state = run_reader (run_steps_eager_then_step_1 i xs) \<phi>
+      in state_k state = k \<and> P (card <| state_chi state))
+    \<le> \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) <| f ^ k. P estimate)\<close>
+  using assms prob_eager_algo_le_nondet_algo[where P = \<open>P <<< card\<close>]
+  apply (simp flip: map_pmf_nondet_algo_eq_binomial[where m = m and n = n] add: Let_def)
+  by (smt (verit, ccfv_threshold) eager_algo_inv length_take mem_Collect_eq min.absorb4 pmf_mono state_inv_def step_1_eager_inv)
 
 end
 

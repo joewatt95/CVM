@@ -78,7 +78,7 @@ proof (cases xs)
     unfolding
       compute_estimate_def prob_k_le_l_and_est_out_of_range_bound_def
       initial_state_def
-    by (simp add: run_reader_simps)
+    by simp
 next
   case (Cons _ _)
 
@@ -214,11 +214,9 @@ next
   finally show ?thesis unfolding prob_k_le_l_and_est_out_of_range_bound_def .
 qed
 
-subsection \<open>Proof for k > l case.\<close>
+end
 
-abbreviation
-  \<open>run_steps_eager_then_step_1 \<equiv> \<lambda> i xs.
-    run_steps_eager (take i xs) initial_state \<bind> step_1_eager xs i\<close>
+subsection \<open>Proof for k > l case.\<close>
 
 lemma exists_index_threshold_exceeded_of_k_exceeds :
   assumes \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) > l\<close>
@@ -233,16 +231,16 @@ using assms proof (induction xs rule: rev_induct)
   then show ?case by (simp add: initial_state_def)
 next
   case (snoc x xs)
-  let ?xs' = \<open>xs @ [x]\<close>
   show ?case
   proof (rule ccontr)
+    let ?xs' = \<open>xs @ [x]\<close>
     assume \<open>\<not> ?thesis' ?xs'\<close>
     then have not_thesis' : \<open>\<And> i.
       \<lbrakk>i < length ?xs';
         state_k (run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>) = l\<rbrakk> \<Longrightarrow>
       card (state_chi <| run_reader (run_steps_eager_then_step_1 i ?xs') \<phi>)
       < threshold\<close>
-      (is \<open>PROP ?not_thesis' (_ @ _)\<close>) by (simp add: not_le)
+      (is \<open>PROP ?not_thesis' (_ :: _ list)\<close>) by (simp add: not_le)
 
     then have \<open>PROP ?not_thesis' _ xs\<close>
       unfolding step_1_eager_def'
@@ -285,6 +283,31 @@ next
   qed
 qed
 
+lemma
+  defines [simp] : \<open>state_k_bounded \<equiv> \<lambda> idx \<phi> state. state_k state \<le> idx\<close>
+  shows 
+    initial_state_k_bounded : \<open>\<And> idx.
+      state_k_bounded idx \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
+
+    step_eager_k_bounded : \<open>\<And> idx x. \<turnstile>rd
+      \<lbrakk>(\<lambda> \<phi> state.
+        (idx, x) \<in> set (List.enumerate 0 [0 ..< length xs]) \<and>
+        state_k_bounded idx \<phi> state)\<rbrakk>
+      step_eager xs x
+      \<lbrakk>state_k_bounded (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_1\<close>) and
+
+    run_steps_eager_k_bounded : \<open>\<turnstile>rd
+      \<lbrakk>state_k_bounded 0\<rbrakk>
+      (run_steps_eager xs)
+      \<lbrakk>state_k_bounded (length xs)\<rbrakk>\<close> (is \<open>PROP ?thesis_2\<close>)
+proof -
+  show \<open>PROP ?thesis_0\<close> by (simp add: initial_state_def)
+  show \<open>PROP ?thesis_1\<close>
+    unfolding step_eager_def step_1_eager_def' step_2_eager_def' by simp
+  with loop[where offset = 0 and P = state_k_bounded and f = \<open>step_eager xs\<close>]
+  show \<open>PROP ?thesis_2\<close> by fastforce
+qed
+
 theorem prob_eager_algo_k_gt_l_le :
   assumes \<open>r \<ge> 2\<close> \<open>2 ^ l * threshold \<ge> r * card (set xs)\<close>
   shows
@@ -295,11 +318,10 @@ theorem prob_eager_algo_k_gt_l_le :
     (is \<open>?L \<le> _\<close>)
 proof (cases \<open>l > length xs\<close>)
   case True
-  then have \<open>?L = 0\<close>
-    apply simp
-    sorry
-    (* using dual_order.strict_trans1
-    by (fastforce simp add: measure_pmf.prob_eq_0) *)
+  with initial_state_k_bounded run_steps_eager_k_bounded
+  have \<open>?L = 0\<close>
+    apply (simp add: measure_pmf.prob_eq_0 AE_measure_pmf_iff not_less)
+    by (meson basic_trans_rules(23) bot_nat_0.extremum_unique leD nat_le_linear)
   then show ?thesis by (simp add: prob_k_gt_l_bound_def) 
 next
   case False
@@ -307,15 +329,12 @@ next
 
   let ?exp_term = \<open>exp (-3 * real threshold * (r - 1)\<^sup>2 / (5 * r + 2 * r\<^sup>2))\<close>
 
-  (* We exceed l iff we hit a state where k = l, |X| \<ge> threshold
-    after running step_1_eager.
-    TODO: can this me made cleaner with only eager_algorithm? *)
+  from exists_index_threshold_exceeded_of_k_exceeds
   have \<open>?L \<le>
     \<P>(\<phi> in bernoulli_matrix (length xs) (length xs) f.
       \<exists> i < length xs. (
         let state = run_reader (run_steps_eager_then_step_1 i xs) \<phi>
         in state_k state = l \<and> card (state_chi state) \<ge> threshold))\<close>
-    using exists_index_threshold_exceeded_of_k_exceeds
     by (auto intro: pmf_mono simp add: Let_def)
 
   (* union bound *)
@@ -332,32 +351,15 @@ next
 
   also have \<open>\<dots> \<le> (
     \<Sum> i < length xs.
-      \<P>(chi in run_with_bernoulli_matrix <| nondet_algo l <<< take (Suc i).
-        card chi \<ge> threshold))\<close>
-    using eager_algo_inv \<open>l \<le> length xs\<close>
-    apply (intro sum_mono)
-    unfolding nondet_algo_def state_inv_def step_1_eager_def' Let_def
-    apply simp
-    apply (intro pmf_mono)
-    apply (auto simp add: not_le)
-    sorry
-    (* by (smt (verit, best) eager_algorithm_inv eager_state_inv_def step_1_eager_inv mem_Collect_eq pmf_mono run_reader_simps(3) semiring_norm(174)) *)
-
-  also have \<open>\<dots> = (
-    \<Sum> i < length xs.
       \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) (1 / 2 ^ l).
-        real estimate \<ge> threshold))\<close>
-    (is \<open>_ = sum ?prob _\<close>)
-    sorry
-    (* by (auto
-      intro: sum.cong
-      simp add:
-        map_pmf_nondet_algo_eq_binomial[
-          where m = \<open>length xs\<close> and n = \<open>length xs\<close>, symmetric]
-        \<open>l \<le> length xs\<close>) *)
+        estimate \<ge> threshold))\<close>
+    (is \<open>_ \<le> (\<Sum> i < _. ?prob i)\<close>)
+    using
+      prob_eager_algo_then_step_1_le_binomial[where xs = xs] \<open>l \<le> length xs\<close>
+    by (auto intro: sum_mono simp add: field_simps)
 
   also have \<open>\<dots> \<le> real (length xs) * ?exp_term\<close>
-  proof (rule sum_bounded_above[where A = \<open>{..< length xs}\<close>, simplified card_lessThan])
+  proof (intro sum_bounded_above[where A = \<open>{..< length xs}\<close>, simplified card_lessThan])
     fix i show \<open>?prob i \<le> ?exp_term\<close>
     proof (cases xs)
       case Nil
@@ -384,7 +386,9 @@ next
       with binomial_distribution.chernoff_prob_ge[
         of p \<open>\<alpha> - 1\<close> n, simplified binomial_distribution_def]
       have \<open>?prob i \<le> exp (- real n * p * (\<alpha> - 1)\<^sup>2 / (2 + 2 * (\<alpha> - 1) / 3))\<close>
-        using \<open>r \<ge> 2\<close> by (simp add: n_def algebra_simps)
+        using \<open>r \<ge> 2\<close>
+        apply (simp add: n_def field_simps)
+        sorry
 
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
@@ -412,7 +416,6 @@ next
 
   finally show ?thesis unfolding prob_k_gt_l_bound_def .
 qed
-
 
 end
 
