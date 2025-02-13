@@ -352,7 +352,7 @@ next
   also have \<open>\<dots> \<le> (
     \<Sum> i < length xs.
       \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) (1 / 2 ^ l).
-        estimate \<ge> threshold))\<close>
+        real estimate \<ge> real threshold))\<close>
     (is \<open>_ \<le> (\<Sum> i < _. ?prob i)\<close>)
     using
       prob_eager_algo_then_step_1_le_binomial[where xs = xs] \<open>l \<le> length xs\<close>
@@ -386,9 +386,7 @@ next
       with binomial_distribution.chernoff_prob_ge[
         of p \<open>\<alpha> - 1\<close> n, simplified binomial_distribution_def]
       have \<open>?prob i \<le> exp (- real n * p * (\<alpha> - 1)\<^sup>2 / (2 + 2 * (\<alpha> - 1) / 3))\<close>
-        using \<open>r \<ge> 2\<close>
-        apply (simp add: n_def field_simps)
-        sorry
+        using \<open>r \<ge> 2\<close> by (simp add: n_def algebra_simps)
 
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
