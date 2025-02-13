@@ -7,6 +7,9 @@ imports
 
 begin
 
+lemmas pmf_mono_Collect =
+  pmf_mono[where P = \<open>Collect _\<close> and Q = \<open>Collect _\<close>, simplified]
+
 lemma integrable_measure_pmf_pmf [simp] :
   \<open>integrable (measure_pmf p) <| \<lambda> x. pmf (f x) y\<close>
   apply (intro measure_pmf.integrable_const_bound[where B = 1])
@@ -20,7 +23,6 @@ lemma map_pmf_times_one [simp] :
   fixes p :: \<open>nat pmf\<close>
   shows \<open>map_pmf ((*) <| Suc 0) p = p\<close>
   by (simp add: pmf.map_ident_strong)
-
 
 lemma prod_pmf_reindex :
   assumes "finite T" "f ` S \<subseteq> T" "inj_on f S"
