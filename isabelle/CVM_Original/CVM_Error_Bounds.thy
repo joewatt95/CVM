@@ -287,12 +287,11 @@ lemma
     initial_state_k_bounded : \<open>\<And> idx.
       state_k_bounded idx \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
 
-    step_eager_k_bounded : \<open>\<And> idx x. \<turnstile>rd
-      \<lbrakk>(\<lambda> \<phi> state.
-        (idx, x) \<in> set (List.enumerate 0 [0 ..< length xs]) \<and>
-        state_k_bounded idx \<phi> state)\<rbrakk>
-      step_eager xs x
-      \<lbrakk>state_k_bounded (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_1\<close>) and
+    step_eager_k_bounded : \<open>\<And> idx.
+      idx < length xs \<Longrightarrow> \<turnstile>rd
+        \<lbrakk>state_k_bounded idx\<rbrakk>
+        step_eager xs idx
+        \<lbrakk>state_k_bounded (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_1\<close>) and
 
     run_steps_eager_k_bounded : \<open>\<turnstile>rd
       \<lbrakk>state_k_bounded 0\<rbrakk>
@@ -303,7 +302,9 @@ proof -
   show \<open>PROP ?thesis_1\<close>
     unfolding step_eager_def step_1_eager_def' step_2_eager_def' by simp
   with loop[where offset = 0 and P = state_k_bounded and f = \<open>step_eager xs\<close>]
-  show \<open>PROP ?thesis_2\<close> by fastforce
+  show \<open>PROP ?thesis_2\<close>
+    apply (simp add: in_set_enumerate_eq)
+    by (metis (no_types, lifting) One_nat_def le_simps(2) length_upt not_less_eq nth_upt plus_1_eq_Suc semiring_norm(163) verit_minus_simplify(2))
 qed
 
 theorem prob_eager_algo_k_gt_l_le :

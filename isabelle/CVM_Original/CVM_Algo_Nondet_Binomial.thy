@@ -8,87 +8,68 @@ imports
 begin
 
 definition nondet_algo ::
-  \<open>nat \<Rightarrow> 'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a set\<close> where
-  \<open>nondet_algo \<equiv> \<lambda> k xs \<phi>.
+  \<open>'a list \<Rightarrow> nat \<Rightarrow> coin_matrix \<Rightarrow> 'a set\<close> where
+  \<open>nondet_algo \<equiv> \<lambda> xs k \<phi>.
     {x \<in> set xs. \<forall> k' < k. curry \<phi> k' (last_index xs x)}\<close>
 
 definition state_inv ::
   \<open>'a list \<Rightarrow> coin_matrix \<Rightarrow> 'a state \<Rightarrow> bool\<close> where
   \<open>state_inv \<equiv> \<lambda> xs \<phi> state.
-    state_chi state = nondet_algo (state_k state) xs \<phi>\<close>
+    state_chi state = nondet_algo xs (state_k state) \<phi>\<close>
 
 lemmas state_inv_def' =
   state_inv_def[simplified nondet_algo_def set_eq_iff, simplified]
 
-abbreviation \<open>state_inv_take \<equiv> \<lambda> i. state_inv <<< take i\<close>
+abbreviation \<open>state_inv_take \<equiv> flip (\<lambda> i. state_inv <<< take i)\<close>
 
 context cvm_algo_assms
 begin
 
-lemma step_1_eager_inv :
-  assumes \<open>i < length xs\<close> \<open>state_inv (take i xs) \<phi> state\<close>
-  shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_1_eager xs i state) \<phi>)\<close>
-  using assms
-  unfolding step_1_eager_def' state_inv_def'
-  by (simp add: take_Suc_conv_app_nth)
+lemma
+  initial_state_inv : \<open>\<And> xs \<phi>.
+    state_inv_take xs 0 \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
 
-lemma step_2_eager_inv :
-  assumes \<open>i < length xs\<close> \<open>state_inv (take (Suc i) xs) \<phi> state\<close>
-  shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_2_eager xs i state) \<phi>)\<close>
-  using assms
-  unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
-  apply simp
-  by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min.absorb4 min_def min_less_iff_conj)
+  step_1_eager_inv : \<open>\<And> idx.
+    idx < length xs \<Longrightarrow> \<turnstile>rd
+      \<lbrakk>state_inv_take xs idx\<rbrakk>
+      step_1_eager xs idx
+      \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_1\<close>) and
 
-lemma step_eager_inv :
-  assumes \<open>i < length xs\<close> \<open>state_inv (take i xs) \<phi> state\<close>
-  shows \<open>state_inv (take (Suc i) xs) \<phi> (run_reader (step_eager xs i state) \<phi>)\<close>
-  unfolding step_eager_def
-  using assms step_1_eager_inv step_2_eager_inv 
-  by fastforce
-
-lemma eager_algo_inv :
-  \<open>state_inv xs \<phi> <| run_reader (run_steps_eager xs initial_state) \<phi>\<close>
-proof (induction xs rule: rev_induct)
-  case Nil
-  then show ?case
-    unfolding state_inv_def' initial_state_def
-    by simp
-next
-  case (snoc _ _)
-  with step_eager_inv show ?case
-    by (smt (verit, del_insts) append_eq_append_conv_if append_eq_conv_conj length_append_singleton lessI run_reader_simps(3) run_steps_eager_snoc)
-qed
-
-lemma test :
-  \<open>\<turnstile>rd
-    \<lbrakk>(\<lambda> \<phi> state.
-      (idx, x) \<in> set (List.enumerate 0 [0 ..< length xs]) \<and>
-      state_inv_take idx xs \<phi> state)\<rbrakk>
-    step_1_eager xs idx
-    \<lbrakk>state_inv_take (Suc idx) xs\<rbrakk>\<close>
-  unfolding step_1_eager_def' state_inv_def'
-  by (simp add: in_set_enumerate_eq take_Suc_conv_app_nth)
-
-lemma test' :
-  \<open>\<turnstile>rd
-    \<lbrakk>(\<lambda> \<phi> state.
-      state_inv_take (Suc idx) xs \<phi> state)\<rbrakk>
+  step_2_eager_inv : \<open>\<And> idx. \<turnstile>rd
+    \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>
     step_2_eager xs idx
-    \<lbrakk>state_inv_take (Suc idx) xs\<rbrakk>\<close>
-  unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
-  apply simp
-  sorry
+    \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_2\<close>) and
 
-theorem prob_eager_algo_le_nondet_algo :
-  assumes \<open>\<turnstile>rd \<lbrakk>state_inv xs\<rbrakk> g \<lbrakk>state_inv xs\<rbrakk>\<close>
-  shows
-    \<open>\<P>(\<phi>' in measure_pmf \<phi>.
-      let state = run_reader (run_steps_eager xs initial_state \<bind> g) \<phi>'
-      in state_k state = k \<and> P (state_chi state))
-    \<le> \<P>(\<phi>' in measure_pmf \<phi>. P (nondet_algo k xs \<phi>'))\<close>
-  using assms eager_algo_inv
-  by (smt (verit, ccfv_threshold) mem_Collect_eq pmf_mono run_reader_simps(3) state_inv_def)
+  step_eager_inv : \<open>\<And> idx x.
+    idx < length xs \<Longrightarrow> \<turnstile>rd
+      \<lbrakk>state_inv_take xs idx\<rbrakk>
+      step_eager xs idx
+      \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_3\<close>) and
+
+  run_steps_eager_inv : \<open>\<turnstile>rd
+    \<lbrakk>state_inv_take xs 0\<rbrakk>
+    run_steps_eager xs
+    \<lbrakk>state_inv_take xs (length xs)\<rbrakk>\<close> (is \<open>PROP ?thesis_4\<close>)
+proof -
+  show \<open>PROP ?thesis_0\<close> by (simp add: state_inv_def' initial_state_def)
+  
+  show \<open>PROP ?thesis_1\<close>
+    unfolding step_1_eager_def' state_inv_def'
+    by (simp add: take_Suc_conv_app_nth)
+
+  moreover show \<open>PROP ?thesis_2\<close>
+    unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
+    apply simp
+    by (smt (z3) dual_order.strict_trans2 last_index_less_size_conv length_take less_SucE less_SucI less_Suc_eq_le min.cobounded2 min_absorb2 min_def)
+  
+  ultimately show \<open>PROP ?thesis_3\<close>
+    unfolding step_eager_def by (fastforce simp add: in_set_enumerate_eq)
+  
+  with loop[where
+    offset = 0 and P = \<open>state_inv_take xs\<close> and f = \<open>step_eager xs\<close> and
+    xs = \<open>[0 ..< length xs]\<close>]
+  show \<open>PROP ?thesis_4\<close> by (simp add: in_set_enumerate_eq)
+qed
 
 context
   fixes xs and m n k :: nat
@@ -96,7 +77,7 @@ context
 begin
 
 lemma map_pmf_nondet_algo_eq :
-  \<open>map_pmf (nondet_algo k xs)
+  \<open>map_pmf (nondet_algo xs k)
     (bernoulli_matrix m n f) =
   map_pmf (\<lambda> P. {x \<in> set xs. P x})
     (prod_pmf (set xs) \<lblot>bernoulli_pmf <| f ^ k\<rblot>)\<close>
@@ -107,7 +88,7 @@ proof -
 
   have \<open>?L =
     map_pmf
-      (\<lambda> \<phi>. nondet_algo k xs (\<lambda> (x, y) \<in> ?m' \<times> ?n'. \<phi> y x))
+      (\<lambda> \<phi>. nondet_algo xs k (\<lambda> (x, y) \<in> ?m' \<times> ?n'. \<phi> y x))
       (?M ?n')\<close>
     unfolding bernoulli_matrix_eq_uncurry_prod
     apply (subst prod_pmf_swap_uncurried)
@@ -146,11 +127,11 @@ proof -
 qed
 
 theorem map_pmf_nondet_algo_eq_binomial :
-  \<open>map_pmf (card <<< nondet_algo k xs) (bernoulli_matrix m n f) =
+  \<open>map_pmf (card <<< nondet_algo xs k) (bernoulli_matrix m n f) =
     binomial_pmf (card <| set xs) (f ^ k)\<close>
   (is \<open>map_pmf (?card_nondet_algo _ _) _ = _\<close>)
 proof -
-  let ?go = \<open>\<lambda> g. map_pmf (g k xs) (bernoulli_matrix m n f)\<close>
+  let ?go = \<open>\<lambda> g. map_pmf (g xs k) (bernoulli_matrix m n f)\<close>
 
   have \<open>?go ?card_nondet_algo = map_pmf card (?go nondet_algo)\<close>
     by (simp add: map_pmf_comp)
@@ -165,8 +146,9 @@ corollary prob_eager_algo_le_binomial :
     let state = run_reader (run_steps_eager xs initial_state) \<phi>
     in state_k state = k \<and> P (card <| state_chi state))
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
-  using prob_eager_algo_le_nondet_algo eager_algo_inv
-  by (fastforce simp flip: map_pmf_nondet_algo_eq_binomial)
+  using initial_state_inv run_steps_eager_inv 
+  apply (simp flip: map_pmf_nondet_algo_eq_binomial)
+  by (smt (verit, ccfv_threshold) initial_state_inv less_or_eq_imp_le mem_Collect_eq pmf_mono run_steps_eager_inv state_inv_def take_all_iff)
 
 end
 
@@ -182,9 +164,10 @@ corollary prob_eager_algo_then_step_1_le_binomial :
       in state_k state = k \<and> P (card <| state_chi state))
     \<le> \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) <| f ^ k.
         P estimate)\<close>
-  using assms prob_eager_algo_le_nondet_algo[where P = \<open>P <<< card\<close>]
-  apply (simp flip: map_pmf_nondet_algo_eq_binomial[where m = m and n = n] add: Let_def)
-  by (smt (verit, ccfv_threshold) eager_algo_inv length_take mem_Collect_eq min.absorb4 pmf_mono state_inv_def step_1_eager_inv)
+  using assms
+  apply (simp flip: map_pmf_nondet_algo_eq_binomial[where m = m and n = n])
+  by (smt (verit, best) cvm_algo_assms.step_1_eager_inv cvm_algo_assms_axioms initial_state_inv length_take less_or_eq_imp_le mem_Collect_eq min.absorb4 pmf_mono run_steps_eager_inv state_inv_def
+    take_all_iff)
 
 end
 
