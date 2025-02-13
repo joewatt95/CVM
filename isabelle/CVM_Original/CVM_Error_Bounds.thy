@@ -159,7 +159,7 @@ next
     unfolding
       sum_distrib_left
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
-    apply (intro sum.reindex_bij_witness[of _ floor_log \<open>power 2\<close>])
+    apply (intro sum.reindex_bij_witness[of _ floor_log \<open>(^) 2\<close>])
     by (auto
       simp flip: exp_of_nat_mult exp_add
       simp add: exp_powr_real field_split_simps)
@@ -185,8 +185,7 @@ next
     have
       \<open>2 * x / (1 - x) \<le> 4 * y\<close>
       if \<open>0 \<le> x\<close> \<open>x \<le> y\<close> \<open>y \<le> 1 / 2\<close> for x y :: real
-      using that
-      by (sos "((((A<0 * A<1) * R<1) + (((A<=1 * (A<0 * R<1)) * (R<4 * [1]^2)) + ((A<=0 * (A<=2 * (A<0 * R<1))) * (R<2 * [1]^2)))))")
+      using that by sos
 
     then show ?thesis when
       \<open>?exp_term l \<le> ?exp_bound\<close> (is ?thesis_0)
@@ -196,14 +195,13 @@ next
     from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> \<open>\<epsilon> > 0\<close> r_pos threshold
     show ?thesis_0
       by (auto
-        intro!: add_mono
+        intro: add_mono
         simp add: field_split_simps pos_add_strict approximation_preproc_nat(13))
 
     from \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> have
       \<open>4 * r * (1 + 1 * \<epsilon> / 3) \<le> \<epsilon>\<^sup>2 * threshold\<close>
       if \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>r \<ge> 1\<close> for r threshold
-      using that
-      by (sos "((R<1 + (((A<1 * R<1) * (R<3/2 * [1]^2)) + (((A<=2 * R<1) * (R<1 * [1]^2)) + (((A<=1 * R<1) * (R<3/2 * [1]^2)) + (((A<=0 * R<1) * (R<2 * [1]^2)) + ((A<=0 * (A<=2 * R<1)) * (R<2 * [1]^2))))))))")
+      using that by sos
 
     with \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>\<epsilon> > 0\<close> r_pos
     have \<open>?exp_bound \<le> exp (- 1)\<close> by simp
