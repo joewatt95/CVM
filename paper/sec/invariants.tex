@@ -2,7 +2,7 @@
 In this section, we will derive our new technique using \cref{alg:cvm} as an example.
 Let us start by briefly reviewing the algorithm---its state is a buffer $\chi$ (initially empty) and a fraction $p > 0$ (initially set to $1$).
 The buffer contains a subset of the elements of the stream encountered so far, with maximal size $n$ chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
-The algorithm iterates over the stream elements, adding each one to the buffer with probability $p$ or conversely---if the current stream element is already in the buffer---removing them with probability $(1-p)$.
+The algorithm iterates over the stream elements, adding each one to the buffer with probability $p$ or conversely---if the current stream element is already in the buffer---removing it with probability $(1-p)$.
 If the number of elements in the buffer reaches the maximal size $n$, the subsampling operation is executed, which discards each element in $\chi$ independently with probability $\frac{1}{2}$; then, $p$ is adjusted to reflect the fact that the buffer now contains each element with probability $p_\text{new} = \frac{p_\text{old}}{2}$.
 If the subsampling operation fails, i.e., if no elements get discarded, then the algorithm fails returing $\bot$.
 After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as a probably-approximately correct value for the number of distinct elements in the stream.
@@ -18,8 +18,8 @@ Let us consider the random variables $X_s := \indicat(s \in \chi)$ indicating th
 Before the algorithm encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far.
 In particular $\chi \subseteq \{a_1,..,a_m\}$ after loop iteration $m$.
 
-In the loop iteration where $s$ occurs the first time, it will be inserted with a probability $p$ in lines 3--7.
-This means, after line 7, we have:
+In the loop iteration where $s$ occurs the first time, it will be inserted with a probability $p$ in Lines 3--7.
+This means, after Line 7, we have:
 \begin{equation}
   \label{eq:indicator_eq}
   \expect [p^{-1} X_s] = 1 \textrm{.}
@@ -28,7 +28,8 @@ Interestingly, the equation is preserved for the rest of the algorithm.
 For example, let us consider a subsampling step: each $s$ is independently discarded with probability $\frac{1}{2}$ so $\prob(X_s=1)$ is halved, but so will $p$, which preserves the equation.
 
 Let us see how we can verify \cref{eq:indicator_eq} more formally.
-For that, we model the state of the algorithm as a pair $(\chi,p)$, so the algorithm computes a distribution over the random variables $\chi$ and $p$.
+For that, we model the state of the algorithm as a pair $(\chi,p)$.
+Note that this means $\chi$ and $p$ are random variables on the distribution of the state of the algorithm. 
 %For that, let us describe the states of the algorithm using pairs composed of a subset of $A$ representing the buffer $\chi$ and a real number representing $p$.
 %Note that, this means $p$ and $\chi$ are random variables, with respect to distributions of the state of the algorithm.
 We will refer to parts of each loop iteration in \cref{alg:cvm} as $\mathrm{step}_1$ (resp.~$\mathrm{step}_2$) for lines 3--7 (resp.~lines 8--10).
@@ -40,7 +41,7 @@ where we parameterize $\mathrm{step}_1$ with the stream element that it processe
 The term $\mathrm{init}$ represents the initial state, i.e., $\mathrm{init} = \mathrm{\bf return} (\{\},1)$.
 It is easy to show by induction over the sequence of steps, we will have have $0 < p \leq 1$ and $\chi \subseteq A$.
 
-Similarly, let us verify that~\cref{eq:indicator_eq} is preserved as an invariant over all steps.
+Let us verify that~\cref{eq:indicator_eq} is preserved as an invariant over all steps.
 To verify that $\mathrm{step}_1\, a$ preserves \cref{eq:indicator_eq}, i.e., we assume some probability space of states $\Omega$ fulfills \cref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$.
 \[
   \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a} [ p^{-1} X_s ] =
@@ -71,8 +72,8 @@ However, these are not directly useful in the CVM algorithm because the key rand
 
 An alternative is the Cram\'{e}r--Chernoff method, which is a general method to obtain tail bounds for any random variable.
 It can be stated simply as $P(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t) := \expect [\exp(t X)]$ is the moment generating function of $X$.
-Note that the moment generating function is sometimes only defined for some values of $t$ (when the corresponding integral exists), and this is typically an interval including $0$; the inequality is only applicable wherever $M(t)$ is defined.
-Since the probability space representing the state of the CVM algorithm is finite, $M(t)$ will always be defined in our case.
+%\footnote{The moment generating function is sometimes only defined for some values of $t$ (when the corresponding integral exists), and this is typically an interval including $0$; the inequality is only applicable wherever $M(t)$ is defined.}
+%Since the probability space representing the state of the CVM algorithm is finite, $M(t)$ will always be defined in our case.
 It is also possible to obtain lower tail bounds $P(X \leq a)$ using Cram\'{e}r--Chernoff method, which just requires estimates for $M(t)$ for $t < 0$, instead of $t > 0$.
 
 In our case, we are interested in estimating the moment generating function of the random variable $p^{-1} |\chi|$ for the CVM algorithm:
@@ -81,7 +82,7 @@ In our case, we are interested in estimating the moment generating function of t
 \]
 for $h(x) = \exp(tx)$.
 At this point, it is tempting to see whether the proof for \cref{eq:indicator_eq} can be extended to establish bounds for the above.
-A generalized invariant is the following:
+We could establish the following result:
 \[
   \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|}
 \]
