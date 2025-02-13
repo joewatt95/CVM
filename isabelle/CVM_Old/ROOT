@@ -1,45 +1,4 @@
-session Negative_Association in "Negative_Association" = "HOL-Probability" +
-  options [timeout = 1200]
-
-  sessions
-    Concentration_Inequalities
-    Birkhoff_Finite_Distributive_Lattices
-    Twelvefold_Way
-    Weighted_Arithmetic_Geometric_Mean
-    Executable_Randomized_Algorithms
-    Universal_Hash_Families
-
-  theories
-    Negative_Association_Util
-    Negative_Association_Definition
-    Negative_Association_Chernoff_Bounds
-    Negative_Association_FKG_Inequality
-    Negative_Association_More_Lattices
-    Negative_Association_Permutation_Distributions
-    Negative_Association_Bloom_Filters
-
-  document_files
-    "root.tex"
-    "root.bib"
-
-session CVM_Subsample in "CVM_Subsample" = "Negative_Association" +
-  options [timeout = 1200]
-
-  sessions
-    Probabilistic_Prime_Tests
-
-  theories
-    CVM_Preliminary
-    CVM_Abstract_Algorithm
-    CVM_Original_Algorithm
-    CVM_New_Unbiased_Algorithm
-
-  document_files
-    "root.tex"
-    "root.bib"
-    "appendix.tex"
-
-session CVM_Old in "CVM_Old" = "CryptHOL" +
+session CVM_Old = "CryptHOL" +
   options [timeout = 1200]
 
   sessions
@@ -114,39 +73,3 @@ session CVM_Old in "CVM_Old" = "CryptHOL" +
 
   document_files
     "root.tex"
-
-session CVM_Original in "CVM_Original" = "CryptHOL" +
-  options [timeout = 1200]
-
-  sessions
-    "List-Index"
-    Universal_Hash_Families
-    Finite_Fields
-    Concentration_Inequalities
-    ABY3_Protocols
-
-  directories
-    "Utils"
-    "Utils/PMF"
-    "Utils/SPMF"
-
-  theories
-    "CVM_Algo"
-    "CVM_Algo_No_Fail"
-    "CVM_Algo_Lazy_Eager"
-    "CVM_Algo_Nondet_Binomial"
-    "CVM_Error_Bounds"
-
-    "Utils_Basic"
-    "Utils_Reader_Monad"
-    "Utils_Approx_Algo"
-    "Utils_Concentration_Inequalities"
-
-    "Utils_PMF_Basic"
-    "Utils_PMF_FoldM_Hoare"
-    "Utils_PMF_Relational_Hoare"
-    "Utils_PMF_Lazify"
-
-    "Utils_SPMF_Basic"
-    "Utils_SPMF_FoldM_Hoare"
-    "Utils_SPMF_Relational_Hoare"
