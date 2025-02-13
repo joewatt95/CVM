@@ -65,14 +65,13 @@ Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \
 This completes the invariance proof.
 
 \subsection{Deriving A Functional Probabilistic Invariant}
-With \cref{eq:indicator_eq} established, it is straightforward to show that the expectation of the output $p^{-1} |\chi|$ of the modified algorithm (without line 11) is equal to the desired cardinality $|A|$.
-However, we want to show that the algorithm is probably-approximately correct.
-Normally, we would use Chernoff bounds for independent random variables, which provide exponential tail bounds for the deviation of their sums from their mean.
+With \cref{eq:indicator_eq} established, it is straightforward to show that the expectation of the output $p^{-1} |\chi|$ of the modified algorithm (without line 11) is equal to the desired cardinality $|A|$---but we are interested the algorithm's probably-approximately correctness.
+A typical approach is to use Chernoff bounds for independent random variables, which provide exponential tail bounds for the deviation of their sums from their mean.
 However, these are not directly useful in the CVM algorithm because the key random variables, e.g., $p^{-1} X_s$, are dependent.
 
 An alternative is the Cram\'{e}r--Chernoff method, which is a general method to obtain tail bounds for any random variable.
-It can be stated simply as $P(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t)$ is the moment generating function of $X$: $M(t) := \expect [\exp(t X)]$.
-Note that, the moment generating function is sometimes only defined for some values of $t$ (when the corresponding integral exists), and this is typically an interval including $0$; the inequality is only applicable wherever $M(t)$ is defined.
+It can be stated simply as $P(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t) := \expect [\exp(t X)]$ is the moment generating function of $X$.
+Note that the moment generating function is sometimes only defined for some values of $t$ (when the corresponding integral exists), and this is typically an interval including $0$; the inequality is only applicable wherever $M(t)$ is defined.
 Since the probability space representing the state of the CVM algorithm is finite, $M(t)$ will always be defined in our case.
 It is also possible to obtain lower tail bounds $P(X \leq a)$ using Cram\'{e}r--Chernoff method, which just requires estimates for $M(t)$ for $t < 0$, instead of $t > 0$.
 
@@ -82,34 +81,33 @@ In our case, we are interested in estimating the moment generating function of t
 \]
 for $h(x) = \exp(tx)$.
 At this point, it is tempting to see whether the proof for \cref{eq:indicator_eq} can be extended to establish bounds for the above.
-A possible invariant is the following:
+A generalized invariant is the following:
 \[
   \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|}
 \]
 for every non-negative concave function $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$.
-We call this a \emph{functional} probabilistic invariant because one can it for all valid choices of $h$ with a single induction over the randomized algorithm.
+We call this a \emph{functional} probabilistic invariant because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
 
-%TODO: need to read below
-Note that the exponential function is convex.
-So this does not work directly.
-However, when we instead try to derive tail bounds for the random variable $I(p \geq q) p^{-1} |\chi|$.
+Of course, the exponential function in $M(t)$ is convex, so this is not yet the full story.
+However, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$.
 We end up with the condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
-This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which successfully leads to tail bounds for $\prob( |p^{-1} |\chi| - |A|| \geq \varepsilon |A| \wedge p \geq q)$.
-Of course, we also have to separately estimate $\prob(p < q)$.
-We use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}.
-They use $q = \frac{n}{4 |A|}$ and we could use the same cut-off.
+This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $\prob( |p^{-1} |\chi| - |A|| \geq \varepsilon |A| \wedge p \geq q)$.
+To use these bounds, we also have to separately estimate $\prob(p < q)$.
+We can use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$ and separately bound the probability $\prob(p < q)$.
 
-Note that the formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof in its appendix.
-The verified algorithm is actually a generalization of the above, where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$.
-The algorithm presented by Chakraborty et al.~\cite{chakraborty2022}, replicated in the introduction (\cref{alg:cvm}) is the special case $f=\frac{1}{2}$.
-Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are very elementary.
-The main point we wanted to make in this section is that, it is possible to derive useful and general probabilistic invariants, by considering expectations of functions of the state, using recursion or induction over the algorithm itself.
+The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
+The algorithm we have verified is actually a slight generalization of the above, where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$.
+The original CVM algorithm~\cite{chakraborty2022} (\cref{alg:cvm}) is the special case $f=\frac{1}{2}$.
+Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
+
+The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of functions of the state, proved using recursion or induction over the algorithm itself.
 As far as we know this method of establishing tail bounds for randomized algorithms is new.
 
-When we look at the subsampling step, our proof imposes the following condition on the subsampling operation:
-\begin{equation}\label{eq:subsample_condition}
-  \int_{\mathrm{subsample}(\chi)} \left(\prod_{s \in S} g(I(s \in \tau)) \, d \tau\right) \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
-\end{equation}
-for all non-negative functions $g$.
-An interesting consequence of that, is that it allowed us to devise a refined version of the CVM algorithm, that is both total and unbiased, which we will present in the following section.
-We think that this new variant would not be possible to verify, without the new approach presented here.
+%Move to sec 4
+%When we look at the subsampling step, our proof imposes the following condition on the subsampling operation:
+%\begin{equation}\label{eq:subsample_condition}
+%  \int_{\mathrm{subsample}(\chi)} \left(\prod_{s \in S} g(I(s \in \tau)) \, d \tau\right) \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
+%\end{equation}
+%for all non-negative functions $g$.
+%An interesting consequence of that, is that it allowed us to devise a refined version of the CVM algorithm, that is both total and unbiased, which we will present in the following section.
+%We think that this new variant would not be possible to verify, without the new approach presented here.
