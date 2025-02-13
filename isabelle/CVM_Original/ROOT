@@ -1,0 +1,35 @@
+session CVM_Original = "CryptHOL" +
+  options [timeout = 1200]
+
+  sessions
+    "List-Index"
+    Universal_Hash_Families
+    Finite_Fields
+    Concentration_Inequalities
+    ABY3_Protocols
+
+  directories
+    "Utils"
+    "Utils/PMF"
+    "Utils/SPMF"
+
+  theories
+    "CVM_Algo"
+    "CVM_Algo_No_Fail"
+    "CVM_Algo_Lazy_Eager"
+    "CVM_Algo_Nondet_Binomial"
+    "CVM_Error_Bounds"
+
+    "Utils_Basic"
+    "Utils_Reader_Monad"
+    "Utils_Approx_Algo"
+    "Utils_Concentration_Inequalities"
+
+    "Utils_PMF_Basic"
+    "Utils_PMF_FoldM_Hoare"
+    "Utils_PMF_Relational_Hoare"
+    "Utils_PMF_Lazify"
+
+    "Utils_SPMF_Basic"
+    "Utils_SPMF_FoldM_Hoare"
+    "Utils_SPMF_Relational_Hoare"

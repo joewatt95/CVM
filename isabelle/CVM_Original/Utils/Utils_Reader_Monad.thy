@@ -26,11 +26,8 @@ abbreviation (input) kleisli_compose_right
   (infixr \<open><=<\<close> 50) where
   \<open>(f <=< g) \<equiv> g >=> f\<close>
 
-abbreviation foldM_rd  :: "('a \<Rightarrow> 'b \<Rightarrow> ('c,'b) reader_monad) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> ('c,'b) reader_monad" where
-  \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
-
-abbreviation
-  \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>
+abbreviation \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
+abbreviation \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>
 
 lemma foldM_rd_snoc: "foldM_rd f (xs@[y]) val = bind_rd (foldM_rd f xs val) (f y)"
   by (induction xs arbitrary:val) (auto simp:bind_rd_def return_rd_def)
@@ -61,10 +58,50 @@ lemmas bind_cong_rd = arg_cong2[where f = bind_rd]
 
 lemma map_bind_rd:
   "map_rd g (bind_rd m f) = bind_rd m (\<lambda>x. map_rd g (f x))"
-  by (intro reader_monad_eqI) (simp add:run_reader_simps)
+  by (intro reader_monad_eqI) simp
 
 lemma map_comp_rd :
   \<open>map_rd g (map_rd f m) = map_rd (g <<< f) m\<close>
-  by (simp add: ext reader_monad.expand run_reader_simps(4))
+  by (simp add: ext reader_monad.expand)
+
+abbreviation hoare_triple
+  (\<open>\<turnstile>rd \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
+  \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> \<phi> x. P \<phi> x \<Longrightarrow> Q \<phi> (run_reader (f x) \<phi>))\<close>
+
+context
+  fixes
+    P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> bool\<close> and
+    xs :: \<open>'a list\<close> and
+    offset :: nat
+begin
+
+private abbreviation (input)
+  \<open>P' \<equiv> \<lambda> idx x \<phi> val.
+    (idx, x) \<in> set (List.enumerate offset xs) \<and>
+    P idx \<phi> val\<close>
+
+lemma loop_enumerate :
+  assumes \<open>\<And> idx x. \<turnstile>rd \<lbrakk>P' idx x\<rbrakk> f (idx, x) \<lbrakk>P (Suc idx)\<rbrakk>\<close>
+  shows \<open> \<turnstile>rd
+    \<lbrakk>P offset\<rbrakk>
+    foldM_rd_enumerate f xs offset
+    \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
+  using assms
+  apply (induction xs arbitrary: offset)
+  by (simp_all add: foldM_enumerate_def flip: add_Suc)
+
+lemma loop :
+  assumes \<open>\<And> idx x. \<turnstile>rd \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>P offset\<rbrakk> foldM_rd f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
+  using assms loop_enumerate
+  by (metis foldM_eq_foldM_enumerate snd_conv)
+
+end
+
+lemma loop_unindexed :
+  assumes \<open>\<And> x. \<turnstile>rd \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
+  shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> foldM_rd f xs \<lbrakk>P\<rbrakk>\<close>
+  using loop[where ?P = \<open>curry <| snd >>> P\<close> and ?offset = 0] assms
+  apply simp by blast
 
 end
