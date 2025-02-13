@@ -146,9 +146,10 @@ corollary prob_eager_algo_le_binomial :
     let state = run_reader (run_steps_eager xs initial_state) \<phi>
     in state_k state = k \<and> P (card <| state_chi state))
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
+  apply (simp flip: map_pmf_nondet_algo_eq_binomial add: Let_def)
+  apply (intro pmf_mono_Collect)
   using initial_state_inv run_steps_eager_inv 
-  apply (simp flip: map_pmf_nondet_algo_eq_binomial)
-  by (smt (verit, ccfv_threshold) initial_state_inv less_or_eq_imp_le mem_Collect_eq pmf_mono run_steps_eager_inv state_inv_def take_all_iff)
+  by (metis state_inv_def take_all_iff verit_eq_simplify(6))
 
 end
 
@@ -165,9 +166,10 @@ corollary prob_eager_algo_then_step_1_le_binomial :
     \<le> \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) <| f ^ k.
         P estimate)\<close>
   using assms
-  apply (simp flip: map_pmf_nondet_algo_eq_binomial[where m = m and n = n])
-  by (smt (verit, best) cvm_algo_assms.step_1_eager_inv cvm_algo_assms_axioms initial_state_inv length_take less_or_eq_imp_le mem_Collect_eq min.absorb4 pmf_mono run_steps_eager_inv state_inv_def
-    take_all_iff)
+  apply (simp flip: map_pmf_nondet_algo_eq_binomial[where m = m and n = n] add: Let_def)
+  apply (intro pmf_mono_Collect)
+  using initial_state_inv run_steps_eager_inv step_1_eager_inv 
+  by (metis (no_types, lifting) length_take less_or_eq_imp_le min.absorb4 state_inv_def take_all_iff)
 
 end
 
