@@ -1,4 +1,4 @@
-session CVM_Original in "CVM_Original" = "CryptHOL" +
+session CVM_Original = "CryptHOL" +
   options [timeout = 1200]
 
   sessions
