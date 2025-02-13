@@ -71,12 +71,13 @@ Instead, we readily verify the new variant with our probabilistic invariant-base
 The concept of negative association is a generalization of independence; negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
 It should be stressed that the theory of negatively associated RVs is orthogonal to our new technique, but the formalization of such a theory is also a contribution of this work.
 
+
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle~\cite{nipkow2002}.
-\cref{sec:invariants} introduces our new technique, and shows how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
+\cref{sec:invariants} introduces our new technique and explains how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
 \cref{sec:formalization} and \cref{sec:formalization_neg_dep} present details about the formal verification of both variants of the algorithm, as well as, our new library on negatively associated random variables.
-In \cref{sec:transformation_based_proof}, we present details about our alternative verification of the CVM using the transformation based proof by Chakraborty et al.
-The last sections conclude with a brief overview of related work and a summary of our results.
+In \cref{sec:transformation_based_proof}, we present details about our alternative verification of the CVM using the transformation based proof by Chakraborty et al.~\cite{chakraborty2023}.
+The final sections conclude with an overview of related work and a summary of our results.
 
 % TODO: move it into the discussion of the variant, I think it is better once the algorithm is shown
 %This is because indicator functions of $n$-subsets form negatively associated random variables (RV), even though they are not independent, with which we can modify the subsampling step to the form we described above.

@@ -65,7 +65,7 @@ Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \
 This completes the invariance proof.
 
 \subsection{Deriving A Functional Probabilistic Invariant}
-With \cref{eq:indicator_eq} established, it is straightforward to show that the expectation of the output $p^{-1} |\chi|$ of the modified algorithm (without line 11) is equal to the desired cardinality $|A|$---but we are interested the algorithm's probably-approximately correctness.
+With \cref{eq:indicator_eq} established, it is straightforward to show that the expectation of the output $p^{-1} |\chi|$ of the modified algorithm (without line 11) is equal to the desired cardinality $|A|$; but we are interested the algorithm's probably-approximately correctness.
 A typical approach is to use Chernoff bounds for independent random variables, which provide exponential tail bounds for the deviation of their sums from their mean.
 However, these are not directly useful in the CVM algorithm because the key random variables, e.g., $p^{-1} X_s$, are dependent.
 
@@ -103,11 +103,4 @@ Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, th
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of functions of the state, proved using recursion or induction over the algorithm itself.
 As far as we know this method of establishing tail bounds for randomized algorithms is new.
 
-%Move to sec 4
-%When we look at the subsampling step, our proof imposes the following condition on the subsampling operation:
-%\begin{equation}\label{eq:subsample_condition}
-%  \int_{\mathrm{subsample}(\chi)} \left(\prod_{s \in S} g(I(s \in \tau)) \, d \tau\right) \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
-%\end{equation}
-%for all non-negative functions $g$.
-%An interesting consequence of that, is that it allowed us to devise a refined version of the CVM algorithm, that is both total and unbiased, which we will present in the following section.
-%We think that this new variant would not be possible to verify, without the new approach presented here.
+
