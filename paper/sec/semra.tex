@@ -13,7 +13,7 @@ Moreover, let us assume the space needed to store each element in the stream is 
 We briefly review how reasoning about randomized algorithms works in Isabelle using the Giry monad~\cite{giry1982}.
 A more thorough discussion of the concept in the context of Isabelle has been written, for example, by Eberl et al.~\cite{eberl2020} and Lochbihler~\cite{lochbihler2016}.
 
-The key idea is to model a randomized algorithm as a probability space representing the distributions of its result.
+The key idea is to model a randomized algorithm as a probability space representing the distribution of its results.
 For simplicity, consider \cref{alg:example}.
 \begin{algorithm}[h!]
 \caption{Example for sequential composition.}\label{alg:example}
@@ -24,16 +24,16 @@ For simplicity, consider \cref{alg:example}.
 \end{algorithmic}
 \end{algorithm}%
 
-In the first step the algorithm flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise. (The notation $\Ber(p)$ represents the Bernoulli distribution.)
-In the second step the algorithm flips a coin $q$ which depends on $p$.
-This has the consequence, that we have to consider probability space-valued functions, like: $p \mapsto \Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
-The resulting distribution for $q$ is a compound distribution, a combination of $\Ber(\frac{1}{3})$ and $\Ber(\frac{2}{3})$.
+In the first step,~\cref{alg:example} flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise; the notation $\Ber(p)$ represents the Bernoulli distribution.
+In the second step, the algorithm flips a coin $q$ which depends on $p$.
+This has the consequence that we have to consider probability space-valued functions, like: $p \mapsto \Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
+The resulting distribution for $q$ is a \emph{compound distribution}, a combination of $\Ber(\frac{1}{3})$ and $\Ber(\frac{2}{3})$.
 
 This example captures the main aspects of modeling randomized algorithms in the Giry monad.
 Indeed, randomized algorithms can be modeled using the following ingredients:
 
 \begin{description}
-\item[Primitive Random Operations.] For example, a simple fair coin flip is represented using the Bernoulli distribution $\Ber(\frac{1}{2})$.
+\item[Primitive Random Operations.] For example, a simple fair coin flip is represented using the Bernoulli distribution, $\Ber(\frac{1}{2})$.
 \item[Return Combinator.]
 Given a singleton element $x$, we can construct the singleton probability space, assigning probability $1$ to $x$ and $0$ to everything else.
 In monad notation, this is written as: $\mathrm{\bf return}\, x$.
