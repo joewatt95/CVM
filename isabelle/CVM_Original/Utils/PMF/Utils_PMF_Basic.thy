@@ -7,9 +7,6 @@ imports
 
 begin
 
-lemmas pmf_mono_Collect =
-  pmf_mono[where P = \<open>Collect _\<close> and Q = \<open>Collect _\<close>, simplified]
-
 lemma integrable_measure_pmf_pmf [simp] :
   \<open>integrable (measure_pmf p) <| \<lambda> x. pmf (f x) y\<close>
   apply (intro measure_pmf.integrable_const_bound[where B = 1])

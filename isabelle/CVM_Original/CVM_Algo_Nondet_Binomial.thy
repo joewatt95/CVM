@@ -25,7 +25,7 @@ abbreviation \<open>state_inv_take \<equiv> flip (\<lambda> i. state_inv <<< tak
 context cvm_algo_assms
 begin
 
-lemma
+theorem
   initial_state_inv : \<open>\<And> xs \<phi>.
     state_inv_take xs 0 \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
 
@@ -60,20 +60,26 @@ proof -
   moreover show \<open>PROP ?thesis_2\<close>
     unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
     apply simp
-    by (smt (z3) dual_order.strict_trans2 last_index_less_size_conv length_take less_SucE less_SucI less_Suc_eq_le min.cobounded2 min_absorb2 min_def)
+    by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min_def min_less_iff_conj not_less_simps(2))
   
   ultimately show \<open>PROP ?thesis_3\<close>
-    unfolding step_eager_def by (fastforce simp add: in_set_enumerate_eq)
-  
+    unfolding step_eager_def by (simp add: in_set_enumerate_eq)
+ 
   with loop[where
-    offset = 0 and P = \<open>state_inv_take xs\<close> and f = \<open>step_eager xs\<close> and
-    xs = \<open>[0 ..< length xs]\<close>]
+    offset = 0 and P = \<open>state_inv_take xs\<close> and xs = \<open>[0 ..< length xs]\<close>]
   show \<open>PROP ?thesis_4\<close> by (simp add: in_set_enumerate_eq)
 qed
 
 context
-  fixes xs and m n k :: nat
-  assumes assms : \<open>length xs \<le> n\<close> \<open>k \<le> m\<close>
+  fixes m n :: nat
+begin
+
+private abbreviation (input)
+  \<open>prob_bernoulli_matrix \<equiv> \<lambda> P. \<P>(\<phi> in bernoulli_matrix m n f. P \<phi>)\<close>
+
+context
+  fixes k and xs 
+  assumes assms : \<open>k \<le> m\<close> \<open>length xs \<le> n\<close> 
 begin
 
 lemma map_pmf_nondet_algo_eq :
@@ -95,7 +101,7 @@ proof -
     by (simp_all add: map_pmf_comp)
 
   also have \<open>\<dots> = (
-    ?M ?n' 
+    ?M ?n'
       |> map_pmf (\<lambda> P. \<lambda> x \<in> set xs. P (last_index xs x))
       |> map_pmf (\<lambda> P. {x \<in> set xs. \<forall> k' < k. P x k'}))\<close>
     unfolding nondet_algo_def map_pmf_comp
@@ -142,14 +148,27 @@ proof -
 qed
 
 corollary prob_eager_algo_le_binomial :
-  \<open>\<P>(\<phi> in bernoulli_matrix m n f.
+  \<open>prob_bernoulli_matrix (\<lambda> \<phi>.
     let state = run_reader (run_steps_eager xs initial_state) \<phi>
     in state_k state = k \<and> P (card <| state_chi state))
   \<le> \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k. P estimate)\<close>
-  apply (simp flip: map_pmf_nondet_algo_eq_binomial add: Let_def)
-  apply (intro pmf_mono_Collect)
-  using initial_state_inv run_steps_eager_inv 
-  by (metis state_inv_def take_all_iff verit_eq_simplify(6))
+  (is \<open>prob_bernoulli_matrix ?P_run_steps_eager \<le> ?prob_P_binomial\<close>)
+proof -
+  from initial_state_inv run_steps_eager_inv
+  have \<open>?P_run_steps_eager \<phi> \<Longrightarrow> P (card <| nondet_algo xs k \<phi>)\<close>
+    (is \<open>_ \<Longrightarrow> ?P_nondet_algo \<phi>\<close>) for \<phi>
+    by (metis state_inv_def take_all_iff verit_eq_simplify(6))
+
+  then have
+    \<open>prob_bernoulli_matrix ?P_run_steps_eager
+    \<le> prob_bernoulli_matrix ?P_nondet_algo\<close>
+    by (auto intro: pmf_mono)
+
+  also have \<open>\<dots> = ?prob_P_binomial\<close>
+    by (simp flip: map_pmf_nondet_algo_eq_binomial)
+
+  finally show ?thesis .
+qed
 
 end
 
@@ -158,18 +177,34 @@ abbreviation
     run_steps_eager (take i xs) initial_state \<bind> step_1_eager xs i\<close>
 
 corollary prob_eager_algo_then_step_1_le_binomial :
-  assumes \<open>i < length xs\<close> \<open>length xs \<le> n\<close> \<open>k \<le> m\<close>
+  assumes \<open>k \<le> m\<close> \<open>i < length xs\<close> \<open>length xs \<le> n\<close>
   shows
-    \<open>\<P>(\<phi> in bernoulli_matrix m n f.
+    \<open>prob_bernoulli_matrix (\<lambda> \<phi>.
       let state = run_reader (run_steps_eager_then_step_1 i xs) \<phi>
       in state_k state = k \<and> P (card <| state_chi state))
     \<le> \<P>(estimate in binomial_pmf (card <| set <| take (Suc i) xs) <| f ^ k.
         P estimate)\<close>
-  using assms
-  apply (simp flip: map_pmf_nondet_algo_eq_binomial[where m = m and n = n] add: Let_def)
-  apply (intro pmf_mono_Collect)
-  using initial_state_inv run_steps_eager_inv step_1_eager_inv 
-  by (metis (no_types, lifting) length_take less_or_eq_imp_le min.absorb4 state_inv_def take_all_iff)
+  (is \<open>prob_bernoulli_matrix ?P_run_steps_eager_then_step_1 \<le> ?prob_P_binomial\<close>)
+proof -
+  let ?xs' = \<open>take (Suc i) xs\<close>
+
+  from \<open>i < length xs\<close> initial_state_inv run_steps_eager_inv step_1_eager_inv
+  have \<open>?P_run_steps_eager_then_step_1 \<phi> \<Longrightarrow> P (card <| nondet_algo ?xs' k \<phi>)\<close>
+    (is \<open>_ \<Longrightarrow> ?P_nondet_algo \<phi>\<close>) for \<phi>
+    by (metis nat_le_linear run_reader_simps(3) state_inv_def take_all_iff)
+
+  then have
+    \<open>prob_bernoulli_matrix ?P_run_steps_eager_then_step_1
+    \<le> prob_bernoulli_matrix ?P_nondet_algo\<close>
+    by (auto intro: pmf_mono)
+
+  also from assms
+  have \<open>\<dots> = ?prob_P_binomial\<close> by (simp flip: map_pmf_nondet_algo_eq_binomial)
+
+  finally show ?thesis .
+qed
+
+end
 
 end
 
