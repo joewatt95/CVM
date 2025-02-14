@@ -14,19 +14,21 @@ lemma rel_spmf_conj_iff_ae_measure_spmf_conj :
     (AE y in measure_spmf q. Q y))\<close>
   (is \<open>?L \<longleftrightarrow> ?R\<close>)
 proof (rule iffI)
-  show ?R if ?L using that by (auto elim!: rel_spmfE)
+  show \<open>?L \<Longrightarrow> ?R\<close> by (fastforce elim: rel_spmfE)
 
   let ?pq =
     \<open>pair_spmf (mk_lossless p) (mk_lossless q)
       |> scale_spmf (weight_spmf p)\<close>
 
-  show ?L if ?R
+  show \<open>?R \<Longrightarrow> ?L\<close>
   proof (rule rel_spmfI[of ?pq])
-    from that show \<open>(x, y) \<in> set_spmf ?pq \<Longrightarrow> P x \<and> Q y\<close> for x y
+    assume \<open>?R\<close>
+
+    then show \<open>(x, y) \<in> set_spmf ?pq \<Longrightarrow> P x \<and> Q y\<close> for x y
       unfolding set_scale_spmf by (simp split: if_splits)
 
-    from that mk_lossless_back_eq[of p] mk_lossless_back_eq[of q] show
-      \<open>map_spmf fst ?pq = p\<close> \<open>map_spmf snd ?pq = q\<close>
+    from \<open>?R\<close> mk_lossless_back_eq[of p] mk_lossless_back_eq[of q]
+    show \<open>map_spmf fst ?pq = p\<close> \<open>map_spmf snd ?pq = q\<close>
       unfolding map_scale_spmf by (auto simp add: weight_mk_lossless)
   qed
 qed
@@ -53,8 +55,7 @@ then the probability that a successful output of `p` satisfies `P` is \<le> that
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
-  using assms
-  by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
+  using assms by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
 
 abbreviation relational_hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
@@ -69,8 +70,7 @@ lemma skip_left [simp] :
   assumes \<open>\<And> x. lossless_spmf (f' x)\<close>
   shows
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f >>> return_spmf | f'\<rangle> \<lbrace>S\<rbrace> \<equiv> (\<And> x. \<turnstile>spmf \<lbrace>R x\<rbrace> f' \<lbrace>S (f x)\<rbrace>)\<close>
-  using assms
-  by (simp add: rel_spmf_return_spmf1)
+  using assms by (simp add: rel_spmf_return_spmf1)
 
 lemma skip_right [simp] :
   assumes \<open>\<And> x. lossless_spmf (f x)\<close>
@@ -154,16 +154,20 @@ lemma loop_unindexed :
 context ord_spmf_syntax
 begin
 
+lemma \<open>(\<And> x x'. R x x' \<Longrightarrow> f x \<sqsubseteq>\<^bsub>(=)\<^esub> f' x') \<equiv> (\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>le_option\<rbrakk>)\<close> .
+
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
   assumes \<open>\<And> x val. f x val \<sqsubseteq>\<^bsub>(=)\<^esub> f' x val\<close>
-  shows \<open>foldM_spmf f xs val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_spmf f' xs val\<close>
+  shows
+    \<open>foldM_spmf f xs val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_spmf f' xs val\<close>
+    (is \<open>?thesis' foldM_spmf f f'\<close>)
 proof -
   let ?go = \<open>\<lambda> f. case_option fail_spmf <<< f\<close>
 
-  from assms have \<open>\<turnstile>pmf
-    \<lbrakk>le_option\<rbrakk> \<langle>foldM_pmf (?go f) xs | foldM_pmf (?go f') xs\<rangle> \<lbrakk>le_option\<rbrakk>\<close>
+  from assms have \<open>foldM_pmf (?go f) x val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_pmf (?go f') x val'\<close>
+    if \<open>le_option val val'\<close> for x val val'
     apply (intro Utils_PMF_Relational_Hoare.loop_unindexed)
-    by (auto split: option.splits)
+      using that by (auto split: option.splits)
 
   then show ?thesis by (simp add: foldM_spmf_eq_foldM_pmf_case)
 qed
