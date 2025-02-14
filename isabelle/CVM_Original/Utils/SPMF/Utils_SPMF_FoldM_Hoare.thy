@@ -41,9 +41,7 @@ lemma foldM_spmf_of_pmf_eq :
   (is ?thesis_1)
 proof -
   show ?thesis_0
-    apply (induction xs)
-    by (simp_all add: spmf_of_pmf_bind)
-
+    apply (induction xs) by (simp_all add: spmf_of_pmf_bind)
   then show ?thesis_1 by simp
 qed
 
@@ -72,8 +70,7 @@ abbreviation hoare_triple_total
 
 lemma hoare_triple_altdef :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<equiv> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_None_or_pred Q\<rbrakk>)\<close>
-  apply standard
-  using AE_measure_spmf_iff_AE_measure_pmf by blast+
+  apply standard using AE_measure_spmf_iff_AE_measure_pmf by blast+
 
 (* lemma skip [simp] :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
@@ -173,8 +170,7 @@ next
 
   also from assms Cons.IH
   have \<open>\<dots> \<le> p + \<integral> _. length xs * p \<partial> ?\<mu>'\<close>
-    apply (intro add_mono integral_mono_AE)
-    by simp_all
+    apply (intro add_mono integral_mono_AE) by simp_all
 
   also from assms have \<open>\<dots> \<le> p + length xs * p\<close>
     apply simp

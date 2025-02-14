@@ -77,9 +77,7 @@ lemma skip_right [simp] :
   shows
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f' >>> return_spmf\<rangle> \<lbrace>S\<rbrace> \<equiv>
     (\<And> x'. \<turnstile>spmf \<lbrace>flip R x'\<rbrace> f \<lbrace>flip S (f' x')\<rbrace>)\<close>
-  apply standard
-  using assms
-  by (simp_all add: rel_spmf_return_spmf2)
+  apply standard using assms by (simp_all add: rel_spmf_return_spmf2)
 
 (* lemma seq :
   assumes

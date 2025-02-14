@@ -198,11 +198,10 @@ proof -
     proof -
       have "?r (map_rd ((=) (fst \<omega>)) m) (?c (x,y)) = ?r (map_rd ((=) (fst \<omega>)) m) (?c1 x)"
         using that
-        apply (intro depends_onD[OF J_dep(1)] c_space 0)
-        by auto
+        apply (intro depends_onD[OF J_dep(1)] c_space 0) by auto
       hence "?r m (?c (x,y)) = fst \<omega> \<longleftrightarrow> ?r (map_rd ((=) (fst \<omega>)) m) (?c1 x) = True"
-        by (auto simp: run_reader_simps)
-      also have "... \<longleftrightarrow>  ?r m (?c1 x) = fst \<omega>" by (auto simp: run_reader_simps)
+        by auto 
+      also have "... \<longleftrightarrow>  ?r m (?c1 x) = fst \<omega>" by auto 
       finally show ?thesis by simp
     qed
 
@@ -217,9 +216,8 @@ proof -
       have "?r (map_rd ((=) (fst \<omega>)) m) (?c1 x) = ?r (map_rd ((=) (fst \<omega>)) m) x" using that
         apply (intro depends_onD[OF J_dep(1)] 0)
         by (auto simp add: space_def)
-      hence "?r m (?c1 x) = fst \<omega> \<longleftrightarrow> ?r (map_rd ((=) (fst \<omega>)) m) x = True"
-        by (auto simp: run_reader_simps)
-      also have "\<dots> \<longleftrightarrow> ?r m x = fst \<omega>" by (auto simp: run_reader_simps)
+      hence "?r m (?c1 x) = fst \<omega> \<longleftrightarrow> ?r (map_rd ((=) (fst \<omega>)) m) x = True" by auto
+      also have "\<dots> \<longleftrightarrow> ?r m x = fst \<omega>" by auto 
       finally show ?thesis by simp
     qed
 
@@ -260,7 +258,7 @@ proof -
 
   have "?L = map_pmf snd (map_pmf (\<lambda>\<phi>. let v = run_reader m \<phi> in (v,run_reader (f v) \<phi>)) space)"
     unfolding map_pmf_comp sample_def
-    by (intro map_pmf_cong refl) (simp add:run_reader_simps Let_def)
+    by (intro map_pmf_cong refl) (simp add: Let_def)
   also have "\<dots> = map_pmf snd (bind_pmf (sample m) (\<lambda>v. map_pmf (Pair v) (sample (f v))))"
     unfolding a by simp
   also have "\<dots> = ?R" unfolding map_bind_pmf by (simp add:map_pmf_comp)
@@ -271,7 +269,7 @@ lemma lazify_return :
   "sample (return_rd x) = return_pmf x" (is "?L = ?R")
 proof -
   have "?L = map_pmf (\<lambda> _. x) space" unfolding sample_def
-    by (intro map_pmf_cong refl) (simp add:run_reader_simps)
+    by (intro map_pmf_cong) simp_all 
   also have "\<dots> = ?R" by simp
   finally show ?thesis .
 qed

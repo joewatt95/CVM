@@ -27,8 +27,8 @@ theorem
   fixes xs
   defines \<open>state_inv_take \<equiv> state_inv <<< flip take xs\<close>
   shows
-    initial_state_inv : \<open>\<And> \<phi>.
-      state_inv [] \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
+    initial_state_inv :
+      \<open>state_inv [] \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
 
     step_1_eager_inv : \<open>\<And> idx.
       idx < length xs \<Longrightarrow> \<turnstile>rd
@@ -41,19 +41,17 @@ theorem
       step_2_eager xs idx
       \<lbrakk>state_inv_take (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_2\<close>) and
 
-    step_eager_inv : \<open>\<And> idx x.
+    step_eager_inv : \<open>\<And> idx.
       idx < length xs \<Longrightarrow> \<turnstile>rd
         \<lbrakk>state_inv_take idx\<rbrakk>
-        step_eager xs idx
+        (step_eager xs idx)
         \<lbrakk>state_inv_take (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_3\<close>) and
 
     run_steps_eager_inv : \<open>\<turnstile>rd
-      \<lbrakk>state_inv []\<rbrakk>
-      run_steps_eager xs
-      \<lbrakk>state_inv xs\<rbrakk>\<close> (is \<open>PROP ?thesis_4\<close>)
+      \<lbrakk>state_inv []\<rbrakk> run_steps_eager xs \<lbrakk>state_inv xs\<rbrakk>\<close> (is \<open>PROP ?thesis_4\<close>)
 proof -
   show \<open>PROP ?thesis_0\<close> by (simp add: state_inv_def' initial_state_def)
-  
+
   show \<open>PROP ?thesis_1\<close>
     unfolding step_1_eager_def' state_inv_def' state_inv_take_def
     by (simp add: take_Suc_conv_app_nth)
@@ -66,8 +64,7 @@ proof -
   ultimately show \<open>PROP ?thesis_3\<close>
     unfolding step_eager_def by (simp add: in_set_enumerate_eq)
  
-  with loop[where
-    offset = 0 and P = state_inv_take and xs = \<open>[0 ..< length xs]\<close>]
+  with loop[where offset = 0 and P = state_inv_take and xs = \<open>[0 ..< length xs]\<close>]
   show \<open>PROP ?thesis_4\<close>
     unfolding state_inv_take_def by (simp add: in_set_enumerate_eq)
 qed
@@ -107,7 +104,7 @@ proof -
       |> map_pmf (\<lambda> P. \<lambda> x \<in> set xs. P (last_index xs x))
       |> map_pmf (\<lambda> P. {x \<in> set xs. \<forall> k' < k. P x k'}))\<close>
     unfolding nondet_algo_def map_pmf_comp
-    using assms by (fastforce intro: map_pmf_cong)
+    using assms by (auto intro: map_pmf_cong)
 
   also have \<open>\<dots> =
     map_pmf

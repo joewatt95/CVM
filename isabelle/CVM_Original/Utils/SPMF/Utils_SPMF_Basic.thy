@@ -50,7 +50,7 @@ lemma AE_measure_spmf_iff_AE_measure_pmf :
   \<open>(AE x in measure_spmf p. P x) \<longleftrightarrow>
     (AE x in measure_pmf p. is_None_or_pred P x)\<close>
   by (auto
-    iff: AE_measure_pmf_iff in_set_spmf
+    simp add: AE_measure_pmf_iff in_set_spmf
     split: option.splits)
 
 lemma measure_spmf_eq_measure_pmf_is_Some_and_pred :

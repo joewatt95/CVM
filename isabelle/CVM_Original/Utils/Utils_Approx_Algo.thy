@@ -39,8 +39,7 @@ proof -
     by (metis abs_not_less_zero linorder_not_le mult_less_cancel_right mult_pos_neg order_le_less_trans)
 
   then have \<open>\<P>(\<omega> in measure_pmf f. \<omega> >[\<epsilon>'] x) \<le> \<P>(\<omega> in measure_pmf f. \<omega> >[\<epsilon>] x)\<close>
-    apply (intro measure_pmf.finite_measure_mono subsetI)
-    by simp_all
+    apply (intro measure_pmf.finite_measure_mono subsetI) by simp_all
 
   with assms show ?thesis by simp
 qed

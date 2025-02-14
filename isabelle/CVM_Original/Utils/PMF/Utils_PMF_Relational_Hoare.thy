@@ -28,8 +28,7 @@ lemma skip_left [simp] :
 lemma skip_right [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f' >>> return_pmf\<rangle> \<lbrakk>S\<rbrakk> \<equiv>
     (\<And> x'. \<turnstile>pmf \<lbrakk>flip R x'\<rbrakk> f \<lbrakk>flip S (f' x')\<rbrakk>)\<close>
-  apply standard
-  by (simp_all add: AE_measure_pmf_iff rel_pmf_return_pmf2)
+  apply standard by (simp_all add: AE_measure_pmf_iff rel_pmf_return_pmf2)
 
 context
   fixes

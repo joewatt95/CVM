@@ -75,8 +75,8 @@ definition
 
 lemma foldM_eq_foldM_enumerate :
   \<open>foldM f xs = foldM_enumerate (f <<< snd) xs offset\<close>
-  apply (induction xs arbitrary: offset)
-  unfolding foldM_enumerate_def by simp_all
+  unfolding foldM_enumerate_def
+  apply (induction xs arbitrary: offset) by simp_all
 
 end
 

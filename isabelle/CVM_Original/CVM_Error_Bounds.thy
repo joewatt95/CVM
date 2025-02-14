@@ -373,14 +373,12 @@ next
 
       case (Cons _ _)
       then have \<open>n \<ge> 1\<close> by (simp add: n_def leI)
-      then have \<open>\<alpha> \<ge> r\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
-        using
-          \<open>2 ^ l * threshold \<ge> r * (card <| set xs)\<close>
-          card_set_take_le_card_set[of "Suc i" xs]
-          of_nat_le_iff[of "r * card (set (take (Suc i) xs))" "threshold * 2 ^ l"] 
-          mult_le_mono2[of "card (set (take (Suc i) xs))" "card (set xs)" r]
-          order.trans[of "r * card (set (take (Suc i) xs))" "r * card (set xs)" "threshold * 2 ^ l"]
-        by (auto simp add: \<alpha>_def n_def field_simps)
+      with \<open>2 ^ l * threshold \<ge> r * (card <| set xs)\<close>
+      have \<open>\<alpha> \<ge> r\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
+        apply (simp_all add: \<alpha>_def n_def field_simps Cons)
+        unfolding approximation_preproc
+        using card_set_take_le_card_set
+        by (smt (verit, best) landau_o.R_mult_left_mono list.set(2) of_nat_0_le_iff of_nat_le_iff take_Suc_Cons)
 
       with binomial_distribution.chernoff_prob_ge[
         of p \<open>\<alpha> - 1\<close> n, simplified binomial_distribution_def]

@@ -49,7 +49,7 @@ proof -
     using
       bernstein_inequality[OF I, where X = ?Y and t = t and B = B]
       ind intsq assms B t
-    by (force intro!: indep_vars_compose)
+    by (force intro: indep_vars_compose)
 qed
 
 lemma bernstein_inequality_abs_ge :
@@ -148,9 +148,9 @@ lemma
       \<le> 2 * exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * \<delta> / 3))\<close>
       (is \<open>?L_abs_ge \<le> ?R_abs_ge\<close>)
 proof -
+  from benett_bernstein_inequality_assms
   interpret Pi_bernoulli_nat_pmf :
     benett_bernstein Pi_bernoulli_nat_pmf \<open>\<lambda> i P. real (P i)\<close> \<open>{..< n}\<close> 
-    using benett_bernstein_inequality_assms
     by (unfold_locales, auto)
 
   let ?prob = \<open>\<lambda> R.
@@ -164,15 +164,16 @@ proof -
     by (simp_all add:
       binomial_pmf_eq_map_sum_of_bernoullis sum_subtractf field_simps)
 
-  have arithmetic_aux :
+  have arithmetic_eq :
     \<open>(real n * p * \<delta>)\<^sup>2 / (2 * (n * p) + 2 * (n * p * \<delta> * B) / 3)
     = real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3)\<close> for B
     apply (simp add: field_split_simps power_numeral_reduce)
-    apply (simp only: Multiseries_Expansion.intyness_simps)
+    unfolding Multiseries_Expansion.intyness_simps
     by (smt (verit, del_insts) Num.of_nat_simps(5) mult_eq_0_iff nat_distrib(2) of_nat_eq_0_iff vector_space_over_itself.scale_left_commute)
+
   show \<open>?L_ge \<le> ?R_ge\<close> \<open>?L_abs_ge \<le> ?R_abs_ge\<close>
     using
-      lhs_eq arithmetic_aux[of 1] p \<open>\<delta> \<ge> 0\<close>
+      lhs_eq arithmetic_eq[of 1] p \<open>\<delta> \<ge> 0\<close>
       Pi_bernoulli_nat_pmf.bernstein_inequality_ge[of ?t 1]
       Pi_bernoulli_nat_pmf.bernstein_inequality_abs_ge[of ?t 1]
       AE_Pi_bernoulli_nat_pmf_abs_bounded
@@ -182,26 +183,18 @@ proof -
     \<open>?L_le \<le> exp (- real n * p * \<delta>\<^sup>2 / (2 + 2 * B * \<delta> / 3))\<close>
     (is \<open>_ \<le> ?R_le' B\<close>) if \<open>B > 0\<close> for B
     using
-      lhs_eq arithmetic_aux that p \<open>\<delta> \<ge> 0\<close>
+      lhs_eq arithmetic_eq that p \<open>\<delta> \<ge> 0\<close>
       Pi_bernoulli_nat_pmf.bernstein_inequality_le[of ?t B]
     by simp
 
   moreover have \<open>?R_le' \<midarrow>0\<rightarrow> ?R_le\<close>
-    apply (intro tendsto_intros)
-    using
-      bounded_linear_mult_right[of "2"]
-      tendsto_add_const_iff[of "2" "\<lambda> R. 2 * R * \<delta> / 3" "0" "at 0"]
-      linear_lim_0[of "(*) 2"] tendsto_mult_left_zero[of "(*) 2" "at 0" \<delta>]
-      tendsto_divide_zero[of "\<lambda> R. 2 * R * \<delta>" "at 0" "3"]
-    by auto
+    apply (intro tendsto_intros numeral_neq_zero)
+    by (metis arith_extra_simps(6) bounded_linear_mult_right linear_lim_0 tendsto_add_const_iff tendsto_divide_zero tendsto_mult_left_zero)
 
   ultimately show \<open>?L_le \<le> ?R_le\<close>
-    using
-      eventually_at_right_less[of "0"]
-      eventually_mono[of "(<) 0" "at_right 0" "\<lambda> uuc. measure_pmf.prob (binomial_pmf n p) {uuc. real uuc \<le> real n * p * (1 - \<delta>)} \<le> exp (- (real n * p * \<delta>\<^sup>2 / (2 + 2 * uuc * \<delta> / 3)))"]
-    by (fastforce
-      intro!: tendsto_lowerbound[of _ ?R_le \<open>at_right 0\<close>]
-      simp add: filterlim_at_split)
+    apply (intro tendsto_lowerbound[of ?R_le' _ \<open>at_right (real 0)\<close>])
+      apply (simp_all add: filterlim_at_split eventually_at_right_field)
+      using zero_less_numeral by blast
 qed
 
 end

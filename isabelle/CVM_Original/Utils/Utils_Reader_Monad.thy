@@ -86,9 +86,8 @@ lemma loop_enumerate :
     \<lbrakk>P offset\<rbrakk>
     foldM_rd_enumerate f xs offset
     \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
-  using assms
-  apply (induction xs arbitrary: offset)
-  by (simp_all add: foldM_enumerate_def flip: add_Suc)
+  using assms apply (induction xs arbitrary: offset)
+    by (simp_all add: foldM_enumerate_def flip: add_Suc)
 
 lemma loop :
   assumes \<open>\<And> idx x. \<turnstile>rd \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
@@ -101,7 +100,6 @@ end
 lemma loop_unindexed :
   assumes \<open>\<And> x. \<turnstile>rd \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> foldM_rd f xs \<lbrakk>P\<rbrakk>\<close>
-  using loop[where ?P = \<open>curry <| snd >>> P\<close> and ?offset = 0] assms
-  apply simp by blast
+  using assms loop[where ?P = \<open>\<lblot>P\<rblot>\<close> and ?offset = 0] by blast
 
 end
