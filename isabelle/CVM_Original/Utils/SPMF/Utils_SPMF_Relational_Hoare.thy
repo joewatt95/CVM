@@ -158,9 +158,7 @@ lemma \<open>(\<And> x x'. R x x' \<Longrightarrow> f x \<sqsubseteq>\<^bsub>(=)
 
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
   assumes \<open>\<And> x val. f x val \<sqsubseteq>\<^bsub>(=)\<^esub> f' x val\<close>
-  shows
-    \<open>foldM_spmf f xs val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_spmf f' xs val\<close>
-    (is \<open>?thesis' foldM_spmf f f'\<close>)
+  shows \<open>foldM_spmf f xs val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_spmf f' xs val\<close>
 proof -
   let ?go = \<open>\<lambda> f. case_option fail_spmf <<< f\<close>
 
