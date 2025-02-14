@@ -20,54 +20,56 @@ definition state_inv ::
 lemmas state_inv_def' =
   state_inv_def[simplified nondet_algo_def set_eq_iff, simplified]
 
-abbreviation \<open>state_inv_take \<equiv> flip (\<lambda> i. state_inv <<< take i)\<close>
-
 context cvm_algo_assms
 begin
 
 theorem
-  initial_state_inv : \<open>\<And> xs \<phi>.
-    state_inv_take xs 0 \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
+  fixes xs
+  defines \<open>state_inv_take \<equiv> state_inv <<< flip take xs\<close>
+  shows
+    initial_state_inv : \<open>\<And> \<phi>.
+      state_inv [] \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
 
-  step_1_eager_inv : \<open>\<And> idx.
-    idx < length xs \<Longrightarrow> \<turnstile>rd
-      \<lbrakk>state_inv_take xs idx\<rbrakk>
-      step_1_eager xs idx
-      \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_1\<close>) and
+    step_1_eager_inv : \<open>\<And> idx.
+      idx < length xs \<Longrightarrow> \<turnstile>rd
+        \<lbrakk>state_inv_take idx\<rbrakk>
+        step_1_eager xs idx
+        \<lbrakk>state_inv_take (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_1\<close>) and
 
-  step_2_eager_inv : \<open>\<And> idx. \<turnstile>rd
-    \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>
-    step_2_eager xs idx
-    \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_2\<close>) and
+    step_2_eager_inv : \<open>\<And> idx. \<turnstile>rd
+      \<lbrakk>state_inv_take (Suc idx)\<rbrakk>
+      step_2_eager xs idx
+      \<lbrakk>state_inv_take (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_2\<close>) and
 
-  step_eager_inv : \<open>\<And> idx x.
-    idx < length xs \<Longrightarrow> \<turnstile>rd
-      \<lbrakk>state_inv_take xs idx\<rbrakk>
-      step_eager xs idx
-      \<lbrakk>state_inv_take xs (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_3\<close>) and
+    step_eager_inv : \<open>\<And> idx x.
+      idx < length xs \<Longrightarrow> \<turnstile>rd
+        \<lbrakk>state_inv_take idx\<rbrakk>
+        step_eager xs idx
+        \<lbrakk>state_inv_take (Suc idx)\<rbrakk>\<close> (is \<open>PROP ?thesis_3\<close>) and
 
-  run_steps_eager_inv : \<open>\<turnstile>rd
-    \<lbrakk>state_inv_take xs 0\<rbrakk>
-    run_steps_eager xs
-    \<lbrakk>state_inv_take xs (length xs)\<rbrakk>\<close> (is \<open>PROP ?thesis_4\<close>)
+    run_steps_eager_inv : \<open>\<turnstile>rd
+      \<lbrakk>state_inv []\<rbrakk>
+      run_steps_eager xs
+      \<lbrakk>state_inv xs\<rbrakk>\<close> (is \<open>PROP ?thesis_4\<close>)
 proof -
   show \<open>PROP ?thesis_0\<close> by (simp add: state_inv_def' initial_state_def)
   
   show \<open>PROP ?thesis_1\<close>
-    unfolding step_1_eager_def' state_inv_def'
+    unfolding step_1_eager_def' state_inv_def' state_inv_take_def
     by (simp add: take_Suc_conv_app_nth)
 
   moreover show \<open>PROP ?thesis_2\<close>
-    unfolding step_2_eager_def' state_inv_def' last_index_up_to_def
+    unfolding step_2_eager_def' state_inv_def' last_index_up_to_def state_inv_take_def
     apply simp
-    by (smt (z3) last_index_less_size_conv length_take less_Suc_eq min_def min_less_iff_conj not_less_simps(2))
+    by (smt (z3) last_index_less length_take less_Suc_eq less_Suc_eq_le min.absorb2 min.cobounded2)
   
   ultimately show \<open>PROP ?thesis_3\<close>
     unfolding step_eager_def by (simp add: in_set_enumerate_eq)
  
   with loop[where
-    offset = 0 and P = \<open>state_inv_take xs\<close> and xs = \<open>[0 ..< length xs]\<close>]
-  show \<open>PROP ?thesis_4\<close> by (simp add: in_set_enumerate_eq)
+    offset = 0 and P = state_inv_take and xs = \<open>[0 ..< length xs]\<close>]
+  show \<open>PROP ?thesis_4\<close>
+    unfolding state_inv_take_def by (simp add: in_set_enumerate_eq)
 qed
 
 context
@@ -156,8 +158,7 @@ corollary prob_eager_algo_le_binomial :
 proof -
   from initial_state_inv run_steps_eager_inv
   have \<open>?P_run_steps_eager \<phi> \<Longrightarrow> P (card <| nondet_algo xs k \<phi>)\<close>
-    (is \<open>_ \<Longrightarrow> ?P_nondet_algo \<phi>\<close>) for \<phi>
-    by (metis state_inv_def take_all_iff verit_eq_simplify(6))
+    (is \<open>_ \<Longrightarrow> ?P_nondet_algo \<phi>\<close>) for \<phi> by (metis state_inv_def)
 
   then have
     \<open>prob_bernoulli_matrix ?P_run_steps_eager
@@ -191,7 +192,7 @@ proof -
   from \<open>i < length xs\<close> initial_state_inv run_steps_eager_inv step_1_eager_inv
   have \<open>?P_run_steps_eager_then_step_1 \<phi> \<Longrightarrow> P (card <| nondet_algo ?xs' k \<phi>)\<close>
     (is \<open>_ \<Longrightarrow> ?P_nondet_algo \<phi>\<close>) for \<phi>
-    by (metis nat_le_linear run_reader_simps(3) state_inv_def take_all_iff)
+    by (metis run_reader_simps(3)[of "foldM (\<bind>) return_rd (step_eager (take i xs)) [0..<length (take i xs)] initial_state" "step_1_eager xs i" \<phi>] state_inv_def)
 
   then have
     \<open>prob_bernoulli_matrix ?P_run_steps_eager_then_step_1
