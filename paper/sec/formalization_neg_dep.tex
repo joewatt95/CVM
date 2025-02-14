@@ -14,7 +14,7 @@ In the formalization any linearly ordered topological space with the Borel $\sig
 In this case the test functions must be monotone with respect ot the respective order on that space.
 
 The formalization contains the standard Chernoff bounds for negatively associated random variables.
-This includes the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multipicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
+This includes the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
 Although, these results are not needed for the proof of the CVM algorithm.
 
 A key issue, we faced during formalization, was the fact that there are many theorems of the form if a set of functions are either simultaneously monotone or anti-monotone.
@@ -24,8 +24,8 @@ For example the FKG inequality
 \[
   \expect [f g] \geq \expect [f] \expect [g]
 \]
-is true, if $f$ and $g$ are both montone, or both antimontone.
-On the other hand the reverse inequality is true, if $f$ is montone and $g$ is antimontone, or vice versa.
+is true, if $f$ and $g$ are both monotone, or both antimonotone.
+On the other hand the reverse inequality is true, if $f$ is monotone and $g$ is antimonotone, or vice versa.
 Using our parameterized relation symbol, we could state all variants in a concise manner.
 
 

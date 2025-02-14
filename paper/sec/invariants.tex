@@ -4,7 +4,7 @@ Let us start by briefly reviewing the algorithm---its state is a buffer $\chi$ (
 The buffer contains a subset of the elements of the stream encountered so far, with maximal size $n$ chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
 The algorithm iterates over the stream elements, adding each one to the buffer with probability $p$ or conversely---if the current stream element is already in the buffer---removing it with probability $(1-p)$.
 If the number of elements in the buffer reaches the maximal size $n$, the subsampling operation is executed, which discards each element in $\chi$ independently with probability $\frac{1}{2}$; then, $p$ is adjusted to reflect the fact that the buffer now contains each element with probability $p_\text{new} = \frac{p_\text{old}}{2}$.
-If the subsampling operation fails, i.e., if no elements get discarded, then the algorithm fails returing $\bot$.
+If the subsampling operation fails, i.e., if no elements get discarded, then the algorithm fails returning $\bot$.
 After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as a probably-approximately correct value for the number of distinct elements in the stream.
 
 \subsection{A Minor Transformation}

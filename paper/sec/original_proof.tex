@@ -12,12 +12,12 @@ The element is put into the sample, whenever the first $k$ coin flips associated
 Note that this happens exactly with probability $2^{-k}$, which means the behaviour of the algorithm is unchanged.
 
 Moreover, during the subsampling operation those elements are kept, whose $k+1$-th associated coin flip is $1$.
-This again preserves the behaviour, that each element is discared independently with probability $1/2$.
+This again preserves the behaviour, that each element is discarded independently with probability $1/2$.
 The operation $p \mapsto \frac{p}{2}$ is replaced with $k \mapsto k+1$.
 For this modified algorithm, it is easy to see that the set of elements in any state are exactly, those stream elements for which the first $k$ entries of their associated coin flips are $1$.
 
-In \cref{alg:cvm_simul} we describe the new algorithm, that behaves exactly as the original one (\cref{alg:cvm}), but performs indepenent coin flips.
-Note that the function last{\textunderscore}index returns the index of the last-occurence of an element in the sequence, before the current loop iteration.
+In \cref{alg:cvm_simul} we describe the new algorithm, that behaves exactly as the original one (\cref{alg:cvm}), but performs independent coin flips.
+Note that the function last{\textunderscore}index returns the index of the last-occurrence of an element in the sequence, before the current loop iteration.
 It should be noted that the algorithm keeps track of the number of subsampling iterations $k$, instead of the value $p = 2^{-k}$ as the original algorithm does.
 %Like, we did in \cref{sec:invariants}, we ignore the second check, whether the subsampling operation succeeded.
 %As we explained there, the total variational difference between these two variants is $\frac{\delta}{2}$.
@@ -54,7 +54,7 @@ What we discovered is that it best to solve the problem backwards, i.e., we star
 
 We can push down the coin flips through the expression tree.
 To explain how this works.
-Let us first define the \emph{sampling} function, i.e., let $f$ be a function that depends on coin flips, more precisely $f$ takes as argument a vector of coin flips indexed by $I$, then we can express the distribution of $f$ with respect to indepenent unbiased coin flips as.
+Let us first define the \emph{sampling} function, i.e., let $f$ be a function that depends on coin flips, more precisely $f$ takes as argument a vector of coin flips indexed by $I$, then we can express the distribution of $f$ with respect to independent unbiased coin flips as.
 \begin{isabelle_cm}
   sample\ f\ \isacharequal\ map{\isacharunderscore}pmf\ f\ {\isacharparenleft}prod{\isacharunderscore}pmf\ I\ {\isacharparenleft}\isasymlambda\isacharunderscore\isachardot\ bernoulli{\isacharunderscore}pmf \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright\isacharparenright\isacharparenright
 \end{isabelle_cm}
@@ -66,7 +66,7 @@ The interesting fact is that we can distribute the sampling operation over compo
 if $f$ and $g$ depend on disjoint subsets of the coin flips, i.e., if $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.
 
 By recursively applying the rule, we end up with elementary lookup operations, e.g., \isa{sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ \isasymomega\ i\isacharparenright}, for which it is easy to see that it is just a coin flip, i.e., equal to \isa{bernoulli{\isacharunderscore}pmf\ \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright}.
-Note that, we arrive at the orignal version of the algorithm, that performs the coin flips lazily.
+Note that, we arrive at the original version of the algorithm, that performs the coin flips lazily.
 
 A detail, that we simplified here is that the split of the index sets, e.g., which coin flips $f$ depends on and which coin flips $g$ depends on, maybe dynamic.
 This means the split may depend on the return value of $f$.
