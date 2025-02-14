@@ -187,10 +187,10 @@ corollary prob_eager_algo_then_step_1_le_binomial :
         P estimate)\<close>
   (is \<open>prob_bernoulli_matrix ?P_run_steps_eager_then_step_1 \<le> ?prob_P_binomial\<close>)
 proof -
-  let ?xs' = \<open>take (Suc i) xs\<close>
-
   from \<open>i < length xs\<close> initial_state_inv run_steps_eager_inv step_1_eager_inv
-  have \<open>?P_run_steps_eager_then_step_1 \<phi> \<Longrightarrow> P (card <| nondet_algo ?xs' k \<phi>)\<close>
+  have
+    \<open>?P_run_steps_eager_then_step_1 \<phi> \<Longrightarrow>
+    P (card <| nondet_algo (take (Suc i) xs) k \<phi>)\<close>
     (is \<open>_ \<Longrightarrow> ?P_nondet_algo \<phi>\<close>) for \<phi>
     by (metis run_reader_simps(3)[of "foldM (\<bind>) return_rd (step_eager (take i xs)) [0..<length (take i xs)] initial_state" "step_1_eager xs i" \<phi>] state_inv_def)
 
