@@ -1,16 +1,16 @@
 theory Utils_Basic
 
 imports
-  "List-Index.List_Index"
+  Main
 
 begin
 
 abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c\<close> where
-  \<open>flip f x y \<equiv> f y x\<close>
+  \<open>flip \<equiv> \<lambda> f x y. f y x\<close>
 
 abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close>
   (infixr \<open><|\<close> 0) where
-  \<open>(<|) f \<equiv> f\<close>
+  \<open>(<|) \<equiv> id\<close>
 
 abbreviation (input) pipe :: \<open>'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close>
   (infixl \<open>|>\<close> 0) where
@@ -22,14 +22,13 @@ abbreviation (input) comp_left :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a
 
 abbreviation (input) comp_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
   (infixl \<open>>>>\<close> 55) where
-  \<open>(f >>> g) \<equiv> (\<lambda> x. g (f x))\<close>
+  \<open>(f >>> g) \<equiv> g <<< f\<close>
 
 abbreviation (input) constantly
   (\<open>\<lblot> _ \<rblot>\<close> 1000) where
   \<open>\<lblot>x\<rblot> \<equiv> \<lambda> _. x\<close>
 
-abbreviation (input) uncurry :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c\<close> where
-  \<open>uncurry f \<equiv> \<lambda> (a, b). f a b\<close>
+abbreviation (input) \<open>uncurry \<equiv> case_prod\<close>
 
 lemma finset_card_filter_eq_iff_Ball :
   assumes \<open>finite A\<close>
@@ -41,11 +40,11 @@ lemma take_length_eq_self :
   \<open>take (length xs) (xs @ ys) = xs\<close>
   by simp
 
-consts kleisli_compose_left :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd\<close>
+consts kleisli_compose_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd\<close>
 
-notation (ASCII) kleisli_compose_left (infixl \<open>>=>\<close> 50)
+notation (ASCII) kleisli_compose_right (infixl \<open>>=>\<close> 50)
 
-abbreviation (input) kleisli_compose_right (infixr \<open><=<\<close> 50) where
+abbreviation (input) kleisli_compose_left (infixr \<open><=<\<close> 50) where
   \<open>(f <=< g) \<equiv> g >=> f\<close>
 
 context

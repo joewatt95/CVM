@@ -1,6 +1,7 @@
 theory CVM_Algo_Lazy_Eager
 
 imports
+  "List-Index.List_Index"
   CVM_Algo_No_Fail
   Utils_Reader_Monad
   Utils_PMF_Lazify
