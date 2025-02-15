@@ -31,9 +31,6 @@ abbreviation (input) constantly
 abbreviation (input) uncurry :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c\<close> where
   \<open>uncurry f \<equiv> \<lambda> (a, b). f a b\<close>
 
-definition map_index :: \<open>(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> where
-  \<open>map_index f \<equiv> map (uncurry f) <<< enumerate 0\<close>
-
 lemma finset_card_filter_eq_iff_Ball :
   assumes \<open>finite A\<close>
   shows \<open>card (Set.filter P A) = card A \<longleftrightarrow> Ball A P\<close>
@@ -43,6 +40,13 @@ lemma finset_card_filter_eq_iff_Ball :
 lemma take_length_eq_self :
   \<open>take (length xs) (xs @ ys) = xs\<close>
   by simp
+
+consts kleisli_compose_left :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd\<close>
+
+notation (ASCII) kleisli_compose_left (infixl \<open>>=>\<close> 50)
+
+abbreviation (input) kleisli_compose_right (infixr \<open><=<\<close> 50) where
+  \<open>(f <=< g) \<equiv> g >=> f\<close>
 
 context
   fixes

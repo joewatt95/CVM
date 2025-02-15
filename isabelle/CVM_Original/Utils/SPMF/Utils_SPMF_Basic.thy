@@ -67,14 +67,4 @@ lemma measure_spmf_le_measure_pmf_is_None_or_pred :
     split: option.splits
     simp add: measure_spmf_eq_measure_pmf_is_Some_and_pred)
 
-abbreviation (input) kleisli_compose_left ::
-  \<open>('a \<Rightarrow> 'b spmf) \<Rightarrow> ('b \<Rightarrow> 'c spmf) \<Rightarrow> 'a \<Rightarrow> 'c spmf\<close>
-  (infixl \<open>>=>\<close> 50) where
-  \<open>(f >=> g) \<equiv> \<lambda> x. bind_spmf (f x) g\<close>
-
-abbreviation (input) kleisli_compose_right ::
-  \<open>('b \<Rightarrow> 'c spmf) \<Rightarrow> ('a \<Rightarrow> 'b spmf) \<Rightarrow> 'a \<Rightarrow> 'c spmf\<close>
-  (infixr \<open><=<\<close> 50) where
-  \<open>(f <=< g) \<equiv> g >=> f\<close>
-
 end

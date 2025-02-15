@@ -18,13 +18,7 @@ definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad 
 
 adhoc_overloading Monad_Syntax.bind == bind_rd
 
-abbreviation (input) kleisli_compose_left
-  (infixl \<open>>=>\<close> 50) where
-  \<open>(f >=> g) \<equiv> \<lambda> x. bind_rd (f x) g\<close>
-
-abbreviation (input) kleisli_compose_right
-  (infixr \<open><=<\<close> 50) where
-  \<open>(f <=< g) \<equiv> g >=> f\<close>
+adhoc_overloading kleisli_compose_left == \<open>\<lambda> f g x. bind_rd (f x) g\<close>
 
 abbreviation \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
 abbreviation \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>
@@ -57,7 +51,7 @@ lemma reader_monad_eqI:
 lemmas bind_cong_rd = arg_cong2[where f = bind_rd]
 
 lemma map_bind_rd:
-  "map_rd g (bind_rd m f) = bind_rd m (\<lambda>x. map_rd g (f x))"
+  "map_rd g (bind_rd m f) = bind_rd m (\<lambda> x. map_rd g (f x))"
   by (intro reader_monad_eqI) simp
 
 lemma map_comp_rd :

@@ -285,8 +285,8 @@ qed
 lemma
   defines [simp] : \<open>state_k_bounded \<equiv> \<lambda> idx \<phi> state. state_k state \<le> idx\<close>
   shows 
-    initial_state_k_bounded : \<open>\<And> idx.
-      state_k_bounded idx \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
+    initial_state_k_bounded :
+      \<open>state_k_bounded idx \<phi> initial_state\<close> (is \<open>PROP ?thesis_0\<close>) and
 
     step_eager_k_bounded : \<open>\<And> idx.
       idx < length xs \<Longrightarrow> \<turnstile>rd
