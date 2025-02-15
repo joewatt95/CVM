@@ -94,7 +94,6 @@ next
     have [simp] :
       \<open>{x. f x \<le> l \<and> P x} = (
         \<Union> k \<le> l. {x. f x = k \<and> P x})\<close> for f :: \<open>'b \<Rightarrow> nat\<close> and P by auto
-
     show ?thesis
       by (auto
         intro: measure_pmf.finite_measure_subadditive_finite
@@ -160,17 +159,17 @@ next
       sum_distrib_left
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
     apply (intro sum.reindex_bij_witness[of _ floor_log \<open>(^) 2\<close>])
-    by (auto
-      simp flip: exp_of_nat_mult exp_add
-      simp add: exp_powr_real field_split_simps)
+      by (auto
+        simp flip: exp_of_nat_mult exp_add
+        simp add: exp_powr_real field_split_simps)
 
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
     up to `2 ^ l`.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (\<Sum> r \<le> 2 ^ l - 1. ?exp_term l ^ r)\<close>
     apply (intro mult_mono sum_le_included[where i = Suc] sum_nonneg)
-    apply simp_all
-    by (meson Suc_pred atMost_iff diff_le_mono less_eq_real_def nat_zero_less_power_iff pos2 power_increasing rel_simps(25))
+      apply simp_all
+      by (meson Suc_pred atMost_iff diff_le_mono less_eq_real_def nat_zero_less_power_iff pos2 power_increasing rel_simps(25))
 
   text \<open>Upper bound by infinite geometric series.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (1 / (1 - ?exp_term l))\<close>
