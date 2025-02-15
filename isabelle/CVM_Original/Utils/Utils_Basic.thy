@@ -10,7 +10,7 @@ abbreviation (input) flip :: \<open>('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rig
 
 abbreviation (input) app :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b\<close>
   (infixr \<open><|\<close> 0) where
-  \<open>(<|) \<equiv> id\<close>
+  \<open>(<|) \<equiv> (\<lambda> x. x)\<close>
 
 abbreviation (input) pipe :: \<open>'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b\<close>
   (infixl \<open>|>\<close> 0) where
