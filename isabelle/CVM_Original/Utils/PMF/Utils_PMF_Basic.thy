@@ -65,10 +65,9 @@ proof -
   finally show ?thesis by simp
 qed
 
-lemma bool_pmf_eqI :
-  assumes "pmf p True = pmf q True"
-  shows "p = q"
-  using assms pmf_False_conv_True by (intro pmf_eqI) (metis (full_types))
+lemma bool_pmf_eq_iff_pmf_True_eq :
+  \<open>p = q \<longleftrightarrow> pmf p True = pmf q True\<close>
+  by (smt (verit, best) pmf_neq_exists_less)
 
 section \<open>Properties about Pi_pmf and prod_pmf\<close>
 

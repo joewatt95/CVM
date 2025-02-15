@@ -301,7 +301,7 @@ proof -
 
   finally have
     "bernoulli_pmf (f ^ state_k \<sigma>) = map_pmf (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) space"
-    by (auto intro: bool_pmf_eqI simp add: pmf_map vimage_def power_le_one)
+    by (simp add: bool_pmf_eq_iff_pmf_True_eq pmf_map vimage_def power_le_one)
 
   also have "\<dots> = sample (map_rd (\<lambda>\<phi>. \<forall>k'<state_k \<sigma>. \<phi> (k', l)) get_rd)"
     unfolding sample_def by (auto intro: map_pmf_cong)
@@ -342,7 +342,7 @@ proof -
       "prod_pmf (state_chi \<sigma>') (\<lblot>coin_pmf\<rblot> <<< ?f) =
         sample (map_rd (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) get_rd)"
       (is "?L' = ?R'")
-    proof- 
+    proof - 
       have "?R' = map_pmf (\<lambda>\<phi>. \<lambda>i\<in>state_chi \<sigma>'. \<phi> (?f i)) space"
         unfolding sample_def by (auto intro: map_pmf_cong)
       also have "\<dots> = ?L'"
@@ -350,8 +350,7 @@ proof -
       finally show ?thesis by simp
     qed
 
-    then show ?thesis
-      using True
+    with True show ?thesis
       unfolding step_2_eager_def' step_2_lazy_def'
       by (simp add: lazify_map map_pmf_comp)
   qed
@@ -368,8 +367,7 @@ proof -
 qed
 
 lemma depends_on_step_approx :
-  fixes xs
-  shows "depends_on
+  "depends_on
     (step_eager (xs @ [x]) l \<sigma>)
     ({state_k \<sigma> ..< Suc (state_k \<sigma>)} \<times> {.. l} \<union> {..< state_k \<sigma>} \<times> {l})"
 proof -
