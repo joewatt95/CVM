@@ -38,7 +38,7 @@ Yet, for \cref{alg:cvm}, the state variables are far from being independent.\foo
 The original error serves as a side motivation for this work.}
 For example, in Line~3 the Bernoulli distribution is sampled for the value $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
 The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
-To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known methods.
+To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known methods. %TODO: perhaps cite a textbook or two?
 
 In this paper, we present a new technique for analyzing randomized algorithms which yields a direct and substantially more general proof of the CVM algorithm.
 Our approach is very similar to how deterministic algorithms are verified using loop invariants.
@@ -48,23 +48,20 @@ The key difference is that our choice of ``loop invariant'' for the randomized s
 \]
 where $h$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
 By first establishing such an invariant for \cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
-For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
-We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to ideas from mechanized theorem proving.
-
-The verification of the CVM algorithm using our new technique requires only 1044 lines in Isabelle~\cite{nipkow2002}, while the original proof (which we also mechanized) required \todo{x} lines.
-We detail some of the challenges faced when mechanizing the transformation arguments used by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023} in \cref{sec:transformation_based_proof}.
+%For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
+We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to mechanized theorem proving.
 
 To show the generality of our new technique, we introduce a new variant of the CVM algorithm, where the subsampling step in line 9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in line 11 becomes obsolete.
 More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property, that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
 The modified subsampling step leads to additional dependence for the elements in $\chi$, which cannot be readily removed using transformations following the original proof.
-Instead, we readily verify the new variant with our probabilistic invariant-based approach, using results from the theory of negatively associated random variables~\cite{joagdev1983} to establish the desired functional invariant.
+Instead, we verify the new variant with our probabilistic invariant-based approach, using results from the theory of negatively associated random variables~\cite{joagdev1983} to establish the desired functional invariant.
 The concept of negative association is a generalization of independence; negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
 It should be stressed that the theory of negatively associated RVs is orthogonal to our new technique, but the formalization of such a theory is also a contribution of this work.
 
 % After re-reading. This summary (especially point 3/4), feels very weird because the new variant/or neg. association has not been mentioned before.
-The main contributions of this work are:
+In summary, the main contributions of this work are:
 \begin{itemize}
 \item Introduction of a new technique using functional probabilistic invariants to verify randomized algorithms inductively/recursively.
 \item Verification of the original CVM algorithm using our new technique.
@@ -72,11 +69,15 @@ The main contributions of this work are:
 \item Formalization of a theory of negatively associated random variables used to analyze the new CVM variant.
 \end{itemize}
 
+We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
+As a rough point of comparison, verification of the CVM algorithm using our new technique requires only 1044 lines in Isabelle~\cite{nipkow2002}, while the original proof required \todo{x} lines.
+
+The organization of this paper is as follows.
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle~\cite{nipkow2002}.
 \cref{sec:invariants} introduces our new technique and explains how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
-\cref{sec:formalization} and \cref{sec:formalization_neg_dep} present details about the formal verification of both variants of the algorithm, as well as, our new library on negatively associated random variables.
-In \cref{sec:transformation_based_proof}, we present details about our alternative verification of the CVM using the transformation based proof by Chakraborty et al.~\cite{chakraborty2023}.
+\cref{sec:formalization} and \cref{sec:formalization_neg_dep} present details about the formal verification of both variants of the algorithm, as well as, our new formalized library on negatively associated random variables.
+In \cref{sec:transformation_based_proof}, we present some challenges faced in our alternative verification of the CVM using the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}.
 The final sections conclude with an overview of related work and a summary of our results.
 
 % TODO: move it into the discussion of the variant, I think it is better once the algorithm is shown
