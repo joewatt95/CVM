@@ -16,9 +16,8 @@ definition get_rd :: "('a,'a) reader_monad"
 definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad \<Rightarrow> ('c,'b) reader_monad"
   where "map_rd f m = bind_rd m (\<lambda>x. return_rd (f x))"
 
-adhoc_overloading Monad_Syntax.bind == bind_rd
-
-adhoc_overloading kleisli_compose_left == \<open>\<lambda> f g x. bind_rd (f x) g\<close>
+adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_rd
+adhoc_overloading kleisli_compose_right \<rightleftharpoons> \<open>\<lambda> f g x. bind_rd (f x) g\<close>
 
 abbreviation \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
 abbreviation \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>

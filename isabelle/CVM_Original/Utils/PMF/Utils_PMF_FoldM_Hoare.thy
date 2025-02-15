@@ -11,9 +11,9 @@ abbreviation \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return
 lemma foldM_pmf_snoc :
   "foldM_pmf f (xs @ [x]) val = bind_pmf (foldM_pmf f xs val) (f x)"
   apply (induction xs arbitrary:val)
-  by (simp_all
-    add: bind_return_pmf bind_return_pmf' bind_assoc_pmf
-    cong: bind_pmf_cong)
+    by (simp_all
+      add: bind_return_pmf bind_return_pmf' bind_assoc_pmf
+      cong: bind_pmf_cong)
 
 abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where

@@ -7,6 +7,8 @@ imports
 
 begin
 
+adhoc_overloading kleisli_compose_right \<rightleftharpoons> \<open>\<lambda> f g x. bind_pmf (f x) g\<close>
+
 lemma integrable_measure_pmf_pmf [simp] :
   \<open>integrable (measure_pmf p) <| \<lambda> x. pmf (f x) y\<close>
   apply (intro measure_pmf.integrable_const_bound[where B = 1])
@@ -225,10 +227,10 @@ next
   moreover from calculation
   have \<open>\<dots> = ?R (insert x J)\<close>
     apply (subst Pi_pmf_insert')
-    by (auto
-      intro: bind_pmf_cong map_pmf_cong
-      simp flip: map_pmf_def
-      simp add: map_pmf_comp map_bind_pmf)
+      by (auto
+        intro: bind_pmf_cong map_pmf_cong
+        simp flip: map_pmf_def
+        simp add: map_pmf_comp map_bind_pmf)
 
   ultimately show ?case by simp
 qed
