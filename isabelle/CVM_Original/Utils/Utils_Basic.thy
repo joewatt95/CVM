@@ -44,10 +44,6 @@ lemma take_length_eq_self :
   \<open>take (length xs) (xs @ ys) = xs\<close>
   by simp
 
-lemma card_set_take_le_card_set :
-  \<open>card (set (take i xs)) \<le> card (set xs)\<close>
-  by (simp add: card_mono set_take_subset)
-
 context
   fixes
     bind :: \<open>'a \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'c\<close> and

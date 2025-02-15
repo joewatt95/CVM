@@ -142,7 +142,7 @@ next
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * ((?exp_term l) powr (1 / f ^ (l - k))))\<close>
     (is \<open>_ = (\<Sum> k \<le> _. ?g k)\<close>)
     apply (intro sum.cong refl)
-    apply (simp add: exp_powr_real field_split_simps)
+    apply (simp add: exp_powr_real field_split_simps Cons)
     unfolding Multiseries_Expansion.intyness_simps
     by (smt (verit, best) Multiseries_Expansion.intyness_simps(5) linordered_semidom_class.add_diff_inverse more_arith_simps(11) mult.commute mult_pos_pos not_less of_nat_0_less_iff power_add
       rel_simps(51) zero_less_power)
@@ -377,9 +377,8 @@ next
       with \<open>2 ^ l * threshold \<ge> r * (card <| set xs)\<close>
       have \<open>\<alpha> \<ge> r\<close> and [simp] : \<open>threshold = \<alpha> * \<mu>\<close>
         apply (simp_all add: \<alpha>_def n_def field_simps Cons)
-        unfolding approximation_preproc
-        using card_set_take_le_card_set
-        by (smt (verit, best) landau_o.R_mult_left_mono list.set(2) of_nat_0_le_iff of_nat_le_iff take_Suc_Cons)
+        by (metis (full_types) List.finite_set Multiseries_Expansion.intyness_simps(2) card_mono le_trans list.set(2) local.Cons mult_le_mono2 of_nat_le_iff of_nat_numeral of_nat_power
+          push_bit_nat_def set_take_subset take_Suc_Cons)
 
       with binomial_distribution.chernoff_prob_ge[
         of p \<open>\<alpha> - 1\<close> n, simplified binomial_distribution_def]
@@ -389,18 +388,16 @@ next
       also have \<open>\<dots> \<le> ?exp_term\<close>
       proof -
         have
-          \<open>c * (27*\<alpha>\<^sup>2*r - 24*\<alpha>*r\<^sup>2 - 6*\<alpha>*r - 6*\<alpha>\<^sup>2 + 6*r\<^sup>2 - 12*\<alpha> + 15*r) \<ge> 0\<close>
-          if \<open>c \<ge> 0\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> for c r :: real
-          apply (rule mult_nonneg_nonneg[OF \<open>c \<ge> 0\<close>])
-          using that by sos
+          \<open>27*\<alpha>\<^sup>2*r - 24*\<alpha>*r\<^sup>2 - 6*\<alpha>*r - 6*\<alpha>\<^sup>2 + 6*r\<^sup>2 - 12*\<alpha> + 15*r \<ge> 0\<close>
+          (is \<open>?expr r \<ge> 0\<close>)
+          if \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> for r :: real using that by sos
 
-        note this[of \<open>2 ^ l * real n\<close> r]
+        with \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> have
+          \<open>2 ^ l * n * ?expr r \<ge> 0\<close>
+          \<open>4 * 2 ^ l + \<alpha> * (2 * 2 ^ l) > 0\<close>
+          by (simp_all add: pos_add_strict)
 
-        moreover have \<open>4 * 2 ^ l + \<alpha> * (2 * 2 ^ l) > 0\<close>
-          using \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> by (simp add: pos_add_strict)
-
-        ultimately show ?thesis
-          using \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close>
+        with \<open>n \<ge> 1\<close> \<open>\<alpha> \<ge> r\<close> \<open>r \<ge> 2\<close> show ?thesis
           by (auto simp add:
             field_split_simps power_numeral_reduce add_increasing less_le_not_le
             Multiseries_Expansion.of_nat_diff_real)
