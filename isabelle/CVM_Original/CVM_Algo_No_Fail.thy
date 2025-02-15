@@ -78,7 +78,7 @@ proof -
         (prob_fail <<< step_3))\<close>
     (is \<open>_ = measure_pmf.expectation _ ?prob_fail_step_3_after_step_2\<close>)
     apply (subst integral_bind_pmf)
-    by (fastforce simp add: AE_measure_pmf_iff)+
+      by (fastforce simp add: AE_measure_pmf_iff)+
 
   also have \<open>\<dots> \<le> measure_pmf.expectation (step_1 x state) \<lblot>f ^ threshold\<rblot>\<close>
   proof -
@@ -105,14 +105,15 @@ proof -
 
       also from assms that have \<open>\<dots> \<le> ?R'\<close>
         apply (subst expectation_prod_Pi_pmf)
-        by (simp_all add: integrable_measure_pmf_finite)
+          by (simp_all add: integrable_measure_pmf_finite)
 
       finally show ?thesis .
     qed
 
     with assms step_1_preserves_finiteness show ?thesis
       apply (intro integral_mono_AE)
-      by (fastforce simp add: integrable_measure_pmf_finite step_1_finite_support AE_measure_pmf_iff)+
+        by (fastforce simp add:
+          integrable_measure_pmf_finite step_1_finite_support AE_measure_pmf_iff)+
   qed
 
   finally show ?thesis by simp

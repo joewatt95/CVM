@@ -53,8 +53,7 @@ context
     return :: \<open>'b \<Rightarrow> 'c\<close>
 begin
 
-fun foldM ::
-  \<open>('d \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> 'd list \<Rightarrow> 'b \<Rightarrow> 'c\<close> where
+fun foldM :: \<open>('d \<Rightarrow> 'b \<Rightarrow> 'a) \<Rightarrow> 'd list \<Rightarrow> 'b \<Rightarrow> 'c\<close> where
   \<open>foldM _ [] = return\<close> |
   \<open>foldM f (x # xs) = (\<lambda> val. bind (f x val) (foldM f xs))\<close>
 

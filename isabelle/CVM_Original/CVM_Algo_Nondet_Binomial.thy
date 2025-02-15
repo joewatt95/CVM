@@ -96,8 +96,7 @@ proof -
       (\<lambda> \<phi>. nondet_algo xs k (\<lambda> (x, y) \<in> ?m' \<times> ?n'. \<phi> y x))
       (?M ?n')\<close>
     unfolding bernoulli_matrix_eq_uncurry_prod
-    apply (subst prod_pmf_swap_uncurried)
-    by (simp_all add: map_pmf_comp)
+    apply (subst prod_pmf_swap_uncurried) by (simp_all add: map_pmf_comp)
 
   also have \<open>\<dots> = (
     ?M ?n'
@@ -111,7 +110,7 @@ proof -
       (\<lambda> P. {x \<in> set xs. \<forall> k' < k. P x k'})
       (?M (set xs))\<close>
     apply (subst prod_pmf_reindex)
-    using assms inj_on_last_index by auto
+      using assms inj_on_last_index by auto
 
   also have \<open>\<dots> =
     map_pmf
@@ -125,8 +124,7 @@ proof -
   also from assms bernoulli_eq_map_Pi_pmf[where I = \<open>{..< k}\<close>, unfolded Ball_def]
   have \<open>\<dots> = ?R\<close>
     apply (intro map_pmf_cong Pi_pmf_cong refl)
-    apply (cases k)
-    by simp_all
+    apply (cases k) by simp_all
 
   finally show ?thesis .
 qed
@@ -143,7 +141,7 @@ proof -
 
   with assms show ?thesis
     apply (subst binomial_pmf_altdef')
-    by (simp_all add: map_pmf_nondet_algo_eq power_le_one map_pmf_comp)
+      by (simp_all add: map_pmf_nondet_algo_eq power_le_one map_pmf_comp)
 qed
 
 corollary prob_eager_algo_le_binomial :

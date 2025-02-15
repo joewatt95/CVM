@@ -59,7 +59,7 @@ lemma map_comp_rd :
 
 abbreviation hoare_triple
   (\<open>\<turnstile>rd \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
-  \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> \<phi> x. P \<phi> x \<Longrightarrow> Q \<phi> (run_reader (f x) \<phi>))\<close>
+  \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> \<phi> x. P \<phi> x \<Longrightarrow> Q \<phi> <| run_reader (f x) \<phi>)\<close>
 
 context
   fixes
