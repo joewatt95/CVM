@@ -6,7 +6,10 @@
 The CVM algorithm is a \emph{streaming} algorithm for the distinct elements problem.
 As shown in~\cref{alg:cvm}, given a data stream $a_1,\dots, a_l$, the goal of such algorithms is to return an accurate cardinality estimate for $A = \{a_1,\dots,a_l\}$.
 
-Importantly, the CVM algorithm is \emph{probably-approximately correct}, i.e., the probability that the relative error of its output estimate $R$ exceeds $\varepsilon$ is at most $\delta$, i.e.., $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$ for parameters $\varepsilon$ and $\delta$. % I think here it's good to have both a text and formal description.
+Importantly, CVM is a \emph{probably-approximately correct} algorithm where its output estimate $R$ satisfies
+$\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+for parameters $\varepsilon$ and $\delta$,
+i.e., the probability that the relative error of $R$ exceeds $\varepsilon$ is at most $\delta$. % I think here it's good to have both a text and formal description.
 Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.\footnote{The optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.}
 
 \subsection{Semantics of Randomized Algorithms}
