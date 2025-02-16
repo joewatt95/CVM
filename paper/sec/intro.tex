@@ -38,7 +38,7 @@ Yet, for \cref{alg:cvm}, the state variables are far from being independent.\foo
 The original error serves as a side motivation for this work.}
 For example, in Line~3 the Bernoulli distribution is sampled for the value $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
 The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
-To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known methods. %TODO: perhaps cite a textbook or two?
+To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known methods~\cite{alon2000,mitzenmacher2017,motwani1995}.
 
 In this paper, we present a new technique for analyzing randomized algorithms which yields a direct and substantially more general proof of the CVM algorithm.
 Our approach is very similar to how deterministic algorithms are verified using loop invariants.
@@ -51,8 +51,8 @@ By first establishing such an invariant for \cref{alg:cvm}, we can then use it (
 %For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
 We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to mechanized theorem proving.
 
-To show the generality of our new technique, we introduce a new variant of the CVM algorithm, where the subsampling step in line 9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
-This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in line 11 becomes obsolete.
+To show the generality of our new technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
+This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in Line~11 becomes obsolete.
 More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property, that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
 The modified subsampling step leads to additional dependence for the elements in $\chi$, which cannot be readily removed using transformations following the original proof.
@@ -60,7 +60,6 @@ Instead, we verify the new variant with our probabilistic invariant-based approa
 The concept of negative association is a generalization of independence; negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
 It should be stressed that the theory of negatively associated RVs is orthogonal to our new technique, but the formalization of such a theory is also a contribution of this work.
 
-% After re-reading. This summary (especially point 3/4), feels very weird because the new variant/or neg. association has not been mentioned before.
 In summary, the main contributions of this work are:
 \begin{itemize}
 \item Introduction of a new technique using functional probabilistic invariants to verify randomized algorithms inductively/recursively.
