@@ -5,7 +5,7 @@ In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} published a
 Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its interesting properties and christening it the \emph{CVM} algorithm (which we use for the rest of this paper).
 One striking property of the CVM algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
 Instead, the algorithm could theoretically be implemented in a setting where objects in the data stream only allow for equality comparisons.
-Another property is its simplicity---which is why the authors called it ``an algorithm for the text book''---the algorithm is shown in its entirety in~\cref{alg:cvm}.
+Another property is its simplicity---which is why the authors called it ``an algorithm for the text book''---the algorithm is displayed in its entirety in~\cref{alg:cvm}.
 
 \begin{algorithm}[h!]
 	\caption{CVM algorithm for distinct elements estimation~\cite{chakraborty2022}.}\label{alg:cvm}
@@ -53,14 +53,14 @@ We believe the new proof remains accessible at the undergraduate level, albeit w
 
 To show the generality of our new technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in Line~11 becomes obsolete.
-More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property, that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
+More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
-The modified subsampling step leads to additional dependence for the elements in $\chi$, which cannot be readily removed using transformations following the original proof.
+The modified subsampling step leads to additional dependence for the elements in $\chi$ which cannot be readily removed using transformations following the original proof.
 Instead, we verify the new variant with our probabilistic invariant-based approach, using results from the theory of negatively associated random variables~\cite{joagdev1983} to establish the desired functional invariant.
-The concept of negative association is a generalization of independence; negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
-It should be stressed that the theory of negatively associated RVs is orthogonal to our new technique, but the formalization of such a theory is also a contribution of this work.
+The concept of negative association is a generalization of independence; importantly, negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
+It should be stressed that the theory of negatively association is orthogonal to our new technique, but its formalization is also a contribution of this work.
 
-In summary, the main contributions of this work are:
+In summary, our main contributions are:
 \begin{itemize}
 \item Introduction of a new technique using functional probabilistic invariants to verify randomized algorithms inductively/recursively.
 \item Verification of the original CVM algorithm using our new technique.
@@ -75,15 +75,15 @@ The organization of this paper is as follows.
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle~\cite{nipkow2002}.
 \cref{sec:invariants} introduces our new technique and explains how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
-\cref{sec:formalization} and \cref{sec:formalization_neg_dep} present details about the formal verification of both variants of the algorithm, as well as, our new formalized library on negatively associated random variables.
-In \cref{sec:transformation_based_proof}, we present some challenges faced in our alternative verification of the CVM using the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}.
+\cref{sec:formalization} presents the formalization of both variants of the algorithm, and \cref{sec:formalization_neg_dep} describes our new formalized library on negatively associated random variables.
+In \cref{sec:transformation_based_proof}, we discuss some challenges faced in our alternative verification of CVM using the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}.
 The final sections conclude with an overview of related work and a summary of our results.
 
 The supplementary material contains:
 \begin{itemize}
 \item formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) with the approach presented in \cref{sec:invariants};
-\item formalization of a library for negative association (\cref{sec:negdep}); and %in the directory Negative{\textunderscore}Association, which we intend to submit to the AFP as a separate contribution.
-\item formalization of CVM following the original proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023} (\cref{sec:transformation_based_proof}).
+\item formalization of a library for negative association; and %in the directory Negative{\textunderscore}Association, which we intend to submit to the AFP as a separate contribution.
+\item formalization of the CVM algorithm following the proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
 \end{itemize}
 
 % TODO: move it into the discussion of the variant, I think it is better once the algorithm is shown
