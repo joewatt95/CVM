@@ -106,7 +106,7 @@ If we pick $h_1(x) = x$ and $h_2(x) = M+1-x$ (for sufficiently large $M$), we ob
 \expect \left[ p^{-1} X_s \right] &= \expect \left[ \prod_{s \in S} h_1(p^{-1} X_s) \right] \leq h_1(1)^{|S|} = 1\\
 \expect [M + 1 - p^{-1} X_s] &= \expect \left[ \prod_{s \in S} h_2(p^{-1} X_s) \right] \leq h_2(1)^{|S|} = M
 \end{align*}
-This implies the simple invariant $\expect \left[ p^{-1} X_s \right] = 1$ (and thus, unbiasedness) without needing a separate induction over the algorithm.
+This implies the simple invariant $\expect \left[ p^{-1} X_s \right] = 1$ without needing a separate induction over the algorithm.
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
 As far as we know this method of establishing tail bounds for randomized algorithms is new.
 
