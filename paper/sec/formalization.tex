@@ -1,6 +1,9 @@
 \section{Formalization of the CVM algorithm}\label{sec:formalization}
-In this section, we present the formalization of the CVM algorithm in Isabelle/HOL; we mainly discuss the variant from~\cref{sec:negdep} since the details are similar.
-A snippet of the formalization of~\cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized}.
+In this section, we present the formalization of the CVM algorithm in Isabelle/HOL; we mainly discuss the~\cref{alg:cvm_new} variant from~\cref{sec:negdep} since the details are similar.
+Note that using our approach, it was also straightforward to verify a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
+
+
+\subsection{Formalized Results}
 
 \begin{figure}[t]
 \begin{isabelle_cm}
@@ -66,11 +69,12 @@ A snippet of the formalization of~\cref{alg:cvm_new} is presented in \cref{alg:c
 \end{figure}
 
 %The snippet also includes the relevant correctness statements, both unbiasedness and tail bounds.
+A snippet of the formalization of~\cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized}.
 We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
 The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
 Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
 Isabelle provides notation closely related to informal pseudocode, such that it is usually feasible to read a formalization without expert knowledge.
-Nevertheless, \cref{tab:isabelle_syntax} contains brief descriptions of the syntactic elements used in the formalization.
+Nevertheless, \cref{tab:isabelle_syntax} contains a brief glossary of the syntactic elements used in the formalization.
 %\medskip
 \begin{table}
 \caption{Isabelle syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
@@ -117,12 +121,15 @@ Similarly, we have also formalized unbiasedness of the algorithm:
 \end{isabelle_cm}
 The expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
 
-% TODO: I think we should give more of the details in the formalization, as opposed to giving a glossary of it
-% For example, here are some of the intricate details I would suggest:
+\subsection{Formalization Details}
 
-% 1) showing a high-level view of the way the invariant is established by induction?
-% 2) describing that we actually used locales and instances to give a general shared argument for both algorithms?
-% 3) we can write that we omit intricate details of the calculations, but some high-level (minor) details can be in one paragraph, e.g., any numerical analysis you needed were dealt with using existing libraries XXX and YYY (e.g., automating derivatives, approximation, etc.)?
+\todo{I think we can afford to go into some high-level details of the formalization. Here's what I (YK) suggest}
+
+\begin{itemize}
+\item Show a structural outline of the Isar induction that looks intuitively similar to the bind sequence in Section 3.2
+\item Briefly say that we used locales to abstract out the main details (essentially, we use the aforementioned intuition that \isa{subsample} can be replaced
+\item Maybe Mention some arithmetic intricacies that were easily solved using Isabelle's automation
+\end{itemize}
 
 %The formalization contains four theory files. The file CVM{\textunderscore}Preliminary definitions and lemmas, such as properties about the \isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} operation we introduced.
 %Of course, we do not verify \cref{alg:cvm} and \cref{alg:cvm_new} separately,
