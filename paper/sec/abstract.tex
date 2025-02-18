@@ -1,20 +1,12 @@
 \begin{abstract}
-In 2022, Chakraborty et al.~\cite{chakraborty2022} published a streaming
-algorithm (henceforth, the CVM algorithm) for the distinct
-elements problem, that deviated considerably from the state-of-the art, due to its simplicity
-and avoidance of standard derandomization techniques, while still maintaining a close to optimal
-logarithmic space complexity.
+Estimating the number of distinct elements in a data stream is a classical problem with numerous applications in computer science.
+We formalize a recent, remarkably simple, randomized algorithm for this problem due to Chakraborty, Vinodchandran, and Meel (the so-called CVM algorithm).
+Their algorithm deviated considerably from the state-of-the art, due to its avoidance of intricate derandomization techniques, while still maintaining a close to optimal logarithmic space complexity.
 
-In this entry, we verify the CVM algorithm's correctness using a new technique which simplifies
-the formal analysis considerably compared to the orignal proof by Chakraborty et
-al. The main idea is based on a probabilistic invariant that allows us to derive concentration bounds
-using the Cram\'{e}r--Chernoff method.
-
-This new technique opens up the possible algorithm design space, and we introduce a new variant of the
-CVM algorithm, that is total, and also has an additional property in addition
-to concentration: unbiasedness. This means the expected result of the algorithm is exactly equal to
-the desired result. The latter is also a new property, that neither the original CVM algorithm
-nor classic algorithms for the distinct elements problem possess.
+Central to our formalization is a new proof technique based on \emph{functional probabilistic invariants}, which allows us to derive concentration bounds using the Cram\'{e}r--Chernoff method.
+This simplifies the formal analysis considerably compared to the original transformation-based proof.
+Moreover, our technique opens up the possible algorithm design space; we demonstrate this by introducing and verifying with a new variant of the CVM algorithm that is total and unbiased---neither property is possessed by the original algorithm.
+In this paper, we introduce the proof technique, describe its use in Isabelle/HOL to mechanize both versions of the CVM algorithm, and present a supporting formalized library on negative association used to verify the latter variant.
 \end{abstract}
 
 
