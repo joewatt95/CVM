@@ -29,12 +29,6 @@ lemma spmf_map_pred_true_eq_prob :
   \<open>spmf (map_spmf P p) True = \<P>(x in measure_spmf p. P x)\<close>
   by (simp add: space_measure_spmf spmf_map vimage_def)
 
-abbreviation is_None_or_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
-  \<open>is_None_or_pred \<equiv> case_option True\<close>
-
-abbreviation is_Some_and_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
-  \<open>is_Some_and_pred \<equiv> case_option False\<close>
-
 lemma prob_is_None_or_pred_eq_prob_fail_plus_prob :
   \<open>\<P>(x in measure_pmf p. x |> is_None_or_pred P) =
     prob_fail p + \<P>(x in measure_spmf p. P x)\<close>

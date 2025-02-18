@@ -30,6 +30,12 @@ abbreviation (input) constantly
 
 abbreviation (input) \<open>uncurry \<equiv> case_prod\<close>
 
+abbreviation is_None_or_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
+  \<open>is_None_or_pred \<equiv> case_option True\<close>
+
+abbreviation is_Some_and_pred :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> bool\<close> where
+  \<open>is_Some_and_pred \<equiv> case_option False\<close>
+
 lemma finset_card_filter_eq_iff_Ball :
   assumes \<open>finite A\<close>
   shows \<open>card (Set.filter P A) = card A \<longleftrightarrow> Ball A P\<close>
