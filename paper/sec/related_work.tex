@@ -1,34 +1,37 @@
 \section{Related Work}\label{sec:related_work}
-It is important to note that there are already good practical solutions for the distinct elements problem.
-The first solution was presented by Flajolet~\cite{flajolet1985} in 1985, however he like many other authors~\cite{flajolet2007,heule2013,pettie2021}. make the assumption that a fixed hash function can be regarded as a fully random function.
-Alon et al.~\cite[Section 2.3]{alon1999} presented in 1999 an easy solution, which does not require unmotivated model assumptions.
-Their algorithm just relies on keeping track of the maximum of the hash values of the stream elements, where the hash function must be chosen uniformly from a pair-wise independent family.
-The space complexity of the algorithm is $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) b)$, where we again assume that $b$ is the number of bits required to represent the stream elements.
-This is slightly better than the CVM algorithm (which requires $\bigo(\varepsilon^{-2} \ln (\delta^{-1}l) b)$), since we do not have a dependency on $l$.
-Later Bar-Yossef et al.~\cite{baryossef2002}, Kane et al.~\cite{kane2010} and B\l{}asiok in 2020~\cite{blasiok2020} presented more and more sophisticated solutions.
-The last one by B\l{}asiok is indeed optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
-Karayel~\cite{karayel2023} presented a version of the latter, that preserves monotonicity and supports the merge-operation, which enables the use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
-It should, however, be noted that the more recent algorithms are mostly of theoretical interest, as the constants, as well as the implementation complexity is rather large.
-What makes the CVM algorithm really unique is the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms do.
+\subsection{Algorithms for the Distinct Elements Problem}
+It is important to note that there are several practical solutions for the distinct elements problem.
+The first solution was presented by Flajolet~\cite{flajolet1985} in 1985; however, like many other authors~\cite{flajolet2007,heule2013,pettie2021}, his solution makes the assumption that a fixed hash function can be regarded as a fully random function.
+Alon et al.~\cite[Section 2.3]{alon1999} presented an easy remedy, which does not require such unmotivated model assumptions.
+Their algorithm just relies on keeping track of the maximum of the hash values of the stream elements, where the hash function must be chosen uniformly from a pairwise independent family; the space complexity of this algorithm is $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) b)$, where we assume that $b$ is the number of bits required to represent the stream elements.
+This is slightly better than the CVM algorithm which requires $\bigo(\varepsilon^{-2} \ln (\delta^{-1}l) b)$ since there is no logarithmic dependency on $l$.
+
+Later, Bar-Yossef et al.~\cite{baryossef2002}, Kane et al.~\cite{kane2010} and B\l{}asiok in 2020~\cite{blasiok2020} presented increasingly sophisticated solutions.
+The last one by B\l{}asiok is optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
+Karayel~\cite{karayel2023} presented a version of the latter that preserves monotonicity and supports the merge-operation, which enables the use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
+It should be noted that these recent algorithms are mostly of theoretical interest, as the constants, as well as the implementation complexity is rather large.
+What makes the CVM algorithm unique is the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms.
 
 The aforementioned hash based algorithms are not unbiased.
+%TODO: is there a typo? does this mean bounds on the deviation from the mean?
 Flajolet et al.~\cite{flajolet1985} points it out and provides bounds on the bound.
 Most authors do not discuss the matter.
 It, however, is not hard to see that they are not.
 One issue, for example, is that the usual method to amplify the accuracy of these algorithms is using the median, which does not preserve expectations.
 In the context of query processing unbiasedness has been discussed~\cite[Section 2.1]{haas1995}, but we could not find any similar discussion for the distinct elements in the streaming model.
 
+\subsection{Probabilistic Invariants and Formalization}
 As far as we know probabilistic invariants have not been used to establish Gaussian tail-bounds.
 It is fairly common to establish results about expectations or variance of random variables, such as their run-time~\cite[Section 1.4]{motwani1995}, using recursive analysis, which is easy due to the linearity of expectations and --- in the case of independent variables --- variances.
 A simple example is the Morris-counter~\cite{morris1978} or the expected run-time of the quick-sort algorithm~\cite[Section 2.5]{mitzenmacher2005}.
 
-There is also research on the (automated) analysis of loop invariants, for probabilisitic loops, using the characteristic function of loops~\cite{batz2023, mciver2005}.
+There is also research on the (automated) analysis of loop invariants, for probabilistic loops, using the characteristic function of loops~\cite{batz2023, mciver2005}.
 This works by establishing the limiting distribution of the state of the loop.
 De Medeiros et al.~\cite[Section 3.2]{demedeiros2024} also establish methods to derive limiting distributions of probabilistic loops.
 Our approach differs from these techniques, by avoiding the computation of the distribution, which, we think, is infeasible for the CVM algorithm.
 Instead, we investigate functions of the distributions, which are relevant for the analysis.
 
-There is research on automated evaluation of moments for restricted classes of loops, which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}. 
+There is research on automated evaluation of moments for restricted classes of loops, which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}.
 However, these methods, do not extend to algorithms with branches, or in general, which contain discrete operations.
 
 Verification of randomized algorithms in general has been done by many authors~\cite{bosshard2024, eberl2020, karayel2022, karayel2023, Probabilistic_Prime_Tests-AFP, tan2024}.
