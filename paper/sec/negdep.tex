@@ -4,7 +4,7 @@ An interesting consequence of our invariant-based approach, is that it allowed u
 
 \subsection{Unbiased CVM Variant}
 
-\begin{algorithm}
+\begin{algorithm}[t!]
 	\caption{New unbiased and total CVM algorithm variant.}\label{alg:cvm_new}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
@@ -27,11 +27,11 @@ An interesting consequence of our invariant-based approach, is that it allowed u
 \end{algorithm}%
 
 
-When we look at the subsampling step of~\cref{alg:cvm}, our invariant imposes the following condition on the subsampling operation:
+When we look at the subsampling step of~\cref{alg:cvm}, our invariant~\cref{i:func_invariant} imposes the following condition on the subsampling operation:
 \begin{equation}\label[ineq]{i:subsample_condition}
   \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(\indicat(s \in \tau)) \, d \tau \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
 \end{equation}
-for all non-negative functions $g$.
+for all non-negative functions $g$---any subsampling step that satisfies this functional inequality can be used while still preserving~\cref{i:func_invariant} for the algorithm.
 
 Motivated by this, our new variant is shown in \cref{alg:cvm_new}.
 For the subsampling step, instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, we instead pick a uniform random $nf$-subset, where $\frac{1}{2} \leq f < 1$ and such that $nf$ is an integer.\footnote{It is possible to choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.}
@@ -56,7 +56,7 @@ A set of random variables $X_1,..,X_n: \Omega \rightarrow \mathbb R$ is negative
 \end{definition}
 
 The following proposition summarizes some of the properties for negatively associated sets of random variables.
-\begin{proposition}\label{pro:neg_dep_props}
+\begin{proposition}[\cite{joagdev1983}]\label{pro:neg_dep_props}
 Summary of results for negatively associated random variables.
 \begin{enumerate}
 \item If $X=(X_1,\ldots,X_n)$ are negatively associated then $\expect [f(X) g(X)] \leq \expect [f(X)] \expect [g(X)]$ also for non-increasing functions $f,g$ with $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.

@@ -83,9 +83,9 @@ In our case, we are interested in estimating the moment generating function of t
 for $h(x) = \exp(tx)$.
 At this point, it is tempting to see whether the proof for \cref{eq:indicator_eq} can be generalized to establish bounds for the above.
 Indeed, we managed to establish the following result:
-\[
-  \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|}
-\]
+\begin{align}
+  \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
+\end{align}
 for every non-negative concave function $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$.
 We call this a \emph{functional} probabilistic invariant because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
 
