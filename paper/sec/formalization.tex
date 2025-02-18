@@ -1,69 +1,8 @@
 \section{Formalization of the CVM algorithm}\label{sec:formalization}
-The supplementary material contains a formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) with the approach presented in \cref{sec:invariants}.
+In this section, we present the formalization of the CVM algorithm in Isabelle/HOL; we mainly discuss the variant from~\cref{sec:negdep} since the details are similar.
+A snippet of the formalization of~\cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized}.
 
-A snippet of the formalization of the new version of the algorithm is presented in \cref{alg:cvm_formalized}.
-%The snippet also includes the relevant correctness statements, both unbiasedness and tail bounds. 
-We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
-The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
-Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
-Isabelle provides notation closely related to informal pseudocode, such that it is usually feasible to read a formalization without expert knowledge.
-Nevertheless, \cref{tab:isabelle_syntax} contains brief descriptions of the syntactic elements used in the listing.
-%\medskip
-\begin{table}
-\caption{Isabelle syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
-\noindent\begin{tabular}{l p{9cm}}
-\toprule
-Term & Description \\
-\midrule
-\isa{card\ S} & Cardinality of a finite set $S$. \\
-%\isa{set\ xs} & For a sequence \isa{xs} the set of elements in the sequence. \\
-%\isa{length\ xs} & For a sequence \isa{xs} the length of the sequence. \\
-\isa{real} & Type of real numbers and conversion between natural numbers into real numbers. \\
-\isa{nat} & Type of natural numbers (non-negative integers). \\
-\isa{bernoulli{\isacharunderscore}pmf\ p} & The probability space over the boolean values, where the probability of \isa{True} is $p$. (Bernoulli distribution.) \\
-\isa{pmf{\isacharunderscore}of{\isacharunderscore}set\ S} & For a finite set $S$, the uniform probability space on $S$. (Every element of $S$ is equiprobable.) \\
-\isa{map{\isacharunderscore}pmf\ f\ A} & The probability space representing the distribution of the random variable $f$ over the probability space $A$. \\
-\isa{return{\isacharunderscore}pmf\ x} & The probability space of the singleton $\{x\}$. \\
-\isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} & Iterate randomized algorithm $f$ over the sequence $xs$ using the initial state $a$. \\
-%\isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} & Probability of predicate $P$ in the probability space $M$. \\
-%\isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} & Expectation of the random variable $f$ over the probability space $M$. \\
-\bottomrule
-\end{tabular}
-\end{table}
-%\medskip
-The theorem that establishes the correctness of the algorithm, i.e., that the relative error will be smaller than $\varepsilon$ with probability $1-\delta$ is expressed in the following snippet:
-\begin{isabelle_cm}
-\isacommand{theorem}\isamarkupfalse%
-\ correctness{\isacharcolon}{\kern0pt}\isanewline
-\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymepsilon}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
-\ \ \isakeyword{assumes}\ {\isacartoucheopen}real\ n\ {\isasymge}\ {\isadigit{1}}{\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isasymepsilon}\isactrlsup {\isadigit{2}}\ {\isacharasterisk}{\kern0pt}\ ln\ {\isacharparenleft}{\kern0pt}{\isadigit{3}}\ {\isacharasterisk}{\kern0pt}\ real\ {\isacharparenleft}{\kern0pt}length\ xs{\isacharparenright}{\kern0pt}\ {\isacharslash}{\kern0pt}\ {\isasymdelta}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
-\ \ \isakeyword{defines}\ {\isacartoucheopen}A\ {\isasymequiv}\ real\ {\isacharparenleft}{\kern0pt}card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
-\ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}R\ in\ run{\isacharunderscore}{\kern0pt}algo\ xs{\isachardot}{\kern0pt}\ {\isasymbar}R\ {\isacharminus}{\kern0pt}\ A{\isasymbar}\ {\isachargreater}{\kern0pt}\ {\isasymepsilon}\ {\isacharasterisk}{\kern0pt}\ A{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isasymdelta}{\isacartoucheclose}
-\end{isabelle_cm}
-The first line establish the conditions on $\varepsilon$ and $\delta$, which must be strictly between $0$ and $1$.
-The next line requires the buffer size $n$ to be larger than $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
-This is a bit more general than the original algorithm, where we fix $n$ to be the smallest integer larger than the same value.
-Then we define $A$ to be the cardinality of the set of elements in sequence \isa{xs}:
-More precisely \isa{set\ xs} denotes the set of distinct elements in a given sequence, and \isa{card} returns the cardinality of a finite set.
-The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$.
-
-Similarly the unbiasedness is also a theorem:
-\begin{isabelle_cm}
-\isacommand{theorem}\isamarkupfalse%
-\ unbiasedness{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}expectation\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}algo\ xs{\isacharparenright}{\kern0pt}\ id\ {\isacharequal}{\kern0pt}\ card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}
-\end{isabelle_cm}
-The expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
-
-The formalization contains four theory files. The file CVM{\textunderscore}Preliminary definitions and lemmas, such as properties about the \isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} operation we introduced.
-Of course, we do not verify \cref{alg:cvm} and \cref{alg:cvm_new} separately,
-as most of the proof is identical.
-The file CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, with an abstract subsampling operation, which is required to fulfill \cref{i:subsample_condition}.
-The specialization happens in the following theories CVM{\textunderscore}Original{\textunderscore}Algorithm (resp. CVM{\textunderscore}New{\textunderscore}Algorithm).
-It should be noted that only the last file, for the new unbiased algorithm, depends on the new library (\cref{sec:formalization_neg_dep}) on negatively associated random variables.
-The total number of lines required for the verification of the original algorithm is 1004 lines.
-This is in contrast to the original proof, for which the verification required \todo{x} lines.
-\begin{algorithm}[t]
-\caption{Formalized Version of \cref{alg:cvm_new}}\label{alg:cvm_formalized}
+\begin{figure}[t]
 \begin{isabelle_cm}
 \isacommand{context}\isamarkupfalse%
 \isanewline
@@ -103,7 +42,7 @@ This is in contrast to the original proof, for which the verification required \
 }\isanewline
 \ \ {\isacartoucheopen}run{\isacharunderscore}{\kern0pt}steps\ xs\ {\isacharequal}{\kern0pt}\ foldM{\isacharunderscore}{\kern0pt}pmf\ step\ xs\ initial{\isacharunderscore}{\kern0pt}state{\isacartoucheclose}\isanewline
 \isacommand{fun}\isamarkupfalse%
-\ estimate\ \isakeyword{where}\ 
+\ estimate\ \isakeyword{where}\
 {\isacartoucheopen}estimate\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\ {\isacharequal}{\kern0pt}\ card\ {\isasymchi}\ {\isacharslash}{\kern0pt}\ p{\isacartoucheclose}\isanewline
 \isacommand{fun}\isamarkupfalse%
 \ run{\isacharunderscore}{\kern0pt}algo\ \isakeyword{where}\ %
@@ -123,5 +62,74 @@ This is in contrast to the original proof, for which the verification required \
 {\normalfont [\dots]}\isanewline
 \isacommand{end}
 \end{isabelle_cm}
-\end{algorithm}
+\caption{Formalized version of \cref{alg:cvm_new}.}\label{alg:cvm_formalized}
+\end{figure}
 
+%The snippet also includes the relevant correctness statements, both unbiasedness and tail bounds.
+We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
+The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
+Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
+Isabelle provides notation closely related to informal pseudocode, such that it is usually feasible to read a formalization without expert knowledge.
+Nevertheless, \cref{tab:isabelle_syntax} contains brief descriptions of the syntactic elements used in the formalization.
+%\medskip
+\begin{table}
+\caption{Isabelle syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
+\noindent\begin{tabular}{l p{9cm}}
+\toprule
+Term & Description \\
+\midrule
+\isa{card\ S} & Cardinality of a finite set $S$. \\
+%\isa{set\ xs} & For a sequence \isa{xs} the set of elements in the sequence. \\
+%\isa{length\ xs} & For a sequence \isa{xs} the length of the sequence. \\
+\isa{real} & Type of real numbers and conversion between natural numbers into real numbers. \\
+\isa{nat} & Type of natural numbers (non-negative integers). \\
+\isa{bernoulli{\isacharunderscore}pmf\ p} & The probability space over the boolean values, where the probability of \isa{True} is $p$. (Bernoulli distribution.) \\
+\isa{pmf{\isacharunderscore}of{\isacharunderscore}set\ S} & For a finite set $S$, the uniform probability space on $S$. (Every element of $S$ is equiprobable.) \\
+\isa{map{\isacharunderscore}pmf\ f\ A} & The probability space representing the distribution of the random variable $f$ over the probability space $A$. \\
+\isa{return{\isacharunderscore}pmf\ x} & The probability space of the singleton $\{x\}$. \\
+\isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} & Iterate randomized algorithm $f$ over the sequence $xs$ using the initial state $a$. \\
+%\isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} & Probability of predicate $P$ in the probability space $M$. \\
+%\isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} & Expectation of the random variable $f$ over the probability space $M$. \\
+\bottomrule
+\end{tabular}
+\end{table}
+%\medskip
+
+The theorem that establishes the correctness of the algorithm, i.e., that the relative error will be smaller than $\varepsilon$ with probability $1-\delta$ is expressed in the following snippet:
+\begin{isabelle_cm}
+\isacommand{theorem}\isamarkupfalse%
+\ correctness{\isacharcolon}{\kern0pt}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymepsilon}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}real\ n\ {\isasymge}\ {\isadigit{1}}{\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isasymepsilon}\isactrlsup {\isadigit{2}}\ {\isacharasterisk}{\kern0pt}\ ln\ {\isacharparenleft}{\kern0pt}{\isadigit{3}}\ {\isacharasterisk}{\kern0pt}\ real\ {\isacharparenleft}{\kern0pt}length\ xs{\isacharparenright}{\kern0pt}\ {\isacharslash}{\kern0pt}\ {\isasymdelta}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{defines}\ {\isacartoucheopen}A\ {\isasymequiv}\ real\ {\isacharparenleft}{\kern0pt}card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}R\ in\ run{\isacharunderscore}{\kern0pt}algo\ xs{\isachardot}{\kern0pt}\ {\isasymbar}R\ {\isacharminus}{\kern0pt}\ A{\isasymbar}\ {\isachargreater}{\kern0pt}\ {\isasymepsilon}\ {\isacharasterisk}{\kern0pt}\ A{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isasymdelta}{\isacartoucheclose}
+\end{isabelle_cm}
+The first line gives conditions on parameters $\varepsilon$ and $\delta$, which must be strictly between $0$ and $1$.
+The next line requires the buffer size $n$ to be larger than $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$; this is slightly more general than the original algorithm, where we fix $n$ to be the smallest integer larger than the same value.
+%Then, let $A$ to be the cardinality of the set of elements in sequence \isa{xs}.
+%More precisely, \isa{set\ xs} denotes the finite set of distinct elements in a given sequence, and \isa{card} returns the cardinality of a finite set.
+The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for \isa{run-algo}.
+
+Similarly, we have also formalized unbiasedness of the algorithm:
+\begin{isabelle_cm}
+\isacommand{theorem}\isamarkupfalse%
+\ unbiasedness{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}expectation\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}algo\ xs{\isacharparenright}{\kern0pt}\ id\ {\isacharequal}{\kern0pt}\ card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}
+\end{isabelle_cm}
+The expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
+
+% TODO: I think we should give more of the details in the formalization, as opposed to giving a glossary of it
+% For example, here are some of the intricate details I would suggest:
+
+% 1) showing a high-level view of the way the invariant is established by induction?
+% 2) describing that we actually used locales and instances to give a general shared argument for both algorithms?
+% 3) we can write that we omit intricate details of the calculations, but some high-level (minor) details can be in one paragraph, e.g., any numerical analysis you needed were dealt with using existing libraries XXX and YYY (e.g., automating derivatives, approximation, etc.)?
+
+%The formalization contains four theory files. The file CVM{\textunderscore}Preliminary definitions and lemmas, such as properties about the \isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} operation we introduced.
+%Of course, we do not verify \cref{alg:cvm} and \cref{alg:cvm_new} separately,
+%as most of the proof is identical.
+%The file CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, with an abstract subsampling operation, which is required to fulfill \cref{i:subsample_condition}.
+%The specialization happens in the following theories CVM{\textunderscore}Original{\textunderscore}Algorithm (resp. CVM{\textunderscore}New{\textunderscore}Algorithm).
+%It should be noted that only the last file, for the new unbiased algorithm, depends on the new library (\cref{sec:formalization_neg_dep}) on negatively associated random variables.
+%The total number of lines required for the verification of the original algorithm is 1004 lines.
+%This is in contrast to the original proof, for which the verification required \todo{x} lines.
+%

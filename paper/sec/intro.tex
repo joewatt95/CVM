@@ -79,6 +79,13 @@ The organization of this paper is as follows.
 In \cref{sec:transformation_based_proof}, we present some challenges faced in our alternative verification of the CVM using the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}.
 The final sections conclude with an overview of related work and a summary of our results.
 
+The supplementary material contains:
+\begin{itemize}
+\item formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) with the approach presented in \cref{sec:invariants};
+\item formalization of a library for negative association (\cref{sec:negdep}); and %in the directory Negative{\textunderscore}Association, which we intend to submit to the AFP as a separate contribution.
+\item formalization of CVM following the original proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023} (\cref{sec:transformation_based_proof}).
+\end{itemize}
+
 % TODO: move it into the discussion of the variant, I think it is better once the algorithm is shown
 %This is because indicator functions of $n$-subsets form negatively associated random variables (RV), even though they are not independent, with which we can modify the subsampling step to the form we described above.
 
