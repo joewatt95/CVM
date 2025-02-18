@@ -6,7 +6,7 @@
 The CVM algorithm is a \emph{streaming} algorithm for the distinct elements problem.
 As shown in~\cref{alg:cvm}, given a data stream $a_1,\dots, a_l$, the goal of such algorithms is to return an accurate cardinality estimate for $A = \{a_1,\dots,a_l\}$.
 
-Importantly, CVM is a \emph{probably-approximately correct} algorithm where its output estimate $R$ satisfies
+Importantly, CVM is a \emph{probably-approximately correct} (PAC) algorithm where its output estimate $R$ satisfies
 $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
 for parameters $\varepsilon$ and $\delta$,
 i.e., the probability that the relative error of $R$ exceeds $\varepsilon$ is at most $\delta$. % I think here it's good to have both a text and formal description.
