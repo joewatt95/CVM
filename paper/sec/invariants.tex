@@ -84,23 +84,29 @@ for $h(x) = \exp(tx)$.
 At this point, it is tempting to see whether the proof for \cref{eq:indicator_eq} can be generalized to establish bounds for the above.
 Indeed, we managed to establish the following result:
 \begin{align}
-  \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
+  \expect \left[ \prod_{s \in S} h(p^{-1} X_s) \right] \leq h(1)^{|S|} \label[ineq]{i:func_invariant}
 \end{align}
-for every non-negative concave function $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$.
-We call this a \emph{functional} probabilistic invariant because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
+for every non-negative concave function $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$ and any subset $S \subseteq A$ of the elements in the stream.
+We call this a \emph{functional probabilistic invariant} because one can establish it for all valid choices of $h$ in a single induction over the randomized algorithm.
 
-Of course, the exponential function in $M(t)$ is convex, so this is not yet the full story.
-However, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$.
-We end up with the condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
-This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $\prob( |p^{-1} |\chi| - |A|| \geq \varepsilon |A| \wedge p \geq q)$.
+\subsection{Using the Functional Probabilistic Invariant}
+After establishing~\cref{i:func_invariant}, it remains to carry out the tail bounds analysis using the Cram\'er--Chernoff method.
+The formalization accompanying this work contains a detailed step-by-step informal proof in its appendix, so we give brief illustrative details here.
+
+Firstly, note that choosing $S = A$ in~\cref{i:func_invariant} gives a bound of the form needed for the moment generating function.
+However, the exponential function in $M(t)$ is convex, so just establishing the invariant is not the full story.
+Instead, we can derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$, which leads to a weaker condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
+This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, giving tail bounds for $\prob( |p^{-1} |\chi| - |A|| \geq \varepsilon |A| \wedge p \geq q)$.
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
-We can use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$ and separately bound the probability $\prob(p < q)$.
+We use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$ and separately bound the probability $\prob(p < q)$.
 
-The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
-The algorithm we have verified is actually a slight generalization of the above, where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$.
-The original CVM algorithm~\cite{chakraborty2022} (\cref{alg:cvm}) is the special case $f=\frac{1}{2}$.
-Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
-
+As a simpler concrete example, consider choosing $S = \{s\}$ for any element $s \in A$.
+If we pick $h_1(x) = x$ and $h_2(x) = M+1-x$ (for sufficiently large $M$), we obtain from~\cref{i:func_invariant}:
+\begin{align*}
+\expect \left[ p^{-1} X_s \right] &= \expect \left[ \prod_{s \in S} h_1(p^{-1} X_s) \right] \leq h_1(1)^{|S|} = 1\\
+\expect [M + 1 - p^{-1} X_s] &= \expect \left[ \prod_{s \in S} h_2(p^{-1} X_s) \right] \leq h_2(1)^{|S|} = M
+\end{align*}
+This implies the simple invariant $\expect \left[ p^{-1} X_s \right] = 1$ (and thus, unbiasedness) without needing a separate induction over the algorithm.
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
 As far as we know this method of establishing tail bounds for randomized algorithms is new.
 
