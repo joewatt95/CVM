@@ -110,8 +110,6 @@ To use these bounds, we also have to separately estimate $\prob(p < q)$.
 We use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$.
 
 The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
-The algorithm we have verified is actually a slight generalization of the above, where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$.
-The original CVM algorithm~\cite{chakraborty2022} (\cref{alg:cvm}) is the special case $f=\frac{1}{2}$.
 Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
 
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
