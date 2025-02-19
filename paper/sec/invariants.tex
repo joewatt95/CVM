@@ -92,9 +92,22 @@ We call this a \emph{functional} probabilistic invariant because one can establi
 Of course, the exponential function in $M(t)$ is convex, so this is not yet the full story.
 However, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$.
 We end up with the condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
-This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $\prob( |p^{-1} |\chi| - |A|| \geq \varepsilon |A| \wedge p \geq q)$.
+This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows:
+\begin{align*}
+  \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq 
+  \prob( I(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
+  & \leq \exp(-t(1+\varepsilon) |A|) M(t) \\ % = exp(-t(1+\varepsilon) |A|) \expect \left[ \prod_{s \in A} \exp( t p^{-1} X_s) \right]
+  & \leq \exp(-t(1+\varepsilon)|A|) \expect \left[ I(p \geq q) \prod_{s \in A} h(p^{-1} X_s) \right] \\
+  & \leq \exp(-t(1+\varepsilon)|A|) h(1)^{|A|} \leq \exp(-\frac{n}{12} \varepsilon^2)
+\end{align*}
+where we choose $h(x) = 1+qx (\exp(t/q)-1)$.
+For the last step, we have to find the $t$ that produces the required bound.%
+\footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.} 
+Note that $h$ is affine and it can be be easily checked%
+\footnote{Because the exponential function is convex and $h$ is affine, we only have to check the end points: $0, q^{-1}$.}
+that it is an upper approximation of $\exp(tx)$ for $x \in [0;q^{-1}]$.
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
-We can use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$ and separately bound the probability $\prob(p < q)$.
+We use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$.
 
 The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
 The algorithm we have verified is actually a slight generalization of the above, where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$.
@@ -103,5 +116,3 @@ Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, th
 
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
 As far as we know this method of establishing tail bounds for randomized algorithms is new.
-
-
