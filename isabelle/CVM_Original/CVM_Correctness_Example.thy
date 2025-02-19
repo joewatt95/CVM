@@ -159,8 +159,7 @@ qed
 
 theorem prob_cvm_incorrect_le_\<delta> :
   \<open>\<P>(estimate in cvm xs.
-    estimate |> is_None_or_pred
-      (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
+    estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
   \<le> 3 * \<delta> / 8\<close>
   using
     prob_cvm_incorrect_le prob_fail_bound_le_\<delta>
@@ -170,5 +169,14 @@ theorem prob_cvm_incorrect_le_\<delta> :
 end
 
 end
+
+corollary prob_cvm_incorrect_le_\<delta>' :
+  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>0 < \<delta>\<close> \<open>\<delta> \<le> 1\<close>
+  defines [simp] : \<open>\<delta>' \<equiv> 3 * \<delta> / 8\<close>
+  shows
+    \<open>\<P>(estimate in cvm_algo.cvm (nat \<lceil>threshold \<epsilon> \<delta>' xs\<rceil>) xs.
+      estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
+    \<le> \<delta>\<close>
+  using assms prob_cvm_incorrect_le_\<delta>[of \<epsilon> \<delta>' xs] by simp
 
 end
