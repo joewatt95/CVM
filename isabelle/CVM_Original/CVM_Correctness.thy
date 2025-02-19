@@ -8,6 +8,12 @@ begin
 context cvm_algo
 begin
 
+lemma cvm_estimate_is_nat :
+  \<open>\<turnstile>spmf \<lbrace>\<lblot>True\<rblot>\<rbrace> cvm \<lbrace>flip (\<in>) \<nat>\<rbrace>\<close>
+  unfolding compute_estimate_def
+  apply (simp add: field_simps)
+  by (metis (mono_tags) Num.of_nat_simps(5) of_nat_in_Nats of_nat_numeral of_nat_power)
+
 lemma estimate_distinct_correct_of_empty_or_threshold :
   assumes \<open>xs = [] \<or> threshold > card (set xs)\<close>
   shows \<open>cvm xs = return_spmf (card <| set xs)\<close>
@@ -39,7 +45,7 @@ end
 context cvm_error_bounds 
 begin
 
-definition \<open>prob_fail_bound = length xs * f ^ threshold\<close>
+definition \<open>prob_fail_bound \<equiv> length xs * f ^ threshold\<close>
 
 lemmas prob_bounds_defs =
   prob_fail_bound_def
