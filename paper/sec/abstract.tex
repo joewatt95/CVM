@@ -1,12 +1,12 @@
 \begin{abstract}
 Estimating the number of distinct elements in a data stream is a classical problem with numerous applications in computer science.
-We formalize a recent, remarkably simple, randomized algorithm for this problem due to Chakraborty, Vinodchandran, and Meel (called CVM algorithm).
-Their algorithm deviated considerably from the state-of-the art, due to its avoidance of intricate derandomization techniques, while still maintaining a close to optimal logarithmic space complexity.
+We formalize a recent, remarkably simple, randomized algorithm for this problem due to Chakraborty, Vinodchandran, and Meel (called the CVM algorithm).
+Their algorithm deviated considerably from the state of the art, due to its avoidance of intricate derandomization techniques, while still maintaining a close-to-optimal logarithmic space complexity.
 
 Central to our formalization is a new proof technique based on \emph{functional probabilistic invariants}, which allows us to derive concentration bounds using the Cram\'{e}r--Chernoff method.
 This simplifies the formal analysis considerably compared to the original proof by Chakraborty et al.
-Moreover, our technique opens up the possible algorithm design space; we demonstrate this by introducing and verifying with a new variant of the CVM algorithm that is total and unbiased---neither property is possessed by the original algorithm.
-In this paper, we introduce the proof technique, describe its use to mechanize both versions of the CVM algorithm in Isabelle/HOL, and present a supporting formalized library on negatively associated random variables used to verify the latter variant.
+Moreover, our technique opens up the possible algorithm design space; we demonstrate this by introducing and verifying a new variant of the CVM algorithm that is total and unbiased---neither property is possessed by the original algorithm.
+In this paper, we introduce the proof technique, describe its use in mechanizing both versions of the CVM algorithm in Isabelle/HOL, and present a supporting formalized library on negatively associated random variables used to verify the latter variant.
 \end{abstract}
 
 
