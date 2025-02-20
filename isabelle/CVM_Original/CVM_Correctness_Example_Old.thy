@@ -1,4 +1,4 @@
-theory CVM_Correctness_Example
+theory CVM_Correctness_Example_Old
 
 imports
   CVM_Correctness
