@@ -6,43 +6,39 @@ imports
 begin
 
 lemma exp_minus_log_le :
-  assumes \<open>1 \<le> a\<close> \<open>1 \<le> b\<close> \<open>0 < c\<close> \<open>c \<le> 1\<close> 
-  shows \<open>exp (- a * log 2 (4 * b / c)) \<le> c / (7 * b)\<close> (is \<open>?L \<le> ?R\<close>)
+  assumes \<open>9/8 \<le> a\<close> \<open>2 \<le> b\<close> \<open>0 < c\<close> \<open>c \<le> 1\<close>
+  shows \<open>exp (- a * log 2 (3 * b / c)) \<le> 2*c / (15 * b)\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
-  from assms
-  have \<open>?L = exp (log 2 <| (c / (4 * b)) powr a)\<close>
-    by (simp add: field_simps log_powr log_divide_pos)
-
-  also from assms
-  have \<open>\<dots> = ((c / (4 * b)) powr a) powr (1 / ln 2)\<close> by (simp add: powr_def)
-
-  also from assms
-  have \<open>\<dots> \<le> (c / (4 * b)) powr (1 / ln 2)\<close> (is \<open>_ \<le> ?exponentiate (c / _)\<close>)
-    by (simp add: powr_le_one_le powr_mono2)
-
-  also have \<open>\<dots> \<le> ?R\<close>
-  proof -
-    have \<open>?exponentiate 4 \<ge> 7\<close> by (approximation 9)
-
-    with assms ln_2_less_1 have \<open>?exponentiate (4 * b) \<ge> 7 * b\<close>
-      apply (simp add: field_simps powr_mult)
-      by (metis (no_types, lifting) div_by_1 divide_le_eq_numeral1(1) frac_le ln2_ge_two_thirds mult_less_cancel_right1 mult_mono' nonzero_divide_mult_cancel_right one_le_numeral
-        powr_mono_both powr_one semiring_norm(64) verit_comp_simplify(2,3) verit_eq_simplify(24,5) verit_prod_simplify(1) zero_less_divide_iff)
-
-    with assms ln_2_less_1 show ?thesis
-      by (simp add: powr_divide frac_le powr_le_one_le)
-  qed
-
-  finally show ?thesis .
+  have \<open>?L \<le> exp (- (9/8) * log 2 (3 * b / c))\<close> using assms
+    by (intro iffD2[OF exp_le_cancel_iff] mult_right_mono iffD2[OF zero_le_log_cancel_iff]) auto
+  also have \<open>\<dots> \<le> exp ( log 2 (1 / (3 * b / c)) * (9/8))\<close>
+    unfolding log_recip by simp
+  also have \<open>\<dots> = exp (ln (c / (3 * b)) * (9/(8*ln 2)))\<close>
+    unfolding log_def by (simp add:divide_simps)
+  also have \<open>\<dots> = ((1-2*c/b) *\<^sub>R 0 + (2*c /b) *\<^sub>R (1/6)) powr (9/(8*ln 2))\<close>
+    using assms unfolding powr_def by (auto simp:algebra_simps)
+  also have \<open>\<dots> \<le> (1-2*c/b) * 0 powr (9/(8*ln 2)) + (2*c /b) * (1/6) powr (9/(8*ln 2))\<close>
+    apply (intro convex_onD[OF convex_powr])
+    subgoal by (approximation 10)
+    by (use assms in auto)
+  also have \<open>\<dots> = (c/b) * (2*(1/6) powr (9/(8*ln 2)))\<close> by simp
+  also have \<open>\<dots> \<le> (c/b) * (2/15)\<close>
+    apply (intro mult_left_mono)
+    subgoal by (approximation 10)
+    by (use assms in auto)
+  also have \<open>\<dots> = ?R\<close> by simp
+  finally show ?thesis by simp
 qed
 
 context
-  fixes \<epsilon> \<delta> :: real and xs :: \<open>'a list\<close>
+  fixes
+    \<epsilon> \<delta> :: real and
+    xs :: \<open>'a list\<close>
 begin
 
 abbreviation (input) \<open>length_xs_1 \<equiv> max (Suc 0) (length xs)\<close>
 
-definition \<open>threshold \<equiv> 12 / \<epsilon>\<^sup>2 * log 2 (4 * length_xs_1 / \<delta>)\<close>
+definition \<open>threshold \<equiv> (12 / \<epsilon>\<^sup>2) * log 2 (3 * length_xs_1 / \<delta>)\<close>
 
 definition \<open>l \<equiv> \<lfloor>log 2 <| 4 * card (set xs) / \<lceil>threshold\<rceil>\<rfloor>\<close>
 
@@ -108,54 +104,52 @@ interpretation cvm_correctness \<open>nat \<lceil>threshold\<rceil>\<close> 2 \<
     done
 
 lemma prob_fail_bound_le_\<delta> :
-  \<open>prob_fail_bound \<le> \<delta> / 4\<close>
+  \<open>prob_fail_bound \<le> \<delta> / 3\<close>
 proof (cases \<open>xs = []\<close>)
   case True
   with \<delta> show ?thesis unfolding cvm_error_bounds.prob_bounds_defs by simp
 next
   case False
-  moreover from calculation
-  have \<open>length_xs_1 = length xs\<close> by (simp add: Suc_le_eq)
-
-  moreover note \<epsilon> \<delta>
-
-  ultimately show ?thesis
+  with \<epsilon> \<delta> show ?thesis
     unfolding cvm_error_bounds.prob_bounds_defs threshold_def
     apply (simp add: field_simps)
-    by (smt (verit, ccfv_SIG) Groups.mult_ac(2) Multiseries_Expansion.intyness_simps(4) divide_le_eq divide_mono log_base_pow log_le_one_cancel_iff log_pow_cancel
-      power_le_one_iff power_one_right real_nat_ceiling_ge two_realpow_ge_one zero_less_log_cancel_iff zero_less_power)
+    by (smt (verit, best) Groups.mult_ac(2) Multiseries_Expansion.intyness_1 approximation_preproc_nat(8) divide_le_eq divide_le_eq_1_pos divide_mono log_base_pow log_le_one_cancel_iff
+      log_le_zero_cancel_iff log_pow_cancel nat_le_real_less of_nat_le_iff power_le_one power_one_right real_nat_ceiling_ge zero_compare_simps(6) zero_less_power)
 qed
 
 lemma prob_k_gt_l_bound_le_\<delta> :
-  \<open>prob_k_gt_l_bound \<le> \<delta> / 7\<close> (is \<open>?L \<le> ?R\<close>)
+  assumes \<open>length xs \<ge> 2\<close>
+  shows \<open>prob_k_gt_l_bound \<le> 2 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
+  have \<open>9/8 \<le> (2::real)/1\<close> by simp
+  also have \<open>\<dots> \<le> 2 / \<epsilon>^2\<close> using \<epsilon> by (intro divide_left_mono) (auto intro:power_le_one)
+  finally have 0:\<open>9/8 \<le> 2 / \<epsilon>\<^sup>2\<close> by simp
+
   have \<open>?L \<le> length xs * exp (- threshold / 6)\<close>
     unfolding cvm_error_bounds.prob_bounds_defs
     by (simp add: field_simps mult_left_mono real_nat_ceiling_ge)
 
-  also from exp_minus_log_le[of \<open>2 / \<epsilon>\<^sup>2\<close> \<open>length_xs_1\<close> \<delta>] \<epsilon> \<delta>
-  have \<open>\<dots> \<le> length xs * \<delta> / (7 * length_xs_1)\<close>
-    unfolding threshold_def
-    apply (simp add: field_simps)
-    by (smt (verit, ccfv_threshold) divide_le_eq mult_eq_0_iff nonzero_mult_div_cancel_left of_nat_0_le_iff power2_nonneg_gt_1_iff)
-  
+  also have \<open>\<dots> = real (length xs) * exp (- (2 / \<epsilon>^2) * log 2 (3* real length_xs_1 / \<delta>))\<close>
+    unfolding threshold_def by (simp add: field_simps)
+  also have \<open>\<dots> \<le> length xs * (2 * \<delta> / (15 * real length_xs_1))\<close>
+    using 0 \<epsilon> \<delta> assms by (intro mult_left_mono exp_minus_log_le) auto
+  also have \<open>\<dots> = 2*length xs * \<delta> / (15 * length_xs_1)\<close> by simp
   also from \<delta> have \<open>\<dots> \<le> ?R\<close> by (cases \<open>xs = []\<close>) (simp_all add: field_simps)
-
   finally show ?thesis .
 qed
 
 lemma prob_k_le_l_and_est_out_of_range_bound_le_\<delta> :
-  \<open>prob_k_le_l_and_est_out_of_range_bound \<le> 4 * \<delta> / 7\<close> (is \<open>?L \<le> ?R\<close>)
+  assumes \<open>length xs \<ge> 2\<close>
+  shows \<open>prob_k_le_l_and_est_out_of_range_bound \<le> 8 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   from \<epsilon> have \<open>?L \<le> 4 * exp (-\<epsilon>\<^sup>2 * threshold / (8 * (1 + \<epsilon> / 3)))\<close>
     unfolding cvm_error_bounds.prob_bounds_defs
     apply (simp add: field_simps power_numeral_reduce)
     by (smt (verit, ccfv_SIG) eq_imp_le mult_le_cancel_left_pos nat_ceiling_le_eq)
-
-  also from exp_minus_log_le[of \<open>12 / (8 * (1 + \<epsilon> / 3))\<close> \<open>length_xs_1\<close> \<delta>] \<epsilon> \<delta>
-  have \<open>\<dots> \<le> 4 * \<delta> / (7 * length_xs_1)\<close>
-    unfolding threshold_def by simp
-
+  also have \<open>\<dots> = 4 * exp (- (12 / (8 * (1 + \<epsilon> / 3))) * log 2 (3* real length_xs_1 / \<delta>))\<close>
+    unfolding threshold_def using \<epsilon> by (simp add: algebra_simps)
+  also have \<open>\<dots> \<le> 4 * (2 * \<delta> / (15 * real length_xs_1))\<close>
+    using assms \<delta> \<epsilon> by (intro mult_left_mono exp_minus_log_le) (auto simp:divide_simps)
   also from \<delta> have \<open>\<dots> \<le> ?R\<close> by (simp add: field_simps)
 
   finally show ?thesis .
@@ -164,23 +158,40 @@ qed
 theorem prob_cvm_incorrect_le_\<delta> :
   \<open>\<P>(estimate in cvm xs.
     estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
-  \<le> 27 * \<delta> / 28\<close>
-  using
-    prob_cvm_incorrect_le prob_fail_bound_le_\<delta>
-    prob_k_gt_l_bound_le_\<delta> prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
-  by simp
+  \<le> \<delta>\<close> (is \<open>?L \<le> ?R\<close>)
+proof -
+  note unfold_cvm =
+    step_def step_1_def step_2_def initial_state_def compute_estimate_def
+
+  consider (i) \<open>length xs = 0\<close> | (ii) \<open>length xs = 1\<close> | (iii) \<open>length xs \<ge> 2\<close>
+    by linarith
+  thus ?thesis
+  proof (cases)
+    case i thus ?thesis using \<delta> by (simp add:unfold_cvm)
+  next
+    case ii
+    then obtain x where xs_def: \<open>xs = [x]\<close>
+      by (metis One_nat_def Suc_length_conv length_0_conv)
+
+    have 0:\<open> nat \<lceil>threshold\<rceil> \<noteq> 1\<close>
+      using threshold_ge_2 xs_def real_nat_ceiling_ge by fastforce
+    have \<open>?L = \<P>(estimate in cvm [x]. estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] 1))\<close>
+      by (simp_all add:xs_def option.case_eq_if)
+    also have \<open>\<dots> = 0\<close> using 0 \<epsilon>
+      by (simp add:unfold_cvm bind_return_pmf Let_def step_3_def split:split_indicator)
+    also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp
+    finally show ?thesis by simp
+  next
+    case iii
+    then show ?thesis using
+      prob_fail_bound_le_\<delta> prob_cvm_incorrect_le
+      prob_k_gt_l_bound_le_\<delta> prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
+      by simp
+  qed
+qed
 
 end
 
 end
-
-(* corollary prob_cvm_incorrect_le_\<delta>' :
-  assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>0 < \<delta>\<close> \<open>\<delta> \<le> 1\<close>
-  defines \<open>\<delta>' \<equiv> 3 * \<delta> / 8\<close>
-  shows
-    \<open>\<P>(estimate in cvm_algo.cvm (nat \<lceil>threshold \<epsilon> \<delta>' xs\<rceil>) xs.
-      estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
-    \<le> \<delta>\<close>
-  using assms prob_cvm_incorrect_le_\<delta>[of \<epsilon> \<delta>' xs] by simp *)
 
 end
