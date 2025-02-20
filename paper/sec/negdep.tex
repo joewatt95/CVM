@@ -31,7 +31,7 @@ When we look at the subsampling step of~\cref{alg:cvm}, our invariant~\cref{i:fu
 \begin{equation}\label[ineq]{i:subsample_condition}
   \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(\indicat(s \in \tau)) \, d \tau \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
 \end{equation}
-for all non-negative functions $g$ and any $S \subset \chi$---any subsampling step that satisfies this functional inequality can be used while still preserving~\cref{i:func_invariant} for the algorithm.
+for all non-negative functions $g$ and any $S \subseteq \chi$---any subsampling step that satisfies this functional inequality can be used while still preserving~\cref{i:func_invariant} for the algorithm.
 
 Motivated by this, our new variant is shown in \cref{alg:cvm_new}.
 For the subsampling step, instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, we instead pick a uniform random $nf$-subset, where $\frac{1}{2} \leq f < 1$ and such that $nf$ is an integer.\footnote{It is possible to choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.}
@@ -87,7 +87,7 @@ The reason for our interest in this lemma stems from the fact that indicator var
 This is a consequence of the fact that permutation distributions are negatively-associated~\cite[Th. 2.11]{joagdev1983}.%
 \footnote{We could not verify the original proof by Joag-Dev and Proschan, which seems to be incorrect.
 However Dubashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}
-Thus, for the new subsampling step in line 9 of~\cref{alg:cvm_new}, we can derive using \cref{le:neg_assoc_prod}:
+Thus, for the new subsampling step in Line 9 of~\cref{alg:cvm_new}, we can derive using \cref{le:neg_assoc_prod}:
 %TODO: double check!
 \begin{equation}\label{eq:subsample_with_n_subsets}
   \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(\indicat(s \in \tau))\,d\tau \leq

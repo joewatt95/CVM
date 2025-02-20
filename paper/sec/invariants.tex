@@ -103,7 +103,7 @@ This then allows us to use approximate the exponential function from above with 
 where we choose $h(x) = 1+qx (\exp(t/q)-1)$.
 For the last step, we have to find the $t$ that produces the required bound.%
 \footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.} 
-Note that $h$ is affine and it can be be easily checked%
+Note that $h$ is affine and it can be easily checked%
 \footnote{Because the exponential function is convex and $h$ is affine, we only have to check the end points: $0, q^{-1}$.}
 that it is an upper approximation of $\exp(tx)$ for $x \in [0;q^{-1}]$.
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
