@@ -2,7 +2,7 @@
 As mentioned in the previous section, the formalization of the new unbiased variant of the CVM algorithm, requires results from the theory of negative association.
 
 The formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
-However, the authors did not correctly define the constrains for the possible set of test functions $f$ and $g$ in \cref{def:neg_assoc}, which does not make sense formally.
+However, the authors did not correctly define the constraints for the possible set of test functions $f$ and $g$ in \cref{def:neg_assoc}, which does not make sense formally.
 In the formalization, we assume that the functions are bounded and measurable.
 On the other hand, we derive that the condition is still true, if $f, g$ are square integrable.
 Or alternatively integrable, and non-negative.
@@ -10,7 +10,7 @@ This is derived using the monotone-convergence theorem.
 
 Another deviation from the original work is that we do not require that the random variables need to be real-valued.
 In the formalization any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
-In this case the test functions must be monotone with respect ot the respective order on that space.
+In this case the test functions must be monotone with respect to the respective order on that space.
 
 The formalization contains the standard Chernoff bounds for negatively associated random variables.
 This includes the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
