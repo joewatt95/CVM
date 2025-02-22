@@ -177,7 +177,7 @@ proof -
     also have \<open>\<dots> = 0\<close> using 0 \<epsilon>
       by (simp add:unfold_cvm bind_return_pmf Let_def step_3_def split:split_indicator)
     also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp
-    finally show ?thesis by simp
+    finally show ?thesis . 
   next
     case iii
     then show ?thesis using
