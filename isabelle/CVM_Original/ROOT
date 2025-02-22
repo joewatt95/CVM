@@ -23,8 +23,6 @@ session CVM_Original = "CryptHOL" +
     "CVM_Correctness"
     "CVM_Correctness_Example"
 
-    "CVM_Correctness_Example_Old"
-
     "Utils_Basic"
     "Utils_Reader_Monad"
     "Utils_Approx_Algo"
