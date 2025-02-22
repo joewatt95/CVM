@@ -11,7 +11,7 @@ lemma exp_minus_log_le :
 proof -
   have \<open>?L \<le> exp (- (9/8) * log 2 (3 * b / c))\<close> using assms
     by (intro iffD2[OF exp_le_cancel_iff] mult_right_mono iffD2[OF zero_le_log_cancel_iff]) auto
-  also have \<open>\<dots> \<le> exp ( log 2 (1 / (3 * b / c)) * (9/8))\<close>
+  also have \<open>\<dots> \<le> exp (log 2 (1 / (3 * b / c)) * (9/8))\<close>
     unfolding log_recip by simp
   also have \<open>\<dots> = exp (ln (c / (3 * b)) * (9/(8*ln 2)))\<close>
     unfolding log_def by (simp add:divide_simps)
@@ -19,15 +19,14 @@ proof -
     using assms unfolding powr_def by (auto simp:algebra_simps)
   also have \<open>\<dots> \<le> (1-2*c/b) * 0 powr (9/(8*ln 2)) + (2*c /b) * (1/6) powr (9/(8*ln 2))\<close>
     apply (intro convex_onD[OF convex_powr])
-    subgoal by (approximation 10)
-    by (use assms in auto)
+      using assms ln_2_less_1 by auto
   also have \<open>\<dots> = (c/b) * (2*(1/6) powr (9/(8*ln 2)))\<close> by simp
   also have \<open>\<dots> \<le> (c/b) * (2/15)\<close>
     apply (intro mult_left_mono)
-    subgoal by (approximation 10)
-    by (use assms in auto)
+      subgoal by (approximation 7)
+      using assms by auto
   also have \<open>\<dots> = ?R\<close> by simp
-  finally show ?thesis by simp
+  finally show ?thesis .
 qed
 
 context
@@ -38,7 +37,7 @@ begin
 
 abbreviation (input) \<open>length_xs_1 \<equiv> max (Suc 0) (length xs)\<close>
 
-definition \<open>threshold \<equiv> (12 / \<epsilon>\<^sup>2) * log 2 (3 * length_xs_1 / \<delta>)\<close>
+definition \<open>threshold \<equiv> 12 / \<epsilon>\<^sup>2 * log 2 (3 * length_xs_1 / \<delta>)\<close>
 
 definition \<open>l \<equiv> \<lfloor>log 2 <| 4 * card (set xs) / \<lceil>threshold\<rceil>\<rfloor>\<close>
 
@@ -97,11 +96,9 @@ end
 interpretation cvm_correctness \<open>nat \<lceil>threshold\<rceil>\<close> 2 \<open>nat l\<close> \<epsilon> xs
   apply unfold_locales
     subgoal by (intro \<epsilon>(1))
-    subgoal
-      using \<epsilon>(2) \<epsilon>_threshold_ge_12 threshold_ge_2 two_l_threshold_bounds
-      apply simp
-      using nat_mono threshold_ge_2 by presburger
-    done
+    using \<epsilon>(2) \<epsilon>_threshold_ge_12 threshold_ge_2 two_l_threshold_bounds
+    apply simp
+    using nat_mono threshold_ge_2 by presburger
 
 lemma prob_fail_bound_le_\<delta> :
   \<open>prob_fail_bound \<le> \<delta> / 3\<close>
@@ -134,7 +131,7 @@ proof -
   also have \<open>\<dots> \<le> length xs * (2 * \<delta> / (15 * real length_xs_1))\<close>
     using 0 \<epsilon> \<delta> assms by (intro mult_left_mono exp_minus_log_le) auto
   also have \<open>\<dots> = 2*length xs * \<delta> / (15 * length_xs_1)\<close> by simp
-  also from \<delta> have \<open>\<dots> \<le> ?R\<close> by (cases \<open>xs = []\<close>) (simp_all add: field_simps)
+  also from \<delta> have \<open>\<dots> \<le> ?R\<close> by (simp add: field_simps)
   finally show ?thesis .
 qed
 
@@ -173,10 +170,10 @@ proof -
     then obtain x where xs_def: \<open>xs = [x]\<close>
       by (metis One_nat_def Suc_length_conv length_0_conv)
 
-    have 0:\<open> nat \<lceil>threshold\<rceil> \<noteq> 1\<close>
+    have 0: \<open>nat \<lceil>threshold\<rceil> \<noteq> 1\<close>
       using threshold_ge_2 xs_def real_nat_ceiling_ge by fastforce
     have \<open>?L = \<P>(estimate in cvm [x]. estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] 1))\<close>
-      by (simp_all add:xs_def option.case_eq_if)
+      by (simp add:xs_def option.case_eq_if)
     also have \<open>\<dots> = 0\<close> using 0 \<epsilon>
       by (simp add:unfold_cvm bind_return_pmf Let_def step_3_def split:split_indicator)
     also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp

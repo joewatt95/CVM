@@ -242,7 +242,7 @@ next
     then have \<open>PROP ?not_thesis' _ xs\<close>
       unfolding step_1_eager_def'
       apply simp
-      by (smt (verit, best) less_SucI nth_append_left)
+      by (smt (verit, best) less_SucI nth_append)
 
     with snoc.IH have
       \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>

@@ -63,7 +63,7 @@ lemma run_steps_lazy_snoc :
     run_steps_lazy xs state \<bind> step_lazy (xs @ [x]) (length xs)\<close>
   by (fastforce
     intro: bind_pmf_cong foldM_cong step_lazy_cong
-    simp add: foldM_pmf_snoc upt_Suc_append nth_append_left)
+    simp add: foldM_pmf_snoc upt_Suc_append nth_append)
 
 abbreviation \<open>well_formed_state \<equiv> \<lambda> xs state.
   state_k state \<le> length xs \<and> state_chi state \<subseteq> set xs\<close>
@@ -175,7 +175,7 @@ lemma run_steps_eager_snoc :
     run_steps_eager xs state \<bind> step_eager (xs @ [x]) (length xs)\<close>
   by (fastforce
     intro: bind_cong_rd foldM_cong step_eager_cong
-    simp add: foldM_rd_snoc upt_Suc_append nth_append_left)
+    simp add: foldM_rd_snoc upt_Suc_append nth_append)
 
 abbreviation \<open>coin_pmf \<equiv> bernoulli_pmf f\<close>
 
