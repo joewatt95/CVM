@@ -1,2 +1,6 @@
 \section{Conclusion}\label{sec:conclusion}
-
+We have presented the first formalization of the CVM algorithm using Isabelle/HOL.
+Central to our formalization is a novel invariant-based proof technique for randomized algorithms which is inspired by our alternative approach to analyzing the CVM algorithm via the Cram\'{e}r--Chernoff method.
+Interestingly, the technique readily generalized to a new CVM variant with stronger properties (totality and unbiasedness)---we formalized this version using the same invariant, together with a new library of results for negative association.
+In future work, it would be interesting to formalize other variations subsampling variants of CVM.
+More generally, it would be interesting to explore whether the technique could be applied towards proving other randomized (streaming) algorithms.
