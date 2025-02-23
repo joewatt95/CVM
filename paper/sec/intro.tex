@@ -69,10 +69,10 @@ In summary, our main contributions are:
 \end{itemize}
 
 We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
-As a rough point of comparison, verification of the CVM algorithm using our new technique requires only 1044 lines in Isabelle~\cite{nipkow2002}, while the original proof required \todo{x} lines.
+As a rough point of comparison, verification of the CVM algorithm using our new technique requires only 1044 lines in Isabelle/HOL~\cite{nipkow2002}, while the original proof required \todo{x} lines.
 
 The organization of this paper is as follows.
-\cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle~\cite{nipkow2002}.
+\cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL~\cite{nipkow2002}.
 \cref{sec:invariants} introduces our new technique and explains how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
 \cref{sec:formalization} presents the formalization of both variants of the algorithm, and \cref{sec:formalization_neg_dep} describes our new formalized library on negatively associated random variables.

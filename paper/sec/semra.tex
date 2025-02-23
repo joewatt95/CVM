@@ -13,8 +13,8 @@ i.e., the probability that the relative error of $R$ exceeds $\varepsilon$ is at
 Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.\footnote{The optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.}
 
 \subsection{Semantics of Randomized Algorithms}
-We briefly review how reasoning about randomized algorithms works in Isabelle using the Giry monad~\cite{giry1982}.
-A thorough discussion of the concept in the context of Isabelle has been written, for example, by Eberl et al.~\cite{eberl2020} and Lochbihler~\cite{lochbihler2016}.
+We briefly review how reasoning about randomized algorithms works in Isabelle/HOL using the Giry monad~\cite{giry1982}.
+A thorough discussion of the concept in the context of Isabelle/HOL has been written, for example, by Eberl et al.~\cite{eberl2020} and Lochbihler~\cite{lochbihler2016}.
 
 The key idea is to model a randomized algorithm as a probability space representing the distribution of its results.
 Let us consider \cref{alg:example}.

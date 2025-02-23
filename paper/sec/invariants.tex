@@ -71,10 +71,10 @@ A typical approach to establishing such a guarantee is to use Chernoff bounds fo
 However, these are not directly useful in the CVM algorithm because the key random variables, e.g., $p^{-1} X_s$ for $s \in A$, are dependent.
 
 An alternative is the Cram\'{e}r--Chernoff method, which is a general method to obtain tail bounds for any random variable.
-It can be stated simply as $P(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t) := \expect [\exp(t X)]$ is the moment generating function of $X$.
+It can be stated simply as $\prob(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t) := \expect [\exp(t X)]$ is the moment generating function of $X$.
 %\footnote{The moment generating function is sometimes only defined for some values of $t$ (when the corresponding integral exists), and this is typically an interval including $0$; the inequality is only applicable wherever $M(t)$ is defined.}
 %Since the probability space representing the state of the CVM algorithm is finite, $M(t)$ will always be defined in our case.
-It is also possible to obtain lower tail bounds $P(X \leq a)$ using Cram\'{e}r--Chernoff method, which just requires estimates for $M(t)$ for $t < 0$, instead of $t > 0$.
+It is also possible to obtain lower tail bounds $\prob(X \leq a)$ using Cram\'{e}r--Chernoff method, which just requires estimates for $M(t)$ for $t < 0$, instead of $t > 0$.
 
 In our case, we are interested in estimating the moment generating function of the random variable $p^{-1} |\chi|$ for the CVM algorithm:
 \[
@@ -96,12 +96,12 @@ This leads to a similar inequality:
   \expect \left[ \prod_{s \in A} I(p \geq q) h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant_capped}
 \end{align}
 with the new condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
-This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows:
+This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows: %TODO: should we use exp(...) everywhere instead of mixing with e^ ?
 \begin{eqnarray*}
   \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq &
-  \prob( I(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
-  & \underset{\textrm{Markov}}{\leq} & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} I(p \geq q) \exp( t p^{-1} X_s) \right] \\
-  & \leq & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} I(p \geq q) h(p^{-1} X_s) \right] \\
+  \prob( \indicat(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
+  & \underset{\textrm{Markov}}{\leq} & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) \exp( t p^{-1} X_s) \right] \\
+  & \leq & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) h(p^{-1} X_s) \right] \\
   & \underset{\textrm{Ineq.~\ref{i:func_invariant_capped}}}{\leq} & e^{-t(1+\varepsilon) |A|} h(1)^{|A|} \\
   & \underset{\textrm{By calculus}}{\leq} & \exp\left(-\frac{n}{12} \varepsilon^2\right)
 \end{eqnarray*}
@@ -112,7 +112,7 @@ that it is an upper approximation of $\exp(tx)$ for $x \in [0;q^{-1}]$.
 For the last step, we have to find the $t$ that produces the required bound.%
 \footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.}
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
-We use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, where they use $q = \frac{n}{4 |A|}$.
+For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, with $q = \frac{n}{4 |A|}$.
 
 The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
 Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
