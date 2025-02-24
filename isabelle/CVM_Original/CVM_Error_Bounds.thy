@@ -285,8 +285,7 @@ next
 
       moreover from \<open>?P xs (=)\<close> not_thesis'
       have \<open>?Q (<)\<close>
-        unfolding run_steps_eager_snoc
-        unfolding step_1_eager_def'
+        unfolding run_steps_eager_snoc step_1_eager_def'
         apply simp
         by (smt (verit, ccfv_threshold) append.right_neutral lessI nth_append_length take_length_eq_self)
 
