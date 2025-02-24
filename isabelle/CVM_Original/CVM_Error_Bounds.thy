@@ -45,16 +45,24 @@ lemma l_le_length_xs :
   \<open>l \<le> length xs\<close>
 proof -
   from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
+  (* Isabelle2025:
   have \<open>l \<le> floor_log (2 * r * card (set xs) div threshold)\<close>
-    by (metis floor_log_le_iff less_eq_div_iff_mult_less_eq floor_log_power threshold)
+    by (metis floor_log_le_iff less_eq_div_iff_mult_less_eq floor_log_power threshold) *)
+  have \<open>l \<le> Discrete.log (2 * r * card (set xs) div threshold)\<close>
+    by (metis log_le_iff less_eq_div_iff_mult_less_eq log_exp threshold)
 
   also from \<open>threshold \<ge> r\<close> threshold
+  (* Isabelle2025:
   have \<open>\<dots> \<le> floor_log (2 * length xs)\<close>
     by (smt (verit, del_insts) Groups.mult_ac(2,3) card_length div_mult_self1_is_m floor_log_le_iff less_eq_div_iff_mult_less_eq mult_le_mono nat_le_linear
+      verit_la_disequality) *)
+  have \<open>\<dots> \<le> Discrete.log (2 * length xs)\<close>
+    by (smt (verit, del_insts) Groups.mult_ac(2,3) card_length div_mult_self1_is_m log_le_iff less_eq_div_iff_mult_less_eq mult_le_mono nat_le_linear
       verit_la_disequality)
 
   also have \<open>\<dots> \<le> length xs\<close>
-    by (metis floor_log_le_iff less_exp floor_log_exp2_le floor_log_power floor_log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
+    (* Isabelle2025: by (metis floor_log_le_iff less_exp floor_log_exp2_le floor_log_power floor_log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le) *)
+    by (metis log_le_iff less_exp log_exp2_le log_exp log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
 
   finally show ?thesis .
 qed
@@ -153,15 +161,20 @@ next
     2. Reindex the sum to be taken over exponents `r` of the form `2 ^ k`
        instead of being over all `k`.
     3. Pull out a factor of `2 * exp_term l` from each term.\<close>
-  also have
+  also from assms have
     \<open>\<dots> = 2 * ?exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. ?exp_term l ^ (r - 1))\<close>
     unfolding
       sum_distrib_left
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
+    (* Isabelle2025:
     apply (intro sum.reindex_bij_witness[of _ floor_log \<open>(^) 2\<close>])
       by (auto
         simp flip: exp_of_nat_mult exp_add
-        simp add: exp_powr_real field_split_simps)
+        simp add: exp_powr_real field_split_simps) *)
+    apply (intro sum.reindex_bij_witness[of _ Discrete.log \<open>(^) 2\<close>])
+      by (auto
+        simp flip: exp_of_nat_mult exp_add
+        simp add: exp_powr_real field_split_simps of_nat_diff_real)
 
   text
     \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
@@ -244,8 +257,8 @@ next
       apply simp
       by (smt (verit, best) less_SucI nth_append)
 
-    with snoc.IH have
-      \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
+    with snoc.IH
+    have \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
       (is \<open>?P xs (\<le>)\<close>) using not_le by blast
 
     then show False

@@ -8,7 +8,7 @@ begin
 context cvm_algo
 begin
 
-lemma cvm_estimate_is_nat :
+theorem cvm_estimate_is_nat :
   \<open>\<turnstile>spmf \<lbrace>\<lblot>True\<rblot>\<rbrace> cvm \<lbrace>flip (\<in>) \<nat>\<rbrace>\<close>
   unfolding cvm_def compute_estimate_def
   apply (simp add: field_simps)
@@ -118,6 +118,7 @@ qed
 end
 
 thm
+  cvm_algo.cvm_estimate_is_nat
   cvm_correctness.prob_cvm_incorrect_le[simplified cvm_correctness_def, simplified]
   cvm_error_bounds.prob_bounds_defs
 
