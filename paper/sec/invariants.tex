@@ -1,31 +1,31 @@
 \section{Functional Probabilistic Invariants}\label{sec:invariants}
 In this section, we will derive our new technique using \cref{alg:cvm} as an example.
 Let us start by briefly reviewing the algorithm---its state is a buffer $\chi$ (initially empty) and a fraction $p > 0$ (initially set to $1$).
-The buffer contains a subset of the elements of the stream encountered so far, with maximal size $n$ chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
+The buffer tracks a subset of the elements of the stream encountered so far, with maximal size $n$ chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
 The algorithm iterates over the stream elements, adding each one to the buffer with probability $p$ or conversely---if the current stream element is already in the buffer---removing it with probability $(1-p)$ (Lines 3--7).
 If the number of elements in the buffer reaches the maximal size $n$, the subsampling operation is executed, which discards each element in $\chi$ independently with probability $\frac{1}{2}$; then, $p$ is adjusted to reflect the fact that the buffer now contains each element with probability $p_\text{new} = \frac{p_\text{old}}{2}$ (Lines 8--10).
 If the subsampling operation fails, i.e., if no elements get discarded, then the algorithm fails returning $\bot$ (Line 11).
-After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as a probably-approximately correct value for the number of distinct elements in the stream.
+After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as a probably-approximately correct estimate for the number of distinct elements in the stream.
 
-\subsection{A Minor Transformation}
-It is convenient to analyze \cref{alg:cvm} without Line 11, i.e., we will skip the second check of $|\chi|=n$ determining whether the subsampling step succeeded.
-This modified version simplifies our subsequent analysis as we do not have to worry about the possibility of the algorithm failing (returning $\bot$).
-This transformation is identically used in the original CVM proof~\cite{chakraborty2023}, where the total variational distance between these two variants of the algorithms is shown to be at most $\frac{\delta}{2}$.
+\begin{remark}
+For our discussion below, it is convenient to analyze \cref{alg:cvm} without Line 11, i.e., we will skip the second check of $|\chi|=n$ determining whether the subsampling step succeeded.
+This modified version simplifies our analysis as we do not have to worry about the possibility of the algorithm failing (returning $\bot$).
+This transformation is also used in the original CVM proof~\cite{chakraborty2023}, where the total variational distance between these two variants of the algorithms is shown to be at most $\frac{\delta}{2}$.
 This means probability bounds derived for the modified version, can be transferred to the original algorithm, with a correction term of $\frac{\delta}{2}$.
+\end{remark}
 
 \subsection{Deriving A Simple Probabilistic Invariant}
-Let us consider the random variables $X_s := \indicat(s \in \chi)$ indicating the presence of a stream element $s \in A = \{a_1,\ldots,a_l\}$ in the buffer.\footnote{We use $\indicat$ for the indicator of a predicate, i.e., $\indicat(\mathrm{true}) = 1$ and $\indicat(\mathrm{false}) = 0$.}
-Before the algorithm encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far.
-In particular $\chi \subseteq \{a_1,..,a_m\}$ after loop iteration $m$.
+Let us consider the random variables $X_s := \indicat(s \in \chi)$ indicating the presence of a stream element $s \in A = \{a_1,\ldots,a_l\}$ in the buffer, where we write $\indicat$ for the indicator of a predicate, i.e., $\indicat(\mathrm{true}) = 1$ and $\indicat(\mathrm{false}) = 0$.
+Before the algorithm first encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far, i.e., $\chi \subseteq \{a_1,..,a_m\}$ after loop iteration $m$.
 
-In the loop iteration where $s$ occurs the first time, it will be inserted with a probability $p$ in Lines 3--7.
+In the loop iteration where element $s$ occurs the first time, it will be inserted with a probability $p$ in Lines 3--7.
 This means, after Line 7, we have:
 \begin{equation}
   \label{eq:indicator_eq}
   \expect [p^{-1} X_s] = 1 \textrm{.}
 \end{equation}
 Interestingly, this equation is preserved for the rest of the algorithm.
-For example, let us consider a subsampling step: each $s$ is independently discarded with probability $\frac{1}{2}$ so $\prob(X_s=1)$ is halved, but so will $p$ after subsampling, which preserves the equation.
+For example, let us consider a subsampling step: each $s$ is independently discarded with probability $\frac{1}{2}$ so $\prob(X_s=1)$ is halved, but so is $p$ after subsampling, which preserves the equation.
 
 Let us explain how we can verify \cref{eq:indicator_eq} more formally.
 For that, we model the state of the randomized algorithm as a pair $(\chi,p)$ and we write $\chi$ and $p$ for the random variables projecting their respective components from the distribution of the state of the algorithm.
@@ -48,9 +48,8 @@ To verify that $\mathrm{step}_1\, a$ preserves \cref{eq:indicator_eq}, i.e., we 
 \]
 Note that, we write $p$ or $\chi$ even though, we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
 To see that the right-hand-side is equal to $1$, it is useful to consider the cases where $a=s$ and the converse separately.
-In the first case ($a = s$), the right-hand-side is equal to $1$ by definition of the Bernoulli distribution (since $p \in (0;1]$).
-In the second case ($a \not= s$), it follows from the induction hypothesis on $\Omega$.
-(In particular, the term in the inner integral is constant with respect to $\tau$.)
+When $a = s$, the right-hand-side is equal to $1$ by definition of the Bernoulli distribution (since $p \in (0;1]$).
+When $a \not= s$, it follows from the induction hypothesis on $\Omega$; in particular, the term in the inner integral is constant with respect to $\tau$.
 
 The same invariant-based argument is possible for $\mathrm{step}_2$, i.e., let us assume $\Omega$ is a probability space of states fulfilling \cref{eq:indicator_eq}.
 Then
@@ -62,12 +61,12 @@ Note that the true- and false-cases of the inner if-then-else both evaluate to t
 If $s \notin \chi$ both sides of the equation are $0$, because the subsampling operation returns a subset of $\chi$.
 If $s \in \chi$ the probability that the element gets subsampled is $1/2$, so we arrive again at $\frac{1/2}{p/2} = p^{-1} \indicat(s \in \chi)$.
 Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \expect_\Omega [p^{-1} X_s] = 1$.
-This completes the invariance proof.
+This completes the invariance proof for~\cref{eq:indicator_eq}.
 
 \subsection{Deriving A Functional Probabilistic Invariant}
-With \cref{eq:indicator_eq} established, it is straightforward to show that the expectation of the output $p^{-1} |\chi|$ for the modified algorithm (without Line 11) is equal to the desired cardinality $|A|$.
+With \cref{eq:indicator_eq} established, it is straightforward to show that the expected value of the output $p^{-1} |\chi|$ for the modified algorithm (without Line 11) is equal to the desired cardinality $|A|$.
 However, recall that we are interested in verifying the algorithm's PAC guarantee.
-A typical approach to establishing such a guarantee is to use Chernoff bounds for independent random variables, which provide exponential tail bounds for the deviation of their sums from their mean.
+A typical approach to establishing such a guarantee is to use Chernoff bounds which provide exponential tail bounds for the deviation of sums of independent random variables from their mean.
 However, these are not directly useful in the CVM algorithm because the key random variables, e.g., $p^{-1} X_s$ for $s \in A$, are dependent.
 
 An alternative is the Cram\'{e}r--Chernoff method, which is a general method to obtain tail bounds for any random variable.
@@ -87,7 +86,7 @@ Indeed, we managed to establish the following result:
   \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
 \end{align}
 for every non-negative concave function $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$.
-We call this a \emph{functional} probabilistic invariant because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
+We call this a \emph{functional probabilistic invariant} because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
 
 Of course, the exponential function in $M(t)$ is convex, so this is not yet the full story.
 However, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$.
@@ -98,12 +97,12 @@ This leads to a similar inequality:
 with the new condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
 This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows: %TODO: should we use exp(...) everywhere instead of mixing with e^ ?
 \begin{eqnarray*}
-  \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq &
+  \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & = &
   \prob( \indicat(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
   & \underset{\textrm{Markov}}{\leq} & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) \exp( t p^{-1} X_s) \right] \\
   & \leq & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) h(p^{-1} X_s) \right] \\
   & \underset{\textrm{Ineq.~\ref{i:func_invariant_capped}}}{\leq} & e^{-t(1+\varepsilon) |A|} h(1)^{|A|} \\
-  & \underset{\textrm{By calculus}}{\leq} & \exp\left(-\frac{n}{12} \varepsilon^2\right)
+  & \underset{\textrm{Calculus}}{\leq} & \exp\left(-\frac{n}{12} \varepsilon^2\right)
 \end{eqnarray*}
 where we choose $h(x) = 1+qx (e^{t/q}-1)$.
 Note that $h$ is affine and it can be easily checked%
@@ -113,8 +112,8 @@ For the last step, we have to find the $t$ that produces the required bound.%
 \footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.}
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
 For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, with $q = \frac{n}{4 |A|}$.
-
-The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
+%The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
+The formalization i nthe supplementary material contains a detailed informal step-by-step proof using our approach in its appendix.
 Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
 
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
