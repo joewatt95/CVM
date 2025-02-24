@@ -1,4 +1,3 @@
-
 \documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate,anonymous]{lipics-v2021}
 %This is a template for producing LIPIcs articles.
 %See lipics-v2021-authors-guidelines.pdf for further information.
@@ -41,6 +40,13 @@
 \usepackage{isabelle}
 \usepackage{isabellesym}
 \isabellestyle{it}
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{decorations.pathreplacing,calligraphy}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw, minimum size=3.5mm,inner sep=0pt] (char) {#1};}}
 
 \crefname{ineq}{inequality}{inequalities}
 \creflabelformat{ineq}{#2{\upshape(#1)}#3}
