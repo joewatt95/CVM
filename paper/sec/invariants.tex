@@ -95,14 +95,16 @@ This leads to a similar inequality:
   \expect \left[ \prod_{s \in A} I(p \geq q) h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant_capped}
 \end{align}
 with the new condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
-This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows: %TODO: should we use exp(...) everywhere instead of mixing with e^ ?
+This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows:
+%TODO: should we use exp(...) everywhere instead of mixing with e^ ? EK: That was the previous verison, main issue is the chain looks very lopsided, with almost all of the terms being on the right edge. (It looked too ugly.)
+% The convention is now, if exp is applied to a random variable we use the long notation and otherwise the power notation, which might actually be (a bit) helpful.
 \begin{eqnarray*}
-  \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & = &
+  \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq & % Is not equal when |A|=0.
   \prob( \indicat(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
   & \underset{\textrm{Markov}}{\leq} & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) \exp( t p^{-1} X_s) \right] \\
   & \leq & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) h(p^{-1} X_s) \right] \\
   & \underset{\textrm{Ineq.~\ref{i:func_invariant_capped}}}{\leq} & e^{-t(1+\varepsilon) |A|} h(1)^{|A|} \\
-  & \underset{\textrm{Calculus}}{\leq} & \exp\left(-\frac{n}{12} \varepsilon^2\right)
+  & \underset{\textrm{Calculus}}{\leq} & e^{-n\varepsilon^2 / 12}
 \end{eqnarray*}
 where we choose $h(x) = 1+qx (e^{t/q}-1)$.
 Note that $h$ is affine and it can be easily checked%
