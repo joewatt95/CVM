@@ -77,7 +77,7 @@ private abbreviation (input)
   \<open>prob_bernoulli_matrix \<equiv> \<lambda> P. \<P>(\<phi> in bernoulli_matrix m n f. P \<phi>)\<close>
 
 context
-  fixes k and xs 
+  fixes k and xs
   assumes assms : \<open>k \<le> m\<close> \<open>length xs \<le> n\<close> 
 begin
 
@@ -124,7 +124,7 @@ proof -
   also from assms bernoulli_eq_map_Pi_pmf[where I = \<open>{..< k}\<close>, unfolded Ball_def]
   have \<open>\<dots> = ?R\<close>
     apply (intro map_pmf_cong Pi_pmf_cong refl)
-    apply (cases k) by simp_all
+    by (cases k) simp_all
 
   finally show ?thesis .
 qed

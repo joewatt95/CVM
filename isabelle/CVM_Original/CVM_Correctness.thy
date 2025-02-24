@@ -71,7 +71,7 @@ theorem prob_cvm_incorrect_le :
   \<le> prob_fail_bound +
     prob_k_gt_l_bound +
     prob_k_le_l_and_est_out_of_range_bound\<close>
-  (is \<open>?L \<le> _\<close>)
+  (is \<open>?L \<le> ?R\<close>)
 proof (cases \<open>xs = [] \<or> threshold > card (set xs)\<close>)
   case True
   with assms have \<open>?L = 0\<close>
@@ -106,12 +106,13 @@ next
       state_k state \<le> l \<and> compute_estimate state >[\<epsilon>] card (set xs)))\<close>
     by (fastforce intro: pmf_add)
 
-  finally show ?thesis
-    using
-      prob_eager_algo_k_gt_l_le assms
-      prob_eager_algo_k_le_l_and_est_out_of_range_le
-      \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
-    by (force simp add: prob_bounds_defs)
+  also from
+    prob_eager_algo_k_gt_l_le assms
+    prob_eager_algo_k_le_l_and_est_out_of_range_le
+    \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
+  have \<open>\<dots> \<le> ?R\<close> unfolding prob_bounds_defs by simp
+
+  finally show ?thesis .
 qed
 
 end

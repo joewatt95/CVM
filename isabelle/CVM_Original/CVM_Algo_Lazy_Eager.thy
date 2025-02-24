@@ -35,7 +35,7 @@ definition step_2_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> whe
     if card chi = threshold
     then do {
       keep_in_chi \<leftarrow> prod_pmf chi \<lblot>bernoulli_pmf f\<rblot>;
-      return_pmf \<lparr>state_k = k + 1, state_chi = Set.filter keep_in_chi chi\<rparr> }
+      return_pmf \<lparr>state_k = Suc k, state_chi = Set.filter keep_in_chi chi\<rparr> }
     else return_pmf state }\<close>
 
 definition step_lazy :: \<open>'a state \<Rightarrow> 'a state pmf\<close> where

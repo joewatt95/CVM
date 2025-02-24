@@ -174,40 +174,40 @@ end
 theorem prob_cvm_incorrect_le_\<delta> :
   \<open>\<P>(estimate in cvm xs.
     estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
-  \<le> \<delta>\<close> (is \<open>?L \<le> ?R\<close>)
+  \<le> \<delta>\<close> (is \<open>?L xs \<le> ?R\<close>)
 proof -
-  note unfold_cvm =
+  note [simp] =
     cvm_def step_def step_1_def' step_2_def' initial_state_def compute_estimate_def
 
   consider (i) \<open>length xs = 0\<close> | (ii) \<open>length xs = 1\<close> | (iii) \<open>length xs \<ge> 2\<close>
     by linarith
-  thus ?thesis
+
+  then show ?thesis
   proof (cases)
-    case i thus ?thesis using \<delta> by (simp add:unfold_cvm)
-  next
-    case ii
-    then obtain x where xs_def: \<open>xs = [x]\<close>
-      by (metis One_nat_def Suc_length_conv length_0_conv)
-
-    have 0: \<open>nat \<lceil>threshold\<rceil> \<noteq> 1\<close>
-      using threshold_ge_2 xs_def real_nat_ceiling_ge by fastforce
-    have \<open>?L = \<P>(estimate in cvm [x]. estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] 1))\<close>
-      by (simp add: xs_def option.case_eq_if)
-
-    also have \<open>\<dots> = 0\<close> using 0 \<epsilon>
-      by (simp
-        add: unfold_cvm bind_return_pmf Let_def step_3_def
-        split: split_indicator)
-
-   also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp
-
-    finally show ?thesis . 
-  next
     case iii
     with
       prob_fail_bound_le_\<delta> prob_cvm_incorrect_le
       prob_k_gt_l_bound_le_\<delta> prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
     show ?thesis by simp
+  next
+    case i then show ?thesis using \<delta> by simp 
+  next
+    case ii
+    then obtain x where [simp] : \<open>xs = [x]\<close>
+      by (metis One_nat_def Suc_length_conv length_0_conv)
+
+    also have \<open>?L [x] = 0\<close>
+    proof -
+      from threshold_ge_2 have \<open>nat \<lceil>threshold\<rceil> \<noteq> 1\<close> by simp linarith
+      with \<epsilon> show ?thesis
+        by (simp
+          add: bind_return_pmf Let_def step_3_def
+          split: split_indicator)
+    qed
+
+    also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp
+
+    finally show ?thesis .
   qed
 qed
 
