@@ -10,7 +10,7 @@ begin
 
 lemma cvm_estimate_is_nat :
   \<open>\<turnstile>spmf \<lbrace>\<lblot>True\<rblot>\<rbrace> cvm \<lbrace>flip (\<in>) \<nat>\<rbrace>\<close>
-  unfolding compute_estimate_def
+  unfolding cvm_def compute_estimate_def
   apply (simp add: field_simps)
   by (metis (mono_tags) Num.of_nat_simps(5) of_nat_in_Nats of_nat_numeral of_nat_power)
 
