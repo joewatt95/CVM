@@ -57,19 +57,19 @@ lemmas prob_bounds_defs =
 
 theorem prob_cvm_incorrect_le :
   assumes
-    \<open>0 < \<epsilon>\<close> \<open>0 \<le> upper_bound\<close>
+    \<open>0 < \<epsilon>\<close> \<open>0 \<le> \<delta>\<close>
     \<open>\<lbrakk>xs \<noteq> []; threshold \<le> card_xs\<rbrakk> \<Longrightarrow>
       \<epsilon> \<le> 1 \<and>
       2 \<le> r \<and> r \<le> threshold \<and>
       \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
       r * card_xs \<le> two_l_threshold \<and> two_l_threshold \<le> 2 * r * card_xs \<and>
       prob_fail_bound + prob_k_gt_l_bound + prob_k_le_l_and_est_out_of_range_bound
-      \<le> upper_bound\<close>
+      \<le> \<delta>\<close>
   shows
     \<open>\<P>(estimate in cvm xs.
       estimate |> is_None_or_pred
         (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
-    \<le> upper_bound\<close>
+    \<le> \<delta>\<close>
     (is \<open>?L \<le> ?R\<close>)
 proof (cases \<open>xs = [] \<or> threshold > card (set xs)\<close>)
   case True

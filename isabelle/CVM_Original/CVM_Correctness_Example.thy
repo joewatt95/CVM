@@ -53,19 +53,22 @@ context
   assumes
     \<epsilon> : \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> and
     \<delta> : \<open>0 < \<delta>\<close> \<open>\<delta> \<le> 1\<close> and
-    threshold : \<open>threshold \<ge> 12 / \<epsilon>\<^sup>2 * log 2 (3 * length_xs_1 / \<delta>)\<close> and
-    \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
+    threshold : \<open>threshold \<ge> 12 / \<epsilon>\<^sup>2 * log 2 (3 * length_xs_1 / \<delta>)\<close>
 begin
 
 interpretation cvm_error_bounds \<open>nat \<lceil>threshold\<rceil>\<close> 2 \<open>nat l\<close> \<epsilon> xs .
 
-lemma threshold_ge_2 :
+context
+  assumes \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
+begin
+
+lemma ceil_threshold_ge_2 :
   \<open>\<lceil>threshold\<rceil> \<ge> 2\<close>
   using \<epsilon> \<delta> threshold \<open>xs \<noteq> []\<close>
   apply simp
   by (smt (verit, best) Multiseries_Expansion.intyness_1 approximation_preproc_nat(8) divide_le_eq_1_pos log_divide log_le_zero_cancel_iff log_less_one_cancel_iff numeral_nat(7) power_le_one zero_less_power)
 
-lemma \<epsilon>_threshold_ge_12 :
+lemma \<epsilon>_ceil_threshold_ge_12 :
   \<open>\<epsilon>\<^sup>2 * \<lceil>threshold\<rceil> \<ge> 12\<close>
   using \<epsilon> \<delta> threshold \<open>xs \<noteq> []\<close>
   apply (simp add: field_simps)
@@ -75,7 +78,7 @@ lemma two_l_threshold_bounds :
   \<open>2 * card (set xs) \<le> two_l_threshold\<close> (is \<open>?lower \<le> _\<close>)
   \<open>two_l_threshold \<le> 4 * card (set xs)\<close> (is \<open>_ \<le> ?upper\<close>)
 proof -
-  note assms = \<open>threshold \<le> card (set xs)\<close> threshold_ge_2
+  note assms = \<open>threshold \<le> card (set xs)\<close> ceil_threshold_ge_2
 
   from assms have \<open>l > 0\<close> by (simp add: l_def field_simps) linarith
 
@@ -93,18 +96,18 @@ proof -
     by (smt (verit, best) pos_le_divide_eq power_of_nat_log_le zero_compare_simps(8) zero_less_power)
 qed
 
-lemma length_ge_2 :
-  \<open>length xs \<ge> 2\<close>
-  using threshold_ge_2 \<open>threshold \<le> card (set xs)\<close> \<open>xs \<noteq> []\<close>
-  apply simp
-  by (metis Suc_1 leD not_less_eq_eq of_nat_1_eq_iff rotate1_fixpoint_card rotate1_length01)
-
 lemma prob_fail_bound_le_\<delta> :
   \<open>prob_fail_bound \<le> \<delta> / 3\<close>
-  using \<open>xs \<noteq> []\<close> \<epsilon> \<delta> threshold threshold_ge_2
+  using \<epsilon> \<delta> threshold ceil_threshold_ge_2 \<open>xs \<noteq> []\<close>
   unfolding prob_bounds_defs
   apply (simp add: divide_simps)
   by (smt (verit, ccfv_SIG) approximation_preproc_nat(8) divide_le_eq_1_pos le_log_of_power nonzero_mult_div_cancel_left pos_le_divide_eq power_le_one_iff real_nat_ceiling_ge)
+
+lemma length_ge_2 :
+  \<open>length xs \<ge> 2\<close>
+  using threshold ceil_threshold_ge_2 \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close> 
+  apply simp
+  by (metis Suc_1 leD not_less_eq_eq of_nat_1_eq_iff rotate1_fixpoint_card rotate1_length01)
 
 lemma prob_k_gt_l_bound_le_\<delta> :
   \<open>prob_k_gt_l_bound \<le> 2 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
@@ -153,18 +156,21 @@ proof -
   finally show ?thesis .
 qed
 
+end
+
 theorem prob_cvm_incorrect_le_\<delta> :
   \<open>\<P>(estimate in cvm xs.
     estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
   \<le> \<delta>\<close>
   apply (intro prob_cvm_incorrect_le)
   using
-    \<epsilon> \<delta> \<epsilon>_threshold_ge_12 threshold_ge_2 two_l_threshold_bounds
-    prob_fail_bound_le_\<delta> prob_k_gt_l_bound_le_\<delta>
-    prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
+    \<epsilon> \<delta> \<epsilon>_ceil_threshold_ge_12 ceil_threshold_ge_2 two_l_threshold_bounds
+    prob_fail_bound_le_\<delta> prob_k_gt_l_bound_le_\<delta> prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
   by simp_all linarith
 
 end
+
+thm prob_cvm_incorrect_le_\<delta>[simplified]
 
 end
 
