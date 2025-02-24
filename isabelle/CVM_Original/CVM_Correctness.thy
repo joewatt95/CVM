@@ -58,9 +58,9 @@ locale cvm_correctness = cvm_error_bounds +
   assumes assms :
     \<open>0 < \<epsilon>\<close>
     \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
-      \<epsilon> \<le> 1 &&&
-      r \<in> {2 .. threshold} &&&
-      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r &&&
+      \<epsilon> \<le> 1 \<and>
+      r \<in> {2 .. threshold} \<and>
+      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
       2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
 begin
 
@@ -116,36 +116,8 @@ qed
 
 end
 
-text \<open>As before, but stated outside of our locales, for convenience and clarity.\<close>
-theorem prob_cvm_incorrect_le' :
-  fixes
-    \<epsilon> :: real and
-    threshold l :: nat and
-    xs :: \<open>'a list\<close>
-  defines \<open>card_xs \<equiv> card (set xs)\<close>
-  assumes
-    \<open>0 < \<epsilon>\<close>
-    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> card_xs\<rbrakk> \<Longrightarrow>
-      \<epsilon> \<le> 1 &&&
-      r \<in> {2 .. threshold} &&&
-      \<epsilon>\<^sup>2 * threshold \<ge> 6 * r &&&
-      2 ^ l * threshold \<in> {r * card_xs .. 2 * r * card_xs}\<close>
-  defines
-   \<open>prob_fail_bound \<equiv> real (length xs) / 2 ^ threshold\<close> and
-   \<open>prob_k_gt_l_bound \<equiv>
-      real (length xs) *
-      exp (- 3 * real threshold * real ((r - 1)\<^sup>2) / real (5 * r + 2 * r\<^sup>2))\<close> and
-   \<open>prob_k_le_l_and_est_out_of_range_bound \<equiv>
-      4 * exp (- \<epsilon>\<^sup>2 * real threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
-  shows
-    \<open>\<P>(estimate in cvm_algo.cvm threshold xs.
-      estimate |> is_None_or_pred
-        (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
-    \<le> prob_fail_bound +
-      prob_k_gt_l_bound +
-      prob_k_le_l_and_est_out_of_range_bound\<close>
-  using cvm_correctness.prob_cvm_incorrect_le assms
-  unfolding cvm_correctness_def cvm_error_bounds.prob_bounds_defs
-  apply (simp add: field_simps) by blast
+thm
+  cvm_correctness.prob_cvm_incorrect_le[simplified cvm_correctness_def, simplified]
+  cvm_error_bounds.prob_bounds_defs
 
 end
