@@ -23,14 +23,13 @@ proof -
 
   also from assms ln_2_less_1
   have \<open>\<dots> \<le> (1-2*c/b) * 0 powr (9/(8*ln 2)) + (2*c /b) * (1/6) powr (9/(8*ln 2))\<close>
-    apply (intro convex_onD[OF convex_powr]) by auto
+    apply (intro convex_onD[OF convex_powr]) by simp_all
 
   also have \<open>\<dots> = (c/b) * (2*(1/6) powr (9/(8*ln 2)))\<close> (is \<open>_ = _ * ?x\<close>) by simp
 
   also have \<open>\<dots> \<le> (c/b) * (2/15)\<close> (is \<open>_ \<le> _ * ?y\<close>)
   proof (intro mult_left_mono)
     from assms show \<open>c / b \<ge> 0\<close> by simp
-
     show \<open>?x \<le> ?y\<close> by (approximation 7)
   qed
 
@@ -178,7 +177,7 @@ theorem prob_cvm_incorrect_le_\<delta> :
   \<le> \<delta>\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   note unfold_cvm =
-    step_def step_1_def step_2_def initial_state_def compute_estimate_def
+    cvm_def step_def step_1_def' step_2_def' initial_state_def compute_estimate_def
 
   consider (i) \<open>length xs = 0\<close> | (ii) \<open>length xs = 1\<close> | (iii) \<open>length xs \<ge> 2\<close>
     by linarith
@@ -194,9 +193,14 @@ proof -
       using threshold_ge_2 xs_def real_nat_ceiling_ge by fastforce
     have \<open>?L = \<P>(estimate in cvm [x]. estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] 1))\<close>
       by (simp add: xs_def option.case_eq_if)
+
     also have \<open>\<dots> = 0\<close> using 0 \<epsilon>
-      by (simp add: unfold_cvm bind_return_pmf Let_def step_3_def split:split_indicator)
-    also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp
+      by (simp
+        add: unfold_cvm bind_return_pmf Let_def step_3_def
+        split: split_indicator)
+
+   also have \<open>\<dots> \<le> \<delta>\<close> using \<delta> by simp
+
     finally show ?thesis . 
   next
     case iii
@@ -208,6 +212,8 @@ proof -
 qed
 
 end
+
+thm prob_cvm_incorrect_le_\<delta>
 
 end
 

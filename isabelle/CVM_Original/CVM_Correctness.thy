@@ -36,7 +36,7 @@ proof -
       by auto
 
   then show ?thesis
-    unfolding compute_estimate_def initial_state_def foldM_spmf_eq_foldM_pmf_case 
+    unfolding cvm_def compute_estimate_def initial_state_def foldM_spmf_eq_foldM_pmf_case 
     by (auto simp add: AE_measure_pmf_iff map_pmf_eq_return_pmf_iff)
 qed
 
@@ -95,7 +95,7 @@ next
     prob_fail_bound +
     \<P>(estimate in run_steps_no_fail xs initial_state.
       compute_estimate estimate >[\<epsilon>] card (set xs))\<close>
-    unfolding prob_bounds_defs
+    unfolding prob_bounds_defs cvm_def
     apply simp unfolding comp_apply .
 
   also from run_steps_no_fail_eq_run_steps_eager_bernoulli_matrix[where xs = xs]

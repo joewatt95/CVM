@@ -56,7 +56,7 @@ definition step :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state spmf\
 
 abbreviation \<open>run_steps \<equiv> foldM_spmf step\<close>
 
-abbreviation
+definition cvm :: \<open>'a list \<Rightarrow> real spmf\<close> where
   \<open>cvm xs \<equiv> map_spmf compute_estimate (foldM_spmf step xs initial_state)\<close>
 
 lemmas step_1_def' =
