@@ -4,7 +4,7 @@ focusing on the challenging parts in its formalization.
 An overview of the proof is shown in~\cref{fig:proof_overview}, which highlights, in part, why the transformation-based approach required more work to formalize, and why we developed our new approach using probabilistic invariants.
 
 As mentioned in~\cref{sec:intro}, the main difficulty in directly analyzing \cref{alg:cvm} is the lack of independence in its state variables.
-The technique Chakraborty et al.\ use to circumvent this issue is by progressively modifying the algorithm (\circled{A}--\circled{D}), in a manner that obviously bounds (or preserves) its distribution, and such that the final algorithm \circled{D} can be described using a simple random process with independent coin flips.
+The technique Chakraborty et al.\ use to circumvent this issue is by progressively modifying the algorithm (\circled{A}--\circled{D} in~\cref{fig:proof_overview}), in a manner that obviously bounds (or preserves) its distribution, and such that the final algorithm \circled{D} can be described using a simple random process with independent coin flips.
 
 For interested readers, \circled{A} corresponds to~\cite[Algorithm 1]{chakraborty2023}, \circled{B} is~\cite[Algorithm 2]{chakraborty2023}, and \circled{D} is~\cite[Algorithm 3]{chakraborty2023}.
 Whereas Chakraborty et al.\ move directly from \circled{B} to \circled{D} with an informal argument, \circled{C} is a transformation we added in the formalization to bridge this gap.
@@ -49,25 +49,7 @@ Whereas Chakraborty et al.\ move directly from \circled{B} to \circled{D} with a
 Let us consider algorithm \circled{B} in a state where $k$ subsampling steps have been performed, i.e., $p = 2^{-k}$.
 The algorithm would perform a coin flip lazily with probability $p$ when it encounters the next stream element.
 
-The transformation \circled{C} is shown in \cref{alg:cvm_simul}, and we prove that it precisely computes the same distribution as \circled{B}.
-In \circled{C}, we eagerly perform a fixed number of coin flips for each sequence element at the beginning.
-Now, each element is put into the state $\chi$, whenever the first $k$ coin flips associated with the sequence element are all $1$.
-Note that this happens exactly with probability $2^{-k}$, which means the behaviour of the algorithm is unchanged from \circled{B}.
-Similarly, in the subsampling operation, only those elements whose $k+1$-th associated coin flip is $1$ are kept; the operation $p \mapsto \frac{p}{2}$ is replaced with $k \mapsto k+1$.
-This again preserves the behaviour of \circled{B} that each element is discarded independently with probability $1/2$.
-
-It is easy to show for \circled{C} that the coin flips are independent, and that the set of elements in $\chi$ in any state are exactly those stream elements for which the first $k$ entries of their associated coin flips are $1$.
-The final random process $\circled{D}$ directly computes the final set of elements in $\chi$ after the stream for each fixed $K$; one relates \circled{C} to \circled{D} by:
-\[ \prob_{\circled{C}}(k = K \land \chi = X)  \leq \prob_{\circled{D}_K}(\chi = X)\]
-for fixed values of $K$ and $X$.
-To see how tail bounds can be derived from this inequality, note that it is possible to union bound the probability that the estimate exceeds the desired interval, with the probability of the event in conjunction with a specific values $k = K$.
-The latter can be bounded using a Chernoff bound for the probability that the number of stream elements whose associated coin flips start with $K$ heads is outside $2^{-K} |A| (1 \pm \varepsilon)$.
-This is explained in more detail by Chakraborty et al.~\cite{chakraborty2023}.
-
-%Like, we did in \cref{sec:invariants}, we ignore the second check, whether the subsampling operation succeeded.
-%As we explained there, the total variational difference between these two variants is $\frac{\delta}{2}$.
-%
-\begin{algorithm}[h!]
+\begin{algorithm}[t]
 	\caption{Modified CVM algorithm with independent coin flips. The function last{\textunderscore}index returns the index of the last occurrence of an element in the sequence, before the current iteration.}\label{alg:cvm_simul}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
@@ -91,8 +73,27 @@ This is explained in more detail by Chakraborty et al.~\cite{chakraborty2023}.
   \end{algorithmic}
 \end{algorithm}
 
+
+The transformation \circled{C} is shown in \cref{alg:cvm_simul}, and we prove that it computes precisely the same distribution as \circled{B}.
+In \circled{C}, we eagerly perform a fixed number of coin flips for each sequence element at the beginning.
+Now, each element is put into the state $\chi$, whenever the first $k$ coin flips associated with the sequence element are all $1$s.
+This happens exactly with probability $2^{-k}$, which means the behaviour of the algorithm is unchanged from \circled{B}.
+Similarly, in the subsampling operation, only those elements whose $k+1$-th associated coin flip is $1$ are kept; the operation $p \mapsto \frac{p}{2}$ is replaced with $k \mapsto k+1$.
+This again preserves the behaviour of \circled{B} that each element is discarded independently with probability $1/2$.
+
+It is easy to show for \circled{C} that the coin flips are independent, and that the set of elements in $\chi$ in any state are exactly those stream elements for which the first $k$ entries of their associated coin flips are $1$.
+The final random process $\circled{D}$ directly computes the final set of elements in $\chi$ after the stream, taking $K$ as a fixed parameter; one relates \circled{C} to \circled{D} by:
+\[ \prob_{\circled{C}}(k = K \land \chi = X)  \leq \prob_{\circled{D}_K}(\chi = X)\]
+for fixed values of $K$ and $X$.
+To see how tail bounds can be derived from this inequality, note that it is possible to union bound the probability that the estimate exceeds the desired interval, with the probability of the event in conjunction with a specific values $k = K$.
+The latter can be bounded using a Chernoff bound for the probability that the number of stream elements whose associated coin flips start with $K$ $1$s is outside $2^{-K} |A| (1 \pm \varepsilon)$.
+This is explained in more detail by Chakraborty et al.~\cite{chakraborty2023}.
+
+%Like, we did in \cref{sec:invariants}, we ignore the second check, whether the subsampling operation succeeded.
+%As we explained there, the total variational difference between these two variants is $\frac{\delta}{2}$.
+%
 \subsection{Eager to Lazy Coin Flips}
-A remaining question is how to formalize the from \circled{B} to \circled{C}.
+A remaining question is how to formalize the transformation from \circled{B} to \circled{C}.
 Our insight is that it is best to solve the problem backwards, i.e., we start with the modified algorithm \circled{C}, which performs all the coin-flips in advance \emph{eagerly} and convert it back to \circled{B} which implicitly performs the coin flips \emph{lazily} at the point they are needed.
 
 The main idea is to automatically push down the coin flips through the expression tree of \cref{alg:cvm_simul}.
@@ -114,20 +115,21 @@ For example, when the algorithm increases the subsampling counter $k$, it will h
 This means, we have a situation, where the previous loop iteration communicates to the next loop iteration, which coin flips it depends on using the state.
 And the next loop iteration, will indeed only read coin flips that were not read by the previous iteration.
 For the column index of the coin flips, this is based on the stream index, but for the row index of the coin flips, it is based on the state variable $k$.
+In our formalization, we abstract these bookkeeping details using the reader monad.
 
-It is possible to express the above in a point-free manner using the reader monad.
-This is a deterministic monad, which provides a read operation to a global value, such as our set of coin flips.
-(In Haskell, the reader monad is commonly used to provide a fixed environment to algorithms, such as global configuration options, paths or command lines parameters~\cite{jones1995}.)
-
-\begin{isabelle_cm}
-\isacommand{datatype}\ \isacharparenleft{\isacharprime}c\isacharcomma\ {\isacharprime}a\isacharparenright\ reader{\isacharunderscore}monad\ =\ Reader\ {\isacharparenleft}run{\isacharunderscore}reader\isacharcolon\ \isacartoucheopen{\isacharprime}c\ \isasymRightarrow\ {\isacharprime}a\isacartoucheclose\isacharparenright)\isanewline
-\isanewline
-\isacommand{definition}\ bind{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}bind{\isacharunderscore}rd\ m\ f\ \isacharequal\ Reader\ \isacharparenleft{\isasymlambda}r\isachardot\ run{\isacharunderscore}reader\ {\isacharparenleft}f\ {\isacharparenleft}run{\isacharunderscore}reader\ m\ r\isacharparenright\isacharparenright\ r\isacharparenright\isacartoucheclose\isanewline
-\isacommand{definition}\ return{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}return{\isacharunderscore}rd\ x\ \isacharequal\ Reader\ \isacharparenleft{\isasymlambda}{\isacharunderscore}\isachardot\ x\isacharparenright\isacartoucheclose\isanewline
-\isacommand{definition}\ get{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}get{\isacharunderscore}rd\ x\ \isacharequal\ Reader\ id\isacartoucheclose
-\end{isabelle_cm}
-With the definition above, we can define our sampling function with respect to the reader monad, where the environment is the entire set of coin flips, which is now a monad morphism (from the reader monad to the Giry monad):
-\begin{isabelle_cm}
-  sample{\isacharunderscore}rd\ \isacharequal\ sample\ \isasymcirc\ run{\isacharunderscore}reader
-\end{isabelle_cm}
+%It is possible to express the above in a point-free manner using the reader monad.
+%This is a deterministic monad, which provides a read operation to a global value, such as our set of coin flips.
+%(In Haskell, the reader monad is commonly used to provide a fixed environment to algorithms, such as global configuration options, paths or command lines parameters~\cite{jones1995}.)
+%
+%\begin{isabelle_cm}
+%\isacommand{datatype}\ \isacharparenleft{\isacharprime}c\isacharcomma\ {\isacharprime}a\isacharparenright\ reader{\isacharunderscore}monad\ =\ Reader\ {\isacharparenleft}run{\isacharunderscore}reader\isacharcolon\ \isacartoucheopen{\isacharprime}c\ \isasymRightarrow\ {\isacharprime}a\isacartoucheclose\isacharparenright)\isanewline
+%\isanewline
+%\isacommand{definition}\ bind{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}bind{\isacharunderscore}rd\ m\ f\ \isacharequal\ Reader\ \isacharparenleft{\isasymlambda}r\isachardot\ run{\isacharunderscore}reader\ {\isacharparenleft}f\ {\isacharparenleft}run{\isacharunderscore}reader\ m\ r\isacharparenright\isacharparenright\ r\isacharparenright\isacartoucheclose\isanewline
+%\isacommand{definition}\ return{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}return{\isacharunderscore}rd\ x\ \isacharequal\ Reader\ \isacharparenleft{\isasymlambda}{\isacharunderscore}\isachardot\ x\isacharparenright\isacartoucheclose\isanewline
+%\isacommand{definition}\ get{\isacharunderscore}rd\ \isacommand{where}\ {\isacartoucheopen}get{\isacharunderscore}rd\ x\ \isacharequal\ Reader\ id\isacartoucheclose
+%\end{isabelle_cm}
+%With the definition above, we can define our sampling function with respect to the reader monad, where the environment is the entire set of coin flips, which is now a monad morphism (from the reader monad to the Giry monad):
+%\begin{isabelle_cm}
+%  sample{\isacharunderscore}rd\ \isacharequal\ sample\ \isasymcirc\ run{\isacharunderscore}reader
+%\end{isabelle_cm}
 
