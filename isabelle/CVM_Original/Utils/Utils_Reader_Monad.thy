@@ -1,5 +1,9 @@
 theory Utils_Reader_Monad
-  imports "HOL-Library.Monad_Syntax" "Utils_Basic"
+
+imports
+  "HOL-Library.Monad_Syntax"
+  "Utils_Basic"
+
 begin
 
 datatype ('c, 'a) reader_monad = Reader (run_reader: "'c \<Rightarrow> 'a")

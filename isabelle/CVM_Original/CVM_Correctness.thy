@@ -14,7 +14,7 @@ theorem cvm_estimate_is_nat :
   apply (simp add: field_simps)
   by (metis (mono_tags) Num.of_nat_simps(5) of_nat_in_Nats of_nat_numeral of_nat_power)
 
-lemma estimate_distinct_correct_of_empty_or_threshold :
+theorem cvm_correct_of_empty_or_threshold :
   assumes \<open>xs = [] \<or> threshold > card (set xs)\<close>
   shows \<open>cvm xs = return_spmf (card <| set xs)\<close>
 proof -
@@ -42,7 +42,7 @@ qed
 
 end
 
-context cvm_error_bounds 
+context cvm_error_bounds
 begin
 
 definition \<open>prob_fail_bound \<equiv> length xs * f ^ threshold\<close>
@@ -52,33 +52,29 @@ lemmas prob_bounds_defs =
   prob_k_gt_l_bound_def
   prob_k_le_l_and_est_out_of_range_bound_def
 
-end
-
-locale cvm_correctness = cvm_error_bounds +
-  assumes assms :
+theorem prob_cvm_incorrect_le :
+  assumes
     \<open>0 < \<epsilon>\<close>
-    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> (card <| set xs)\<rbrakk> \<Longrightarrow>
+    \<open>upper_bound \<ge> 0\<close>
+    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> card (set xs)\<rbrakk> \<Longrightarrow>
       \<epsilon> \<le> 1 \<and>
       r \<in> {2 .. threshold} \<and>
       \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
-      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)}\<close>
-begin
-
-theorem prob_cvm_incorrect_le :
-  \<open>\<P>(estimate in cvm xs.
+      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)} \<and>
+      prob_fail_bound + prob_k_gt_l_bound + prob_k_le_l_and_est_out_of_range_bound
+      \<le> upper_bound\<close>
+  shows
+    \<open>\<P>(estimate in cvm xs.
       estimate |> is_None_or_pred
         (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
-  \<le> prob_fail_bound +
-    prob_k_gt_l_bound +
-    prob_k_le_l_and_est_out_of_range_bound\<close>
-  (is \<open>?L \<le> ?R\<close>)
+    \<le> upper_bound\<close>
+    (is \<open>?L \<le> ?R\<close>)
 proof (cases \<open>xs = [] \<or> threshold > card (set xs)\<close>)
   case True
   with assms have \<open>?L = 0\<close>
-    by (simp add:
-      estimate_distinct_correct_of_empty_or_threshold algebra_split_simps)
+    by (simp add: cvm_correct_of_empty_or_threshold algebra_split_simps)
 
-  then show ?thesis by (simp add: prob_bounds_defs)
+  with assms show ?thesis by (simp add: prob_bounds_defs)
 next
   case False
   then have \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close> by simp_all
@@ -107,19 +103,13 @@ next
     by (fastforce intro: pmf_add)
 
   also from
-    prob_eager_algo_k_gt_l_le assms
-    prob_eager_algo_k_le_l_and_est_out_of_range_le
-    \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
-  have \<open>\<dots> \<le> ?R\<close> unfolding prob_bounds_defs by simp
+    assms \<open>xs \<noteq> []\<close> \<open>threshold \<le> card (set xs)\<close>
+    prob_eager_algo_k_gt_l_le prob_eager_algo_k_le_l_and_est_out_of_range_le
+  have \<open>\<dots> \<le> ?R\<close> unfolding prob_bounds_defs by fastforce
 
   finally show ?thesis .
 qed
 
 end
-
-thm
-  cvm_algo.cvm_estimate_is_nat
-  cvm_correctness.prob_cvm_incorrect_le[simplified cvm_correctness_def, simplified]
-  cvm_error_bounds.prob_bounds_defs
 
 end
