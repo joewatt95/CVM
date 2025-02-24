@@ -72,12 +72,10 @@ lemma \<epsilon>_threshold_ge_12 :
   by (smt (verit, ccfv_SIG) Num.of_nat_simps(2) approximation_preproc_nat(8) landau_o.R_mult_left_mono le_of_int_ceiling log_divide log_le_zero_cancel_iff log_less_one_cancel_iff mult.commute numeral_nat(7) zero_le_power2)
 
 lemma two_l_threshold_bounds :
-  defines \<open>two_l_threshold \<equiv> 2 ^ nat l * nat \<lceil>threshold\<rceil>\<close>
-  shows
-    \<open>2 * card (set xs) \<le> two_l_threshold\<close> (is \<open>?lower \<le> _\<close>)
-    \<open>two_l_threshold \<le> 4 * card (set xs)\<close> (is \<open>_ \<le> ?upper\<close>)
+  \<open>2 * card (set xs) \<le> two_l_threshold\<close> (is \<open>?lower \<le> _\<close>)
+  \<open>two_l_threshold \<le> 4 * card (set xs)\<close> (is \<open>_ \<le> ?upper\<close>)
 proof -
-  note assms = assms \<open>threshold \<le> card (set xs)\<close> threshold_ge_2
+  note assms = \<open>threshold \<le> card (set xs)\<close> threshold_ge_2
 
   from assms have \<open>l > 0\<close> by (simp add: l_def field_simps) linarith
 
@@ -104,7 +102,7 @@ lemma length_ge_2 :
 lemma prob_fail_bound_le_\<delta> :
   \<open>prob_fail_bound \<le> \<delta> / 3\<close>
   using \<open>xs \<noteq> []\<close> \<epsilon> \<delta> threshold threshold_ge_2
-  unfolding cvm_error_bounds.prob_bounds_defs
+  unfolding prob_bounds_defs
   apply (simp add: divide_simps)
   by (smt (verit, ccfv_SIG) approximation_preproc_nat(8) divide_le_eq_1_pos le_log_of_power nonzero_mult_div_cancel_left pos_le_divide_eq power_le_one_iff real_nat_ceiling_ge)
 
@@ -112,7 +110,7 @@ lemma prob_k_gt_l_bound_le_\<delta> :
   \<open>prob_k_gt_l_bound \<le> 2 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   have \<open>?L \<le> length xs * exp (- threshold / 6)\<close>
-    unfolding cvm_error_bounds.prob_bounds_defs
+    unfolding prob_bounds_defs
     by (simp add: divide_simps mult_left_mono real_nat_ceiling_ge)
 
   also from threshold length_ge_2
@@ -138,7 +136,7 @@ lemma prob_k_le_l_and_est_out_of_range_bound_le_\<delta> :
   \<open>prob_k_le_l_and_est_out_of_range_bound \<le> 8 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   from \<epsilon> have \<open>?L \<le> 4 * exp (-\<epsilon>\<^sup>2 * threshold / (8 * (1 + \<epsilon> / 3)))\<close>
-    unfolding cvm_error_bounds.prob_bounds_defs
+    unfolding prob_bounds_defs
     apply (simp add: field_simps)
     by (simp add: add_mono_thms_linordered_semiring(1) real_nat_ceiling_ge)
 

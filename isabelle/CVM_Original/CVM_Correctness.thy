@@ -47,6 +47,9 @@ begin
 
 definition \<open>prob_fail_bound \<equiv> length xs * f ^ threshold\<close>
 
+abbreviation \<open>card_xs \<equiv> card (set xs)\<close>
+abbreviation \<open>two_l_threshold \<equiv> 2 ^ l * threshold\<close>
+
 lemmas prob_bounds_defs =
   prob_fail_bound_def
   prob_k_gt_l_bound_def
@@ -54,13 +57,12 @@ lemmas prob_bounds_defs =
 
 theorem prob_cvm_incorrect_le :
   assumes
-    \<open>0 < \<epsilon>\<close>
-    \<open>upper_bound \<ge> 0\<close>
-    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> card (set xs)\<rbrakk> \<Longrightarrow>
+    \<open>0 < \<epsilon>\<close> \<open>0 \<le> upper_bound\<close>
+    \<open>\<lbrakk>xs \<noteq> []; threshold \<le> card_xs\<rbrakk> \<Longrightarrow>
       \<epsilon> \<le> 1 \<and>
-      r \<in> {2 .. threshold} \<and>
+      2 \<le> r \<and> r \<le> threshold \<and>
       \<epsilon>\<^sup>2 * threshold \<ge> 6 * r \<and>
-      2 ^ l * threshold \<in> {r * (card <| set xs) .. 2 * r * (card <| set xs)} \<and>
+      r * card_xs \<le> two_l_threshold \<and> two_l_threshold \<le> 2 * r * card_xs \<and>
       prob_fail_bound + prob_k_gt_l_bound + prob_k_le_l_and_est_out_of_range_bound
       \<le> upper_bound\<close>
   shows
