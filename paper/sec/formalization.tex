@@ -6,7 +6,7 @@ The invariant-based verficiation approach is in the directory CVM{\textunderscor
 The file CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, with an abstract subsampling operation, which is required to fulfill \cref{i:subsample_condition}.
 The specialization happens in the following theories, where CVM{\textunderscore}Original{\textunderscore}Algorithm is verficiation of the original algorithm, and CVM{\textunderscore}New{\textunderscore}Algorithm verifies the new total and unbiased variant.
 It should be noted that only the last file, for the new unbiased algorithm, dependends on the new library (\cref{sec:formalization_neg_dep}) on negatively associated random variables, which is included in a separate directory, which we describe in more detail in the \cref{sec:formalization_neg_dep}.
-The total number of lines required for the verification of the original algorithm is 1004 lines.
+The total number of lines required for the verification of the original algorithm is \locnew~lines.
 
 %; we mainly discuss the~\cref{alg:cvm_new} variant from~\cref{sec:negdep} since the details are similar.
 We verifed a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
