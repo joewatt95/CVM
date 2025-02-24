@@ -89,7 +89,7 @@ lemma map_pmf_nondet_algo_eq :
   (is \<open>?L = ?R\<close>)
 proof -
   let ?m' = \<open>{..< m}\<close> let ?n' = \<open>{..< n}\<close>
-  let ?M = \<open>\<lambda> I. prod_pmf I \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>\<close>
+  let ?M = \<open>flip prod_pmf \<lblot>prod_pmf {..< m} \<lblot>coin_pmf\<rblot>\<rblot>\<close>
 
   have \<open>?L =
     map_pmf
