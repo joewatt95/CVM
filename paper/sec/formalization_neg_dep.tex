@@ -9,13 +9,9 @@ Another example application included in the library is proving the false positiv
 \lipicsEnd\end{note}
 
 Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
-% TODO: YK: I am struggling to understand the paragraph below.
-% In reference to 2.1 in Joag-Dev/Proschan, do you mean they are missing the integrability conditions for f,g?
-However, the authors did not correctly define the constraints for the possible set of test functions $f$ and $g$ in \cref{def:neg_assoc}, which does not make sense formally.
-In the formalization, we assume that the functions are bounded and measurable.
-On the other hand, we derive that the condition is still true, if $f, g$ are square-integrable.
-Or alternatively integrable, and non-negative.
-This is derived using the monotone-convergence theorem.
+However, their definition leaves the class of test functions $f$ and $g$ (in \cref{def:neg_assoc}) imprecise.
+In particular, for the formalization, we limit these functions to those that are bounded and measurable.
+Additionally, we provide elimination rules, showing that if $X_1,\dots,X_n$ are negatively associated, then the inequality on expectations is still true even if $f, g$ are only square-integrable; or, alternatively, integrable and non-negative. This is derived using the monotone-convergence theorem.
 
 Another deviation from the original work is that we do not require that the random variables are real-valued.
 In the formalization, any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
@@ -44,7 +40,7 @@ The first assumption denotes the log-supermodularity of the probability mass fun
 The FKG inequality is a key result which enables verification of negative association for random variables.
 This includes the indicator variables for the new subsampling operation we introduced in \cref{sec:negdep}.
 
-Let us summarize a few key formalized results for negatively associated random variables used in our proof:
+Let us summarize a few key formalized results for negatively associated random variables used in our CVM proof:
 \begin{isabelle_cm}
 \isacommand{lemma}\isamarkupfalse%
 \ neg{\isacharunderscore}{\kern0pt}assoc{\isacharunderscore}{\kern0pt}imp{\isacharunderscore}{\kern0pt}mult{\isacharunderscore}{\kern0pt}mono{\isacharcolon}{\kern0pt}\isanewline
