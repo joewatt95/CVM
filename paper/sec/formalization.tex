@@ -1,23 +1,20 @@
 \section{Formalization of the CVM algorithm}\label{sec:formalization}
-In this section, we present the formalization of the CVM algorithm in Isabelle/HOL using our new functional probabilistic invariant based approach.
+Let us now turn to details of our formalization of the CVM algorithm in Isabelle/HOL using our invariant-based approach.
 We verified both the total variant, we introduced in the previous section and the original variant (\cref{alg:cvm}) from the introduction.
-The invariant-based verficiation approach is in the directory CVM{\textunderscore}Invariant from the supplementary material.
 
-The file CVM{\textunderscore}Abstract{\textunderscore}Algorithm verifies a generalized version of the CVM algorithm, with an abstract subsampling operation, which is required to fulfill \cref{i:subsample_condition}.
-The specialization happens in the following theories, where CVM{\textunderscore}Original{\textunderscore}Algorithm is verficiation of the original algorithm, and CVM{\textunderscore}New{\textunderscore}Algorithm verifies the new total and unbiased variant.
-It should be noted that only the last file, for the new unbiased algorithm, dependends on the new library (\cref{sec:formalization_neg_dep}) on negatively associated random variables, which is included in a separate directory, which we describe in more detail in the \cref{sec:formalization_neg_dep}.
+%TODO: make sure these names are correct!
+\begin{note}
+In our supplementary material, the invariant-based verification approach is in the directory \verb|CVM_Invariant|.
+The file \verb|CVM_Abstract_Algorithm| verifies a generalized version of the CVM algorithm, with an abstract subsampling operation that is required to fulfill \cref{i:subsample_condition}.
+The specialization happens in the following theories, where \verb|CVM_Original_Algorithm| verifies the original algorithm, and \verb|CVM_New_Algorithm| verifies the new total and unbiased variant.
+It should be noted that only \verb|CVM_New_Algorithm| depends on the new library for negatively associated random variables, which we describe in more detail in \cref{sec:formalization_neg_dep}.
 The total number of lines required for the verification of the original algorithm is \locnew~lines.
+\lipicsEnd\end{note}
 
-%; we mainly discuss the~\cref{alg:cvm_new} variant from~\cref{sec:negdep} since the details are similar.
-We verifed a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
-
-Another slight deviation is that we have better constant factors compared to the original proof by Chakraborty et al.~\cite{chakraborty2023}.
-The buffer size in \cref{alg:cvm} is $12 \varepsilon^{-2} \ln(6 l \delta^{-1})$ while the buffer size used by Chakraborty et al. is $12 \varepsilon^{-2} \log_2(8 l \delta^{-1}) \approx 17.3 \varepsilon^{-2} \ln(8 l \delta^{-1})$.
-
-This is mainly due to the fact that the invariant-based proof, does not require conditioning on particular values of $p$ --- the subsampling probability at the end of the algorithm --- in contrast the transformation-based proof applies Chernoff bounds for each possible value of $p$ (upto some lower bound $q$) and establishes the final error probability as a union bound.
-
-However, we would like to note that, neither Chakraborty et al. seem to, nor we, have tried to optimize constants.
-It would be possible to find improvements using a more careful analysis in both cases.
+We verified a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$; and we allow $n \geq 12 \varepsilon^{-2} \ln(6 l \delta^{-1})$, i.e., $n$ can be any integer value greater than the bound.
+Another deviation is that we have better constant factors compared to the original presentation---the buffer size used by Chakraborty et al. is $12 \varepsilon^{-2} \log_2(8 l \delta^{-1}) \approx 17.3 \varepsilon^{-2} \ln(8 l \delta^{-1})$.
+This is mainly due to the fact that the invariant-based proof does not require conditioning on particular values of $p$ (the subsampling probability at the end of the algorithm) in contrast to the transformation-based proof which applies Chernoff bounds for each possible value of $p$ (down to some lower bound $q$) and establishes the final error probability as a union bound.
+However, we would like to note that, neither Chakraborty et al., nor us, have tried to optimize constants and it should be possible to find constant factor improvements using a more careful analysis in both proofs.
 
 \begin{figure}[t]
 \begin{isabelle_cm}
@@ -76,12 +73,12 @@ It would be possible to find improvements using a more careful analysis in both 
 A snippet of the formalization of \cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized}.
 We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
 The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
-Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability, that the stream elements are in the buffer.
-Isabelle provides notation closely related to informal pseudocode, such that it is usually feasible to read a formalization without expert knowledge.
-Nevertheless, \cref{tab:isabelle_syntax} contains a brief glossary of the syntactic elements used in the formalization.
+Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability that the stream elements are in the buffer, respectively.
+Isabelle/HOL provides notation closely related to informal pseudocode, so it is usually feasible to read a formal statement without expert knowledge.
+Nevertheless, \cref{tab:isabelle_syntax} contains a brief glossary of the syntax used in the formalization.
 %\medskip
 \begin{table}
-\caption{Isabelle syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
+\caption{Isabelle/HOL syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
 \noindent\begin{tabular}{l p{9cm}}
 \toprule
 Term & Description \\
@@ -91,7 +88,7 @@ Term & Description \\
 %\isa{length\ xs} & For a sequence \isa{xs} the length of the sequence. \\
 \isa{real} & Type of real numbers and conversion between natural numbers into real numbers. \\
 \isa{nat} & Type of natural numbers (non-negative integers). \\
-\isa{bernoulli{\isacharunderscore}pmf\ p} & The probability space over the boolean values, where the probability of \isa{True} is $p$. (Bernoulli distribution.) \\
+\isa{bernoulli{\isacharunderscore}pmf\ p} & The probability space over the Boolean values, where the probability of \isa{True} is $p$. (Bernoulli distribution.) \\
 \isa{pmf{\isacharunderscore}of{\isacharunderscore}set\ S} & For a finite set $S$, the uniform probability space on $S$. (Every element of $S$ is equiprobable.) \\
 \isa{map{\isacharunderscore}pmf\ f\ A} & The probability space representing the distribution of the random variable $f$ over the probability space $A$. \\
 \isa{return{\isacharunderscore}pmf\ x} & The probability space of the singleton $\{x\}$. \\
@@ -113,21 +110,27 @@ The theorem that establishes the correctness of the algorithm, i.e., that the re
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}R\ in\ run{\isacharunderscore}{\kern0pt}algo\ xs{\isachardot}{\kern0pt}\ {\isasymbar}R\ {\isacharminus}{\kern0pt}\ A{\isasymbar}\ {\isachargreater}{\kern0pt}\ {\isasymepsilon}\ {\isacharasterisk}{\kern0pt}\ A{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isasymdelta}{\isacartoucheclose}
 \end{isabelle_cm}
 The first line gives conditions on parameters $\varepsilon$ and $\delta$, which must be strictly between $0$ and $1$.
-The next line requires the buffer size $n$ to be larger than $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$; this is slightly more general than the original algorithm, where we fix $n$ to be the smallest integer larger than the same value.
-Then, we introduce the abrreviation \isa{A} for the cardinality of the set of elements in the sequence \isa{xs}.
+The next line requires the buffer size $n$ to be larger than $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
+Then, we introduce the abbreviation \isa{A} for the cardinality of the set of elements in the sequence \isa{xs}.
 %More precisely, \isa{set\ xs} denotes the finite set of distinct elements in a given sequence, and \isa{card} returns the cardinality of a finite set.
-The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for \isa{run-algo}.
+The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for \isa{run{\isacharunderscore}{\kern0pt}algo}.
 
-Similarly, we have also formalized unbiasedness of the algorithm:
+Similarly, we have also formalized unbiasedness of \cref{alg:cvm_new}:
 \begin{isabelle_cm}
 \isacommand{theorem}\isamarkupfalse%
 \ unbiasedness{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}expectation\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}algo\ xs{\isacharparenright}{\kern0pt}\ id\ {\isacharequal}{\kern0pt}\ card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
 The expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
 
-The informal proof of the algorithm, which is included in the appendix of the formal proof document, is useful to follow the formalized proof.
-There are references from the formalized lemmas to the informal ones for convenience.
+Our proofs are available in the supplement, both in mechanized form in Isabelle/HOL and as a pen-and-paper proof included in the proof document.
+In practice, we developed the latter proof first and then mechanized it in Isabelle/HOL without much surprises.
+Most of the lemmas can be one-to-one identified between both proofs; Isabelle's existing libraries, automation capabilities, and structured proof format were used extensively in our proofs.
 
-Originally, we wrote down the informal proof first before starting the formalization effort.
-We could express the same arguments and same general strategy in Isabelle with little effort; we did not encounter any suprises during mechanization.
-This is in contrast to the mechanization of the original transformation-based proof by Chakraborty et al., which we detail in \cref{sec:transformation_based_proof}.
+%For our proof, we first sketched out our invariant-based approach in an informal proof before transferring this to Isabelle/HOL.
+%Originally, we wrote down the informal proof first before starting the formalization effort.
+%We could express the same arguments and same general strategy in Isabelle/HOL with little effort; we did not encounter any surprises during mechanization.
+%This is in contrast to the mechanization of the original transformation-based proof by Chakraborty et al., which we detail in \cref{sec:transformation_based_proof}.
+
+%The informal proof of the algorithm, which is included in the appendix of the formal proof document, is useful to follow the formalized proof.
+%There are references from the formalized lemmas to the informal ones for convenience.
+

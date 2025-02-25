@@ -1,6 +1,5 @@
 \section{Transformation-based Proof}\label{sec:transformation_based_proof}
-In this section, we describe the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023},
-focusing on the challenging parts in its formalization.
+Here, we describe the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}, focusing on the challenging parts in its formalization.
 An overview of the proof is shown in~\cref{fig:proof_overview}, which highlights, in part, why the transformation-based approach required more work to formalize, and why we developed our new approach using probabilistic invariants.
 
 As mentioned in~\cref{sec:intro}, the main difficulty in directly analyzing \cref{alg:cvm} is the lack of independence in its state variables.
@@ -8,6 +7,11 @@ The technique Chakraborty et al.\ use to circumvent this issue is by progressive
 
 For interested readers, \circled{A} corresponds to~\cite[Algorithm 1]{chakraborty2023}, \circled{B} is~\cite[Algorithm 2]{chakraborty2023}, and \circled{D} is~\cite[Algorithm 3]{chakraborty2023}.
 Whereas Chakraborty et al.\ move directly from \circled{B} to \circled{D} with an informal argument, \circled{C} is a transformation we added in the formalization to bridge this gap.
+
+\begin{note}
+In our supplementary material, the transformation-based formalization of CVM is in the directory \verb|CVM_TODO|.
+The formalization took \locold~lines which is considerably longer than the proof using our invariant-based technique (\locnew~lines).
+\lipicsEnd\end{note}
 
 \begin{figure}
 \begin{center}

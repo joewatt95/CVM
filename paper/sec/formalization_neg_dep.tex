@@ -1,32 +1,36 @@
 \section{Formalization of a Library for Negative Association}\label{sec:formalization_neg_dep}
-As mentioned in the previous section, the formalization of the new unbiased variant of the CVM algorithm, requires results from the theory of negative association.
+As mentioned in~\cref{sec:negdep}, formalizing the total and unbiased variant of the CVM algorithm requires results from the theory of negative association.
 
-The formalization, which we intend to submit to the AFP as a separate entry is included in the supplementary material in the directory Neg{\textunderscore}Assoc.
-It follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
+\begin{note}
+In our supplementary material, the formalization of negative association is in the directory \verb|Neg_Assoc|.
+This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distribution|).
+Although not needed for CVM, we have also mechanized the standard Chernoff bounds (\verb|Neg_Assoc_Chernoff_Bounds|), including the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
+Another example application of the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
+\lipicsEnd\end{note}
+
+Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
+% TODO: YK: I am struggling to understand the paragraph below.
+% In reference to 2.1 in Joag-Dev/Proschan, do you mean they are missing the integrability conditions for f,g?
 However, the authors did not correctly define the constraints for the possible set of test functions $f$ and $g$ in \cref{def:neg_assoc}, which does not make sense formally.
 In the formalization, we assume that the functions are bounded and measurable.
-On the other hand, we derive that the condition is still true, if $f, g$ are square integrable.
+On the other hand, we derive that the condition is still true, if $f, g$ are square-integrable.
 Or alternatively integrable, and non-negative.
 This is derived using the monotone-convergence theorem.
 
-Another deviation from the original work is that we do not require that the random variables need to be real-valued.
-In the formalization any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
-In this case the test functions must be monotone with respect to the respective order on that space.
-
-The formalization contains the standard Chernoff bounds for negatively associated random variables.
-This includes the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
-Although, these results are not needed for the proof of the CVM algorithm.
+Another deviation from the original work is that we do not require that the random variables are real-valued.
+In the formalization, any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
+In this case, the test functions must be monotone with respect to the respective order on the range space.
 
 A key issue, we faced during formalization, was the fact that there are many theorems of the form if a set of functions are either simultaneously monotone or anti-monotone.
 For this we introduce a notation, that allows us to abstract over the direction of relations: \isa{\isasymle\isasymge\isactrlbsub\isasymeta\isactrlesub}.
 Which evaluates to the forward version of the relation $\leq$ if \isa{\isasymeta\ \isacharequal\ Fwd} and the converse: $\geq$ if \isa{\isasymeta\ \isacharequal\ Rev}.
-For example the FKG~\cite[Ch. 6]{alon2000},\cite{fortuin1971} inequality
+For example the FKG inequality~\cite[Ch. 6]{alon2000},\cite{fortuin1971}
 \[
   \expect [f g] \geq \expect [f] \expect [g]
 \]
 is true, if $f$ and $g$ are both monotone, or both antimonotone (on a probability space whose domain is a finite distributive lattice with a log-supermodular probability mass function).
-On the other hand the reverse inequality is true, if $f$ is monotone and $g$ is antimonotone, or vice versa.
-Using our parameterized relation symbol, we could state all variants in a concise manner:
+The reverse inequality is also true, if $f$ is monotone and $g$ is antimonotone, or vice versa.
+Using our parameterized relation symbol, we can state all variants in a concise manner:
 \begin{isabelle_cm}
 \isacommand{theorem}\isamarkupfalse%
 \ fkg{\isacharunderscore}{\kern0pt}inequality{\isacharunderscore}{\kern0pt}pmf{\isacharcolon}{\kern0pt}\isanewline
@@ -36,11 +40,10 @@ Using our parameterized relation symbol, we could state all variants in a concis
 \ \ \isakeyword{assumes}\ {\isacartoucheopen}monotone\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isacharparenright}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\isactrlesub {\isacharparenright}{\kern0pt}\ f{\isacartoucheclose}\ {\isacartoucheopen}monotone\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isacharparenright}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isasymge}\isactrlbsub {\isasymsigma}\isactrlesub {\isacharparenright}{\kern0pt}\ g{\isacartoucheclose}\isanewline
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isacharasterisk}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\ {\isacharasterisk}{\kern0pt}\ {\isasymsigma}\isactrlesub \ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isacharasterisk}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
-Here, \isa{\isasymsigma} and \isa{\isasymtau} are relation directions.
-It is possible to multiply relation directions, i.e., \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the forward direction, if \isa{\isasymsigma} and \isa{\isasymtau} have the same direction, and \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the reverse direction, otherwise.
+Here, \isa{\isasymsigma} and \isa{\isasymtau} are relation directions, where we can multiply relation directions, i.e., \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the forward direction, if \isa{\isasymsigma} and \isa{\isasymtau} have the same direction, and \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the reverse direction, otherwise.
 The first assumption denotes the log-supermodularilty of the probability mass function, while the second assumptions are the parametric monotonicity conditions.
-The FKG inequality is a key result which enables verification of negative association of random variables.
-Such as the one indicator variables for the new subsampling operation, we introduced in \cref{sec:negdep}.
+The FKG inequality is a key result which enables verification of negative association for random variables.
+This includes the indicator variables for the new subsampling operation we introduced in \cref{sec:negdep}.
 
 Let us look into a few example results about negatively associated random variables:
 \begin{isabelle_cm}
@@ -57,9 +60,10 @@ Let us look into a few example results about negatively associated random variab
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymintegral}{\kern0pt}{\isasymomega}{\isachardot}{\kern0pt}\ f{\isacharparenleft}{\kern0pt}{\isasymlambda}i{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}{\isacharparenright}{\kern0pt}{\isacharasterisk}{\kern0pt}g{\isacharparenleft}{\kern0pt}{\isasymlambda}i{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}{\isacharparenright}{\kern0pt}\ {\isasympartial}M{\isacharparenright}{\kern0pt}{\isasymle}{\isacharparenleft}{\kern0pt}{\isasymintegral}\isasymomega{\isachardot}{\kern0pt}\ f{\isacharparenleft}{\kern0pt}{\isasymlambda}i{\isachardot}{\kern0pt}\ X\ i\ \isasymomega{\isacharparenright}{\kern0pt}{\isasympartial}M{\isacharparenright}{\kern0pt}{\isacharasterisk}{\kern0pt}{\isacharparenleft}{\kern0pt}{\isasymintegral}{\kern0pt}\isasymomega{\isachardot}{\kern0pt}\ g{\isacharparenleft}{\kern0pt}{\isasymlambda}i{\isachardot}{\kern0pt}\ X\ i\ \isasymomega{\isacharparenright}{\kern0pt}{\isasympartial}M{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
 This corresponds to Property~\ref{it:neg_dep_props:mult_mono} of \cref{pro:neg_dep_props}:
-If $X_i$ for $i \in I$ form a set of negatively associated variables, and $f$, $g$ are simultaneously monotone (or simultaneously antimonotone) real valued square integrable measurable functions, depending on disjoint components of $I$ then the expectations of the product are smaller than then product of the expectations of the composition of the functions $f,g$ with random variables $X_i$.
+If $X_i$ for $i \in I$ form a set of negatively associated variables, and $f$, $g$ are simultaneously monotone (or simultaneously antimonotone), real-valued, square-integrable, measurable functions, depending on disjoint components of $I$ then the expectations of the product are smaller than then product of the expectations of the composition of the functions $f,g$ with random variables $X_i$.
 Note that, if $X_i$ where independent the above would be true, without the monotonicity assumption.
 
+%TODO: I suggest to put n_subsets_distribution_neg_assoc instead here instead, since the Hoeffding inequality is never used in our CVM proof.
 The following is the well-known Hoeffding inequality~\cite{hoeffding1963} for negatively associated random variables:
 \begin{isabelle_cm}
 \isacommand{lemma}\isamarkupfalse%
@@ -71,4 +75,4 @@ The following is the well-known Hoeffding inequality~\cite{hoeffding1963} for ne
 \ \ \isakeyword{defines}\ {\isacartoucheopen}{\isasymmu}\ {\isasymequiv}\ {\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ expectation\ {\isacharparenleft}{\kern0pt}X\ i{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
 \ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymge}\ {\isadigit{0}}{\isacartoucheclose}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}\ {\isachargreater}{\kern0pt}\ {\isadigit{0}}{\isacartoucheclose}\isanewline
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}{\isasymomega}\ in\ M{\isachardot}{\kern0pt}\ {\isasymbar}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}{\isacharparenright}{\kern0pt}{\isacharminus}{\kern0pt}{\isasymmu}{\isasymbar}\ {\isasymge}\ {\isasymdelta}{\isacharasterisk}{\kern0pt}n{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isadigit{2}}{\isacharasterisk}{\kern0pt}exp\ {\isacharparenleft}{\kern0pt}{\isacharminus}{\kern0pt}{\isadigit{2}}{\isacharasterisk}{\kern0pt}{\isacharparenleft}{\kern0pt}n{\isacharasterisk}{\kern0pt}{\isasymdelta}{\isacharparenright}{\kern0pt}\isactrlsup {\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\end{isabelle_cm}
- 
+
