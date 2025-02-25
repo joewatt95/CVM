@@ -1,6 +1,6 @@
 \section{Formalization of the CVM algorithm}\label{sec:formalization}
 Let us now turn to details of our formalization of the CVM algorithm in Isabelle/HOL using our invariant-based approach.
-We verified both the total variant, we introduced in the previous section and the original variant (\cref{alg:cvm}) from the introduction.
+We verified both the total, unbiased variant (\cref{alg:cvm_new}) and the original variant (\cref{alg:cvm}) from the introduction.
 
 %TODO: make sure these names are correct!
 \begin{note}
@@ -11,9 +11,10 @@ It should be noted that only \verb|CVM_New_Algorithm| depends on the new library
 The total number of lines required for the verification of the original algorithm is \locnew~lines.
 \lipicsEnd\end{note}
 
-We verified a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$; and we allow $n \geq 12 \varepsilon^{-2} \ln(6 l \delta^{-1})$, i.e., $n$ can be any integer value greater than the bound.
+We verified a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
+Our formalization also allows $n \geq 12 \varepsilon^{-2} \ln(6 l \delta^{-1})$, i.e., $n$ can be any integer value greater than the bound.
 Another deviation is that we have better constant factors compared to the original presentation---the buffer size used by Chakraborty et al. is $12 \varepsilon^{-2} \log_2(8 l \delta^{-1}) \approx 17.3 \varepsilon^{-2} \ln(8 l \delta^{-1})$.
-This is mainly due to the fact that the invariant-based proof does not require conditioning on particular values of $p$ (the subsampling probability at the end of the algorithm) in contrast to the transformation-based proof which applies Chernoff bounds for each possible value of $p$ (down to some lower bound $q$) and establishes the final error probability as a union bound.
+This different is mainly due to the fact that the invariant-based proof does not require conditioning on particular values of $p$ (the subsampling probability at the end of the algorithm) in contrast to the transformation-based proof which applies Chernoff bounds for each possible value of $p$ (down to some lower bound $q$) and establishes the final error probability as a union bound.
 However, we would like to note that, neither Chakraborty et al., nor us, have tried to optimize constants and it should be possible to find constant factor improvements using a more careful analysis in both proofs.
 
 \begin{figure}[t]
@@ -70,10 +71,10 @@ However, we would like to note that, neither Chakraborty et al., nor us, have tr
 \end{figure}
 
 %The snippet also includes the relevant correctness statements, both unbiasedness and tail bounds.
-A snippet of the formalization of \cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized}.
+A snippet of the formalization of \cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized} (the formalization of \cref{alg:cvm} is very similar).
 We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
 The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
-Instead of representing the state using pairs, as we did in the informal proof, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability that the stream elements are in the buffer, respectively.
+Instead of representing the state using pairs, as we did in the informal discussion, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability that the stream elements are in the buffer, respectively.
 Isabelle/HOL provides notation closely related to informal pseudocode, so it is usually feasible to read a formal statement without expert knowledge.
 Nevertheless, \cref{tab:isabelle_syntax} contains a brief glossary of the syntax used in the formalization.
 %\medskip
@@ -113,16 +114,16 @@ The first line gives conditions on parameters $\varepsilon$ and $\delta$, which 
 The next line requires the buffer size $n$ to be larger than $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
 Then, we introduce the abbreviation \isa{A} for the cardinality of the set of elements in the sequence \isa{xs}.
 %More precisely, \isa{set\ xs} denotes the finite set of distinct elements in a given sequence, and \isa{card} returns the cardinality of a finite set.
-The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for \isa{run{\isacharunderscore}{\kern0pt}algo}.
+The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for the output estimate \isa{R} from \isa{run{\isacharunderscore}{\kern0pt}algo}.
 
 Similarly, we have also formalized unbiasedness of \cref{alg:cvm_new}:
 \begin{isabelle_cm}
 \isacommand{theorem}\isamarkupfalse%
 \ unbiasedness{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}expectation\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}algo\ xs{\isacharparenright}{\kern0pt}\ id\ {\isacharequal}{\kern0pt}\ card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
-The expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
+where the expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
 
-Our proofs are available in the supplement, both in mechanized form in Isabelle/HOL and as a pen-and-paper proof included in the proof document.
+Our proofs are available both in mechanized form in Isabelle/HOL and as a pen-and-paper proof included in the associated proof document.
 In practice, we developed the latter proof first and then mechanized it in Isabelle/HOL without much surprises.
 Most of the lemmas can be one-to-one identified between both proofs; Isabelle's existing libraries, automation capabilities, and structured proof format were used extensively in our proofs.
 

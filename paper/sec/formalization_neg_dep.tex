@@ -5,7 +5,7 @@ As mentioned in~\cref{sec:negdep}, formalizing the total and unbiased variant of
 In our supplementary material, the formalization of negative association is in the directory \verb|Neg_Assoc|.
 This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distribution|).
 Although not needed for CVM, we have also mechanized the standard Chernoff bounds (\verb|Neg_Assoc_Chernoff_Bounds|), including the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
-Another example application of the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
+Another example application included in the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
 \lipicsEnd\end{note}
 
 Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
@@ -27,7 +27,7 @@ For example the FKG inequality~\cite[Ch. 6]{alon2000},\cite{fortuin1971}
 \[
   \expect [f g] \geq \expect [f] \expect [g]
 \]
-is true, if $f$ and $g$ are both monotone, or both antimonotone on a probability space whose domain is a finite distributive lattice with a log-supermodular probability mass function.
+is true, if $f$ and $g$ are both monotone, or both antimonotone, on a probability space whose domain is a finite distributive lattice with a log-supermodular probability mass function.
 The reverse inequality is also true, if $f$ is monotone and $g$ is antimonotone, or vice versa.
 Using our parameterized relation symbol, we can state all variants in a concise manner:
 \begin{isabelle_cm}
@@ -40,11 +40,11 @@ Using our parameterized relation symbol, we can state all variants in a concise 
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isacharasterisk}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\ {\isacharasterisk}{\kern0pt}\ {\isasymsigma}\isactrlesub \ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isacharasterisk}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
 Here, \isa{\isasymsigma} and \isa{\isasymtau} are relation directions, where we multiply relation directions, i.e., \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the forward direction, if \isa{\isasymsigma} and \isa{\isasymtau} have the same direction, and \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the reverse direction, otherwise.
-The first assumption denotes the log-supermodularilty of the probability mass function, while the second assumptions are the parametric monotonicity conditions.
+The first assumption denotes the log-supermodularity of the probability mass function, while the second assumptions are the parametric monotonicity conditions.
 The FKG inequality is a key result which enables verification of negative association for random variables.
 This includes the indicator variables for the new subsampling operation we introduced in \cref{sec:negdep}.
 
-Let us summarize a few key example results about negatively associated random variables used in our proof:
+Let us summarize a few key formalized results for negatively associated random variables used in our proof:
 \begin{isabelle_cm}
 \isacommand{lemma}\isamarkupfalse%
 \ neg{\isacharunderscore}{\kern0pt}assoc{\isacharunderscore}{\kern0pt}imp{\isacharunderscore}{\kern0pt}mult{\isacharunderscore}{\kern0pt}mono{\isacharcolon}{\kern0pt}\isanewline
@@ -75,3 +75,6 @@ The following is the well-known Hoeffding inequality~\cite{hoeffding1963} for ne
 \ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymge}\ {\isadigit{0}}{\isacartoucheclose}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}\ {\isachargreater}{\kern0pt}\ {\isadigit{0}}{\isacartoucheclose}\isanewline
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}{\isasymomega}\ in\ M{\isachardot}{\kern0pt}\ {\isasymbar}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}{\isacharparenright}{\kern0pt}{\isacharminus}{\kern0pt}{\isasymmu}{\isasymbar}\ {\isasymge}\ {\isasymdelta}{\isacharasterisk}{\kern0pt}n{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isadigit{2}}{\isacharasterisk}{\kern0pt}exp\ {\isacharparenleft}{\kern0pt}{\isacharminus}{\kern0pt}{\isadigit{2}}{\isacharasterisk}{\kern0pt}{\isacharparenleft}{\kern0pt}n{\isacharasterisk}{\kern0pt}{\isasymdelta}{\isacharparenright}{\kern0pt}\isactrlsup {\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\end{isabelle_cm}
 
+%TODO: I think the following footnote should be placed here, if we put negative association for permutation distribution here.
+%\footnote{We could not verify the original proof by Joag-Dev and Proschan, which seems to be incorrect.
+%However Dubashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}

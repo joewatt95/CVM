@@ -56,7 +56,7 @@ A set of random variables $X_1,\dots,X_n: \Omega \rightarrow \mathbb R$ is negat
 \]
 \end{definition}
 
-The following proposition summarizes some of the properties for negatively associated sets of random variables.
+The following proposition summarizes some important properties of negatively associated sets of random variables.
 \begin{proposition}[\cite{joagdev1983}]\label{pro:neg_dep_props}
 Summary of results for negatively associated random variables.
 \begin{enumerate}
@@ -86,8 +86,6 @@ This follows from the definition of negative associativity (or Property~1 of \cr
 The case for non-decreasing functions of the above lemma is pointed out by Joag-Dev and Proschan~\cite[P.2]{joagdev1983}.
 The reason for our interest in this lemma stems from the fact that indicator variables of random $m$-subsets are negatively associated.
 This is a consequence of the fact that permutation distributions are negatively-associated~\cite[Th. 2.11]{joagdev1983}.%
-\footnote{We could not verify the original proof by Joag-Dev and Proschan, which seems to be incorrect.
-However Dubashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}
 Thus, for the new subsampling step in Line 9 of~\cref{alg:cvm_new}, we can derive using \cref{le:neg_assoc_prod}:
 %TODO: double check!
 \begin{equation}\label{eq:subsample_with_n_subsets}

@@ -14,7 +14,7 @@ This transformation is also used in the original CVM proof~\cite{chakraborty2023
 Thus, probability bounds derived for the modified version can be transferred to the original algorithm, with a correction term of $\frac{\delta}{2}$.
 \lipicsEnd\end{remark}
 
-\subsection{Deriving A Simple Probabilistic Invariant}
+\subsection{Deriving a Simple Probabilistic Invariant}
 Let us consider the random variables $X_s := \indicat(s \in \chi)$ indicating the presence of a stream element $s \in A = \{a_1,\ldots,a_l\}$ in the buffer, where we write $\indicat$ for the indicator of a predicate, i.e., $\indicat(\mathrm{true}) = 1$ and $\indicat(\mathrm{false}) = 0$.
 Before the algorithm first encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far, i.e., $\chi \subseteq \{a_1,\dots,a_m\}$ after loop iteration $m$.
 
@@ -63,7 +63,7 @@ If $s \in \chi$ the probability that the element gets subsampled is $1/2$, so we
 Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \expect_\Omega [p^{-1} X_s] = 1$.
 This completes the invariance proof for~\cref{eq:indicator_eq}.
 
-\subsection{Deriving A Functional Probabilistic Invariant}
+\subsection{Deriving a Functional Probabilistic Invariant}
 With \cref{eq:indicator_eq} established, it is straightforward to show that the expected value of the output estimate $p^{-1} |\chi|$ for the modified algorithm (without Line 11) is equal to the desired cardinality $|A|$.
 However, recall that we are interested in verifying the estimate's PAC guarantee.
 A typical approach to establishing such a guarantee is to use Chernoff bounds which provide exponential tail bounds (i.e., concentration bounds) for the deviation of sums of independent random variables from their mean.
