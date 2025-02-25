@@ -1,7 +1,7 @@
 \section{Introduction}
 \label{sec:intro}
 
-In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} published a marvelous streaming algorithm for the distinct elements problem, which was very unexpected in the community~\cite{quanta}.
+In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} published a marvelous streaming algorithm for the distinct elements problem which was very unexpected in the community~\cite{quanta}.
 Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its interesting properties and christening it the \emph{CVM} algorithm (which we use for the rest of this paper).
 One striking property of the CVM algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
 Instead, the algorithm could theoretically be implemented in a setting where objects in the data stream only allow for equality comparisons.
@@ -34,10 +34,10 @@ Another property is its simplicity---which is why the authors called it ``an alg
 
 The pen-and-paper analysis of CVM~\cite{chakraborty2022,chakraborty2023} relies on a sequence of transformations of the algorithm.
 The reason for these transformations is that standard methods for analyzing randomized algorithms, such as Chernoff--Hoeffding bounds, usually make statements about independent random variables.
-Yet, for \cref{alg:cvm}, the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are independent; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
+However, for \cref{alg:cvm}, the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are independent; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
 The original error serves as a side motivation for this work.}
 For example, in Line~3 the Bernoulli distribution is sampled for the value $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
-The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
+The aforementioned sequence of transformations by Chakraborty et al.~results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
 To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known textbook methods~\cite{alon2000,mitzenmacher2017,motwani1995}.
 
 In this paper, we present a new technique for analyzing randomized algorithms which yields a direct and substantially more general proof of the CVM algorithm.
@@ -51,7 +51,7 @@ By first establishing such an invariant for \cref{alg:cvm}, we can then use it (
 %For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
 We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to mechanized theorem proving.
 
-To show the generality of our new technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
+To show the generality of our technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in Line~11 becomes obsolete.
 More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
@@ -71,12 +71,12 @@ In summary, our main contributions are:
 We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
 As a rough point of comparison, verification of the CVM algorithm using our new technique requires only \locnew~lines in Isabelle/HOL~\cite{nipkow2002}, while the original proof required \locold~lines.
 
-The organization of this paper is as follows.
-\cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL~\cite{nipkow2002}.
+The rest of this paper is organized as follows.
+\cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL.
 \cref{sec:invariants} introduces our new technique and explains how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
 \cref{sec:formalization} presents the formalization of both variants of the algorithm, and \cref{sec:formalization_neg_dep} describes our new formalized library on negatively associated random variables.
-In \cref{sec:transformation_based_proof}, we discuss some challenges faced in our alternative verification of CVM using the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}.
+\cref{sec:transformation_based_proof} discusses some challenges faced in our alternative verification of CVM using the transformation-based proof by Chakraborty et al.
 The final sections conclude with an overview of related work and a summary of our results.
 
 The supplementary material contains:
