@@ -11,8 +11,8 @@ After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as a proba
 For our discussion below, it is convenient to analyze \cref{alg:cvm} without Line 11, i.e., we will skip the second check of $|\chi|=n$ determining whether the subsampling step succeeded.
 This modified version simplifies our analysis as we do not have to worry about the possibility of the algorithm failing (returning $\bot$).
 This transformation is also used in the original CVM proof~\cite{chakraborty2023}, where the total variational distance between these two variants of the algorithms is shown to be at most $\frac{\delta}{2}$.
-This means probability bounds derived for the modified version, can be transferred to the original algorithm, with a correction term of $\frac{\delta}{2}$.
-\end{remark}
+Thus, probability bounds derived for the modified version can be transferred to the original algorithm, with a correction term of $\frac{\delta}{2}$.
+\lipicsEnd\end{remark}
 
 \subsection{Deriving A Simple Probabilistic Invariant}
 Let us consider the random variables $X_s := \indicat(s \in \chi)$ indicating the presence of a stream element $s \in A = \{a_1,\ldots,a_l\}$ in the buffer, where we write $\indicat$ for the indicator of a predicate, i.e., $\indicat(\mathrm{true}) = 1$ and $\indicat(\mathrm{false}) = 0$.
