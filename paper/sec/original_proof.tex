@@ -105,20 +105,22 @@ To explain how this works, let us first define the \emph{sampling} function, i.e
 \end{isabelle_cm}
 %For example, we could use our modified algorithm as $f$, with the index set $I = \{0, \ldots, l-1\} \times \{0, \ldots, l-1\}$.
 The interesting fact is that we can distribute the sampling operation over composition:
+\begin{observation}\label{o:sample_distrib} Let $f,g$ be functions consuming a set of coin flips (indexed by $I$), where $g$ also consumes the output of $f$, such that,
+$f$ depends only on the coin-flips indexed by $J \subseteq I$ and $g$ depends on the complement $J - I$, then:
 \begin{isabelle_cm}
-  sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ f\ \isasymomega\ \isasymcirc\ g\ \isasymomega{\isacharparenright}\ \isacharequal\ sample\ g\ \isasymbind\ \isacharparenleft{\isasymlambda}x\isachardot\ sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ f\ \isasymomega\isachardot\ x\isacharparenright\isacharparenright
+  sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ g\ \isasymomega\ \isasymcirc\ f\ \isasymomega{\isacharparenright}\ \isacharequal\ sample\ f\ \isasymbind\ \isacharparenleft{\isasymlambda}x\isachardot\ sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ g\ \isasymomega\ x\isacharparenright\isacharparenright
 \end{isabelle_cm}
-if $f$ and $g$ depend on disjoint subsets of the coin flips, i.e., if $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.
-By recursively applying the rule, we end up with elementary lookup operations, e.g., \isa{sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ \isasymomega\ i\isacharparenright}, for which it is easy to see that it is just a coin flip, i.e., equal to \isa{bernoulli{\isacharunderscore}pmf\ \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright}.
+\end{observation}
+By recursively applying the observation, we end up with elementary lookup operations, e.g., \isa{sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ \isasymomega\ i\isacharparenright}, for which it is easy to see that it is just a coin flip, i.e., equal to \isa{bernoulli{\isacharunderscore}pmf\ \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright}.
 This lets us readily transform \circled{C} to \circled{B} and prove their distributions equivalent.
 
 A detail that we have simplified here is that the split of the index sets, e.g., which coin flips $f$ depends on and which coin flips $g$ depends on, may be dynamic.
 For example, when the algorithm increases the subsampling counter $k$, it will have read the corresponding row of coin-flips.
 This means, we have a situation, where the previous loop iteration communicates to the next loop iteration, which coin flips it depends on using the state.
 And the next loop iteration, will indeed only read coin flips that were not read by the previous iteration.
-For the column index of the coin flips, this is based on the stream index, but for the row index of the coin flips, it is based on the state variable $k$.
-In our formalization, we abstract these bookkeeping details using the reader monad.
+%For the column index of the coin flips, this is based on the stream index, but for the row index of the coin flips, it is based on the state variable $k$.
 
+To handle these situations we generalized \cref{o:sample_distrib} to allow for the case where the cut between the set of coin flips $f$ and $g$ depend on, may depend on the result of $f$.
 %It is possible to express the above in a point-free manner using the reader monad.
 %This is a deterministic monad, which provides a read operation to a global value, such as our set of coin flips.
 %(In Haskell, the reader monad is commonly used to provide a fixed environment to algorithms, such as global configuration options, paths or command lines parameters~\cite{jones1995}.)

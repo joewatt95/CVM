@@ -85,9 +85,8 @@ This follows from the definition of negative associativity (or Property~1 of \cr
 
 The case for non-decreasing functions of the above lemma is pointed out by Joag-Dev and Proschan~\cite[P.2]{joagdev1983}.
 The reason for our interest in this lemma stems from the fact that indicator variables of random $m$-subsets are negatively associated.
-This is a consequence of the fact that permutation distributions are negatively-associated~\cite[Th. 2.11]{joagdev1983}.%
+This is a consequence of the fact that permutation distributions are negatively-associated~\cite[Th. 2.11]{joagdev1983}.
 Thus, for the new subsampling step in Line 9 of~\cref{alg:cvm_new}, we can derive using \cref{le:neg_assoc_prod}:
-%TODO: double check!
 \begin{equation}\label{eq:subsample_with_n_subsets}
   \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(\indicat(s \in \tau))\,d\tau \leq
   \prod_{s \in S} \int_{\mathrm{subsample}(\chi)} g(\indicat(s \in \tau))\,d\tau = \prod_{s \in S}  \expect_{\Ber(f)}[g] \textrm{.}
@@ -95,5 +94,5 @@ Thus, for the new subsampling step in Line 9 of~\cref{alg:cvm_new}, we can deriv
 for any non-negative $g$ and $S \subseteq \chi$.
 Note that the domain of $g$ has two values, so it is either non-increasing or non-decreasing.
 Also, if $S$ is a singleton, the inequality becomes an equality.
-
-
+With this ingredient, we can conclude that our results about the original algorithm we derived in the previous section also hold for our new alternative algorithm (\cref{alg:cvm_new}).
+% Note: After reading this section. It stops too abrubtly at the previous sentence, without establishing what we have actually shown.
