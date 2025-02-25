@@ -38,7 +38,7 @@ Yet, for \cref{alg:cvm}, the state variables are far from being independent.\foo
 The original error serves as a side motivation for this work.}
 For example, in Line~3 the Bernoulli distribution is sampled for the value $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
 The aforementioned sequence of transformations results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
-To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known methods~\cite{alon2000,mitzenmacher2017,motwani1995}.
+To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known textbook methods~\cite{alon2000,mitzenmacher2017,motwani1995}.
 
 In this paper, we present a new technique for analyzing randomized algorithms which yields a direct and substantially more general proof of the CVM algorithm.
 Our approach is very similar to how deterministic algorithms are verified using loop invariants.

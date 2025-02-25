@@ -18,15 +18,15 @@ The formalization took \locold~lines which is considerably longer than the proof
 \begin{tikzpicture}[node distance=2.7cm, auto]
 
     % Define nodes
-    \node (A) [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center] {\circled{A} CVM \\ (Alg.~\ref{alg:cvm})};
-    \node (B) [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center, right of=A] {\circled{B} CVM w/o\\ Line 11};
-    \node (C) [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center, right of=B] {\circled{C} Eager Ver.\\(Alg.~\ref{alg:cvm_simul})};
-    \node (D) [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center, right of=C] {\circled{D} Random \\ Process};
-    \node (E) [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center, right of=D] {Chernoff \\ Bounds};
+    \node (A) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center] {\circled{A} CVM \\ (Alg.~\ref{alg:cvm})};
+    \node (B) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=A] {\circled{B} CVM w/o\\ Line 11};
+    \node (C) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=B] {\circled{C} Eager Ver.\\(Alg.~\ref{alg:cvm_simul})};
+    \node (D) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=C] {\circled{D} Random \\ Process};
+    \node (E) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=D] {Chernoff \\ Bounds};
 
-    \node (C') [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center, below of=B, node distance = 1.8cm] {Functional\\Invariant};
+    \node (C') [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=B, node distance = 2.0cm] {Functional\\Invariant};
 
-    \node (pac) [draw, rectangle, minimum width=2.1cm, minimum height=0.8cm, align=center, below of=E, node distance = 1.8cm] {CVM PAC\\ Guarantee};
+    \node (pac) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=E, node distance = 2.0cm] {CVM PAC\\ Guarantee};
 
     \draw[thick] ($(A.north west) + (-0.3,0.2)$) rectangle ($(E.south east) + (0.3,-0.6)$);
     \node[anchor=south] at ($(D.south) + (0.0,-0.6)$) {Transformation-based Proof};
