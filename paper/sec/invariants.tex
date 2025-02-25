@@ -16,7 +16,7 @@ This means probability bounds derived for the modified version, can be transferr
 
 \subsection{Deriving A Simple Probabilistic Invariant}
 Let us consider the random variables $X_s := \indicat(s \in \chi)$ indicating the presence of a stream element $s \in A = \{a_1,\ldots,a_l\}$ in the buffer, where we write $\indicat$ for the indicator of a predicate, i.e., $\indicat(\mathrm{true}) = 1$ and $\indicat(\mathrm{false}) = 0$.
-Before the algorithm first encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far, i.e., $\chi \subseteq \{a_1,..,a_m\}$ after loop iteration $m$.
+Before the algorithm first encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far, i.e., $\chi \subseteq \{a_1,\dots,a_m\}$ after loop iteration $m$.
 
 In the loop iteration where element $s$ occurs the first time, it will be inserted with a probability $p$ in Lines 3--7.
 This means, after Line 7, we have:
@@ -41,12 +41,12 @@ The term $\mathrm{init}$ represents the initial state, i.e., $\mathrm{init} = \m
 It is easy to show by induction over the sequence of steps, we will have $0 < p \leq 1$ and $\chi \subseteq A$ for all possible states of the algorithm.
 
 Let us verify that~\cref{eq:indicator_eq} is preserved as an invariant over all steps.
-To verify that $\mathrm{step}_1\, a$ preserves \cref{eq:indicator_eq}, i.e., we assume some probability space of states $\Omega$ fulfills \cref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$.
+To verify that $\mathrm{step}_1\, a$ preserves \cref{eq:indicator_eq}, we assume some probability space of states $\Omega$ fulfills \cref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$.
 \[
   \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a} [ p^{-1} X_s ] =
     \int_\Omega \int_{\Ber(p)} p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right) \, d \tau d \sigma
 \]
-Note that, we write $p$ or $\chi$ even though, we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
+Note that we write $p$ or $\chi$ even though, we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
 To see that the right-hand-side is equal to $1$, it is useful to consider the cases where $a=s$ and the converse separately.
 When $a = s$, the right-hand-side is equal to $1$ by definition of the Bernoulli distribution (since $p \in (0;1]$).
 When $a \not= s$, it follows from the induction hypothesis on $\Omega$; in particular, the term in the inner integral is constant with respect to $\tau$.
@@ -96,7 +96,7 @@ This leads to a similar inequality:
 \end{align}
 with the new condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
 This then allows us to use approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows:
-%TODO: should we use exp(...) everywhere instead of mixing with e^ ? EK: That was the previous verison, main issue is the chain looks very lopsided, with almost all of the terms being on the right edge. (It looked too ugly.)
+%TODO: should we use exp(...) everywhere instead of mixing with e^ ? EK: That was the previous verison, main issue is the chain looks very lopsided, with almost all of the terms being on the right edge. (It looked too ugly.)--- OK
 % The convention is now, if exp is applied to a random variable we use the long notation and otherwise the power notation, which might actually be (a bit) helpful.
 \begin{eqnarray*}
   \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq & % Is not equal when |A|=0.
@@ -113,7 +113,7 @@ that it is an upper approximation of $\exp(tx)$ for $x \in [0;q^{-1}]$.
 For the last step, we have to find the $t$ that produces the required bound.%
 \footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.}
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
-For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2022}, with $q = \frac{n}{4 |A|}$.
+For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2023}, with $q = \frac{n}{4 |A|}$.
 %The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
 The formalization in the supplementary material contains a detailed informal step-by-step proof using our approach in its appendix.
 Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.

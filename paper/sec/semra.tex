@@ -10,7 +10,11 @@ Importantly, CVM is a \emph{probably-approximately correct} (PAC) algorithm wher
 $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
 for parameters $\varepsilon$ and $\delta$,
 i.e., the probability that the relative error of $R$ exceeds $\varepsilon$ is at most $\delta$. % I think here it's good to have both a text and formal description.
-Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.\footnote{The optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.}
+Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.
+
+\begin{remark}
+The optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.
+\end{remark}
 
 \subsection{Semantics of Randomized Algorithms}
 We briefly review how reasoning about randomized algorithms works in Isabelle/HOL using the Giry monad~\cite{giry1982}.
@@ -60,4 +64,3 @@ if $h$ is a random variable over $m \isa{\isasymbind} f$, we can compute its exp
 
 \cref{eq:integral_bind} is crucially used to establish the invariants we introduce next in~\cref{sec:invariants}.
 \end{description}
-%\todo{I think we should briefly say that a streaming algorithm is modeled as folding over the monad?}
