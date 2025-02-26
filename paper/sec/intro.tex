@@ -68,10 +68,9 @@ In summary, our main contributions are:
 \item Formalization of a theory of negatively associated random variables used to analyze the new CVM variant.
 \end{itemize}
 
-Our mechanization is carried out in Isabelle/HOL~\cite{nipkow2002}, where we generically formalized the invariant-based argument underlying both CVM variants in 753 lines.
-Specializing to the original CVM algorithm took an additional 250 lines, while the new variant took 191 more lines (with 2974 lines for the supporting negative association library).
-We also mechanized the transformation-based proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
-As a rough point of comparison showing the simplicity of our new proof, verification of the CVM algorithm using our new technique required only \locnew~(753 + 250)~lines, while the original proof required \locold~lines.
+We carried out the mechanizations using Isabelle/HOL~\cite{nipkow2002}, which comes with a large repository of foundational libraries~\cite{afp} for the verification of randomized algorithms.
+We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}, which provides a rough point of comparison:
+Indeed, the verification of the CVM algorithm using our new technique requires only \locnew~lines, while the original proof required \locold~lines.
 
 The rest of this paper is organized as follows.
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL.
