@@ -1,7 +1,6 @@
 theory Utils_Reader_Monad
 
 imports
-  "HOL-Library.Monad_Syntax"
   "Utils_Basic"
 
 begin
@@ -21,10 +20,8 @@ definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad 
   where "map_rd f m = bind_rd m (\<lambda>x. return_rd (f x))"
 
 (* Isabelle2025:
-adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_rd
-adhoc_overloading kleisli_compose_right \<rightleftharpoons> \<open>\<lambda> f g x. bind_rd (f x) g\<close> *)
+adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_rd *)
 adhoc_overloading Monad_Syntax.bind bind_rd
-adhoc_overloading kleisli_compose_right \<open>\<lambda> f g x. bind_rd (f x) g\<close>
 
 abbreviation \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
 abbreviation \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>
@@ -45,7 +42,7 @@ lemma bind_return_rd :
   by (simp_all add: bind_rd_def return_rd_def)
 
 lemma bind_assoc_rd :
-  \<open>f >=> (g >=> h) = (f >=> g >=> h)\<close>
+  \<open>f >=> (\<lambda> x. bind_rd (g x) h) = (f >=> g >=> h)\<close>
   by (simp add: bind_rd_def)
 
 lemma reader_monad_eqI:

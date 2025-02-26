@@ -6,10 +6,6 @@ imports
 
 begin
 
-(* Isabelle2025:
-adhoc_overloading kleisli_compose_right \<rightleftharpoons> \<open>\<lambda> f g x. bind_spmf (f x) g\<close> *)
-adhoc_overloading kleisli_compose_right \<open>\<lambda> f g x. bind_spmf (f x) g\<close>
-
 lemma integrable_measure_spmf_pmf [simp] :
   \<open>integrable (measure_spmf p) <| \<lambda> x. pmf (f x) y\<close>
   apply (intro measure_spmf.integrable_const_bound[where B = 1])

@@ -1,7 +1,7 @@
 theory Utils_Basic
 
 imports
-  Main
+  "HOL-Library.Monad_Syntax"
 
 begin
 
@@ -46,12 +46,22 @@ lemma take_length_eq_self :
   \<open>take (length xs) (xs @ ys) = xs\<close>
   by simp
 
-consts kleisli_compose_right :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd\<close>
+syntax
+  "_flip_bind" :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'c \<Rightarrow> 'b\<close>
+  (infixl \<open>=<<\<close> 54)
+  "_kleisli_comp_right" :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
+  (infixl \<open>>=>\<close> 50)
+  "_kleisli_comp_left" :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
+  (infixr \<open><=<\<close> 50)
 
-notation (ASCII) kleisli_compose_right (infixl \<open>>=>\<close> 50)
+(* Isabelle2025:
+syntax_consts
+  "_flip_bind" \<rightleftharpoons> Monad_Syntax.bind *)
 
-abbreviation (input) kleisli_compose_left (infixr \<open><=<\<close> 50) where
-  \<open>(f <=< g) \<equiv> g >=> f\<close>
+translations
+  "_flip_bind" \<rightharpoonup> "CONST flip Monad_Syntax.bind"
+  "_kleisli_comp_right f g" \<rightharpoonup> "f >>> (=<<) g"
+  "_kleisli_comp_left f g" \<rightharpoonup> "g >=> f"
 
 context
   fixes
