@@ -65,7 +65,7 @@ proof -
     using assms bernstein_inequality_le by fastforce
 
   moreover have \<open>\<P>(x in M. sum_mean_deviation X x \<ge> t) \<le> exp_bound\<close>
-    using 
+    using
       bernstein_inequality[OF I, where X = X and t = t and B = B]
       ind intsq assms B t
     by force
@@ -151,7 +151,7 @@ proof -
   from benett_bernstein_inequality_assms
   interpret Pi_bernoulli_nat_pmf :
     benett_bernstein Pi_bernoulli_nat_pmf \<open>\<lambda> i P. real (P i)\<close> \<open>{..< n}\<close> 
-    by (unfold_locales, auto)
+    by unfold_locales auto
 
   let ?prob = \<open>\<lambda> R.
     \<P>(P in Pi_bernoulli_nat_pmf. R (\<Sum> i < n. real (P i) - p) (real n * p * \<delta>))\<close>
