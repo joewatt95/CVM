@@ -68,8 +68,10 @@ In summary, our main contributions are:
 \item Formalization of a theory of negatively associated random variables used to analyze the new CVM variant.
 \end{itemize}
 
-We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
-As a rough point of comparison, verification of the CVM algorithm using our new technique requires only \locnew~lines in Isabelle/HOL~\cite{nipkow2002}, while the original proof required \locold~lines.
+Our mechanization is carried out in Isabelle/HOL~\cite{nipkow2002}, where we generically formalized the invariant-based argument underlying both CVM variants in 753 lines.
+Specializing to the original CVM algorithm took an additional 250 lines, while the new variant took 191 more lines (with 2974 lines for the supporting negative association library).
+We also mechanized the transformation-based proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
+As a rough point of comparison showing the simplicity of our new proof, verification of the CVM algorithm using our new technique required only \locnew~(753 + 250)~lines, while the original proof required \locold~lines.
 
 The rest of this paper is organized as follows.
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL.
@@ -77,7 +79,7 @@ The rest of this paper is organized as follows.
 \cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
 \cref{sec:formalization} presents the formalization of both variants of the algorithm, and \cref{sec:formalization_neg_dep} describes our new formalized library on negatively associated random variables.
 \cref{sec:transformation_based_proof} discusses some challenges faced in our alternative verification of CVM using the transformation-based proof by Chakraborty et al.
-The final sections conclude with an overview of related work and a summary of our results.
+The final sections present related work and a summary of our results.
 
 The supplementary material contains:
 \begin{itemize}
