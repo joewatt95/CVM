@@ -1,3 +1,5 @@
+subsection \<open>Basic SPMF utilities\<close>
+
 theory Utils_SPMF_Basic
 
 imports

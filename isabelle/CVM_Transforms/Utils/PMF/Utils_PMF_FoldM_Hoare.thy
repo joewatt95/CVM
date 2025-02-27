@@ -1,4 +1,4 @@
-section \<open>pmf monadic fold and related Hoare rules\<close>
+subsection \<open>foldM\_pmf and related Hoare rules\<close>
 
 theory Utils_PMF_FoldM_Hoare
 
@@ -7,7 +7,7 @@ imports
 
 begin
 
-subsection \<open>Monadic fold\<close>
+subsubsection \<open>foldM\_pmf\<close>
 
 abbreviation \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 abbreviation \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
@@ -19,13 +19,13 @@ lemma foldM_pmf_snoc :
       add: bind_return_pmf bind_return_pmf' bind_assoc_pmf
       cong: bind_pmf_cong)
 
-subsection \<open>Hoare triple over Kleisli morphisms\<close>
+subsubsection \<open>Hoare triple for Kleisli morphisms over PMF\<close>
 
 abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
 
-subsection \<open>Hoare rules for monadic fold\<close>
+subsubsection \<open>Hoare rules for foldM\_pmf\<close>
 
 context
   fixes

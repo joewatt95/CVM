@@ -1,4 +1,4 @@
-section \<open>spmf relational Hoare rules\<close>
+subsection \<open>SPMF relational Hoare rules\<close>
 
 theory Utils_SPMF_Relational_Hoare
 
@@ -44,20 +44,20 @@ lemma prob_fail_eq_of_rel_spmf :
   shows \<open>prob_fail p = prob_fail p'\<close>
   using assms by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
 
-subsection \<open>Relational Hoare triple over Kleisli morphism\<close>
+subsubsection \<open>Relational Hoare triple for Kleisli morphisms over SPMF\<close>
 
 abbreviation rel_hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_spmf S (f x) (f' x'))\<close>
 
-subsection \<open>Hoare rule for trivial postcondition\<close>
+subsubsection \<open>Hoare rule for trivial postcondition\<close>
 
 lemma rel_hoare_postcond_true [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace> \<equiv> (
     \<And> x x'. R x x' \<Longrightarrow> weight_spmf (f x) = weight_spmf (f' x'))\<close>
   by (simp add: lossless_weight_spmfD)
 
-subsection \<open>One-sided Hoare skip rules\<close>
+subsubsection \<open>One-sided Hoare skip rules\<close>
 
 lemma rel_hoare_skip_left [simp] :
   assumes \<open>\<And> x. lossless_spmf (f' x)\<close>
@@ -72,7 +72,7 @@ lemma rel_hoare_skip_right [simp] :
     (\<And> x'. \<turnstile>spmf \<lbrace>flip R x'\<rbrace> f \<lbrace>flip S (f' x')\<rbrace>)\<close>
   apply standard using assms by (simp_all add: rel_spmf_return_spmf2)
 
-subsection \<open>Two-sided Hoare rules for monadic fold\<close>
+subsubsection \<open>Two-sided Hoare rules for foldM\_spmf\<close>
 
 context
   fixes
@@ -125,7 +125,7 @@ lemma rel_hoare_foldM :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using assms rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
-subsection \<open>Helper lemmas for the CCPO ordering on SPMF\<close>
+subsubsection \<open>Helper lemmas for the CCPO ordering on SPMF\<close>
 
 context ord_spmf_syntax
 begin

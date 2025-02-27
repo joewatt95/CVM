@@ -1,3 +1,5 @@
+subsection \<open>Basic PMF utilities\<close>
+
 theory Utils_PMF_Basic
 
 imports
@@ -67,7 +69,7 @@ lemma bool_pmf_eq_iff_pmf_True_eq :
   \<open>p = q \<longleftrightarrow> pmf p True = pmf q True\<close>
   by (smt (verit, best) pmf_neq_exists_less)
 
-section \<open>Properties about Pi\_pmf and prod\_pmf\<close>
+subsubsection \<open>Properties about Pi\_pmf and prod\_pmf\<close>
 
 text \<open>Better version of Pi\_pmf\_map.\<close>
 lemma Pi_pmf_map' :
@@ -164,7 +166,7 @@ proof -
   finally show ?thesis .
 qed
 
-section \<open>Properties about the Bernoulli and Binomial distributions\<close>
+subsubsection \<open>Properties about the Bernoulli and Binomial distributions\<close>
 
 lemma bernoulli_pmf_0_1 [simp] :
   \<open>bernoulli_pmf 0 = return_pmf False\<close>

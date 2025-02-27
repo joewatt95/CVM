@@ -1,4 +1,4 @@
-text \<open>Error bounds\<close>
+section \<open>Error bounds\<close>
 
 theory CVM_Error_Bounds
 
@@ -19,6 +19,8 @@ abbreviation
   \<open>run_with_bernoulli_matrix \<equiv> \<lambda> g.
     map_pmf (g xs) (bernoulli_matrix (length xs) (length xs) f)\<close>
 
+subsection \<open>Definitions of error bounds\<close>
+
 text \<open>Bound for the case when $k \le l$\<close>
 
 definition
@@ -37,7 +39,7 @@ end
 locale cvm_error_bounds_assms = cvm_error_bounds + cvm_algo_assms
 begin
 
-subsection \<open>Proof for $k \le l$ case.\<close>
+subsection \<open>Proof for $k$ <= $l$ case.\<close>
 
 context
   assumes
@@ -112,7 +114,7 @@ next
         simp add: vimage_def)
   qed
 
-  text \<open>Transform to binomial distribution and weaken > to >=.\<close>
+  text \<open>Transform to binomial distribution and weaken $>$ to $\ge$.\<close>
   also have \<open>\<dots> \<le> (
     \<Sum> k \<le> l.
       \<P>(estimate in binomial_pmf (card <| set xs) <| f ^ k.

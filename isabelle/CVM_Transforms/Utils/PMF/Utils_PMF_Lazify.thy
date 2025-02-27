@@ -1,3 +1,5 @@
+section \<open>Lazy - eager sampling conversion\<close>
+
 theory Utils_PMF_Lazify
 
 imports

@@ -1,4 +1,4 @@
-section \<open>spmf monadic fold and related Hoare rules\<close>
+subsection \<open>foldM\_spmf and related Hoare rules\<close>
 
 theory Utils_SPMF_FoldM_Hoare
 
@@ -9,7 +9,7 @@ imports
 
 begin
 
-subsection \<open>Monadic fold\<close>
+subsubsection \<open>foldM\_spmf\<close>
 
 abbreviation foldM_spmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
@@ -64,11 +64,15 @@ lemma pmf_foldM_spmf_cons :
     intro: integral_cong_AE split: option.splits
     simp add: AE_measure_pmf_iff)
 
-subsubsection \<open>Hoare triple over Kleisli morphisms\<close>
+subsubsection \<open>Hoare triples for Kleisli morphisms over SPMF\<close>
+
+text \<open>Hoare triple for partial correctness\<close>
 
 abbreviation hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_spmf <| f x. Q y)\<close>
+
+text \<open>Hoare triple for total correctness\<close>
 
 abbreviation hoare_triple_total
   (\<open>\<turnstile>spmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk>\<close> [21, 20, 21] 60) where
@@ -78,7 +82,7 @@ lemma hoare_triple_altdef :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<equiv> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_None_or_pred Q\<rbrakk>)\<close>
   apply standard using AE_measure_spmf_iff_AE_measure_pmf by blast+
 
-subsubsection \<open>Hoare rules for monadic fold and while loop\<close>
+subsubsection \<open>Hoare rules for foldM\_spmf and while loops\<close>
 
 context
   fixes
@@ -138,6 +142,8 @@ next
   (* Transfinite ordinal. *)
   case adm show ?case by simp
 qed
+
+subsubsection \<open>Other results about foldM\_spmf\<close>
 
 lemma prob_fail_foldM_spmf_le :
   fixes

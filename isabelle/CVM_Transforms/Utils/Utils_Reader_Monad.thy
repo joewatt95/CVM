@@ -1,3 +1,5 @@
+section \<open>Reader monad\<close>
+
 theory Utils_Reader_Monad
 
 imports
@@ -65,15 +67,15 @@ lemma map_comp_rd :
   \<open>map_rd g (map_rd f m) = map_rd (g <<< f) m\<close>
   by (simp add: ext reader_monad.expand)
 
-subsection \<open>Monadic fold and related Hoare rules for PMF monad\<close>
+subsection \<open>foldM\_rd and related Hoare rules\<close>
 
-subsubsection \<open>Hoare triple over Kleisli morphisms\<close>
+subsubsection \<open>Hoare triple for Kleisli morphisms over Reader monad\<close>
 
 abbreviation hoare_triple
   (\<open>\<turnstile>rd \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> \<phi> x. P \<phi> x \<Longrightarrow> Q \<phi> <| run_reader (f x) \<phi>)\<close>
 
-subsubsection \<open>Hoare proof rules for monadic fold\<close>
+subsubsection \<open>Hoare rules for foldM\_rd\<close>
 
 context
   fixes

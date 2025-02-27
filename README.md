@@ -56,7 +56,7 @@ One can then register our formalisations with Isabelle using the
 
 ```shell
 $ for dir in Neg_Assoc CVM_Invariant CVM_Transforms; do \
-    isabelle components -u isabelle/$dir && isabelle build -b -v -o document $dir \
+    isabelle components -u isabelle/$dir && isabelle build -b -v $dir \
   done
 ```
 

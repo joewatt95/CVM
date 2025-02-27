@@ -9,14 +9,11 @@ session CVM_Transforms = "CryptHOL" +
     ABY3_Protocols
 
   directories
-    "Doc"
     "Utils"
     "Utils/PMF"
     "Utils/SPMF"
 
   theories
-    "Doc_CVM_Chapter"
-
     "CVM_Algo"
     "CVM_Algo_No_Fail"
     "CVM_Algo_Lazy_Eager"
@@ -25,8 +22,6 @@ session CVM_Transforms = "CryptHOL" +
     "CVM_Error_Bounds"
     "CVM_Correctness"
     "CVM_Correctness_Example"
-
-    "Doc_Utils_Chapter"
 
     "Utils_Basic"
     "Utils_Reader_Monad"

@@ -1,4 +1,4 @@
-section \<open>pmf relational Hoare rules\<close>
+subsection \<open>PMF relational Hoare rules\<close>
 
 theory Utils_PMF_Relational_Hoare
 
@@ -19,13 +19,13 @@ lemma rel_pmf_bindI2 :
   using assms rel_spmf_bindI2 rel_spmf_spmf_of_pmf
   by (metis bind_spmf_of_pmf lossless_spmf_spmf_of_spmf set_spmf_spmf_of_pmf spmf_of_pmf_bind)
 
-subsection \<open>Relational Hoare triple over Kleisli morphism\<close>
+subsubsection \<open>Relational Hoare triple for Kleisli morphism over PMF\<close>
 
 abbreviation rel_hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_pmf S (f x) (f' x'))\<close>
 
-subsection \<open>One-sided Hoare skip rules\<close>
+subsubsection \<open>One-sided Hoare skip rules\<close>
 
 lemma rel_hoare_skip_left [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f'\<rangle> \<lbrakk>S\<rbrakk> \<equiv> (\<And> x. \<turnstile>pmf \<lbrakk>R x\<rbrakk> f' \<lbrakk>S (f x)\<rbrakk>)\<close>
@@ -36,7 +36,7 @@ lemma rel_hoare_skip_right [simp] :
     (\<And> x'. \<turnstile>pmf \<lbrakk>flip R x'\<rbrakk> f \<lbrakk>flip S (f' x')\<rbrakk>)\<close>
   apply standard by (simp_all add: AE_measure_pmf_iff rel_pmf_return_pmf2)
 
-subsection \<open>Two-sided Hoare rules for monadic fold\<close>
+subsubsection \<open>Two-sided Hoare rules for foldM\_pmf\<close>
 
 context
   fixes

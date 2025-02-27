@@ -12,7 +12,9 @@
 \begin{document}
 
 \title{Submission Example}
+
 \author{placeholder}
+
 \maketitle
 
 \begin{abstract}
@@ -23,8 +25,39 @@
 
 \tableofcontents
 
-% include generated text of all theories
-\input{session}
+\parindent 0pt
+\parskip 0.5ex
+
+\chapter{CVM algorithm formalisation}
+
+\input{CVM_Algo}
+\input{CVM_Algo_No_Fail}
+\input{CVM_Algo_Lazy_Eager}
+\input{CVM_Algo_Nondet_Binomial}
+
+\input{CVM_Error_Bounds}
+\input{CVM_Correctness}
+\input{CVM_Correctness_Example}
+
+\chapter{Utility definitions and results}
+
+\input{Utils_Basic}
+\input{Utils_Reader_Monad}
+\input{Utils_Approx_Algo}
+\input{Utils_Concentration_Inequalities}
+
+\section{PMF utilities}
+
+\input{Utils_PMF_Basic}
+\input{Utils_PMF_FoldM_Hoare}
+\input{Utils_PMF_Relational_Hoare}
+\input{Utils_PMF_Lazify}
+
+\section{SPMF utilities}
+
+\input{Utils_SPMF_Basic}
+\input{Utils_SPMF_FoldM_Hoare}
+\input{Utils_SPMF_Relational_Hoare}
 
 % \bibliographystyle{abbrv}
 % \bibliography{root}
