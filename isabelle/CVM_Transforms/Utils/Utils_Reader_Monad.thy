@@ -21,7 +21,7 @@ definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad 
 
 (* Isabelle2025:
 adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_rd *)
-adhoc_overloading Monad_Syntax.bind == bind_rd
+adhoc_overloading Monad_Syntax.bind bind_rd
 
 abbreviation \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
 abbreviation \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>

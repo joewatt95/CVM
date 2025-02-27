@@ -7,6 +7,8 @@ imports
 
 begin
 
+abbreviation f :: real where \<open>f \<equiv> 1 / 2\<close>
+
 record 'a state =
   state_k :: nat
   state_chi :: \<open>'a set\<close>
@@ -14,14 +16,12 @@ record 'a state =
 definition initial_state :: \<open>'a state\<close> where
   \<open>initial_state \<equiv> \<lparr>state_k = 0, state_chi = {}\<rparr>\<close>
 
+definition compute_estimate :: \<open>'a state \<Rightarrow> real\<close> where
+  \<open>compute_estimate \<equiv> \<lambda> state. card (state_chi state) / f ^ (state_k state)\<close>
+
 locale cvm_algo =
   fixes threshold :: nat
 begin
-
-abbreviation f :: real where \<open>f \<equiv> 1 / 2\<close>
-
-definition compute_estimate :: \<open>'a state \<Rightarrow> real\<close> where
-  \<open>compute_estimate \<equiv> \<lambda> state. card (state_chi state) / f ^ (state_k state)\<close>
 
 text
   \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
