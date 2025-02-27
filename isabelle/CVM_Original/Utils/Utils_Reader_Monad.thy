@@ -21,7 +21,7 @@ definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad 
 
 (* Isabelle2025:
 adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_rd *)
-adhoc_overloading Monad_Syntax.bind bind_rd
+adhoc_overloading Monad_Syntax.bind == bind_rd
 
 abbreviation \<open>foldM_rd \<equiv> foldM bind_rd return_rd\<close>
 abbreviation \<open>foldM_rd_enumerate \<equiv> foldM_enumerate bind_rd return_rd\<close>
@@ -36,14 +36,18 @@ lemma run_reader_simps [simp] :
   "run_reader (map_rd g m) \<phi> = (g (run_reader m \<phi>))"
   unfolding map_rd_def return_rd_def get_rd_def bind_rd_def by auto
 
-lemma bind_return_rd :
+lemma bind_return_rd [simp] :
   \<open>f >=> return_rd = f\<close>
   \<open>return_rd >=> f = f\<close>
+
+  \<open>f x \<bind> return_rd = f x\<close>
+  \<open>return_rd x \<bind> f = f x\<close>
   by (simp_all add: bind_rd_def return_rd_def)
 
-lemma bind_assoc_rd :
+lemma bind_assoc_rd [simp] :
   \<open>f >=> (\<lambda> x. bind_rd (g x) h) = (f >=> g >=> h)\<close>
-  by (simp add: bind_rd_def)
+  \<open>f x \<bind> (\<lambda>x. g x \<bind> h) = (f x \<bind> g \<bind> h)\<close>
+  by (simp_all add: bind_rd_def)
 
 lemma reader_monad_eqI:
   assumes "\<And> \<phi>. run_reader m \<phi> = run_reader n \<phi>"
