@@ -1,3 +1,5 @@
+section \<open>Basic utilities\<close>
+
 theory Utils_Basic
 
 imports

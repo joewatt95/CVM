@@ -1,3 +1,5 @@
+section \<open>spmf relational Hoare rules\<close>
+
 theory Utils_SPMF_Relational_Hoare
 
 imports
@@ -37,54 +39,40 @@ lemma rel_spmf_True_iff_weight_spmf_eq [simp] :
   \<open>rel_spmf \<lblot>\<lblot>True\<rblot>\<rblot> p q \<longleftrightarrow> weight_spmf p = weight_spmf q\<close>
   using rel_spmf_conj_iff_ae_measure_spmf_conj[of \<open>\<lblot>True\<rblot>\<close>] by auto
 
-(*
-This result says that if we know that the outputs of `p` and `p'` agree with
-each other whenever they are executed by the same source of randomness, and
-wherever `p` doesn't fail (ie `ord_spmf (=) p p'`),
-then the probability that a successful output of `p` satisfies `P` is \<le> that of
-`p'` (ie `p {x | P x} \<le> p' {x | P x}` by viewing the output distributions of
-`p` and `p'` as measures restricted to their successful outputs).
-*)
-(* lemma prob_le_prob_of_ord_spmf_eq :
-  fixes P p p'
-  assumes \<open>p \<sqsubseteq> p'\<close>
-  shows \<open>\<P>(\<omega> in measure_spmf p. P \<omega>) \<le> \<P>(\<omega> in measure_spmf p'. P \<omega>)\<close>
-  using assms
-  by (simp add: space_measure_spmf ord_spmf_eqD_measure) *)
-
 lemma prob_fail_eq_of_rel_spmf :
   assumes \<open>rel_spmf R p p'\<close>
   shows \<open>prob_fail p = prob_fail p'\<close>
   using assms by (simp add: pmf_None_eq_weight_spmf rel_spmf_weightD)
 
-abbreviation relational_hoare_triple
+subsection \<open>Relational Hoare triple over Kleisli morphism\<close>
+
+abbreviation rel_hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> \<langle> _ | _ \<rangle> \<lbrace> _ \<rbrace>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_spmf S (f x) (f' x'))\<close>
 
-lemma postcond_true [simp] :
+subsection \<open>Hoare rule for trivial postcondition\<close>
+
+lemma rel_hoare_postcond_true [simp] :
   \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>\<lblot>\<lblot>True\<rblot>\<rblot>\<rbrace> \<equiv> (
     \<And> x x'. R x x' \<Longrightarrow> weight_spmf (f x) = weight_spmf (f' x'))\<close>
   by (simp add: lossless_weight_spmfD)
 
-lemma skip_left [simp] :
+subsection \<open>One-sided Hoare skip rules\<close>
+
+lemma rel_hoare_skip_left [simp] :
   assumes \<open>\<And> x. lossless_spmf (f' x)\<close>
   shows
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f >>> return_spmf | f'\<rangle> \<lbrace>S\<rbrace> \<equiv> (\<And> x. \<turnstile>spmf \<lbrace>R x\<rbrace> f' \<lbrace>S (f x)\<rbrace>)\<close>
   using assms by (simp add: rel_spmf_return_spmf1)
 
-lemma skip_right [simp] :
+lemma rel_hoare_skip_right [simp] :
   assumes \<open>\<And> x. lossless_spmf (f x)\<close>
   shows
     \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f' >>> return_spmf\<rangle> \<lbrace>S\<rbrace> \<equiv>
     (\<And> x'. \<turnstile>spmf \<lbrace>flip R x'\<rbrace> f \<lbrace>flip S (f' x')\<rbrace>)\<close>
   apply standard using assms by (simp_all add: rel_spmf_return_spmf2)
 
-(* lemma seq :
-  assumes
-    \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f | f'\<rangle> \<lbrace>S\<rbrace>\<close>
-    \<open>\<And> x x'. R x x' \<Longrightarrow> \<turnstile>spmf \<lbrace>S\<rbrace> \<langle>g x | g' x'\<rangle> \<lbrace>T\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>(\<lambda> x. (x |> (f >=> g x))) | (\<lambda> x. (x |> (f' >=> g' x)))\<rangle> \<lbrace>T\<rbrace>\<close>
-  using assms by (blast intro: rel_spmf_bindI) *)
+subsection \<open>Two-sided Hoare rules for monadic fold\<close>
 
 context
   fixes
@@ -101,7 +89,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     R idx val val'\<close>
 
-lemma loop_enumerate :
+lemma rel_hoare_foldM_enumerate :
   assumes \<open>\<And> idx x.
     \<turnstile>spmf \<lbrace>R' idx x\<rbrace> \<langle>f (idx, x) | f' (idx, x)\<rangle> \<lbrace>R (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
@@ -118,41 +106,32 @@ next
     by (blast intro: rel_spmf_bindI)
 qed
 
-lemma loop :
+lemma rel_hoare_foldM_indexed' :
   assumes \<open>\<And> idx x.
     \<turnstile>spmf \<lbrace>R' idx x\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>R offset\<rbrace>
     \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle>
     \<lbrace>R (offset + length xs)\<rbrace>\<close>
-  using assms loop_enumerate
+  using assms rel_hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemma loop_unindexed :
+lemmas rel_hoare_foldM_indexed = rel_hoare_foldM_indexed'[where offset = 0, simplified]
+
+lemma rel_hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>R\<rbrace> \<langle>f x | f' x\<rangle> \<lbrace>R\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
-  using assms loop[where offset = 0 and R = \<open>\<lblot>R\<rblot>\<close>] by blast
+  using assms rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
-(* lemma hoare_ord_option_iff_ord_spmf :
-  \<open>\<turnstile>spmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option S\<rbrakk> \<equiv>
-  (\<And> x x'. R x x' \<Longrightarrow> ord_spmf S (f x) (f' x'))\<close>
-  by (simp add: Utils_PMF_Relational.relational_hoare_triple_def) *)
-
-(* lemma prob_fail_le_of_relational_hoare_triple :
-  assumes
-    \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>ord_option (=)\<rbrakk>\<close>
-    \<open>R x x'\<close>
-  shows
-    \<open>prob_fprob_Nprob_failrob_fail prob_Noneprob_fail
-  using assms
-  by (auto
-    intro!: ord_spmf_eqD_pmf_None[where Y = \<open>{}\<close>] 
-    simp add: hoare_ord_option_iff_ord_spmf chain_empty) *)
+subsection \<open>Helper lemmas for the CCPO ordering on SPMF\<close>
 
 context ord_spmf_syntax
 begin
+
+text \<open>Hoare proof rule for the ordering between monadic folds, derived from
+  relational Hoare rule for monadic folds over PMF.\<close>
 
 lemma \<open>(\<And> x x'. R x x' \<Longrightarrow> f x \<sqsubseteq>\<^bsub>(=)\<^esub> f' x') \<equiv> (\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>le_option\<rbrakk>)\<close> .
 
@@ -164,7 +143,7 @@ proof -
 
   from assms have \<open>foldM_pmf (?go f) x val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_pmf (?go f') x val'\<close>
     if \<open>le_option val val'\<close> for x val val'
-    apply (intro Utils_PMF_Relational_Hoare.loop_unindexed)
+    apply (intro Utils_PMF_Relational_Hoare.rel_hoare_foldM)
       using that by (auto split: option.splits)
 
   then show ?thesis by (simp add: foldM_spmf_eq_foldM_pmf_case)

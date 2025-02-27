@@ -1,3 +1,7 @@
+section \<open>Approximation Algorithm Utilities\<close>
+
+text \<open>Notation and lemmas for approximation algorithms\<close>
+
 theory Utils_Approx_Algo
 
 imports

@@ -1,4 +1,5 @@
-section \<open> Definition of the CVM algorithm \<close>
+section \<open>Definition of CVM algorithm \<close>
+
 theory CVM_Algo
 
 imports

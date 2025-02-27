@@ -1,3 +1,5 @@
+section \<open>spmf monadic fold and related Hoare rules\<close>
+
 theory Utils_SPMF_FoldM_Hoare
 
 imports
@@ -6,6 +8,8 @@ imports
   Utils_SPMF_Basic
 
 begin
+
+subsection \<open>Monadic fold\<close>
 
 abbreviation foldM_spmf ::
   \<open>('a \<Rightarrow> 'b \<Rightarrow> 'b spmf) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b spmf\<close> where
@@ -60,6 +64,8 @@ lemma pmf_foldM_spmf_cons :
     intro: integral_cong_AE split: option.splits
     simp add: AE_measure_pmf_iff)
 
+subsubsection \<open>Hoare triple over Kleisli morphisms\<close>
+
 abbreviation hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_spmf <| f x. Q y)\<close>
@@ -72,17 +78,7 @@ lemma hoare_triple_altdef :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<equiv> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_None_or_pred Q\<rbrakk>)\<close>
   apply standard using AE_measure_spmf_iff_AE_measure_pmf by blast+
 
-(* lemma skip [simp] :
-  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> return_spmf \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q x)\<close>
-  \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. return_spmf (f x)) \<lbrace>Q\<rbrace>) \<equiv> (\<And> x. P x \<Longrightarrow> Q (f x))\<close>
-  by simp_all *)
-
-(* lemma seq :
-  assumes
-    \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>\<close>
-    \<open>\<And> x. P x \<Longrightarrow> \<turnstile>spmf \<lbrace>Q\<rbrace> g x \<lbrace>R\<rbrace>\<close>
-  shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> (\<lambda> x. (x |> (f >=> g x))) \<lbrace>R\<rbrace>\<close>
-  by (metis (mono_tags, lifting) AE_measure_spmf_iff UN_E assms(1,2) bind_UNION o_apply set_bind_spmf) *)
+subsubsection \<open>Hoare rules for monadic fold and while loop\<close>
 
 context
   fixes
@@ -96,7 +92,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     P idx val\<close>
 
-lemma loop_enumerate :
+lemma hoare_foldM_enumerate :
   assumes \<open>\<And> idx x. \<turnstile>spmf \<lbrace>P' idx x\<rbrace> f (idx, x) \<lbrace>P (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>P offset\<rbrace>
@@ -112,20 +108,22 @@ next
     by (metis (no_types, lifting) UN_E add_Suc member_bind)
 qed
 
-lemma loop :
+lemma hoare_foldM_indexed' :
   assumes \<open>\<And> idx x. \<turnstile>spmf \<lbrace>P' idx x\<rbrace> f x \<lbrace>P (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
-  using assms loop_enumerate
+  using assms hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemma loop_unindexed :
+lemmas hoare_foldM_indexed = hoare_foldM_indexed'[where offset = 0, simplified add_0]
+
+lemma hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
-  using assms loop[where offset = 0 and P = \<open>\<lblot>P\<rblot>\<close>] by blast
+  using assms hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
-lemma (in loop_spmf) while :
+lemma (in loop_spmf) hoare_while :
   assumes \<open>\<turnstile>spmf \<lbrace>(\<lambda> x. guard x \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> while \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close>
 proof (induction rule: while_fixp_induct)

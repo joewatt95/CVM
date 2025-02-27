@@ -1,3 +1,5 @@
+section \<open>Various Concentration Inequalities\<close>
+
 theory Utils_Concentration_Inequalities
 
 imports
@@ -6,6 +8,8 @@ imports
   Utils_PMF_Basic
 
 begin
+
+subsection \<open>Bennet-Bernstein inequality\<close>
 
 locale benett_bernstein = prob_space +
   fixes X :: \<open>'b \<Rightarrow> 'a \<Rightarrow> real\<close> and I
@@ -27,10 +31,14 @@ begin
 
 abbreviation (input) \<open>exp_bound \<equiv> exp (- t\<^sup>2 / (2 * (V + t * B / 3)))\<close>
 
+subsubsection \<open>One-sided Upper-tail bound\<close>
+
 lemma bernstein_inequality_ge :
   assumes \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<le> B\<close>
   shows \<open>\<P>(x in M. sum_mean_deviation X x \<ge> t) \<le> exp_bound\<close>
   using bernstein_inequality[OF I ind intsq assms(1) t B] by simp
+
+subsubsection \<open>One-sided Lower-tail bound\<close>
 
 lemma bernstein_inequality_le :
   assumes \<open>\<And>i. i \<in> I \<Longrightarrow> AE x in M. X i x \<ge> - B\<close>
@@ -38,8 +46,8 @@ lemma bernstein_inequality_le :
 proof -
   let ?Y = \<open>\<lambda> i. uminus \<circ> X i\<close>
 
-  from assms have
-    \<open>AE x in M. ?Y i x \<le> B\<close> if \<open>i \<in> I\<close> for i using that by fastforce 
+  from assms have \<open>AE x in M. ?Y i x \<le> B\<close> if \<open>i \<in> I\<close> for i
+    using that by fastforce
 
   moreover have
     \<open>(sum_mean_deviation X x \<le> -t) \<longleftrightarrow> (sum_mean_deviation ?Y x \<ge> t)\<close> for x
@@ -51,6 +59,8 @@ proof -
       ind intsq assms B t
     by (force intro: indep_vars_compose)
 qed
+
+subsubsection \<open>Two-sided bound\<close>
 
 lemma bernstein_inequality_abs_ge :
   assumes \<open>\<And> i. i \<in> I \<Longrightarrow> AE x in M. \<bar>X i x\<bar> \<le> B\<close>
@@ -82,8 +92,12 @@ end
 
 end
 
+subsection \<open>Multiplicative Chernoff bounds for Binomial distribution\<close>
+
 context binomial_distribution
 begin
+
+subsubsection \<open>Auxiliary results\<close>
 
 lemma integrable_Pi_bernoulli_nat_pmf_square :
   assumes \<open>i < n\<close>
@@ -128,9 +142,11 @@ proof -
   then show ?thesis_1 by fastforce
 qed
 
+subsubsection \<open>Main Chernoff bounds\<close>
+
 text
-  \<open>Stronger form of the multiplicative Chernoff bounds for the
-  Binomial distribution, derived from the Bennet-Bernstein inequality.\<close>
+  \<open>Main one and two-sided multiplicative Chernoff bounds, derived from the
+  Bennet-Bernstein inequality\<close>
 
 lemma
   assumes \<open>\<delta> \<ge> 0\<close>

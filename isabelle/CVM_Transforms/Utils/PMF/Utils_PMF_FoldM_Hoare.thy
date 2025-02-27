@@ -1,9 +1,13 @@
+section \<open>pmf monadic fold and related Hoare rules\<close>
+
 theory Utils_PMF_FoldM_Hoare
 
 imports
   Utils_PMF_Basic
 
 begin
+
+subsection \<open>Monadic fold\<close>
 
 abbreviation \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
 abbreviation \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
@@ -15,9 +19,13 @@ lemma foldM_pmf_snoc :
       add: bind_return_pmf bind_return_pmf' bind_assoc_pmf
       cong: bind_pmf_cong)
 
+subsection \<open>Hoare triple over Kleisli morphisms\<close>
+
 abbreviation hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
+
+subsection \<open>Hoare rules for monadic fold\<close>
 
 context
   fixes
@@ -31,7 +39,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     P idx val\<close>
 
-lemma loop_enumerate :
+lemma hoare_foldM_enumerate :
   assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f (idx, x) \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>P offset\<rbrakk>
@@ -47,17 +55,19 @@ next
     by (metis add_Suc_right add_Suc_shift)
 qed
 
-lemma loop :
+lemma hoare_foldM_indexed' :
   assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P offset\<rbrakk> foldM_pmf f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
-  using assms loop_enumerate
+  using assms hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemma loop_unindexed :
+lemmas hoare_foldM_indexed = hoare_foldM_indexed'[where offset = 0, simplified]
+
+lemma hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
-  using assms loop[where offset = 0 and P = \<open>\<lblot>P\<rblot>\<close>] by blast
+  using assms hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
 end

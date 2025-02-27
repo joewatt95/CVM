@@ -65,9 +65,15 @@ lemma map_comp_rd :
   \<open>map_rd g (map_rd f m) = map_rd (g <<< f) m\<close>
   by (simp add: ext reader_monad.expand)
 
+subsection \<open>Monadic fold and related Hoare rules for PMF monad\<close>
+
+subsubsection \<open>Hoare triple over Kleisli morphisms\<close>
+
 abbreviation hoare_triple
   (\<open>\<turnstile>rd \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> \<phi> x. P \<phi> x \<Longrightarrow> Q \<phi> <| run_reader (f x) \<phi>)\<close>
+
+subsubsection \<open>Hoare proof rules for monadic fold\<close>
 
 context
   fixes
@@ -81,7 +87,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     P idx \<phi> val\<close>
 
-lemma loop_enumerate :
+lemma hoare_foldM_enumerate :
   assumes \<open>\<And> idx x. \<turnstile>rd \<lbrakk>P' idx x\<rbrakk> f (idx, x) \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open> \<turnstile>rd
     \<lbrakk>P offset\<rbrakk>
@@ -90,17 +96,19 @@ lemma loop_enumerate :
   using assms apply (induction xs arbitrary: offset)
     by (simp_all add: foldM_enumerate_def flip: add_Suc)
 
-lemma loop :
+lemma hoare_foldM_indexed' :
   assumes \<open>\<And> idx x. \<turnstile>rd \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>rd \<lbrakk>P offset\<rbrakk> foldM_rd f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
-  using assms loop_enumerate
+  using assms hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate snd_conv)
 
 end
 
-lemma loop_unindexed :
+lemmas hoare_foldM_indexed = hoare_foldM_indexed'[where offset = 0, simplified]
+
+lemma hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>rd \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>rd \<lbrakk>P\<rbrakk> foldM_rd f xs \<lbrakk>P\<rbrakk>\<close>
-  using assms loop[where ?P = \<open>\<lblot>P\<rblot>\<close> and ?offset = 0] by blast
+  using assms hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
 end

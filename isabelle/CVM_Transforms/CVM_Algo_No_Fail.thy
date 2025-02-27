@@ -1,4 +1,5 @@
-section \<open> Analysis of algorithm TODO \<close>
+section \<open>CVM to CVM without failure transformation\<close>
+
 theory CVM_Algo_No_Fail
 
 imports

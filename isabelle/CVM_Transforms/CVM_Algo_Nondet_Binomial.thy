@@ -1,3 +1,5 @@
+section \<open>CVM eager sampling to binomial distribution transformation\<close>
+
 theory CVM_Algo_Nondet_Binomial
 
 imports
@@ -64,7 +66,7 @@ proof -
   ultimately show \<open>PROP ?thesis_3\<close>
     unfolding step_eager_def by (simp add: in_set_enumerate_eq)
  
-  with loop[where offset = 0 and P = state_inv_take and xs = \<open>[0 ..< length xs]\<close>]
+  with hoare_foldM_indexed[where P = state_inv_take and xs = \<open>[0 ..< length xs]\<close>]
   show \<open>PROP ?thesis_4\<close>
     unfolding state_inv_take_def by (simp add: in_set_enumerate_eq)
 qed

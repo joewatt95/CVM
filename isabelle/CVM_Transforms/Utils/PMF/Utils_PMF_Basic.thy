@@ -67,9 +67,9 @@ lemma bool_pmf_eq_iff_pmf_True_eq :
   \<open>p = q \<longleftrightarrow> pmf p True = pmf q True\<close>
   by (smt (verit, best) pmf_neq_exists_less)
 
-section \<open>Properties about Pi_pmf and prod_pmf\<close>
+section \<open>Properties about Pi\_pmf and prod\_pmf\<close>
 
-text \<open>Better version of Pi_pmf_map.\<close>
+text \<open>Better version of Pi\_pmf\_map.\<close>
 lemma Pi_pmf_map' :
   assumes "finite I"
   shows
@@ -104,7 +104,7 @@ proof -
       (\<lambda> \<phi>. \<lambda> i \<in> {i} \<times> J. \<phi> (snd i))
       (prod_pmf J <| \<lambda> j. M (i, j)))\<close>
     apply (subst prod_pmf_reindex)
-    by (fastforce intro: inj_onI map_pmf_cong Pi_pmf_cong)+
+      by (fastforce intro: inj_onI map_pmf_cong Pi_pmf_cong)+
 
   also have \<open>\<dots> = ?R\<close>
     unfolding
@@ -233,16 +233,17 @@ qed
 
 text
   \<open>This says that to simulate a coin flip with the probability of getting H as
-  p ^ k, we can flip \<ge> k coins with probability p of getting H, and check if
-  any k of them are H. 
+  $p ^ k$, we can flip $\ge k$ coins with probability $p$ of getting H, and
+  check if any $k$ of them are H. 
 
-  More precisely, a bernoulli RV with probability p ^ k (k > 0) is equivalent
+  More precisely, a bernoulli RV with probability $p ^ k$ ($k > 0$) is equivalent
   to doing the following:
-  1. We fix a (finite) family of indices J, and a subset I \<subseteq> J of cardinality k.
-  2. We construct a family of IID bernoulli RVs of probability p,
-     indexed by J, and sample from it.
-  3. Viewing the outcome as a characteristic function of J, we check if the
-     subset it defines contains I, outputting \<top> iff that is the case.\<close>
+  1. We fix a (finite) family of indices $J$, and a subset $I \subseteq J$ of
+     cardinality $k$.
+  2. We construct a family of IID bernoulli RVs of probability $p$,
+     indexed by $J$, and sample from it.
+  3. Viewing the outcome as a characteristic function of $J$, we check if the
+     subset it defines contains $I$, outputting $\top$ iff that is the case.\<close>
 lemma bernoulli_eq_map_Pi_pmf :
   assumes \<open>finite J\<close> \<open>card I > 0\<close> \<open>I \<subseteq> J\<close>
   shows

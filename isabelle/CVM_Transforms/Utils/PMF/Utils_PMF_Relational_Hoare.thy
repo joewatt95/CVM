@@ -1,3 +1,5 @@
+section \<open>pmf relational Hoare rules\<close>
+
 theory Utils_PMF_Relational_Hoare
 
 imports
@@ -17,18 +19,24 @@ lemma rel_pmf_bindI2 :
   using assms rel_spmf_bindI2 rel_spmf_spmf_of_pmf
   by (metis bind_spmf_of_pmf lossless_spmf_spmf_of_spmf set_spmf_spmf_of_pmf spmf_of_pmf_bind)
 
-abbreviation relational_hoare_triple
+subsection \<open>Relational Hoare triple over Kleisli morphism\<close>
+
+abbreviation rel_hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_pmf S (f x) (f' x'))\<close>
 
-lemma skip_left [simp] :
+subsection \<open>One-sided Hoare skip rules\<close>
+
+lemma rel_hoare_skip_left [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f'\<rangle> \<lbrakk>S\<rbrakk> \<equiv> (\<And> x. \<turnstile>pmf \<lbrakk>R x\<rbrakk> f' \<lbrakk>S (f x)\<rbrakk>)\<close>
   by (simp add: AE_measure_pmf_iff rel_pmf_return_pmf1)
 
-lemma skip_right [simp] :
+lemma rel_hoare_skip_right [simp] :
   \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f' >>> return_pmf\<rangle> \<lbrakk>S\<rbrakk> \<equiv>
     (\<And> x'. \<turnstile>pmf \<lbrakk>flip R x'\<rbrakk> f \<lbrakk>flip S (f' x')\<rbrakk>)\<close>
   apply standard by (simp_all add: AE_measure_pmf_iff rel_pmf_return_pmf2)
+
+subsection \<open>Two-sided Hoare rules for monadic fold\<close>
 
 context
   fixes
@@ -45,7 +53,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     R idx val val'\<close>
 
-lemma loop_enumerate :
+lemma rel_hoare_foldM_enumerate :
   assumes \<open>\<And> index x.
     \<turnstile>pmf \<lbrakk>R' index x\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
@@ -62,21 +70,23 @@ next
     by (blast intro: rel_pmf_bindI)
 qed
 
-lemma loop :
+lemma rel_hoare_foldM_indexed' :
   assumes \<open>\<And> idx x.
     \<turnstile>pmf \<lbrakk>R' idx x\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>R offset\<rbrakk>
     \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle>
     \<lbrakk>R (offset + length xs)\<rbrakk>\<close>
-  using assms loop_enumerate
+  using assms rel_hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemma loop_unindexed :
+lemmas rel_hoare_foldM_indexed = rel_hoare_foldM_indexed'[where offset = 0, simplified]
+
+lemma rel_hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
-  using assms loop[where offset = 0 and R = \<open>\<lblot>R\<rblot>\<close>] by blast
+  using assms rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
 end

@@ -1,3 +1,5 @@
+section \<open>CVM without failure to CVM eager sampling transformation\<close>
+
 theory CVM_Algo_Lazy_Eager
 
 imports
@@ -82,9 +84,9 @@ proof -
     by (auto simp add: AE_measure_pmf_iff in_set_enumerate_eq)
 
   then show ?thesis
-    apply (intro Utils_PMF_FoldM_Hoare.loop[
-      where offset = 0 and xs = \<open>[0 ..< length xs]\<close>, simplified])
-    by (auto simp add: initial_state_def)
+    apply (intro Utils_PMF_FoldM_Hoare.hoare_foldM_indexed[
+      where xs = \<open>[0 ..< length xs]\<close>, simplified])
+      by (auto simp add: initial_state_def)
 qed
 
 theorem run_steps_no_fail_eq_lazy :

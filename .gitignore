@@ -9,3 +9,5 @@
 *.pdf
 *.synctex*
 *.vtc
+
+**/doc_out

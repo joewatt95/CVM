@@ -1,3 +1,5 @@
+section \<open>Instantiation of main CVM correctness theorem\<close>
+
 theory CVM_Correctness_Example
 
 imports

@@ -1,3 +1,5 @@
+text \<open>Error bounds\<close>
+
 theory CVM_Error_Bounds
 
 imports
@@ -17,12 +19,14 @@ abbreviation
   \<open>run_with_bernoulli_matrix \<equiv> \<lambda> g.
     map_pmf (g xs) (bernoulli_matrix (length xs) (length xs) f)\<close>
 
-text \<open>Bound for the case when k <= l\<close>
+text \<open>Bound for the case when $k \le l$\<close>
+
 definition
   \<open>prob_k_le_l_and_est_out_of_range_bound \<equiv>
     4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
 
-text \<open>Bound for the case when k > l\<close>
+text \<open>Bound for the case when $k > l$\<close>
+
 definition
   \<open>prob_k_gt_l_bound \<equiv>
     real (length xs) *
@@ -33,7 +37,7 @@ end
 locale cvm_error_bounds_assms = cvm_error_bounds + cvm_algo_assms
 begin
 
-subsection \<open>Proof for k <= l case.\<close>
+subsection \<open>Proof for $k \le l$ case.\<close>
 
 context
   assumes
@@ -142,9 +146,9 @@ next
 
   text
     \<open>In preparation to bound via a geometric series, we first transform each
-    term to be of the form `2 * exp_term l * 2 ^ r` so that we can later pull
-    out a factor of `2 * exp_term l` from each term.
-    Note that `exp_term l < 1` and that this is important for obtaining a tight
+    term to be of the form ${2 * \text{exp\_term}(l)} ^ {2 ^ r}$ so that we can
+    later pull out a factor of $2 * \text{exp\_term}(l)$ from each term.
+    Note that $\text{exp\_term}(l) < 1$ and that this is important for obtaining a tight
     bound later on.\<close>
   also from \<open>\<epsilon> > 0\<close> have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * ((?exp_term l) powr (1 / f ^ (l - k))))\<close>
@@ -157,10 +161,10 @@ next
 
   text
     \<open>Now we do the following:
-    1. Reverse the summation from `l --> 0`, to `0 --> l`
-    2. Reindex the sum to be taken over exponents `r` of the form `2 ^ k`
-       instead of being over all `k`.
-    3. Pull out a factor of `2 * exp_term l` from each term.\<close>
+    1. Reverse the summation from $l \longrightarrow 0$, to $0 \longrightarrow l$
+    2. Reindex the sum to be taken over exponents $r$ of the form $2 ^ k$
+       instead of being over all $k$.
+    3. Pull out a factor of $2 * \text{exp\_term}(l)$ from each term.\<close>
   also from assms have
     \<open>\<dots> = 2 * ?exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. ?exp_term l ^ (r - 1))\<close>
     unfolding
@@ -177,8 +181,8 @@ next
         simp add: exp_powr_real field_split_simps of_nat_diff_real)
 
   text
-    \<open>Upper bound by a partial geometric series, taken over all r \<in> nat
-    up to `2 ^ l`.\<close>
+    \<open>Upper bound by a partial geometric series, taken over all $r \in nat$
+    up to $2 ^ l$.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (\<Sum> r \<le> 2 ^ l - 1. ?exp_term l ^ r)\<close>
     apply (intro mult_mono sum_le_included[where i = Suc] sum_nonneg)
       apply simp_all
@@ -226,7 +230,7 @@ qed
 
 end
 
-subsection \<open>Proof for k > l case.\<close>
+subsection \<open>Proof for $k > l$ case.\<close>
 
 lemma exists_index_threshold_exceeded_of_k_exceeds :
   assumes \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) > l\<close>
@@ -314,7 +318,7 @@ proof -
   show \<open>PROP ?thesis_0\<close> by (simp add: initial_state_def)
   show \<open>PROP ?thesis_1\<close>
     unfolding step_eager_def step_1_eager_def' step_2_eager_def' by simp
-  with loop[where offset = 0 and P = state_k_bounded and f = \<open>step_eager xs\<close>]
+  with hoare_foldM_indexed[where P = state_k_bounded and f = \<open>step_eager xs\<close>]
   show \<open>PROP ?thesis_2\<close>
     apply (simp add: in_set_enumerate_eq)
     by (metis (no_types, lifting) One_nat_def le_simps(2) length_upt not_less_eq nth_upt plus_1_eq_Suc semiring_norm(163) verit_minus_simplify(2))

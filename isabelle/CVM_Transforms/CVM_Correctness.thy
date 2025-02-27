@@ -1,3 +1,5 @@
+section \<open>Main top level CVM correctness theorem\<close>
+
 theory CVM_Correctness
 
 imports
@@ -32,8 +34,7 @@ proof -
       set_take_subset take_Suc_conv_app_nth)
 
   then have \<open>\<turnstile>pmf \<lbrakk>?P 0\<rbrakk> foldM_pmf ?step xs \<lbrakk>?P (length xs)\<rbrakk>\<close>
-    apply (intro Utils_PMF_FoldM_Hoare.loop[where offset = 0, simplified])
-      by auto
+    by (intro Utils_PMF_FoldM_Hoare.hoare_foldM_indexed) simp_all
 
   then show ?thesis
     unfolding cvm_def compute_estimate_def initial_state_def foldM_spmf_eq_foldM_pmf_case 
