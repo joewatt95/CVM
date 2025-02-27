@@ -1,4 +1,4 @@
-session Negative_Association = "HOL-Probability" +
+session Neg_Assoc = "HOL-Probability" +
   options [timeout = 1200]
 
   sessions

@@ -1,4 +1,4 @@
-session CVM_Subsample = "Negative_Association" +
+session CVM_Invariant = "Neg_Assoc" +
   options [timeout = 1200]
 
   sessions
