@@ -3,6 +3,7 @@ Here, we describe the transformation-based proof by Chakraborty et al.~\cite{cha
 An overview of the proof is shown in~\cref{fig:proof_overview}, which highlights, in part, why the transformation-based approach required more work to formalize, and why we developed our new approach using probabilistic invariants.
 \begin{note}
 In our supplementary material, the transformation-based formalization of CVM is in the directory \verb|CVM_Transforms|.
+To formalize probabilistic transformations (relating two distributions), we built on an existing relational program logic in Isabelle/HOL~\cite{lochbihler2016}.
 The formalization took \locold~lines which is considerably longer than the proof using our invariant-based technique (\locnew~lines).
 \lipicsEnd\end{note}
 
@@ -96,7 +97,7 @@ This is explained in more detail by Chakraborty et al.~\cite{chakraborty2023}.
 %
 \subsection{Eager to Lazy Coin Flips}
 A remaining question is how to formalize the transformation from \circled{B} to \circled{C}.
-Our insight is that it is best to solve the problem backwards, i.e., we start with the modified algorithm \circled{C}, which performs all the coin-flips in advance \emph{eagerly} and convert it back to \circled{B} which implicitly performs the coin flips \emph{lazily} at the point they are needed.
+Our insight is that it is best to solve the problem backwards, i.e., we start with the modified algorithm \circled{C}, which performs all the coin flips in advance \emph{eagerly} and convert it back to \circled{B} which implicitly performs the coin flips \emph{lazily} at the point they are needed.
 
 The main idea is to automatically push down the coin flips through the expression tree of \cref{alg:cvm_simul}.
 To explain how this works, let us first define the \emph{sampling} function, i.e., let $f$ be a function that takes as argument a vector of coin flips indexed by $I$, then we can express the distribution of $f$ with respect to independent unbiased coin flips as.
@@ -106,7 +107,7 @@ To explain how this works, let us first define the \emph{sampling} function, i.e
 %For example, we could use our modified algorithm as $f$, with the index set $I = \{0, \ldots, l-1\} \times \{0, \ldots, l-1\}$.
 The interesting fact is that we can distribute the sampling operation over composition:
 \begin{observation}\label{o:sample_distrib} Let $f,g$ be functions consuming a set of coin flips (indexed by $I$), where $g$ also consumes the output of $f$, such that,
-$f$ depends only on the coin-flips indexed by $J \subseteq I$ and $g$ depends on the complement $J - I$, then:
+$f$ depends only on the coin flips indexed by $J \subseteq I$ and $g$ depends on the complement $I - J$, then:
 \begin{isabelle_cm}
   sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ g\ \isasymomega\ \isasymcirc\ f\ \isasymomega{\isacharparenright}\ \isacharequal\ sample\ f\ \isasymbind\ \isacharparenleft{\isasymlambda}x\isachardot\ sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ g\ \isasymomega\ x\isacharparenright\isacharparenright
 \end{isabelle_cm}
@@ -115,7 +116,7 @@ By recursively applying the observation, we end up with elementary lookup operat
 This lets us readily transform \circled{C} to \circled{B} and prove their distributions equivalent.
 
 A detail that we have simplified here is that the split of the index sets, e.g., which coin flips $f$ depends on and which coin flips $g$ depends on, may be dynamic.
-For example, when the algorithm increases the subsampling counter $k$, it will have read the corresponding row of coin-flips.
+For example, when the algorithm increases the subsampling counter $k$, it will have read the corresponding row of coin flips.
 This means, we have a situation, where the previous loop iteration communicates to the next loop iteration, which coin flips it depends on using the state.
 And the next loop iteration, will indeed only read coin flips that were not read by the previous iteration.
 %For the column index of the coin flips, this is based on the stream index, but for the row index of the coin flips, it is based on the state variable $k$.

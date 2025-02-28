@@ -70,7 +70,7 @@ In summary, our main contributions are:
 
 We carried out the mechanizations using Isabelle/HOL~\cite{nipkow2002}, which comes with a large repository of foundational libraries~\cite{afp} for the verification of randomized algorithms.
 We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}, which provides a rough point of comparison:
-Indeed, the verification of the CVM algorithm using our new technique requires only \locnew~lines, while the original proof required \locold~lines.
+verification of the CVM algorithm using our new technique required only \locnew~lines, while the original proof required \locold~lines.
 
 The rest of this paper is organized as follows.
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL.
@@ -82,7 +82,7 @@ The final sections present related work and a summary of our results.
 
 The supplementary material contains:
 \begin{itemize}
-\item formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) using probabilistic functional invariants;
+\item formalization of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) using functional probabilistic invariants;
 \item formalization of a library for negative association; and %in the directory Negative{\textunderscore}Association, which we intend to submit to the AFP as a separate contribution.
 \item formalization of the CVM algorithm following the proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
 \end{itemize}
