@@ -280,7 +280,7 @@ proof -
     prod_pmf {..< n} \<lblot>bernoulli_pmf p\<rblot>
       |> map_pmf (\<lambda> P. card {m. m < n \<and> P m}))\<close>
     apply (subst binomial_pmf_altdef'[where A = \<open>{..< n}\<close> and dflt = undefined])
-    by simp_all
+      by simp_all
 
   also have \<open>\<dots> = ?R\<close>
     unfolding Pi_pmf_map'[OF finite_lessThan, where dflt' = undefined] map_pmf_comp

@@ -203,5 +203,4 @@ lemma lossless_foldM_spmf' [simp] :
   using assms
   by (metis AE_measure_spmf_iff lossless_foldM_spmf)
 
-
 end
