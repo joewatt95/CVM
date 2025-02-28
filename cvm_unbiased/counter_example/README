@@ -1,0 +1,13 @@
+This is the tool used to verify the counter-example pointed out in cvm_unbiased/main.tex (last section.)
+
+Instructions to run:
+  - install cabal-install and ghc
+  - run "cabal run" from this directory
+
+Note: The verification takes some time. (15 mins on my machine.)
+
+Tested with:
+  cabal version 3.12.1
+  ghc verision 9.6.6
+
+
