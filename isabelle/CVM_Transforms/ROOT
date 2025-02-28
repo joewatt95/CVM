@@ -36,3 +36,4 @@ session CVM_Transforms (CVM) = "CryptHOL" +
 
   document_files
     "root.tex"
+    "root.bib"
