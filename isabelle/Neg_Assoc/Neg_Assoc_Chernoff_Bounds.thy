@@ -6,9 +6,9 @@ Hoeffding~\cite{hoeffding1963}, as well as, Motwani and Raghavan~\cite[Ch. 4]{mo
 modification that the crucial steps, where the classic proofs use independence, are replaced with
 the application of Property P2 for negatively associated RV's.\<close>
 
-theory Negative_Association_Chernoff_Bounds
+theory Neg_Assoc_Chernoff_Bounds
   imports
-    Negative_Association_Definition
+    Neg_Assoc_Definition
     Concentration_Inequalities.McDiarmid_Inequality
     Weighted_Arithmetic_Geometric_Mean.Weighted_Arithmetic_Geometric_Mean
 begin

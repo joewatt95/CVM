@@ -1,6 +1,6 @@
 subsection \<open>PMF relational Hoare rules\<close>
 
-theory Utils_PMF_Relational_Hoare
+theory Utils_PMF_Rel_Hoare
 
 imports
   Utils_PMF_FoldM_Hoare
@@ -21,7 +21,7 @@ lemma rel_pmf_bindI2 :
 
 subsubsection \<open>Relational Hoare triple for Kleisli morphism over PMF\<close>
 
-abbreviation rel_hoare_triple
+abbreviation pmf_rel_hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
   \<open>(\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_pmf S (f x) (f' x'))\<close>
 
@@ -53,7 +53,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     R idx val val'\<close>
 
-lemma rel_hoare_foldM_enumerate :
+lemma pmf_rel_hoare_foldM_enumerate :
   assumes \<open>\<And> index x.
     \<turnstile>pmf \<lbrakk>R' index x\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
@@ -70,23 +70,24 @@ next
     by (blast intro: rel_pmf_bindI)
 qed
 
-lemma rel_hoare_foldM_indexed' :
+lemma pmf_rel_hoare_foldM_indexed' :
   assumes \<open>\<And> idx x.
     \<turnstile>pmf \<lbrakk>R' idx x\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>R offset\<rbrakk>
     \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle>
     \<lbrakk>R (offset + length xs)\<rbrakk>\<close>
-  using assms rel_hoare_foldM_enumerate
+  using assms pmf_rel_hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemmas rel_hoare_foldM_indexed = rel_hoare_foldM_indexed'[where offset = 0, simplified]
+lemmas pmf_rel_hoare_foldM_indexed =
+  pmf_rel_hoare_foldM_indexed'[where offset = 0, simplified]
 
-lemma rel_hoare_foldM :
+lemma pmf_rel_hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
-  using assms rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
+  using assms pmf_rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
 end

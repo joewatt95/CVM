@@ -4,7 +4,7 @@ theory CVM_Algo_No_Fail
 
 imports
   CVM_Algo
-  Utils_SPMF_Relational_Hoare
+  Utils_SPMF_Rel_Hoare
 
 begin
 

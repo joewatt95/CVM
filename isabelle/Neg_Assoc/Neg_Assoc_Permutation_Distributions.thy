@@ -18,11 +18,11 @@ follows Dubashi~\cite[Th. 10]{dubhashi1996} closely. A very short proof was pres
 in the work by Joag-Dev~\cite{joagdev1983}, however after close inspection that proof seemed to
 missing a lot of details. In fact, I don't think it is correct.\<close>
 
-theory Negative_Association_Permutation_Distributions
+theory Neg_Assoc_Permutation_Distributions
   imports
-    Negative_Association_Definition
-    Negative_Association_FKG_Inequality
-    Negative_Association_More_Lattices
+    Neg_Assoc_Definition
+    Neg_Assoc_FKG_Inequality
+    Neg_Assoc_More_Lattices
     Finite_Fields.Finite_Fields_More_PMF
     "HOL-Types_To_Sets.Types_To_Sets"
     Executable_Randomized_Algorithms.Randomized_Algorithm

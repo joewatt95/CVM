@@ -46,7 +46,7 @@ theory CVM_New_Unbiased_Algorithm
   imports
     CVM_Abstract_Algorithm
     Probabilistic_Prime_Tests.Generalized_Primality_Test
-    Negative_Association.Negative_Association_Permutation_Distributions
+    Neg_Assoc.Neg_Assoc_Permutation_Distributions
 begin
 
 unbundle no_vec_syntax

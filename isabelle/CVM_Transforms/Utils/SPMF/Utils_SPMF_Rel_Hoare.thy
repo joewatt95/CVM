@@ -1,11 +1,11 @@
 subsection \<open>SPMF relational Hoare rules\<close>
 
-theory Utils_SPMF_Relational_Hoare
+theory Utils_SPMF_Rel_Hoare
 
 imports
   ABY3_Protocols.Spmf_Common
   Utils_SPMF_FoldM_Hoare
-  Utils_PMF_Relational_Hoare
+  Utils_PMF_Rel_Hoare
 
 begin
 
@@ -130,8 +130,9 @@ subsubsection \<open>Helper lemmas for the CCPO ordering on SPMF\<close>
 context ord_spmf_syntax
 begin
 
-text \<open>Hoare proof rule for the ordering between monadic folds, derived from
-  relational Hoare rule for monadic folds over PMF.\<close>
+text
+  \<open>Hoare proof rule for the ordering between monadic folds, derived from the
+  relational Hoare rule for foldM\_pmf.\<close>
 
 lemma \<open>(\<And> x x'. R x x' \<Longrightarrow> f x \<sqsubseteq>\<^bsub>(=)\<^esub> f' x') \<equiv> (\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>le_option\<rbrakk>)\<close> .
 
@@ -143,8 +144,8 @@ proof -
 
   from assms have \<open>foldM_pmf (?go f) x val \<sqsubseteq>\<^bsub>(=)\<^esub> foldM_pmf (?go f') x val'\<close>
     if \<open>le_option val val'\<close> for x val val'
-    apply (intro Utils_PMF_Relational_Hoare.rel_hoare_foldM)
-      using that by (auto split: option.splits)
+    using that apply (intro pmf_rel_hoare_foldM)
+       by (auto split: option.splits)
 
   then show ?thesis by (simp add: foldM_spmf_eq_foldM_pmf_case)
 qed

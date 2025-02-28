@@ -68,17 +68,17 @@ subsubsection \<open>Hoare triples for Kleisli morphisms over SPMF\<close>
 
 text \<open>Hoare triple for partial correctness\<close>
 
-abbreviation hoare_triple
+abbreviation spmf_hoare_triple
   (\<open>\<turnstile>spmf \<lbrace> _ \<rbrace> _ \<lbrace> _ \<rbrace> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_spmf <| f x. Q y)\<close>
 
 text \<open>Hoare triple for total correctness\<close>
 
-abbreviation hoare_triple_total
+abbreviation spmf_hoare_triple_total
   (\<open>\<turnstile>spmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk>\<close> [21, 20, 21] 60) where
   \<open>\<turnstile>spmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> \<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_Some_and_pred Q\<rbrakk>\<close>
 
-lemma hoare_triple_altdef :
+lemma spmf_hoare_triple_altdef :
   \<open>(\<turnstile>spmf \<lbrace>P\<rbrace> f \<lbrace>Q\<rbrace>) \<equiv> (\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>is_None_or_pred Q\<rbrakk>)\<close>
   apply standard using AE_measure_spmf_iff_AE_measure_pmf by blast+
 
@@ -96,7 +96,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     P idx val\<close>
 
-lemma hoare_foldM_enumerate :
+lemma spmf_hoare_foldM_enumerate :
   assumes \<open>\<And> idx x. \<turnstile>spmf \<lbrace>P' idx x\<rbrace> f (idx, x) \<lbrace>P (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf
     \<lbrace>P offset\<rbrace>
@@ -112,34 +112,39 @@ next
     by (metis (no_types, lifting) UN_E add_Suc member_bind)
 qed
 
-lemma hoare_foldM_indexed' :
+lemma spmf_hoare_foldM_indexed' :
   assumes \<open>\<And> idx x. \<turnstile>spmf \<lbrace>P' idx x\<rbrace> f x \<lbrace>P (Suc idx)\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P offset\<rbrace> foldM_spmf f xs \<lbrace>P (offset + length xs)\<rbrace>\<close>
-  using assms hoare_foldM_enumerate
+  using assms spmf_hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemmas hoare_foldM_indexed = hoare_foldM_indexed'[where offset = 0, simplified add_0]
+lemmas spmf_hoare_foldM_indexed =
+  spmf_hoare_foldM_indexed'[where offset = 0, simplified add_0]
 
-lemma hoare_foldM :
+lemma spmf_hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>spmf \<lbrace>P\<rbrace> f x \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> foldM_spmf f xs \<lbrace>P\<rbrace>\<close>
-  using assms hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
+  using assms spmf_hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
-lemma (in loop_spmf) hoare_while :
+text
+  \<open>Soundness proof of the Hoare while rule w.r.t. its denotational semantics,
+  by induction on the transfinite fixpoint iteration sequence.\<close>
+
+lemma (in loop_spmf) spmf_hoare_while :
   assumes \<open>\<turnstile>spmf \<lbrace>(\<lambda> x. guard x \<and> P x)\<rbrace> body \<lbrace>P\<rbrace>\<close>
   shows \<open>\<turnstile>spmf \<lbrace>P\<rbrace> while \<lbrace>(\<lambda> x. \<not> guard x \<and> P x)\<rbrace>\<close>
 proof (induction rule: while_fixp_induct)
-  (* Initial ordinal. *)
+  text \<open>Initial ordinal\<close>
   case bottom show ?case by simp
 next
-  (* Successor ordinal. *)
+  text \<open>Successor ordinal\<close>
   case (step _)
   with assms show ?case
     by (smt (z3) AE_measure_spmf_iff UN_E bind_UNION o_apply set_bind_spmf set_return_spmf singletonD)
 next
-  (* Transfinite ordinal. *)
+  text \<open>Transfinite ordinal\<close>
   case adm show ?case by simp
 qed
 

@@ -20,9 +20,9 @@ spaces, but finite distributive lattices.
 
 The proof follows the derivation in the book by Alon and Spencer~\cite[Ch. 6]{alon2000}.\<close>
 
-theory Negative_Association_FKG_Inequality
+theory Neg_Assoc_FKG_Inequality
   imports
-    Negative_Association_Util
+    Neg_Assoc_Util
     Birkhoff_Finite_Distributive_Lattices.Birkhoff_Finite_Distributive_Lattices
 begin
 

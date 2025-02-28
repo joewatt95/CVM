@@ -1,6 +1,6 @@
 section \<open>Various Concentration Inequalities\<close>
 
-theory Utils_Concentration_Inequalities
+theory Utils_Concentration_Ineqs
 
 imports
   "HOL-Probability.Hoeffding"

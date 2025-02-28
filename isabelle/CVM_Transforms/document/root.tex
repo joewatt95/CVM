@@ -1,6 +1,8 @@
 \documentclass[11pt, a4paper]{report}
+
 \usepackage[T1]{fontenc}
-\usepackage{isabelle, isabellesym, amsmath}
+\usepackage{isabelle, isabellesym}
+\usepackage{amsfonts, amsmath, amssymb}
 
 % this should be the last package used
 \usepackage{pdfsetup}
@@ -37,27 +39,27 @@
 
 \input{CVM_Error_Bounds}
 \input{CVM_Correctness}
-\input{CVM_Correctness_Example}
+\input{CVM_Correctness_Instance}
 
 \chapter{Utility definitions and results}
 
 \input{Utils_Basic}
 \input{Utils_Reader_Monad}
 \input{Utils_Approx_Algo}
-\input{Utils_Concentration_Inequalities}
+\input{Utils_Concentration_Ineqs}
 
 \section{PMF utilities}
 
 \input{Utils_PMF_Basic}
 \input{Utils_PMF_FoldM_Hoare}
-\input{Utils_PMF_Relational_Hoare}
+\input{Utils_PMF_Rel_Hoare}
 \input{Utils_PMF_Lazify}
 
 \section{SPMF utilities}
 
 \input{Utils_SPMF_Basic}
 \input{Utils_SPMF_FoldM_Hoare}
-\input{Utils_SPMF_Relational_Hoare}
+\input{Utils_SPMF_Rel_Hoare}
 
 % \bibliographystyle{abbrv}
 % \bibliography{root}

@@ -1,4 +1,4 @@
-section \<open>Lazy - eager sampling conversion\<close>
+subsection \<open>Eager to lazy sampling transformation\<close>
 
 theory Utils_PMF_Lazify
 
@@ -10,17 +10,18 @@ imports
 begin
 
 locale lazify =
-  fixes I :: "'a set"
-  fixes d :: "'c"
-  fixes M :: "'a \<Rightarrow> 'c pmf"
-  assumes fin_I: "finite I"
+  fixes
+    I :: \<open>'a set\<close> and
+    d :: 'c and
+    M :: \<open>'a \<Rightarrow> 'c pmf\<close>
+  assumes fin_I: \<open>finite I\<close>
 begin
 
-definition space where "space \<equiv> Pi_pmf I d M"
-definition sample where "sample x \<equiv> map_pmf (run_reader x) space"
+definition space where \<open>space \<equiv> Pi_pmf I d M\<close>
+definition sample where \<open>sample \<equiv> \<lambda> x. map_pmf (run_reader x) space\<close>
 
-definition depends_on :: "('a \<Rightarrow> 'c, 'b) reader_monad \<Rightarrow> 'a set \<Rightarrow> bool" where
-  \<open>depends_on m S \<equiv> \<forall> f g.
+definition depends_on :: \<open>('a \<Rightarrow> 'c, 'b) reader_monad \<Rightarrow> 'a set \<Rightarrow> bool\<close> where
+  \<open>depends_on \<equiv> \<lambda> m S. \<forall> f g.
     {f, g} \<subseteq> set_pmf space \<longrightarrow>
     (\<lambda> i \<in> S. f i) = (\<lambda> i \<in> S. g i) \<longrightarrow>
     run_reader m f = run_reader m g\<close>
@@ -37,7 +38,7 @@ lemma depends_onD:
     "f \<in> set_pmf space" "g \<in> set_pmf space" and
     "restrict f S = restrict g S"
   shows "run_reader m f = run_reader m g"
-  using depends_on_def assms by auto
+  using assms unfolding depends_on_def by blast
 
 lemma depends_on_mono:
   assumes "depends_on m T" "T \<subseteq> S"

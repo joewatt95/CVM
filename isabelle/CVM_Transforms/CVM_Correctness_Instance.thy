@@ -1,6 +1,6 @@
 section \<open>Instantiation of main CVM correctness theorem\<close>
 
-theory CVM_Correctness_Example
+theory CVM_Correctness_Instance
 
 imports
   CVM_Correctness

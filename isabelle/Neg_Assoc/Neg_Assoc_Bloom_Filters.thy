@@ -22,8 +22,8 @@ Bao et al.~\cite{bao2021}.)
 In this section, we derive the same bound using this library as an example for the applicability of
 this library.\<close>
 
-theory Negative_Association_Bloom_Filters
-  imports Negative_Association_Permutation_Distributions
+theory Neg_Assoc_Bloom_Filters
+  imports Neg_Assoc_Permutation_Distributions
 begin
 
 fun bloom_filter_pmf where

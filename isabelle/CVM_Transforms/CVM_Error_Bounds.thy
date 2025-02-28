@@ -5,7 +5,7 @@ theory CVM_Error_Bounds
 imports
   "HOL-Decision_Procs.Approximation"
   CVM_Algo_Nondet_Binomial
-  Utils_Concentration_Inequalities
+  Utils_Concentration_Ineqs
 
 begin
 

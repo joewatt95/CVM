@@ -9,7 +9,7 @@ to be able to work with locally defined finite distributive lattices.
 This is being needed for the verification of the negative association of permutation distributions
 in Section~\ref{sec:permutation_distributions}.\<close>
 
-theory Negative_Association_More_Lattices
+theory Neg_Assoc_More_Lattices
   imports "HOL-Algebra.Lattice"
 begin
 

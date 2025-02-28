@@ -1,6 +1,6 @@
 section \<open>Preliminary Definitions and Lemmas\<close>
 
-theory Negative_Association_Util
+theory Neg_Assoc_Util
   imports
     Concentration_Inequalities.Concentration_Inequalities_Preliminary
     Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF

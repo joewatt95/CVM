@@ -1,5 +1,5 @@
-session Neg_Assoc = "HOL-Probability" +
-  options [timeout = 1200]
+session Neg_Assoc (CVM) = "HOL-Probability" +
+  options [timeout = 1200, document = pdf, document_output = "document_out"]
 
   sessions
     Concentration_Inequalities
@@ -10,13 +10,13 @@ session Neg_Assoc = "HOL-Probability" +
     Universal_Hash_Families
 
   theories
-    Negative_Association_Util
-    Negative_Association_Definition
-    Negative_Association_Chernoff_Bounds
-    Negative_Association_FKG_Inequality
-    Negative_Association_More_Lattices
-    Negative_Association_Permutation_Distributions
-    Negative_Association_Bloom_Filters
+    Neg_Assoc_Util
+    Neg_Assoc_Definition
+    Neg_Assoc_Chernoff_Bounds
+    Neg_Assoc_FKG_Inequality
+    Neg_Assoc_More_Lattices
+    Neg_Assoc_Permutation_Distributions
+    Neg_Assoc_Bloom_Filters
 
   document_files
     "root.tex"

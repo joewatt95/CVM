@@ -21,7 +21,7 @@ lemma foldM_pmf_snoc :
 
 subsubsection \<open>Hoare triple for Kleisli morphisms over PMF\<close>
 
-abbreviation hoare_triple
+abbreviation pmf_hoare_triple
   (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
   \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
 
@@ -39,7 +39,7 @@ private abbreviation (input)
     (idx, x) \<in> set (List.enumerate offset xs) \<and>
     P idx val\<close>
 
-lemma hoare_foldM_enumerate :
+lemma pmf_hoare_foldM_enumerate :
   assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f (idx, x) \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf
     \<lbrakk>P offset\<rbrakk>
@@ -55,19 +55,20 @@ next
     by (metis add_Suc_right add_Suc_shift)
 qed
 
-lemma hoare_foldM_indexed' :
+lemma pmf_hoare_foldM_indexed' :
   assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P offset\<rbrakk> foldM_pmf f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
-  using assms hoare_foldM_enumerate
+  using assms pmf_hoare_foldM_enumerate
   by (metis foldM_eq_foldM_enumerate prod.sel(2))
 
 end
 
-lemmas hoare_foldM_indexed = hoare_foldM_indexed'[where offset = 0, simplified]
+lemmas pmf_hoare_foldM_indexed =
+  pmf_hoare_foldM_indexed'[where offset = 0, simplified]
 
-lemma hoare_foldM :
+lemma pmf_hoare_foldM :
   assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
   shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
-  using assms hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
+  using assms pmf_hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
 end

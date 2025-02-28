@@ -84,7 +84,7 @@ proof -
     by (auto simp add: AE_measure_pmf_iff in_set_enumerate_eq)
 
   then show ?thesis
-    apply (intro Utils_PMF_FoldM_Hoare.hoare_foldM_indexed[
+    apply (intro pmf_hoare_foldM_indexed[
       where xs = \<open>[0 ..< length xs]\<close>, simplified])
       by (auto simp add: initial_state_def)
 qed

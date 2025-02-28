@@ -14,10 +14,10 @@ Instead the range can be into any linearly ordered space with the borel $\sigma$
 major enhancement compared to the original work, as well as results by following
 authors~\cite{dubhashi2007, dubhashi1998, dubhashi1996, lisawadi2011, permantle2000}.\<close>
 
-theory Negative_Association_Definition
+theory Neg_Assoc_Definition
   imports
     Concentration_Inequalities.Bienaymes_Identity
-    Negative_Association_Util
+    Neg_Assoc_Util
 begin
 
 context prob_space
