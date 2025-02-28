@@ -6,9 +6,9 @@ text
   For this, we define the notion of a \texttt{state} record, which tracks the
   $k$ and $\chi$ values across the loop iterations, via the \texttt{state\_k}
   and \texttt{state\_chi} fields.
-  
+
   The loop in the CVM algorithm is then modelled as a monadic fold
-  (via foldM\_spmf) over the input list with a \texttt{state} record, with
+  (via \texttt{foldM\_spmf}) over the input list with a \texttt{state} record, with
   each loop iteration being modelled by the \texttt{step} function.
   
   \texttt{step} itself is split up into 3 functions, namely:

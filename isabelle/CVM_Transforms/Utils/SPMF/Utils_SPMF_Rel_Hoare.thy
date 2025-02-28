@@ -135,16 +135,16 @@ lemma rel_hoare_foldM :
   shows \<open>\<turnstile>spmf \<lbrace>R\<rbrace> \<langle>foldM_spmf f xs | foldM_spmf f' xs\<rangle> \<lbrace>R\<rbrace>\<close>
   using assms rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
-subsubsection \<open>Helper lemmas for the CCPO ordering on SPMF\<close>
+subsubsection \<open>Helper lemmas for the (flat) CCPO ordering on SPMF\<close>
 
 context ord_spmf_syntax
 begin
 
-text
-  \<open>Hoare proof rule for the ordering between monadic folds, derived from the
-  relational Hoare rule for foldM\_pmf.\<close>
-
 lemma \<open>(\<And> x x'. R x x' \<Longrightarrow> f x \<sqsubseteq>\<^bsub>(=)\<^esub> f' x') \<equiv> (\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>le_option\<rbrakk>)\<close> .
+
+text
+  \<open>Relational Hoare rule for the ordering between \texttt{foldM\_spmf},
+  derived from the relational Hoare rule for \texttt{foldM\_pmf}.\<close>
 
 lemma foldM_spmf_ord_spmf_eq_of_ord_spmf_eq :
   assumes \<open>\<And> x val. f x val \<sqsubseteq>\<^bsub>(=)\<^esub> f' x val\<close>

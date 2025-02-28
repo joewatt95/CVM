@@ -8,9 +8,12 @@ text
   Here, \texttt{run\_steps} models algorithm 1, and
   \texttt{run\_steps\_no\_fail} models algorithm 2.
   
-  The main result here is \texttt{prob\_run\_steps\_is\_None\_or\_pred\_le}, which
-  bounds the probability that \texttt{run\_steps} gives the wrong estimate by
-  its failure probability and that of \texttt{run\_steps\_no\_fail}\<close>
+  The main result here is \texttt{prob\_run\_steps\_is\_None\_or\_pred\_le},
+  which bounds the probability that \texttt{run\_steps} gives the wrong estimate
+  by its failure probability and that of \texttt{run\_steps\_no\_fail}.
+
+  This is established by way of relational Hoare-like reasoning over the loops
+  of both algorithms (modelled as monadic folds in \texttt{spmf}).\<close>
 
 theory CVM_Algo_No_Fail
 
@@ -38,7 +41,7 @@ begin
 text
   \<open>This loop invariant says that \texttt{state\_chi} always remains finite across
   the loop iterations of \texttt{run\_steps} and \texttt{run\_steps\_no\_fail}.
-  This aids the simplifier.\<close>
+  This aids the simplifier in later lemmas.\<close>
 
 lemma
   initial_state_finite :
@@ -150,6 +153,27 @@ qed
 lemma prob_fail_run_steps_le :
   \<open>prob_fail (run_steps xs initial_state) \<le> length xs * f ^ threshold\<close>
   by (metis prob_fail_foldM_spmf_le prob_fail_step_le step_preserves_finiteness initial_state_finite)
+
+text
+  \<open>\texttt{step\_le\_step\_no\_fail} says that if each loop iteration of
+  algorithm 1 of \cite{cvm_2023} (ie \texttt{step}) terminates successfully
+  (ie returns \texttt{Some}), then the corresponding iteration of algorithm 2
+  (ie \texttt{step\_no\_fail}) also terminates successfully, and with the same
+  result.
+
+  \texttt{run\_steps\_le\_run\_steps\_no\_fail} extends the above result across
+  the loop iterations to both algorithms
+  (ie \texttt{run\_steps} and \texttt{run\_steps\_no\_fail}).
+
+  These are formalised via $\sqsubseteq_{(=)}$, the flat CCPO ordering on
+  \texttt{spmf}, with \texttt{foldM\_spmf\_ord\_spmf\_eq\_of\_ord\_spmf\_eq}
+  using relational Hoare-like reasoning to extend the ordering across individual
+  steps to the whole fold.
+  
+  This ordering in turn induces a corresponding ordering on their probability
+  distributions, letting us conclude that the probability that algorithm 1
+  terminates successfully and outputs the wrong estimate is $\le$ that of
+  algorithm 2.\<close>
 
 lemma step_le_step_no_fail :
   \<open>step x state \<sqsubseteq>\<^bsub>(=)\<^esub> spmf_of_pmf (step_no_fail x state)\<close>

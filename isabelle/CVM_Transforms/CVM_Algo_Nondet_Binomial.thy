@@ -6,14 +6,20 @@ text
   and further to a binomial distribution, for ease of analysis later.
 
   This random process first samples all Bernoulli random variables up front, as
-  with \texttt{run\_steps\_no\_fail}, and then uses \texttt{nondet\_algo} to
-  compute the final $\chi$ at the end of the input list, in one step.
+  with \texttt{run\_steps\_no\_fail}, and then given a fixed value of $k$,
+  uses \texttt{nondet\_algo} to compute the final $\chi$ at the end of the
+  input list, in one step.
 
   These transformations are justified by the following main results:
   \begin{enumerate}
     \item \texttt{run\_steps\_eager\_inv}
-    which uses invariant-based reasoning to prove the first
-    transformation from the eager sampling algorithm to the random process.
+    says that if the eager algorithm returns a \texttt{state} with some $k$ and
+    $\chi$, then running the random process with this $k$ as input yields the
+    same $\chi$ as output.
+
+    This is proven using a loop invariant that at any point in the eager
+    algorithm, $\chi$ contains precisely those elements for which the first 
+    $k$ Bernoulli trials are 1.
 
     \item \texttt{map\_pmf\_nondet\_algo\_eq\_binomial}
     justifies the second transformation from the random process to the Binomial

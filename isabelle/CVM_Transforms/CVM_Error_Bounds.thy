@@ -152,7 +152,7 @@ next
       by (smt (verit, ccfv_threshold) mem_Collect_eq mult.commute pmf_mono)
   qed
 
-  text \<open>Apply Chernoff bound to each term.\<close>
+  text \<open>Apply multiplicative two-sided Chernoff bound to each term.\<close>
   also have
     \<open>\<dots> \<le> (\<Sum> k \<le> l. 2 * ?exp_term k)\<close> (is \<open>(\<Sum> k \<le> _. ?L k) \<le> (\<Sum> k \<le> _. ?R k)\<close>)
   proof (intro sum_mono)
@@ -182,10 +182,14 @@ next
 
   text
     \<open>Now we do the following:
-    1. Reverse the summation from $l \longrightarrow 0$, to $0 \longrightarrow l$
-    2. Reindex the sum to be taken over exponents $r$ of the form $2 ^ k$
+    \begin{enumerate}
+      \item Reverse the sum from $l \longrightarrow 0$, to $0 \longrightarrow l$
+
+      \item Reindex the sum to be taken over exponents $r$ of the form $2 ^ k$
        instead of being over all $k$.
-    3. Pull out a factor of $2 * \text{exp\_term}(l)$ from each term.\<close>
+
+      \item Pull out a factor of $2 * \text{exp\_term}(l)$ from each term.
+    \end{enumerate}\<close>
   also from assms have
     \<open>\<dots> = 2 * ?exp_term l * (\<Sum> r \<in> power 2 ` {.. l}. ?exp_term l ^ (r - 1))\<close>
     unfolding
@@ -202,7 +206,7 @@ next
         simp add: exp_powr_real field_split_simps of_nat_diff_real)
 
   text
-    \<open>Upper bound by a partial geometric series, taken over all $r \in nat$
+    \<open>Upper bound by a partial geometric series, taken over all $r \in \mathbb{N}$
     up to $2 ^ l$.\<close>
   also have \<open>\<dots> \<le> 2 * ?exp_term l * (\<Sum> r \<le> 2 ^ l - 1. ?exp_term l ^ r)\<close>
     apply (intro mult_mono sum_le_included[where i = Suc] sum_nonneg)
@@ -252,6 +256,12 @@ qed
 end
 
 subsection \<open>Proof for $k > l$ case.\<close>
+
+text
+  \<open>This next helper Lemma says that if $k > l$ after running the eager
+  algorithm, then it must have been the case that at some point during the
+  execution of the algorithm, we reach a state where after running
+  \texttt{step\_1\_eager}, $k = l$ and $\chi$ hits the threshold.\<close>
 
 lemma exists_index_threshold_exceeded_of_k_exceeds :
   assumes \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) > l\<close>
@@ -417,6 +427,7 @@ next
         by (metis (full_types) List.finite_set Multiseries_Expansion.intyness_simps(2) card_mono le_trans list.set(2) local.Cons mult_le_mono2 of_nat_le_iff of_nat_numeral of_nat_power
           push_bit_nat_def set_take_subset take_Suc_Cons)
 
+      text \<open>Apply multiplicative upper-tail Chernoff bound\<close>
       with binomial_distribution.chernoff_prob_ge[
         of p \<open>\<alpha> - 1\<close> n, simplified binomial_distribution_def]
       have \<open>?prob i \<le> exp (- real n * p * (\<alpha> - 1)\<^sup>2 / (2 + 2 * (\<alpha> - 1) / 3))\<close>
