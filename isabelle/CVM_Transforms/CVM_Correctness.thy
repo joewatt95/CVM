@@ -21,8 +21,7 @@ text
     \begin{itemize}
       \item As with the earlier results we formalised, the version we have
       here is more general than the one in \cite{cvm_2023}, because we prove it
-      for a range of values for the threshold subject to some constraints
-      (which include the one used there).
+      for a range of values for the threshold subject to some constraints.
 
       Later, in \texttt{CVM\_Correctness\_Instance}, we obtain
       \texttt{prob\_cvm\_incorrect\_le\_delta}, a stronger version of

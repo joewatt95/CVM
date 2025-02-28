@@ -7,9 +7,20 @@ text
   The main result here is
   \texttt{run\_steps\_no\_fail\_eq\_run\_steps\_eager\_bernoulli\_matrix}, which
   transforms \texttt{run\_steps\_no\_fail} to an algorithm that first eagerly
-  samples all required Bernoulli random variables up front and then runs a
-  deterministic variation of it (ie \texttt{run\_steps\_eager}) over these coin
-  flips.\<close>
+  samples all required Bernoulli random variables up front in the form of a
+  Bernoulli random matrix, and then runs a deterministic variation of it
+  (ie \texttt{run\_steps\_eager}) over these coin flips.
+  We call this algorithm the ``eager sampling algorithm'', or ``eager algorithm''
+  for short.
+
+  We do this because in \texttt{CVM\_Algo\_Nondet\_Binomial}, we model
+  algorithm 3 as a random process over a Bernoulli random matrix, with the
+  random matrix representing the coin flips performed on lines 3 - 4 of
+  the algorithm in \cite{cvm_2023}.
+
+  This main result is proven by means of an intermediate transformation from
+  \texttt{run\_steps\_no\_fail} to \texttt{run\_steps\_lazy}, which we call the
+  ``lazy sampling algorithm'', or ``lazy algorithm'' for short.\<close>
 
 theory CVM_Algo_Lazy_Eager
 

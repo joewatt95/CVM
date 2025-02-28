@@ -5,10 +5,14 @@ text
   (ie algorithm 2 of \cite{cvm_2023}) to a random process modelling algorithm 3,
   and further to a binomial distribution, for ease of analysis later.
 
-  This random process first samples all Bernoulli random variables up front, as
-  with \texttt{run\_steps\_no\_fail}, and then given a fixed value of $k$,
-  uses \texttt{nondet\_algo} to compute the final $\chi$ at the end of the
-  input list, in one step.
+  This random process first samples all Bernoulli random variables up front in
+  the form of a Bernoulli random matrix as
+  with \texttt{run\_steps\_no\_fail}.
+  This random matrix models the coin flips performed on lines 3 - 4 of
+  algorithm 3 in \cite{cvm_2023}.
+  With this, given a fixed value of $k$, the random process uses
+  \texttt{nondet\_algo} to compute the final $\chi$ at the end of the input
+  list, in one step.
 
   These transformations are justified by the following main results:
   \begin{enumerate}

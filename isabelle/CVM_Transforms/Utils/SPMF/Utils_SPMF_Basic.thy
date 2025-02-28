@@ -191,7 +191,7 @@ lemma spmf_hoare_foldM :
   using assms spmf_hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
 
 text
-  \<open>The proof of the next \texttt{spmf_hoare_while} rule is essentially the
+  \<open>The proof of the next \texttt{spmf\_hoare\_while} rule is essentially the
   soundness proof of the Hoare while rule w.r.t. its denotational semantics,
   by induction on the transfinite fixpoint iteration sequence.\<close>
 

@@ -1,12 +1,23 @@
 section \<open>Various Concentration Inequalities\<close>
 
-text \<open>The main results here are:
+text
+  \<open>The main results here are the one-sided lower and upper tail bounds, and the
+  two-sided bounds for:
   \begin{itemize}
-    \item The Bennet-Bernstein inequality, including the one-sided upper and
-    lower tail bounds, and the two-sided bound.
+    \item The Bennet-Bernstein inequality:
+    \begin{itemize}
+      \item \texttt{bernstein\_inequality\_le}
+      \item \texttt{bernstein\_inequality\_ge}
+      \item \texttt{bernstein\_inequality\_abs\_ge}
+    \end{itemize}
 
-    \item The multiplicative Chernoff bound, derived from the aforementioned
-    Bennet-Bernstein inequality.
+    \item The multiplicative Chernoff bounds for the Binomial distribution
+    derived from the above Bennet-Bernstein inequalities.
+    \begin{itemize}
+      \item \texttt{binomial\_distribution.chernoff\_prob\_le}
+      \item \texttt{binomial\_distribution.chernoff\_prob\_ge}
+      \item \texttt{binomial\_distribution.chernoff\_prob\_abs\_ge}
+    \end{itemize}
   \end{itemize}\<close>
 
 theory Utils_Concentration_Ineqs
@@ -155,7 +166,7 @@ subsubsection \<open>Main Chernoff bounds\<close>
 
 text
   \<open>Main one and two-sided multiplicative Chernoff bounds, derived from the
-  Bennet-Bernstein inequality\<close>
+  Bennet-Bernstein inequalities.\<close>
 
 lemma
   assumes \<open>\<delta> \<ge> 0\<close>

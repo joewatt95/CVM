@@ -244,12 +244,16 @@ text
 
   More precisely, a bernoulli RV with probability $p ^ k$ ($k > 0$) is equivalent
   to doing the following:
-  1. We fix a (finite) family of indices $J$, and a subset $I \subseteq J$ of
-     cardinality $k$.
-  2. We construct a family of IID bernoulli RVs of probability $p$,
+  \begin{enumerate}
+    \item We fix a (finite) family of indices $J$, and a subset $I \subseteq J$
+    of cardinality $k$.
+
+    \item We construct a family of Bernoulli RVs of probability $p$,
      indexed by $J$, and sample from it.
-  3. Viewing the outcome as a characteristic function of $J$, we check if the
-     subset it defines contains $I$, outputting $\top$ iff that is the case.\<close>
+
+     \item Viewing the outcome as a characteristic function of $J$, we check if
+     the subset it defines contains $I$, outputting True iff that is the case.
+  \end{enumerate}\<close>
 lemma bernoulli_eq_map_Pi_pmf :
   assumes \<open>finite J\<close> \<open>card I > 0\<close> \<open>I \<subseteq> J\<close>
   shows
@@ -301,6 +305,8 @@ lemma expectation_binomial_pmf :
     expectation_sum_Pi_pmf integrable_measure_pmf_finite)
 
 end
+
+subsubsection \<open>Bernoulli random matrices\<close>
 
 definition bernoulli_matrix ::
   \<open>nat \<Rightarrow> nat \<Rightarrow> real \<Rightarrow> (nat \<times> nat \<Rightarrow> bool) pmf\<close> where

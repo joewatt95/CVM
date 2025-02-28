@@ -38,7 +38,9 @@ abbreviation
 
 subsection \<open>Definitions of bounds\<close>
 
-text \<open>Bound for the case when $k \le l$, ie $\text{Pr}[\text{Bad}_2]$\<close>
+text
+  \<open>Bound for the case when $k \le l$, ie $\text{Pr}[\text{Bad}_2]$ of
+  \cite{cvm_2023}\<close>
 
 definition
   \<open>prob_k_le_l_and_est_out_of_range_bound \<equiv>
@@ -46,7 +48,7 @@ definition
 
 text
   \<open>Bound for the case when $k > l$, ie
-  $\text{Pr}[\text{Error}_2 \cap \overline{\text{Bad}_2}]$\<close>
+  $\text{Pr}[\text{Error}_2 \cap \overline{\text{Bad}_2}] of \cite{cvm_2023}$\<close>
 
 definition
   \<open>prob_k_gt_l_bound \<equiv>
@@ -58,7 +60,7 @@ end
 locale cvm_error_bounds_assms = cvm_error_bounds + cvm_algo_assms
 begin
 
-subsection \<open>Proof for $k$ <= $l$ case.\<close>
+subsection \<open>Bounding the $k$ <= $l$ case\<close>
 
 context
   assumes
@@ -169,8 +171,9 @@ next
     \<open>In preparation to bound via a geometric series, we first transform each
     term to be of the form ${2 * \text{exp\_term}(l)} ^ {2 ^ r}$ so that we can
     later pull out a factor of $2 * \text{exp\_term}(l)$ from each term.
-    Note that $\text{exp\_term}(l) < 1$ and that this is important for obtaining a tight
-    bound later on.\<close>
+
+    Note that $\text{exp\_term}(l) < 1$ and that this is important for obtaining
+    a tight bound later on.\<close>
   also from \<open>\<epsilon> > 0\<close> have
     \<open>\<dots> = (\<Sum> k \<le> l. 2 * ((?exp_term l) powr (1 / f ^ (l - k))))\<close>
     (is \<open>_ = (\<Sum> k \<le> _. ?g k)\<close>)
@@ -255,7 +258,7 @@ qed
 
 end
 
-subsection \<open>Proof for $k > l$ case.\<close>
+subsection \<open>Bounding the $k > l$ case\<close>
 
 text
   \<open>This next helper Lemma says that if $k > l$ after running the eager
