@@ -33,8 +33,6 @@ The fact that this still preserves the required inequality for the subsampling o
 (Eq.~\ref{eq:subsample_condition}) follows from the negative associativity of permutation
 distributions~\cite[Th. 10]{dubhashi1996}.
 
-(See also our formalization of the concept~\cite{Negative_Association-AFP}.)
-
 Because the subsampling step always removes elements unconditionally, the second check, whether
 the subsampling succeeded of the original algorithm is not necessary anymore.
 
