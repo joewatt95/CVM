@@ -9,15 +9,15 @@ as presented in the paper
 # Project structure
 
 - [CVM_Invariant](CVM_Invariant)
-  formalises a new, unbiased, variant of the CVM algorithm, along with an
-  invariant based proof of its correctness, as described in the paper.
+  formalises both the original and a new unbiased variant of the CVM algorithm, using the
+  new proof technique (functional probabilistic invariants) described in the paper.
 
 - [Neg_Assoc](Neg_Assoc)
   formalises a theory of negatively associated random variables, which is used
   by the formalisation in [CVM_Invariant](CVM_Invariant)
 
 - [CVM_Transforms](CVM_Transforms)
-  formalises the original CVM algorithm, along with the original
+  formalises the original CVM algorithm using the original
   transformation-based proof.
 
 # Setup instructions
@@ -60,6 +60,8 @@ $ isabelle components -u .
 # Build the Isabelle formalisations
 $ isabelle build -v -b -g CVM
 ```
+
+(These commands should be executed from the directory in which this README.md file resides.)
 
 This will also generate $\LaTeX$ sources and corresponding pdf documents for
 each formalisation.
