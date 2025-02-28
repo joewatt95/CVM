@@ -9,8 +9,9 @@ text
   \texttt{run\_steps\_no\_fail} models algorithm 2.
   
   The main result here is \texttt{prob\_run\_steps\_is\_None\_or\_pred\_le},
-  which bounds the probability that \texttt{run\_steps} gives the wrong estimate
-  by its failure probability and that of \texttt{run\_steps\_no\_fail}.
+  which bounds the probability that \texttt{run\_steps} fails or gives the
+  wrong estimate by its failure probability and that of
+  \texttt{run\_steps\_no\_fail}.
 
   This is established by way of relational Hoare-like reasoning over the loops
   of both algorithms (modelled as monadic folds in \texttt{spmf}).\<close>
@@ -186,7 +187,12 @@ lemma run_steps_le_run_steps_no_fail :
   unfolding foldM_spmf_of_pmf_eq[symmetric]
   by (blast intro: foldM_spmf_ord_spmf_eq_of_ord_spmf_eq step_le_step_no_fail)
 
-text \<open>P can be viewed as the event that the resulting estimate is the wrong count.\<close>
+text
+  \<open>Main result bounding the probability that \texttt{run\_steps}
+  (ie algorithm 1) fails or gives the wrong result.
+  
+  Note that this result is generic in the predicate P, which can be instantiated
+  with the event that the resulting estimate is the wrong count.\<close>
 
 theorem prob_run_steps_is_None_or_pred_le :
   \<open>\<P>(state in run_steps xs initial_state. state |> is_None_or_pred P)

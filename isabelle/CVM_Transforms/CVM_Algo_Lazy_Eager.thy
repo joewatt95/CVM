@@ -505,6 +505,10 @@ next
   finally show ?case .
 qed
 
+text
+  \<open>Main result equating \texttt{run\_steps\_no\_fail} (ie algorithm 2) with
+  the eager algorithm over a Bernoulli random matrix.\<close>
+
 corollary run_steps_no_fail_eq_run_steps_eager_bernoulli_matrix :
   assumes "length xs \<le> n"
   shows

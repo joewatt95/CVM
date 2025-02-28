@@ -55,6 +55,10 @@ lemmas state_inv_def' =
 context cvm_algo_assms
 begin
 
+text
+  \<open>Main result relating \texttt{run\_steps\_eager} (ie the eager algorithm)
+  with the random process.\<close>
+
 theorem
   fixes xs
   defines \<open>state_inv_take \<equiv> state_inv <<< flip take xs\<close>
@@ -160,6 +164,8 @@ proof -
 
   finally show ?thesis .
 qed
+
+text \<open>Main result transforming the random process into a Binomial distribution.\<close>
 
 theorem map_pmf_nondet_algo_eq_binomial :
   \<open>map_pmf (card <<< nondet_algo xs k) (bernoulli_matrix m n f) =

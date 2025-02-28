@@ -193,6 +193,8 @@ qed
 
 end
 
+text \<open>Main correctness instantiation result.\<close>
+
 theorem prob_cvm_incorrect_le_delta :
   \<open>\<P>(estimate in cvm xs.
     estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))

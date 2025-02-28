@@ -99,6 +99,10 @@ lemma r_pos :
   using \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> threshold power_eq_0_iff
   by fastforce
 
+text
+  \<open>Main result for the $\text{Pr}[\text{Error}_2 \cap \overline{\text{Bad}_2}]$ bound
+  as in \cite{cvm_2023}.\<close>
+
 theorem prob_eager_algo_k_le_l_and_est_out_of_range_le :
   assumes \<open>0 < \<epsilon>\<close> \<open>\<epsilon> \<le> 1\<close> \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close>
   shows
@@ -357,6 +361,8 @@ proof -
     apply (simp add: in_set_enumerate_eq)
     by (metis (no_types, lifting) One_nat_def le_simps(2) length_upt not_less_eq nth_upt plus_1_eq_Suc semiring_norm(163) verit_minus_simplify(2))
 qed
+
+text \<open>Main result for the $\text{Pr}[\text{Bad}_2]$ bound as in \cite{cvm_2023}.\<close>
 
 theorem prob_eager_algo_k_gt_l_le :
   assumes \<open>r \<ge> 2\<close> \<open>2 ^ l * threshold \<ge> r * card (set xs)\<close>
