@@ -1,0 +1,34 @@
+cabal-version:      3.0
+name:               counter-example
+version:            0.1.0.0
+license:            MIT
+license-file:       LICENSE
+author:             Emin Karayel
+maintainer:         me@eminkarayel.de
+category:           Randomized Algorithms
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall
+
+executable cvm-test
+    -- Import common warning flags.
+    import:           warnings
+
+    main-is:          Main.hs
+    other-modules:    SimulationMonad
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+
+    -- Other library packages from which modules are imported.
+    build-depends:    base ^>=4.18.2.1, extra >= 1.8
+
+    -- Directories containing source files.
+    hs-source-dirs:   src
+
+    ghc-options: -O3
+
+    -- Base language which the package is written in.
+    default-language: Haskell2010
+    default-extensions: StrictData
