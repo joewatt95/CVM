@@ -68,6 +68,25 @@ each formalisation.
 These will appear in the `document_out` subdirectory in the formalisations'
 subdirectories.
 
+## Main results
+
+The following is an overview of the main results presented in the paper.
+
+- [CVM_Invariant/CVM_Original_Algorithm.thy](CVM_Invariant/CVM_Original_Algorithm.thy)
+  
+  Defines the original CVM algorithm and the `correctness` theorem shows that its output estimate is probably-approximately correct.
+- [CVM_Invariant/CVM_New_Unbiased_Algorithm.thy](CVM_Invariant/CVM_Algorithm.thy)
+  
+  Defines the new CVM variant. The `unbiasedness` theorem shows its unbiasedness while the `correctness` theorem shows that its output estimate is probably-approximately correct.
+
+- [Neg_Assoc](Neg_Assoc)
+  
+  Formalizes a theory of negatively associated random variables, including results such as [Chernoff bounds](Neg_Assoc/Neg_Assoc_Chernoff_Bounds.thy), negative association of [permutation distributions](Neg_Assoc/Neg_Assoc_Permutation_Distributions.thy), and an example application on [Bloom filters](Neg_Assoc/Neg_Assoc_Bloom_Filters.thy).
+
+- [CVM_Transforms/CVM_Correctness_Instance.thy](CVM_Transforms)
+  
+  Formalises the original CVM algorithm via its original transformation-based proof. The main theorem is `prob_cvm_incorrect_le_\<delta>`.
+
 ## Interactively viewing and editing the formalisations
 
 To interact with our formalisations, one can use the built-in jedit based
