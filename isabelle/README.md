@@ -63,7 +63,28 @@ $ isabelle build -v -b -g CVM
 
 (These commands should be executed from the directory in which this README.md file resides.)
 
-This will also generate $\LaTeX$ sources and corresponding pdf documents for
+A successful build should display output similar to the following:
+
+```shell
+$ isabelle build -v -b -g CVM
+
+Started at ...
+...
+Building CVM_Transforms ...
+...
+Finished CVM_Transforms (0:02:05 elapsed time, 0:06:52 cpu time, factor 3.27)
+Building Neg_Assoc ...
+...
+Finished Neg_Assoc (0:05:23 elapsed time, 0:18:23 cpu time, factor 3.41)
+Building CVM_Invariant ...
+...
+Finished CVM_Invariant (0:05:27 elapsed time, 0:18:58 cpu time, factor 3.48)
+
+Finished at ...
+0:13:34 elapsed time, 0:44:14 cpu time, factor 3.26
+```
+
+The build process will also generate $\LaTeX$ sources and corresponding pdf documents for
 each formalisation.
 These will appear in the `document_out` subdirectory in the formalisations'
 subdirectories.
