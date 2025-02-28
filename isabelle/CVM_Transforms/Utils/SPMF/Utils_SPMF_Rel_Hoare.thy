@@ -1,11 +1,21 @@
 subsection \<open>SPMF relational Hoare rules\<close>
 
+text
+  \<open>This subsection defines a suitable notion of Hoare triples for partial and
+  total correctnesss for Kleisli morphisms over \texttt{spmf}, and provides
+  various proof rules for monadic folds, and probabilistic while loops.
+  These are based on \texttt{pRHL} from \cite{barthe_hsu_2020}.
+
+  Note that this theory is split off as a separate theory from
+  \texttt{Utils\_SPMF\_Basic} as it has a hefty dependency tree, due to its use
+  of Lemmas from \texttt{CryptHOL}\<close>
+
 theory Utils_SPMF_Rel_Hoare
 
 imports
   ABY3_Protocols.Spmf_Common
-  Utils_SPMF_FoldM_Hoare
-  Utils_PMF_Rel_Hoare
+  Utils_PMF_Basic
+  Utils_SPMF_Basic
 
 begin
 

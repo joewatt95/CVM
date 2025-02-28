@@ -1,4 +1,16 @@
-section \<open>CVM to CVM without failure transformation\<close>
+section \<open>Transforming CVM to CVM without failure\<close>
+
+text
+  \<open>This formalises the transformation from the original CVM algorithm (ie
+  algorithm 1 in \cite{cvm_2023}) to a variation that does not fail (ie 
+  algorithm 2).
+  
+  Here, \texttt{run\_steps} models algorithm 1, and
+  \texttt{run\_steps\_no\_fail} models algorithm 2.
+  
+  The main result here is \texttt{prob\_run\_steps\_is\_None\_or\_pred\_le}, which
+  bounds the probability that \texttt{run\_steps} gives the wrong estimate by
+  its failure probability and that of \texttt{run\_steps\_no\_fail}\<close>
 
 theory CVM_Algo_No_Fail
 
@@ -23,6 +35,11 @@ end
 context cvm_algo_assms
 begin
 
+text
+  \<open>This loop invariant says that \texttt{state\_chi} always remains finite across
+  the loop iterations of \texttt{run\_steps} and \texttt{run\_steps\_no\_fail}.
+  This aids the simplifier.\<close>
+
 lemma
   initial_state_finite :
     \<open>finite_chi initial_state\<close> (is ?thesis_0) and
@@ -46,6 +63,11 @@ proof -
       split: if_splits)
 qed
 
+text
+  \<open>This uses the previous invariant to establish that \texttt{step\_2} has finite
+  support after \texttt{step\_1}, so that we can split up an expectation over
+  \texttt{step\_1 >>= step\_2} into iterated integrals.\<close>
+
 lemma
   step_1_finite_support :
     \<open>\<And> state. finite <| set_pmf <| step_1 x state\<close> (is \<open>PROP ?thesis_0\<close>) and
@@ -63,6 +85,8 @@ proof -
   ultimately show \<open>PROP ?thesis_2\<close> by (fastforce simp add: AE_measure_pmf_iff)
 qed
 
+text \<open>Bounding the probability of failure of algorithm 2, \texttt{run\_steps}\<close>
+
 lemma prob_fail_step_le :
   assumes \<open>finite_chi state\<close>
   shows \<open>prob_fail (step x state) \<le> f ^ threshold\<close> (is \<open>?L \<le> ?R\<close>)
@@ -71,6 +95,9 @@ proof -
     measure_pmf.expectation (step_1 x state \<bind> step_2) (prob_fail <<< step_3)\<close>
     unfolding step_def pmf_bind_spmf_None by simp
 
+  text
+    \<open>Use the previous invariant to split up the expectation into iterated
+    integrals.\<close>
   also from assms step_2_finite_support_after_step_1 step_1_finite_support
   have \<open>\<dots> =
     measure_pmf.expectation (step_1 x state)
@@ -135,7 +162,8 @@ lemma run_steps_le_run_steps_no_fail :
   unfolding foldM_spmf_of_pmf_eq[symmetric]
   by (blast intro: foldM_spmf_ord_spmf_eq_of_ord_spmf_eq step_le_step_no_fail)
 
-(* Think of P as event that `estimate` is the wrong count *)
+text \<open>P can be viewed as the event that the resulting estimate is the wrong count.\<close>
+
 theorem prob_run_steps_is_None_or_pred_le :
   \<open>\<P>(state in run_steps xs initial_state. state |> is_None_or_pred P)
   \<le> real (length xs) * f ^ threshold +

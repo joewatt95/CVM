@@ -1,4 +1,21 @@
-section \<open>Error bounds\<close>
+section \<open>CVM error bounds\<close>
+
+text
+  \<open>This section formalises the proofs of the bounds of
+  (1): $\text{Pr}[\text{Error}_2 \cap \overline{\text{Bad}_2}]$
+  and (2): $\text{Pr}[\text{Bad}_2]$
+  as in \cite{cvm_2023}.
+  
+  These bounds are established by the following main results:
+  \begin{itemize}
+    \item \texttt{prob\_eager\_algo\_k\_le\_l\_and\_est\_out\_of\_range\_le}
+    formalises the proof for (1)
+    \item \texttt{prob\_eager\_algo\_k\_gt\_l\_le}
+    foramlises the proof for (2)
+  \end{itemize}
+  
+  Note that our results are more generic than those in \cite{cvm_2023} as we
+  allow for a range of values for the threshold (which include the one used there).\<close>
 
 theory CVM_Error_Bounds
 
@@ -19,15 +36,17 @@ abbreviation
   \<open>run_with_bernoulli_matrix \<equiv> \<lambda> g.
     map_pmf (g xs) (bernoulli_matrix (length xs) (length xs) f)\<close>
 
-subsection \<open>Definitions of error bounds\<close>
+subsection \<open>Definitions of bounds\<close>
 
-text \<open>Bound for the case when $k \le l$\<close>
+text \<open>Bound for the case when $k \le l$, ie $\text{Pr}[\text{Bad}_2]$\<close>
 
 definition
   \<open>prob_k_le_l_and_est_out_of_range_bound \<equiv>
     4 * exp (-\<epsilon>\<^sup>2 * threshold / (4 * real r * (1 + \<epsilon> / 3)))\<close>
 
-text \<open>Bound for the case when $k > l$\<close>
+text
+  \<open>Bound for the case when $k > l$, ie
+  $\text{Pr}[\text{Error}_2 \cap \overline{\text{Bad}_2}]$\<close>
 
 definition
   \<open>prob_k_gt_l_bound \<equiv>
@@ -355,7 +374,7 @@ next
         in state_k state = l \<and> card (state_chi state) \<ge> threshold))\<close>
     by (auto intro: pmf_mono simp add: Let_def)
 
-  (* union bound *)
+  text \<open>Union bound\<close>
   also have \<open>\<dots> \<le> (
     \<Sum> i < length xs.
       \<P>(\<phi> in bernoulli_matrix (length xs) (length xs) f.

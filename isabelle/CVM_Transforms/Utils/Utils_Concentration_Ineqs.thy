@@ -1,5 +1,14 @@
 section \<open>Various Concentration Inequalities\<close>
 
+text \<open>The main results here are:
+  \begin{itemize}
+    \item The Bennet-Bernstein inequality, including the one-sided upper and
+    lower tail bounds, and the two-sided bound.
+
+    \item The multiplicative Chernoff bound, derived from the aforementioned
+    Bennet-Bernstein inequality.
+  \end{itemize}\<close>
+
 theory Utils_Concentration_Ineqs
 
 imports

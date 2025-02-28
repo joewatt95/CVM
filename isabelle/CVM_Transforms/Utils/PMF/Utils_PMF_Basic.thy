@@ -1,13 +1,17 @@
-subsection \<open>Basic PMF utilities\<close>
+section \<open>PMF utilities\<close>
+
+text \<open>This section provides various PMF related utilities.\<close>
 
 theory Utils_PMF_Basic
 
 imports
-  "Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF"
-  "Finite_Fields.Finite_Fields_More_PMF"
+  Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
+  Finite_Fields.Finite_Fields_More_PMF
   Utils_Basic
 
 begin
+
+subsection \<open>Basic PMF utilities\<close>
 
 lemma integrable_measure_pmf_pmf [simp] :
   \<open>integrable (measure_pmf p) <| \<lambda> x. pmf (f x) y\<close>
@@ -312,5 +316,162 @@ lemma bernoulli_matrix_eq_uncurry_prod :
         |> map_pmf (\<lambda> \<omega>. \<lambda> (x, y) \<in> m' \<times> n'. \<omega> x y))\<close>
   unfolding bernoulli_matrix_def m'_def n'_def
   by (simp add: prod_pmf_uncurry)
+
+subsection \<open>foldM\_pmf and related Hoare rules\<close>
+
+subsubsection \<open>foldM\_pmf\<close>
+
+abbreviation \<open>foldM_pmf \<equiv> foldM bind_pmf return_pmf\<close>
+abbreviation \<open>foldM_pmf_enumerate \<equiv> foldM_enumerate bind_pmf return_pmf\<close>
+
+lemma foldM_pmf_snoc :
+  "foldM_pmf f (xs @ [x]) val = bind_pmf (foldM_pmf f xs val) (f x)"
+  apply (induction xs arbitrary:val)
+    by (simp_all
+      add: bind_return_pmf bind_return_pmf' bind_assoc_pmf
+      cong: bind_pmf_cong)
+
+subsubsection \<open>Hoare triple for Kleisli morphisms over PMF\<close>
+
+abbreviation pmf_hoare_triple
+  (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> _ \<lbrakk> _ \<rbrakk> \<close> [21, 20, 21] 60) where
+  \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> f \<lbrakk>Q\<rbrakk> \<equiv> (\<And> x. P x \<Longrightarrow> AE y in measure_pmf <| f x. Q y)\<close>
+
+subsubsection \<open>Hoare rules for foldM\_pmf\<close>
+
+context
+  fixes
+    P :: \<open>nat \<Rightarrow> 'b \<Rightarrow> bool\<close> and
+    xs :: \<open>'a list\<close> and
+    offset :: nat
+begin
+
+private abbreviation (input)
+  \<open>P' \<equiv> \<lambda> idx x val.
+    (idx, x) \<in> set (List.enumerate offset xs) \<and>
+    P idx val\<close>
+
+lemma pmf_hoare_foldM_enumerate :
+  assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f (idx, x) \<lbrakk>P (Suc idx)\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf
+    \<lbrakk>P offset\<rbrakk>
+    foldM_pmf_enumerate f xs offset
+    \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
+using assms proof (induction xs arbitrary: offset)
+  case Nil
+  then show ?case by (simp add: AE_measure_pmf_iff foldM_enumerate_def)
+next
+  case (Cons _ _)
+  then show ?case
+    apply (simp add: AE_measure_pmf_iff foldM_enumerate_def)
+    by (metis add_Suc_right add_Suc_shift)
+qed
+
+lemma pmf_hoare_foldM_indexed' :
+  assumes \<open>\<And> idx x. \<turnstile>pmf \<lbrakk>P' idx x\<rbrakk> f x \<lbrakk>P (Suc idx)\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf \<lbrakk>P offset\<rbrakk> foldM_pmf f xs \<lbrakk>P (offset + length xs)\<rbrakk>\<close>
+  using assms pmf_hoare_foldM_enumerate
+  by (metis foldM_eq_foldM_enumerate prod.sel(2))
+
+end
+
+lemmas pmf_hoare_foldM_indexed =
+  pmf_hoare_foldM_indexed'[where offset = 0, simplified]
+
+lemma pmf_hoare_foldM :
+  assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>P\<rbrakk> f x \<lbrakk>P\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf \<lbrakk>P\<rbrakk> foldM_pmf f xs \<lbrakk>P\<rbrakk>\<close>
+  using assms pmf_hoare_foldM_indexed[where P = \<open>\<lblot>P\<rblot>\<close>] by blast
+
+subsection \<open>PMF relational Hoare rules\<close>
+
+text
+  \<open>This subsection defines a suitable notion of Hoare triples for the total
+  correctness of Kleisli morphisms over \texttt{pmf}, and provides various
+  proof rules for monadic folds.
+  These are based on \texttt{pRHL} from \cite{barthe_hsu_2020}.\<close>
+
+lemma rel_pmf_bindI1 :
+  assumes \<open>\<And> x. x \<in> set_pmf p \<Longrightarrow> rel_pmf R (f x) q\<close>
+  shows \<open>rel_pmf R (p \<bind> f) q\<close>
+  using assms rel_spmf_bindI1 rel_spmf_spmf_of_pmf
+  by (metis bind_spmf_of_pmf lossless_spmf_spmf_of_spmf set_spmf_spmf_of_pmf spmf_of_pmf_bind)
+
+lemma rel_pmf_bindI2 :
+  assumes \<open>\<And> x. x \<in> set_pmf q \<Longrightarrow> rel_pmf R p (f x)\<close>
+  shows \<open>rel_pmf R p (q \<bind> f)\<close>
+  using assms rel_spmf_bindI2 rel_spmf_spmf_of_pmf
+  by (metis bind_spmf_of_pmf lossless_spmf_spmf_of_spmf set_spmf_spmf_of_pmf spmf_of_pmf_bind)
+
+subsubsection \<open>Relational Hoare triple for Kleisli morphism over PMF\<close>
+
+abbreviation pmf_rel_hoare_triple
+  (\<open>\<turnstile>pmf \<lbrakk> _ \<rbrakk> \<langle> _ | _ \<rangle> \<lbrakk> _ \<rbrakk>\<close> [21, 20, 20, 21] 60) where
+  \<open>(\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f'\<rangle> \<lbrakk>S\<rbrakk>) \<equiv> (\<And> x x'. R x x' \<Longrightarrow> rel_pmf S (f x) (f' x'))\<close>
+
+subsubsection \<open>One-sided Hoare skip rules\<close>
+
+lemma rel_hoare_skip_left [simp] :
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f >>> return_pmf | f'\<rangle> \<lbrakk>S\<rbrakk> \<equiv> (\<And> x. \<turnstile>pmf \<lbrakk>R x\<rbrakk> f' \<lbrakk>S (f x)\<rbrakk>)\<close>
+  by (simp add: AE_measure_pmf_iff rel_pmf_return_pmf1)
+
+lemma rel_hoare_skip_right [simp] :
+  \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f | f' >>> return_pmf\<rangle> \<lbrakk>S\<rbrakk> \<equiv>
+    (\<And> x'. \<turnstile>pmf \<lbrakk>flip R x'\<rbrakk> f \<lbrakk>flip S (f' x')\<rbrakk>)\<close>
+  apply standard by (simp_all add: AE_measure_pmf_iff rel_pmf_return_pmf2)
+
+subsubsection \<open>Two-sided Hoare rules for foldM\_pmf\<close>
+
+context
+  fixes
+    R :: \<open>nat \<Rightarrow> 'b \<Rightarrow>'c \<Rightarrow> bool\<close> and
+    xs :: \<open>'a list\<close> and
+    offset :: nat
+begin
+
+private abbreviation (input)
+  \<open>foldM_enumerate' \<equiv> \<lambda> f. foldM_pmf_enumerate f xs offset\<close>
+
+private abbreviation (input)
+  \<open>R' \<equiv> \<lambda> idx x val val'.
+    (idx, x) \<in> set (List.enumerate offset xs) \<and>
+    R idx val val'\<close>
+
+lemma pmf_rel_hoare_foldM_enumerate :
+  assumes \<open>\<And> index x.
+    \<turnstile>pmf \<lbrakk>R' index x\<rbrakk> \<langle>f (index, x) | f' (index, x)\<rangle> \<lbrakk>R (Suc index)\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf
+    \<lbrakk>R offset\<rbrakk>
+    \<langle>foldM_enumerate' f | foldM_enumerate' f'\<rangle>
+    \<lbrakk>R (offset + length xs)\<rbrakk>\<close>
+using assms proof (induction xs arbitrary: offset)
+  case Nil
+  then show ?case by (simp add: foldM_enumerate_def)
+next
+  case (Cons _ _)
+  then show ?case
+    apply (simp flip: add_Suc add: foldM_enumerate_def)
+    by (blast intro: rel_pmf_bindI)
+qed
+
+lemma pmf_rel_hoare_foldM_indexed' :
+  assumes \<open>\<And> idx x.
+    \<turnstile>pmf \<lbrakk>R' idx x\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R (Suc idx)\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf
+    \<lbrakk>R offset\<rbrakk>
+    \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle>
+    \<lbrakk>R (offset + length xs)\<rbrakk>\<close>
+  using assms pmf_rel_hoare_foldM_enumerate
+  by (metis foldM_eq_foldM_enumerate prod.sel(2))
+
+end
+
+lemmas pmf_rel_hoare_foldM_indexed =
+  pmf_rel_hoare_foldM_indexed'[where offset = 0, simplified]
+
+lemma pmf_rel_hoare_foldM :
+  assumes \<open>\<And> x. \<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>f x | f' x\<rangle> \<lbrakk>R\<rbrakk>\<close>
+  shows \<open>\<turnstile>pmf \<lbrakk>R\<rbrakk> \<langle>foldM_pmf f xs | foldM_pmf f' xs\<rangle> \<lbrakk>R\<rbrakk>\<close>
+  using assms pmf_rel_hoare_foldM_indexed[where R = \<open>\<lblot>R\<rblot>\<close>] by blast
 
 end

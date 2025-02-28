@@ -1,10 +1,32 @@
-section \<open>Definition of CVM algorithm \<close>
+section \<open>CVM algorithm definition\<close>
+
+text
+  \<open>Here, we define the CVM algorithm, ie algorithm 1 from \cite{cvm_2023}.
+  
+  For this, we define the notion of a \texttt{state} record, which tracks the
+  $k$ and $\chi$ values across the loop iterations, via the \texttt{state\_k}
+  and \texttt{state\_chi} fields.
+  
+  The loop in the CVM algorithm is then modelled as a monadic fold
+  (via foldM\_spmf) over the input list with a \texttt{state} record, with
+  each loop iteration being modelled by the \texttt{step} function.
+  
+  \texttt{step} itself is split up into 3 functions, namely:
+  \begin{itemize}
+    \item \texttt{step\_1} models lines 3 - 4 of algorithm 1
+    \item \texttt{step\_2} models lines 5 - 7 of algorithm 1
+    \item \texttt{step\_3} models line 8 of algorithm 1
+  \end{itemize}
+  
+  \texttt{cvm} corresponds to algorithm 1, and \texttt{run\_steps} is a
+  variation of it that returns the \texttt{state} directly, instead of
+  computing and returning the final estimate.\<close>
 
 theory CVM_Algo
 
 imports
   Universal_Hash_Families.Universal_Hash_Families_More_Product_PMF
-  Utils_SPMF_FoldM_Hoare
+  Utils_SPMF_Basic
 
 begin
 
@@ -23,9 +45,6 @@ definition compute_estimate :: \<open>'a state \<Rightarrow> real\<close> where
 locale cvm_algo =
   fixes threshold :: nat
 begin
-
-text
-  \<open>The algorithm is defined in the SPMF monad (with None representing failure)\<close>
 
 definition step_1 :: \<open>'a \<Rightarrow> 'a state \<Rightarrow> 'a state pmf\<close> where
   \<open>step_1 \<equiv> \<lambda> x state. do {

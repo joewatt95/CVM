@@ -1,5 +1,9 @@
 section \<open>Basic utilities\<close>
 
+text
+  \<open>This provides basic, general utilities that are used throughout the rest
+  of this development.\<close>
+
 theory Utils_Basic
 
 imports

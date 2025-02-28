@@ -1,5 +1,7 @@
 section \<open>Reader monad\<close>
 
+text \<open>Reader monad ala Haskell.\<close>
+
 theory Utils_Reader_Monad
 
 imports
@@ -10,16 +12,16 @@ begin
 datatype ('c, 'a) reader_monad = Reader (run_reader: "'c \<Rightarrow> 'a")
 
 definition bind_rd :: "('c,'a) reader_monad \<Rightarrow> ('a \<Rightarrow> ('c,'b) reader_monad) \<Rightarrow> ('c,'b) reader_monad"
-  where "bind_rd m f = Reader (\<lambda>r. run_reader (f (run_reader m r)) r)"
+  where "bind_rd m f \<equiv> Reader (\<lambda>r. run_reader (f (run_reader m r)) r)"
 
 definition return_rd :: "'a \<Rightarrow> ('c,'a) reader_monad"
-  where "return_rd m = Reader (\<lambda>_. m)"
+  where "return_rd m \<equiv> Reader (\<lambda> _. m)"
 
 definition get_rd :: "('a,'a) reader_monad"
-  where "get_rd = Reader id"
+  where "get_rd \<equiv> Reader id"
 
 definition map_rd :: "('a \<Rightarrow> 'b) \<Rightarrow> ('c, 'a) reader_monad \<Rightarrow> ('c,'b) reader_monad"
-  where "map_rd f m = bind_rd m (\<lambda>x. return_rd (f x))"
+  where "map_rd f m \<equiv> bind_rd m (\<lambda>x. return_rd (f x))"
 
 (* Isabelle2025:
 adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_rd *)

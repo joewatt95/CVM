@@ -1,4 +1,39 @@
-section \<open>Main top level CVM correctness theorem\<close>
+section \<open>Main CVM correctness theorem\<close>
+
+text
+  \<open>Top level correctness theorems for the CVM algorithm.
+
+  These are established by the following results:
+  \begin{itemize}
+    \item \texttt{cvm\_estimate\_is\_nat}
+    says that the resulting estimate returned by \texttt{cvm}
+    (ie the CVM algorithm) is a natural number (on top of being a real number).
+
+    \item \texttt{cvm\_correct\_of\_empty\_or\_threshold}
+    formalises the observation that \texttt{cvm} always gives the correct, exact
+    estimate if the input list \texttt{xs} is nonempty, and that the
+    threshold is not so large that it exceeds \texttt{card (set xs)}.
+
+    \item \texttt{prob\_cvm\_incorrect\_le}
+    is the main correctness theorem as in Theorem 2 of \cite{cvm_2023}.
+
+    Note that:
+    \begin{itemize}
+      \item As with the earlier results we formalised, the version we have
+      here is more general than the one in \cite{cvm_2023}, because we prove it
+      for a range of values for the threshold subject to some constraints
+      (which include the one used there).
+
+      Later, in \texttt{CVM\_Correctness\_Instance}, we obtain
+      \texttt{prob\_cvm\_incorrect\_le\_delta}, a stronger version of
+      (the correctness part of) Theorem 2 of \cite{cvm_2023}.
+
+      \item This result uses the above one to provide an API that allows one
+      to ignore trivial cases like the input list being empty, and the
+      threshold being too large, when instantiating it with a threshold and
+      proving the required constraints.
+    \end{itemize}
+  \end{itemize}\<close>
 
 theory CVM_Correctness
 
@@ -49,6 +84,7 @@ begin
 definition \<open>prob_fail_bound \<equiv> length xs * f ^ threshold\<close>
 
 abbreviation \<open>card_xs \<equiv> card (set xs)\<close>
+
 abbreviation \<open>two_l_threshold \<equiv> 2 ^ l * threshold\<close>
 
 lemmas prob_bounds_defs =

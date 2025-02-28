@@ -1,4 +1,4 @@
-subsection \<open>Eager to lazy sampling transformation\<close>
+subsection \<open>Transforming eager to lazy sampling\<close>
 
 theory Utils_PMF_Lazify
 

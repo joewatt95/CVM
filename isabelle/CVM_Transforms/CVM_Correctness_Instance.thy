@@ -1,11 +1,25 @@
 section \<open>Instantiation of main CVM correctness theorem\<close>
 
+text
+  \<open>The main result here is \texttt{prob\_cvm\_incorrect\_le\_delta}, which
+  formalises the correctness part of Theorem 2 of \cite{cvm_2023}.
+  
+  In fact, our result is stronger, as we provide the same correctness guarantee
+  using a smaller threshold of
+  $\lceil \frac{12}{\varepsilon^2} \text{log}_2 \frac{3m}{\delta} \rceil$
+  where $m$ is the length of the input list.
+  
+  Our result also formalises the intuitive observation that this holds for all
+  choices of thresholds that are at least this value.\<close>
+
 theory CVM_Correctness_Instance
 
 imports
   CVM_Correctness
 
 begin
+
+subsection \<open>Auxiliary arithmetic lemma\<close>
 
 lemma exp_minus_log_le :
   assumes \<open>9/8 \<le> a\<close> \<open>2 \<le> b\<close> \<open>0 < c\<close> \<open>c \<le> 1\<close>
@@ -41,6 +55,18 @@ proof -
   finally show ?thesis .
 qed
 
+subsection \<open>Instantiating the main correctness theorem\<close>
+
+text
+  \<open>Here we instantiate the main correctness theorem
+  \texttt{prob\_cvm\_incorrect\_le} with a threshold that is
+  $\ge \lceil \frac{12}{\varepsilon^2} \text{log}_2 \frac{3 * m}{\delta} \rceil$
+  
+  Note that this result provides an API that allows us to assume without loss of
+  generality that \texttt{xs} $\ne$ \texttt{[]} and
+  \texttt{threshold} $\le$ \texttt{card (set xs)}
+  where \texttt{xs} is the input list.\<close>
+
 context
   fixes
     \<epsilon> \<delta> threshold :: real and
@@ -70,7 +96,7 @@ lemma ceil_threshold_ge_2 :
   apply simp
   by (smt (verit, best) Multiseries_Expansion.intyness_1 approximation_preproc_nat(8) divide_le_eq_1_pos log_divide log_le_zero_cancel_iff log_less_one_cancel_iff numeral_nat(7) power_le_one zero_less_power)
 
-lemma \<epsilon>_ceil_threshold_ge_12 :
+lemma epsilon_ceil_threshold_ge_12 :
   \<open>\<epsilon>\<^sup>2 * \<lceil>threshold\<rceil> \<ge> 12\<close>
   using \<epsilon> \<delta> threshold \<open>xs \<noteq> []\<close>
   apply (simp add: field_simps)
@@ -98,7 +124,9 @@ proof -
     by (smt (verit, best) pos_le_divide_eq power_of_nat_log_le zero_compare_simps(8) zero_less_power)
 qed
 
-lemma prob_fail_bound_le_\<delta> :
+text \<open>The next result is analogous to claim 3 of \cite{cvm_2023}.\<close>
+
+lemma prob_fail_bound_le_delta :
   \<open>prob_fail_bound \<le> \<delta> / 3\<close>
   using \<epsilon> \<delta> threshold ceil_threshold_ge_2 \<open>xs \<noteq> []\<close>
   unfolding prob_bounds_defs
@@ -111,7 +139,12 @@ lemma length_ge_2 :
   apply simp
   by (metis Suc_1 leD not_less_eq_eq of_nat_1_eq_iff rotate1_fixpoint_card rotate1_length01)
 
-lemma prob_k_gt_l_bound_le_\<delta> :
+text
+  \<open>\texttt{prob\_k\_gt\_l\_bound\_le\_delta} and
+  \texttt{prob\_k\_le\_l\_and\_est\_out\_of\_range\_bound\_le\_delta}
+  are analogous to claim 4 of \cite{cvm_2023}.\<close>
+
+lemma prob_k_gt_l_bound_le_delta :
   \<open>prob_k_gt_l_bound \<le> 2 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   have \<open>?L \<le> length xs * exp (- threshold / 6)\<close>
@@ -137,7 +170,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma prob_k_le_l_and_est_out_of_range_bound_le_\<delta> :
+lemma prob_k_le_l_and_est_out_of_range_bound_le_delta :
   \<open>prob_k_le_l_and_est_out_of_range_bound \<le> 8 * \<delta> / 15\<close> (is \<open>?L \<le> ?R\<close>)
 proof -
   from \<epsilon> have \<open>?L \<le> 4 * exp (-\<epsilon>\<^sup>2 * threshold / (8 * (1 + \<epsilon> / 3)))\<close>
@@ -160,19 +193,20 @@ qed
 
 end
 
-theorem prob_cvm_incorrect_le_\<delta> :
+theorem prob_cvm_incorrect_le_delta :
   \<open>\<P>(estimate in cvm xs.
     estimate |> is_None_or_pred (\<lambda> estimate. estimate >[\<epsilon>] card (set xs)))
   \<le> \<delta>\<close>
   apply (intro prob_cvm_incorrect_le)
   using
-    \<epsilon> \<delta> \<epsilon>_ceil_threshold_ge_12 ceil_threshold_ge_2 two_l_threshold_bounds
-    prob_fail_bound_le_\<delta> prob_k_gt_l_bound_le_\<delta> prob_k_le_l_and_est_out_of_range_bound_le_\<delta>
+    \<epsilon> \<delta> epsilon_ceil_threshold_ge_12 ceil_threshold_ge_2 two_l_threshold_bounds
+    prob_fail_bound_le_delta prob_k_gt_l_bound_le_delta
+    prob_k_le_l_and_est_out_of_range_bound_le_delta
   by simp_all linarith
 
 end
 
-thm prob_cvm_incorrect_le_\<delta>[simplified]
+thm prob_cvm_incorrect_le_delta[simplified]
 
 end
 

@@ -1,4 +1,24 @@
-section \<open>CVM eager sampling to binomial distribution transformation\<close>
+section \<open>Transforming CVM eager sampling to binomial distribution\<close>
+
+text
+  \<open>Here we transform the eager sampling version of \texttt{run\_steps\_no\_fail}
+  (ie algorithm 2 of \cite{cvm_2023}) to a random process modelling algorithm 3,
+  and further to a binomial distribution, for ease of analysis later.
+
+  This random process first samples all Bernoulli random variables up front, as
+  with \texttt{run\_steps\_no\_fail}, and then uses \texttt{nondet\_algo} to
+  compute the final $\chi$ at the end of the input list, in one step.
+
+  These transformations are justified by the following main results:
+  \begin{enumerate}
+    \item \texttt{run\_steps\_eager\_inv}
+    which uses invariant-based reasoning to prove the first
+    transformation from the eager sampling algorithm to the random process.
+
+    \item \texttt{map\_pmf\_nondet\_algo\_eq\_binomial}
+    justifies the second transformation from the random process to the Binomial
+    distribution.
+  \end{enumerate}\<close>
 
 theory CVM_Algo_Nondet_Binomial
 

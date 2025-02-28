@@ -29,12 +29,9 @@ session CVM_Transforms (CVM) = "CryptHOL" +
     "Utils_Concentration_Ineqs"
 
     "Utils_PMF_Basic"
-    "Utils_PMF_FoldM_Hoare"
-    "Utils_PMF_Rel_Hoare"
     "Utils_PMF_Lazify"
 
     "Utils_SPMF_Basic"
-    "Utils_SPMF_FoldM_Hoare"
     "Utils_SPMF_Rel_Hoare"
 
   document_files

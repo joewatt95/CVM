@@ -1,6 +1,8 @@
-section \<open>Approximation Algorithm Utilities\<close>
+section \<open>Approximation algorithm utilities\<close>
 
-text \<open>Notation and lemmas for approximation algorithms\<close>
+text
+  \<open>This defines a notation and provides useful lemmas for randomized
+  approximation algorithms\<close>
 
 theory Utils_Approx_Algo
 

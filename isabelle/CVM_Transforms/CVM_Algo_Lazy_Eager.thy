@@ -1,4 +1,15 @@
-section \<open>CVM without failure to CVM eager sampling transformation\<close>
+section \<open>Transforming CVM without failure to CVM eager sampling\<close>
+
+text
+  \<open>Intermediate step for transforming \texttt{run\_steps\_no\_fail}
+  (ie algorithm 2 of \cite{cvm_2023}) to a random process modelling algorithm 3.
+  
+  The main result here is
+  \texttt{run\_steps\_no\_fail\_eq\_run\_steps\_eager\_bernoulli\_matrix}, which
+  transforms \texttt{run\_steps\_no\_fail} to an algorithm that first eagerly
+  samples all required Bernoulli random variables up front and then runs a
+  deterministic variation of it (ie \texttt{run\_steps\_eager}) over these coin
+  flips.\<close>
 
 theory CVM_Algo_Lazy_Eager
 
