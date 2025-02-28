@@ -63,7 +63,8 @@ $ isabelle build -v -b -g CVM
 
 (These commands should be executed from the directory in which this README.md file resides.)
 
-A successful build should display output similar to the following:
+A successful build should display output similar to the following.
+The order and time taken to build the sessions may differ.
 
 ```shell
 $ isabelle build -v -b -g CVM
