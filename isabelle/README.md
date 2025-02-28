@@ -62,7 +62,9 @@ $ isabelle build -v -b -g CVM
 ```
 
 This will also generate $\LaTeX$ sources and corresponding pdf documents for
-each formalisation in their respective subdirectories.
+each formalisation.
+These will appear in the `document_out` subdirectory in the formalisations'
+subdirectories.
 
 ## Interactively viewing and editing the formalisations
 
