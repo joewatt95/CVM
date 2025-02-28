@@ -106,7 +106,7 @@ The following is an overview of the main results presented in the paper.
 
 - [CVM_Transforms/CVM_Correctness_Instance.thy](CVM_Transforms/CVM_Correctness_Instance.thy)
   
-  Formalises the original CVM algorithm via its original transformation-based proof. The main theorem is `prob_cvm_incorrect_le_\<delta>`.
+  Formalises the original CVM algorithm via its original transformation-based proof. The main theorem is `prob_cvm_incorrect_le_delta`.
 
 ## Interactively viewing and editing the formalisations
 
