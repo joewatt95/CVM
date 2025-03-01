@@ -9,9 +9,9 @@ The theory \verb|CVM_Abstract_Algorithm| verifies a generalized version of the C
 The specialization happens in the following theories, where \verb|CVM_Original_Algorithm| verifies the original algorithm, and \verb|CVM_New_Unbiased_Algorithm| verifies the new total and unbiased variant.
 Note that only \verb|CVM_New_Unbiased_Algorithm| depends on the new library for negatively associated random variables, which we describe in more detail in \cref{sec:formalization_neg_dep}.
 The total number of lines required for the verification of the original algorithm is \locnew~lines.
+In addition, we actually verified a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
 \lipicsEnd\end{note}
 
-We verified a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
 %Our formalization also allows $n \geq 12 \varepsilon^{-2} \ln(6 l \delta^{-1})$, i.e., $n$ can be any integer value greater than the bound.
 %Another deviation is that we have better constant factors compared to the original presentation---the buffer size used by Chakraborty et al. is $12 \varepsilon^{-2} \log_2(8 l \delta^{-1}) \approx 17.3 \varepsilon^{-2} \ln(8 l \delta^{-1})$.
 %This difference is mainly due to the fact that the invariant-based proof does not require conditioning on particular values of $p$ (the subsampling probability at the end of the algorithm) in contrast to the transformation-based proof which applies Chernoff bounds for each possible value of $p$ (down to some lower bound $q$) and establishes the final error probability as a union bound.
