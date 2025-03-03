@@ -22,14 +22,44 @@
   Emin Karayel,
   Kuldeep S. Meel,
   \\
-  and Yong Kiam Tan}
+  and Yong Kiam Tan
+}
 
 \maketitle
 
 \begin{abstract}
-  This is an example submission to the Archive of Formal Proofs. It
-  shows submission requirements and explains the structure of a simple
-  typical submission.
+  Published in 2022, the CVM algorithm \cite{cvm_2022} is a remarkably simple
+  one for the distinct elements problem, avoiding intricate derandomization
+  techniques, while maintaining a close to optimal logarithmic space complexity.
+  Later, it was discovered that the proof was incorrect, with the authors
+  presenting a new proof in \cite{cvm_2023}.
+
+  This project formalises the new, corrected proof of the CVM algorithm, while
+  strengthening the correctness result of Theorem 2 in \cite{cvm_2023} to provide
+  the same correctness guarantee using a smaller threshold
+  (and hence space usage) of
+  $\lceil \frac{12}{\varepsilon^2} \text{log}_2 \frac{3m}{\delta} \rceil$,
+  where $m$ is the length of the input stream.
+
+  This corrected proof performs a sequence of transformations of the CVM
+  algorithm, akin to cryptographic game-hopping.
+  The reason for these transformations is that standard techniques for analysing
+  randomised algorithms such as the Chernoff bounds usually require independence
+  of state random variables, which is unfortunately absent from the CVM
+  algorithm, but was incorrecty claimed and used in the original proof.
+  The transformations address this by successively simplifying the
+  algorithm into one where the state variables are independent, enabling
+  the use of the Chernoff bounds.
+
+  As part of the project, we also formalise various useful results, in particular:
+  \begin{enumerate}
+    \item Unary and relational Hoare rules for reasoning about monadic folds
+    (ie. loops) over the \texttt{reader}, \texttt{pmf} and \texttt{spmf} monads,
+    which we use to justify the various program transformations.
+
+    \item Strong forms of the multiplicative Chernoff bounds for the binomial
+    distribution, derived from the Bennet-Bernstein inequalities.
+  \end{enumerate}
 \end{abstract}
 
 \tableofcontents
