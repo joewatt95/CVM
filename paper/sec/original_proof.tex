@@ -88,8 +88,9 @@ It is easy to show for \circled{C} that the coin flips are independent, and that
 The final random process $\circled{D}$ directly computes the final set of elements in $\chi$ after the stream, taking $K$ as a fixed parameter; one relates \circled{C} to \circled{D} by:
 \[ \prob_{\circled{C}}(k = K \land \chi = X)  \leq \prob_{\circled{D}_K}(\chi = X)\]
 for fixed values of $K$ and $X$.
-To see how tail bounds can be derived from this inequality, note that it is possible to union bound the probability that the estimate exceeds the desired interval, with the probability of the event in conjunction with specific values $k = K$.
-The latter can be bounded using a Chernoff bound for the probability that the number of stream elements whose associated coin flips start with $K$ $1$s is outside $2^{-K} |A| (1 \pm \varepsilon)$.
+To see how tail bounds can be derived from this inequality, let us first consider the failure event where the algorithm \circled{C}'s estimate exceeds the desired estimation interval and it ends with some fixed value $k = K$.
+Using \circled{D}, this can be bounded using a Chernoff bound for the probability that the number of stream elements whose associated coin flips start with $K$ $1$s is outside $2^{-K} |A| (1 \pm \varepsilon)$.
+Now, we can take a union bound over all the possible values $K$ to establish a global bound for the failure event in \circled{C}.
 This is explained in more detail by Chakraborty et al.~\cite{chakraborty2023}.
 
 %Like, we did in \cref{sec:invariants}, we ignore the second check, whether the subsampling operation succeeded.
