@@ -112,7 +112,7 @@ The theorem that establishes the correctness of the algorithm, i.e., that the re
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}R\ in\ run{\isacharunderscore}{\kern0pt}algo\ xs{\isachardot}{\kern0pt}\ {\isasymbar}R\ {\isacharminus}{\kern0pt}\ A{\isasymbar}\ {\isachargreater}{\kern0pt}\ {\isasymepsilon}\ {\isacharasterisk}{\kern0pt}\ A{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isasymdelta}{\isacartoucheclose}
 \end{isabelle_cm}
 The first line gives conditions on parameters $\varepsilon$ and $\delta$, which must be strictly between $0$ and $1$.
-The next line requires the buffer size $n$ to be larger than $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
+The next line requires the buffer size $n$ to be larger than or equal to $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
 Then, we introduce the abbreviation \isa{A} for the cardinality of the set of elements in the sequence \isa{xs}.
 %More precisely, \isa{set\ xs} denotes the finite set of distinct elements in a given sequence, and \isa{card} returns the cardinality of a finite set.
 The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for the output estimate \isa{R} from \isa{run{\isacharunderscore}{\kern0pt}algo}.
