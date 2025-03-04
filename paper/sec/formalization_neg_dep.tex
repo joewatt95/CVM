@@ -3,7 +3,7 @@ As mentioned in~\cref{sec:negdep}, formalizing the total and unbiased variant of
 
 \begin{note}
 In our supplementary material, the formalization of negative association is in the directory \verb|Neg_Assoc|.
-This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distribution|).
+This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distributions|).
 Although not needed for CVM, we have also mechanized the standard Chernoff bounds (\verb|Neg_Assoc_Chernoff_Bounds|), including the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
 Another example application included in the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
 In total the library contains 2974~lines of Isabelle code.
@@ -19,7 +19,7 @@ In the formalization, any linearly ordered topological space with the Borel $\si
 In this case, the test functions must be monotone with respect to the respective order on the range space.
 
 A key issue we faced during formalization, was that there are many theorems that condition on a set of functions being either simultaneously monotone or simultaneously anti-monotone.
-To reduce duplication, we introduce a notation, that allows us to abstract over the direction of relations: \isa{\isasymle\isasymge\isactrlbsub\isasymeta\isactrlesub}; it evaluates to the forward version of the relation $\leq$ if \isa{\isasymeta\ \isacharequal\ Fwd} and the converse: $\geq$ if \isa{\isasymeta\ \isacharequal\ Rev}.
+To reduce duplication, we introduce a notation that allows us to abstract over the direction of relations: \isa{\isasymle\isasymge\isactrlbsub\isasymeta\isactrlesub}; it evaluates to the forward version of the relation $\leq$ if \isa{\isasymeta\ \isacharequal\ Fwd} and the converse: $\geq$ if \isa{\isasymeta\ \isacharequal\ Rev}.
 For example the FKG inequality~\cite[Ch. 6]{alon2000},\cite{fortuin1971}
 \[
   \expect [f g] \geq \expect [f] \expect [g]
@@ -36,12 +36,13 @@ Using our parameterized relation symbol, we can state all variants in a concise 
 \ \ \isakeyword{assumes}\ {\isacartoucheopen}monotone\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isacharparenright}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\isactrlesub {\isacharparenright}{\kern0pt}\ f{\isacartoucheclose}\ {\isacartoucheopen}monotone\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isacharparenright}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isasymge}\isactrlbsub {\isasymsigma}\isactrlesub {\isacharparenright}{\kern0pt}\ g{\isacartoucheclose}\isanewline
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isacharasterisk}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\ {\isacharasterisk}{\kern0pt}\ {\isasymsigma}\isactrlesub \ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isacharasterisk}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
-Here, \isa{\isasymsigma} and \isa{\isasymtau} are relation directions, where we multiply relation directions, i.e., \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the forward direction, if \isa{\isasymsigma} and \isa{\isasymtau} have the same direction, and \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the reverse direction, otherwise.
+Here, \isa{\isasymsigma} and \isa{\isasymtau} are relation directions, and \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} multiplies relation directions, i.e., \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the forward direction if \isa{\isasymsigma} and \isa{\isasymtau} have the same direction, and it is the reverse direction otherwise.
 The first assumption denotes the log-supermodularity of the probability mass function, while the second assumptions are the parametric monotonicity conditions.
 The FKG inequality is a key result which enables verification of negative association for random variables.
 This includes the indicator variables for the new subsampling operation we introduced in \cref{sec:negdep}.
 
-Let us summarize a few key formalized results for negatively associated random variables:
+Let us summarize a few key formalized results for negatively associated random variables in our library.
+The following is the well-known Hoeffding inequality~\cite{hoeffding1963} generalized for negatively associated random variables.
 \begin{isabelle_cm}
 \isacommand{lemma}\isamarkupfalse%
 \ hoeffding{\isacharunderscore}{\kern0pt}bound{\isacharunderscore}{\kern0pt}two{\isacharunderscore}{\kern0pt}sided{\isacharcolon}{\kern0pt}\isanewline
@@ -53,7 +54,6 @@ Let us summarize a few key formalized results for negatively associated random v
 \ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymge}\ {\isadigit{0}}{\isacartoucheclose}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}\ {\isachargreater}{\kern0pt}\ {\isadigit{0}}{\isacartoucheclose}\isanewline
 \ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}{\isasymomega}\ in\ M{\isachardot}{\kern0pt}\ {\isasymbar}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}{\isacharparenright}{\kern0pt}{\isacharminus}{\kern0pt}{\isasymmu}{\isasymbar}\ {\isasymge}\ {\isasymdelta}{\isacharasterisk}{\kern0pt}n{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isadigit{2}}{\isacharasterisk}{\kern0pt}exp\ {\isacharparenleft}{\kern0pt}{\isacharminus}{\kern0pt}{\isadigit{2}}{\isacharasterisk}{\kern0pt}{\isacharparenleft}{\kern0pt}n{\isacharasterisk}{\kern0pt}{\isasymdelta}{\isacharparenright}{\kern0pt}\isactrlsup {\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}
 \end{isabelle_cm}
-The above is the well-known Hoeffding inequality~\cite{hoeffding1963} for negatively associated random variables.
 %\begin{isabelle_cm}
 %\isacommand{lemma}\isamarkupfalse%
 %\ neg{\isacharunderscore}{\kern0pt}assoc{\isacharunderscore}{\kern0pt}imp{\isacharunderscore}{\kern0pt}mult{\isacharunderscore}{\kern0pt}mono{\isacharcolon}{\kern0pt}\isanewline
@@ -69,8 +69,8 @@ The above is the well-known Hoeffding inequality~\cite{hoeffding1963} for negati
 %This corresponds to Property~\ref{it:neg_dep_props:mult_mono} of \cref{pro:neg_dep_props}:
 %If $X_i$ for $i \in I$ form a set of negatively associated variables, and $f$, $g$ are simultaneously monotone (or simultaneously antimonotone), real-valued, square-integrable, measurable functions, depending on disjoint components of $I$ then the expectations of the product are smaller than then product of the expectations of the composition of the functions $f,g$ with random variables $X_i$.
 %Note that, if $X_i$ where independent the above would be true, without the monotonicity assumption.
-The following is the key result we use for the verification of the new CVM algorithm:
-The negative-associativity of the indicator functions of random $k$-subsets of a finite set $S$ (with cardinality greater than $k$).
+
+Another key result (shown below) used for the verification of our CVM variant is the negative-associativity of the indicator functions of random $k$-subsets of a finite set $S$ (with cardinality greater than or equal to $k$).
 \begin{isabelle_cm}
 \isacommand{lemma}\isamarkupfalse%
 \ n{\isacharunderscore}{\kern0pt}subsets{\isacharunderscore}{\kern0pt}distribution{\isacharunderscore}{\kern0pt}neg{\isacharunderscore}{\kern0pt}assoc{\isacharcolon}{\kern0pt}\isanewline
@@ -78,9 +78,8 @@ The negative-associativity of the indicator functions of random $k$-subsets of a
 \ \ \isakeyword{defines}\ {\isacartoucheopen}p\ {\isasymequiv}\ pmf{\isacharunderscore}{\kern0pt}of{\isacharunderscore}{\kern0pt}set\ {\isacharbraceleft}{\kern0pt}T{\isachardot}{\kern0pt}\ T\ {\isasymsubseteq}\ S\ {\isasymand}\ card\ T\ {\isacharequal}{\kern0pt}\ k{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
 \ \ \isakeyword{shows}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}neg{\isacharunderscore}{\kern0pt}assoc\ p\ {\isacharparenleft}{\kern0pt}{\isasymin}{\isacharparenright}{\kern0pt}\ S{\isacartoucheclose}
 \end{isabelle_cm}
-It is a consequence of a more general result, which we have also shown, that permuation distributions are negatively associated.
-We relied on the proof by Dubashi using the FKG inequality~\cite[Th. 10]{dubhashi1996}.%
-\footnote{There is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which seemed to be incorrect.}
+This is a consequence of a more general result, which we have also shown, that permutation distributions are negatively associated.
+We relied on the proof by Dubashi using the FKG inequality~\cite[Th. 10]{dubhashi1996}; there is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which seemed to be incorrect.
 %However Dubashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}
 %TODO: I suggest to put n_subsets_distribution_neg_assoc instead here instead, since the Hoeffding inequality is never used in our CVM proof.
 %The following is the well-known Hoeffding inequality~\cite{hoeffding1963} for negatively associated random variables:
