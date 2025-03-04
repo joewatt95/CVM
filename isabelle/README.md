@@ -46,7 +46,7 @@ This can be done via the following commands:
 $ hg clone https://foss.heptapod.net/isa-afp/afp-2024
 
 # Register the AFP repository with Isabelle
-$ isabelle components -u afp-2024 
+$ isabelle components -u afp-2024/thys
 ```
 
 ## Registering and building the formalisations with Isabelle
