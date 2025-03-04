@@ -36,20 +36,18 @@
 
   This project formalises the new, corrected proof of the CVM algorithm, while
   strengthening the correctness result of Theorem 2 in \cite{cvm_2023} to provide
-  the same correctness guarantee using a smaller threshold
+  the same correctness guarantee using a slightly smaller threshold
   (and hence space usage) of
   $\lceil \frac{12}{\varepsilon^2} \text{log}_2 \frac{3m}{\delta} \rceil$,
   where $m$ is the length of the input stream.
 
-  This corrected proof performs a sequence of transformations from the CVM
-  algorithm, akin to cryptographic game-hopping.
-  The reason for these transformations is that standard techniques for analysing
-  randomised algorithms such as the Chernoff bounds usually require independence
-  of state random variables, which is unfortunately absent from the CVM
-  algorithm, but was incorrecty claimed and used in the original proof.
-  The transformations address this by successively simplifying the
-  algorithm into one where the state variables are independent, enabling
-  the use of the Chernoff bounds.
+  This proof performs a sequence of transformations from the CVM algorithm,
+  akin to cryptographic game-hopping.  The reason for these transformations is
+  that standard techniques for analysing randomised algorithms such as the
+  Chernoff bounds usually require independence of state random variables, which
+  is unfortunately absent from the CVM algorithm.  The transformations address
+  this by successively simplifying the algorithm into one where the state
+  variables are independent, enabling the use of the Chernoff bounds.
 
   As part of the project, we also formalise various useful results, in particular:
   \begin{enumerate}
@@ -58,7 +56,7 @@
     which we use to justify the various program transformations.
 
     \item Strong forms of the multiplicative Chernoff bounds for the binomial
-    distribution, derived from the Bennet-Bernstein inequalities.
+    distribution, derived from the Bennett-Bernstein inequalities.
   \end{enumerate}
 \end{abstract}
 
