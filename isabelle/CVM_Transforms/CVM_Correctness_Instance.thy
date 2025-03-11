@@ -28,11 +28,10 @@ proof -
   have \<open>?L \<le> exp (- (9/8) * log 2 (3 * b / c))\<close> using assms
     by (intro iffD2[OF exp_le_cancel_iff] mult_right_mono iffD2[OF zero_le_log_cancel_iff]) auto
 
-  also have \<open>\<dots> = exp (log 2 (1 / (3 * b / c)) * (9/8))\<close>
-    (* Isabelle2025: by (simp add: log_recip) *)
-    by (smt (verit, ccfv_threshold) Groups.mult_ac(2) assms(2) assms(3) divide_pos_pos log_divide log_le_zero_cancel_iff more_arith_simps(7) zero_le_log_cancel_iff)
+  also have \<open>\<dots> = exp (log 2 (1 / (3 * b / c)) * 9/8)\<close>
+    unfolding log_recip by simp
 
-  also have \<open>\<dots> = exp (ln (c / (3 * b)) * (9/(8*ln 2)))\<close>
+  also have \<open>\<dots> = exp (ln (c / (3 * b)) * 9/(8*ln 2))\<close>
     unfolding log_def by (simp add: divide_simps)
 
   also from assms have \<open>\<dots> = ((1-2*c/b) *\<^sub>R 0 + (2*c /b) *\<^sub>R (1/6)) powr (9/(8*ln 2))\<close>
@@ -94,13 +93,15 @@ lemma ceil_threshold_ge_2 :
   \<open>\<lceil>threshold\<rceil> \<ge> 2\<close>
   using \<epsilon> \<delta> threshold \<open>xs \<noteq> []\<close>
   apply simp
-  by (smt (verit, best) Multiseries_Expansion.intyness_1 approximation_preproc_nat(8) divide_le_eq_1_pos log_divide log_le_zero_cancel_iff log_less_one_cancel_iff numeral_nat(7) power_le_one zero_less_power)
+  by (smt (verit, best) Num.of_nat_simps(2) approximation_preproc_nat(8) divide_le_eq_1_pos log_divide_pos log_le_one_cancel_iff log_le_zero_cancel_iff numeral_nat(7)
+    power2_nonneg_gt_1_iff zero_less_power)
 
 lemma epsilon_ceil_threshold_ge_12 :
   \<open>\<epsilon>\<^sup>2 * \<lceil>threshold\<rceil> \<ge> 12\<close>
   using \<epsilon> \<delta> threshold \<open>xs \<noteq> []\<close>
   apply (simp add: field_simps)
-  by (smt (verit, ccfv_SIG) Num.of_nat_simps(2) approximation_preproc_nat(8) landau_o.R_mult_left_mono le_of_int_ceiling log_divide log_le_zero_cancel_iff log_less_one_cancel_iff mult.commute numeral_nat(7) zero_le_power2)
+  by (smt (verit, ccfv_SIG) Groups.mult_ac(2) Num.of_nat_simps(2) approximation_preproc_nat(8) ceiling_divide_upper log_divide_pos log_le_one_cancel_iff log_le_zero_cancel_iff
+    nonzero_mult_div_cancel_left numeral_nat(7) zero_less_power)
 
 lemma two_l_threshold_bounds :
   \<open>2 * card (set xs) \<le> two_l_threshold\<close> (is \<open>?lower \<le> _\<close>)
@@ -111,11 +112,8 @@ proof -
   from assms have \<open>l > 0\<close> by (simp add: l_def field_simps) linarith
 
   with assms have \<open>log 2 ?lower \<le> log 2 two_l_threshold\<close>
-    (* Isabelle2025:
     apply (simp add: l_def log_mult_pos log_divide_pos)
-    by (smt (verit, best) Num.of_nat_simps(2) floor_eq_iff log2_of_power_eq numeral_Bit0_eq_double numerals(1) of_nat_numeral power2_eq_square) *)
-    apply (simp add: l_def log_mult log_divide split: if_splits)
-    by (smt (z3) Num.of_nat_simps(2) Num.of_nat_simps(4) four_x_squared log2_of_power_eq of_nat_power one_add_one one_power2 real_of_int_floor_add_one_ge)
+    by (smt (z3) Num.of_nat_simps(2,4) four_x_squared log2_of_power_eq nat_1_add_1 of_nat_power one_power2 real_of_int_floor_add_one_ge)
 
   with assms show \<open>?lower \<le> two_l_threshold\<close> by (simp add: nat_le_real_less)
 
