@@ -120,7 +120,7 @@ proof (rule depends_onI)
   have "run_reader (f (run_reader m x)) x = v \<longleftrightarrow> run_reader (f (run_reader m y)) y = v"
     using a depends_onD[OF b(1) a] depends_onD[OF b(2) a] unfolding run_reader_simps by metis
   thus "run_reader (map_rd ((=) v) (m \<bind> f)) x = run_reader (map_rd ((=) v) (m \<bind> f)) y"
-    by (auto simp add:run_reader_simps)
+    by auto 
 qed
 
 lemma depends_on_map :
