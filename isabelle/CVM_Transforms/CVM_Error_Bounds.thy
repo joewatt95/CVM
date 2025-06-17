@@ -71,25 +71,16 @@ begin
 lemma l_le_length_xs :
   \<open>l \<le> length xs\<close>
 proof -
-  from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close>
-  (* Isabelle2025:
+  from \<open>2 ^ l * threshold \<le> 2 * r * card (set xs)\<close> threshold
   have \<open>l \<le> floor_log (2 * r * card (set xs) div threshold)\<close>
-    by (metis floor_log_le_iff less_eq_div_iff_mult_less_eq floor_log_power threshold) *)
-  have \<open>l \<le> Discrete.log (2 * r * card (set xs) div threshold)\<close>
-    by (metis log_le_iff less_eq_div_iff_mult_less_eq log_exp threshold)
+    by (metis floor_log_le_iff less_eq_div_iff_mult_less_eq floor_log_power)
 
   also from \<open>threshold \<ge> r\<close> threshold
-  (* Isabelle2025:
   have \<open>\<dots> \<le> floor_log (2 * length xs)\<close>
-    by (smt (verit, del_insts) Groups.mult_ac(2,3) card_length div_mult_self1_is_m floor_log_le_iff less_eq_div_iff_mult_less_eq mult_le_mono nat_le_linear
-      verit_la_disequality) *)
-  have \<open>\<dots> \<le> Discrete.log (2 * length xs)\<close>
-    by (smt (verit, del_insts) Groups.mult_ac(2,3) card_length div_mult_self1_is_m log_le_iff less_eq_div_iff_mult_less_eq mult_le_mono nat_le_linear
-      verit_la_disequality)
+    by (metis card_length div_le_mono div_mult_self1_is_m div_mult_self_is_m floor_log_le_iff more_arith_simps(11) mult_le_mono mult_le_mono2)
 
   also have \<open>\<dots> \<le> length xs\<close>
-    (* Isabelle2025: by (metis floor_log_le_iff less_exp floor_log_exp2_le floor_log_power floor_log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le) *)
-    by (metis log_le_iff less_exp log_exp2_le log_exp log_twice nat_0_less_mult_iff not_le not_less_eq_eq order_class.order_eq_iff self_le_ge2_pow zero_le)
+    by (metis Suc_leI Suc_le_D floor_log_le_iff floor_log_power floor_log_twice le0 less_exp nat_0_less_mult_iff neq0_conv not_less_eq_eq)
 
   finally show ?thesis .
 qed
@@ -202,15 +193,10 @@ next
     unfolding
       sum_distrib_left
       sum.atLeastAtMost_rev[of ?g 0 l, simplified atLeast0AtMost]
-    (* Isabelle2025:
     apply (intro sum.reindex_bij_witness[of _ floor_log \<open>(^) 2\<close>])
       by (auto
         simp flip: exp_of_nat_mult exp_add
-        simp add: exp_powr_real field_split_simps) *)
-    apply (intro sum.reindex_bij_witness[of _ Discrete.log \<open>(^) 2\<close>])
-      by (auto
-        simp flip: exp_of_nat_mult exp_add
-        simp add: exp_powr_real field_split_simps of_nat_diff_real)
+        simp add: exp_powr_real field_split_simps)
 
   text
     \<open>Upper bound by a partial geometric series, taken over all $r \in \mathbb{N}$
@@ -253,7 +239,8 @@ next
 
     with \<open>\<epsilon>\<^sup>2 * threshold \<ge> 6 * r\<close> \<open>\<epsilon> > 0\<close> r_pos
     have \<open>?exp_bound \<le> exp (- 1)\<close> by simp
-    also have \<open>\<dots> \<le> 1 / 2\<close> by (approximation 0)
+    also have \<open>\<dots> \<le> 1 / 2\<close>
+      by (metis (no_types, lifting) divide_le_eq_1_pos exp_ge_add_one_self exp_gt_zero exp_minus' le_divide_eq_numeral1(1) mult_2_right times_divide_eq_left)
     finally show ?thesis_1 .
   qed
 

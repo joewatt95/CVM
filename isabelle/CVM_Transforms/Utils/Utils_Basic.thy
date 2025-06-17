@@ -60,9 +60,8 @@ syntax
   "_kleisli_comp_left" :: \<open>('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c\<close>
   (infixr \<open><=<\<close> 50)
 
-(* Isabelle2025:
 syntax_consts
-  "_flip_bind" "_kleisli_comp_right" "_kleisli_comp_left" \<rightleftharpoons> Monad_Syntax.bind *)
+  "_flip_bind" "_kleisli_comp_right" "_kleisli_comp_left" \<rightleftharpoons> Monad_Syntax.bind
 
 translations
   "_flip_bind" \<rightharpoonup> "CONST flip Monad_Syntax.bind"
