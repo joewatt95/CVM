@@ -6,14 +6,14 @@
 The CVM algorithm is a \emph{streaming} algorithm for the distinct elements problem.
 As shown in~\cref{alg:cvm}, given a data stream $a_1,\dots, a_l$, the goal of such algorithms is to return an accurate cardinality estimate for the set $A = \{a_1,\dots,a_l\}$.
 
-Importantly, CVM is a \emph{probably-approximately correct} (PAC) algorithm where its output estimate $R$ satisfies
+Importantly, CVM is a \emph{probably approximately correct} (PAC) algorithm where its output estimate $R$ satisfies
 $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
 for parameters $\varepsilon$ and $\delta$,
 i.e., the probability that the relative error of $R$ with respect to $|A|$ exceeds $\varepsilon$ is at most $\delta$. % I think here it's good to have both a text and formal description.
-Moreover, let us assume the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.
+Moreover, let us assume the space needed to store each element in the stream is $b$ bits, so that the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.
 
 \begin{remark}
-The optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.
+The theoretically optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.
 \lipicsEnd\end{remark}
 
 \subsection{Semantics of Randomized Algorithms}
@@ -33,7 +33,7 @@ As an example, let us consider \cref{alg:example}.
 
 In the first step,~\cref{alg:example} flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise; the notation $\Ber(p)$ represents the Bernoulli distribution.
 In the second step, the algorithm flips a coin $q$ which depends on $p$.
-This has the consequence that, to semantically model $q$, we have to consider probability space-valued functions, like: $p \mapsto \Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
+This has the consequence that, to semantically model $q$, we have to consider functions returning probability spaces, like: $p \mapsto \Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
 The resulting distribution for $q$ is a \emph{compound distribution} resulting from a combination of $\Ber(\frac{1}{3})$ (when $p = 0$) and $\Ber(\frac{5}{6})$ (when $p = 1$).
 
 This example captures the main aspects of modeling randomized algorithms in the Giry monad.
@@ -42,7 +42,7 @@ Indeed, randomized algorithms can be modeled using the following ingredients:
 \begin{description}
 \item[Primitive Random Operations.] For example, a simple fair coin flip is represented using the Bernoulli distribution, $\Ber(\frac{1}{2})$.
 \item[Return Combinator.]
-Given a singleton element $x$, we can construct the singleton probability space, assigning probability $1$ to $x$ and $0$ to everything else.
+Given an element $x$, we can construct the singleton probability space, assigning probability $1$ to $x$ and $0$ to everything else.
 In monad notation, this is written as: $\mathrm{\bf return}\, x$.
 
 \item[Bind Combinator.]

@@ -115,7 +115,7 @@ The first line gives conditions on parameters $\varepsilon$ and $\delta$, which 
 The next line requires the buffer size $n$ to be larger than or equal to $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
 Then, we introduce the abbreviation \isa{A} for the cardinality of the set of elements in the sequence \isa{xs}.
 %More precisely, \isa{set\ xs} denotes the finite set of distinct elements in a given sequence, and \isa{card} returns the cardinality of a finite set.
-The notation \isa{\isasymP{\isacharparenleft}x\ in\ M{\isachardot}\ P\ x\isacharparenright} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for the output estimate \isa{R} from \isa{run{\isacharunderscore}{\kern0pt}algo}.
+The notation \isaprob{x}{M}{P x} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for the output estimate \isa{R} from \isa{run{\isacharunderscore}{\kern0pt}algo}.
 
 Similarly, we have also formalized unbiasedness of \cref{alg:cvm_new}:
 \begin{isabelle_cm}
@@ -125,8 +125,8 @@ Similarly, we have also formalized unbiasedness of \cref{alg:cvm_new}:
 where the expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
 
 Our proofs are available both in mechanized form in Isabelle/HOL and as a pen-and-paper proof included in the associated proof document.
-In practice, we developed the latter proof first and then mechanized it in Isabelle/HOL without much surprises.
-Most of the lemmas can be one-to-one identified between both proofs; Isabelle's existing libraries, automation capabilities, and structured proof format were used extensively in our proofs.
+In practice, we developed the latter proof first and then mechanized it in Isabelle/HOL without much surprise.
+Most of the lemmas can be identified one-to-one between both proofs; Isabelle's existing libraries, automation capabilities, and structured proof format were used extensively in our proofs.
 
 %For our proof, we first sketched out our invariant-based approach in an informal proof before transferring this to Isabelle/HOL.
 %Originally, we wrote down the informal proof first before starting the formalization effort.

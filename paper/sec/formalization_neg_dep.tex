@@ -12,13 +12,13 @@ In total the library contains 2974~lines of Isabelle code.
 Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
 However, their definition leaves the class of test functions $f$ and $g$ (in \cref{def:neg_assoc}) imprecise.
 In particular, for the formalization, we limit these functions to those that are bounded and measurable.
-Additionally, we provide elimination rules, showing that if $X_1,\dots,X_n$ are negatively associated, then the inequality on expectations is still true even if $f, g$ are only square-integrable; or, alternatively, integrable and non-negative. This is derived using the monotone-convergence theorem.
+Additionally, we provide elimination rules, showing that if $X_1,\dots,X_n$ are negatively associated, then the inequality on expectations is still true even if $f, g$ are only square-integrable; or, alternatively, integrable and non-negative. This is derived using the monotone convergence theorem.
 
 Another deviation from the original work is that we do not require that the random variables are real-valued.
 In the formalization, any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
 In this case, the test functions must be monotone with respect to the respective order on the range space.
 
-A key issue we faced during formalization, was that there are many theorems that condition on a set of functions being either simultaneously monotone or simultaneously anti-monotone.
+A key issue we faced during formalization was that there are many theorems that condition on a set of functions being either simultaneously monotone or simultaneously anti-monotone.
 To reduce duplication, we introduce a notation that allows us to abstract over the direction of relations: \isa{\isasymle\isasymge\isactrlbsub\isasymeta\isactrlesub}; it evaluates to the forward version of the relation $\leq$ if \isa{\isasymeta\ \isacharequal\ Fwd} and the converse: $\geq$ if \isa{\isasymeta\ \isacharequal\ Rev}.
 For example the FKG inequality~\cite[Ch. 6]{alon2000},\cite{fortuin1971}
 \[

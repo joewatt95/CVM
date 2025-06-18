@@ -54,7 +54,7 @@ Whereas Chakraborty et al.\ move directly from \circled{B} to \circled{D} with a
 	\caption{Modified CVM algorithm with independent coin flips. The function last{\textunderscore}index returns the index of the last occurrence of an element in the sequence, before the current iteration.}\label{alg:cvm_simul}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
-  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ s.t. $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
   \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
   \State $b[i,j] \getsr \Ber(1/2)$ for $i,j \in \{1,\cdots,l\}$ \Comment perform $l^2$ unbiased independent coin flips
   \For{$i \gets 1$ to $l$}
