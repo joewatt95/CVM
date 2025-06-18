@@ -48,7 +48,7 @@ The key difference is that our choice of ``loop invariant'' for the randomized s
 \[
   \expect [ h ] \leq h(c)
 \]
-where $h$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
+where $c$ is a non-negative real constant, $h : \Rnonneg \rightarrow \Rnonneg$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
 By first establishing such an invariant for \cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
 %For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
 We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to mechanized theorem proving.
