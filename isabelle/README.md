@@ -20,6 +20,14 @@ as presented in the paper
   formalises the original CVM algorithm using the original
   transformation-based proof.
 
+> [!NOTE]
+> The frist two subprojects [CVM_Invariant](CVM_Invariant) and [Neg_Assoc](Neg_Assoc) have been
+> added to the (Archive of Formal Proofs) [AFP](https://www.isa-afp.org/) and are being
+> maintained in that repository.
+> See [Verification of the CVM algorithm with a New Recursive Analysis Technique](https://www.isa-afp.org/entries/CVM_Distinct_Elements.html) and
+> [Negatively Associated Random Variables](https://www.isa-afp.org/entries/Negative_Association.html)
+> for the most recent version of these subprojects.
+
 # Setup instructions
 
 To build and run the various formalisations, one must first install Isabelle
