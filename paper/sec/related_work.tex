@@ -13,7 +13,7 @@ It should be noted that these recent algorithms are mostly of theoretical intere
 What makes the CVM algorithm unique is its simplicity and the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms.
 
 The aforementioned hash-based algorithms are biased; Flajolet et al.~\cite{flajolet1985} points this out and also provides bounds on the distance between the expected result and the cardinality of the stream.
-Most authors do not discuss the matter of biasedness but it is not hard to show.
+Most authors do not discuss the matter of bias but it is not hard to show.
 One issue, for example, is that the usual method to amplify the accuracy of these algorithms is using the median, which does not preserve expectations.
 In the context of query processing, unbiasedness has been discussed~\cite[Section 2.1]{haas1995}, but we could not find any similar discussion for the distinct elements problem in the streaming model.
 
@@ -21,14 +21,14 @@ In the context of query processing, unbiasedness has been discussed~\cite[Sectio
 As far as we know, probabilistic invariants have not been used to establish Gaussian tail-bounds.
 However, it is fairly common to use recursive analysis techniques to establish results about expectations or variance of random variables, such as their run-time~\cite[Section 1.4]{motwani1995}.
 This is easy due to the linearity of expectations and---for independent random variables---linearity of variances.
-A simple example is the Morris-counter~\cite{morris1978} or the expected run-time of the quick-sort algorithm~\cite[Section 2.5]{mitzenmacher2005}.
+A simple example is the Morris counter~\cite{morris1978} or the expected run-time of the quick-sort algorithm~\cite[Section 2.5]{mitzenmacher2005}.
 
 There is also research on the (automated) analysis of loop invariants, for probabilistic loops, using their characteristic functions~\cite{batz2023, mciver2005}.
 This approach works by establishing the limiting distribution of the state of the loop.
 De Medeiros et al.~\cite[Section 3.2]{demedeiros2024} also establish methods to derive limiting distributions of probabilistic loops.
-Our approach differs from these techniques, by avoiding computation of the distribution, which, we think, is infeasible for the CVM algorithm.
+Our approach differs from these techniques by avoiding computation of the distribution, which, we think, is infeasible for the CVM algorithm.
 Instead, we investigate invariants of classes of functions of the distributions, which are relevant for the analysis.
-There is research on automated evaluation of moments for restricted classes of loops, which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}.
+There is research on automated evaluation of moments for restricted classes of loops which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}.
 However, these methods do not extend to algorithms with branches or, more generally, algorithms which contain discrete operations.
 
 Finally, verification of randomized algorithms has been tackled by various authors using various proof assistants~\cite{bosshard2024,demedeiros2024, eberl2020,gopinathan20,hurd03, Probabilistic_Prime_Tests-AFP, tan2024}.

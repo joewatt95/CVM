@@ -8,8 +8,8 @@ An interesting consequence of our invariant-based approach is that it allowed us
 	\caption{New total and unbiased CVM algorithm variant.}\label{alg:cvm_new}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
-  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ s.t. $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
-  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$, $\frac{1}{2} \leq f < 1$, s.t., $nf$ integer
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$, $\frac{1}{2} \leq f < 1$, such that $nf$ integer
   \For{$i \gets 1$ to $l$}
     \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
     \If{$b$}
@@ -29,13 +29,13 @@ An interesting consequence of our invariant-based approach is that it allowed us
 
 When we look at the subsampling step of~\cref{alg:cvm}, our invariant~\cref{i:func_invariant} imposes the following condition on the subsampling operation:
 \begin{equation}\label[ineq]{i:subsample_condition}
-  \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(\indicat(s \in \tau)) \, d \tau \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
+  \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))}{\tau} \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
 \end{equation}
 for all non-negative functions $g$ and any $S \subseteq \chi$.
 Any subsampling step that satisfies this functional inequality can be used while still preserving~\cref{i:func_invariant} for the algorithm.
 
 Motivated by this observation, our new variant is shown in \cref{alg:cvm_new}.
-For the subsampling step, instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, we instead pick a uniform random $nf$-subset of $\chi$, where $\frac{1}{2} \leq f < 1$ and such that $nf$ is an integer.
+For the subsampling step, instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, we pick a uniform random $nf$-subset of $\chi$, where $\frac{1}{2} \leq f < 1$ and $nf$ is an integer.
 For example, it is possible to choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.
 Since this new subsampling step always reduces the size of $\chi$, the variant is \emph{total} (never returns $\bot$).
 The invariant-based approach allows us to show that the algorithm is probably-approximately correct and also \emph{unbiased}, i.e., the expectation of the result is exactly $|A|$.
@@ -47,7 +47,7 @@ The concept was introduced by Joag-Dev and Proschan~\cite{joagdev1983}, who show
 Importantly, standard Chernoff--Hoeffding type bounds still apply to negatively associated random variables~\cite[Prop. 7]{dubhashi1998}.
 Negative association is defined as follows:
 \begin{definition}
-For a function defined on $n$-tuples $f: V^n \rightarrow W$, we will denote by $\mathrm{dep}(f)$ the set of coordinates the function depends on, i.e., $dep(f) \subseteq \{1,\ldots,n\}$ is minimal, s.t., $f(x) = f(y)$ for all $x, y \in V^n$ with $x_i = y_i$ for all $i \in dep(f)$.
+For a function defined on $n$-tuples $f: V^n \rightarrow W$, we will denote by $\mathrm{dep}(f)$ the set of coordinates the function depends on, i.e., $dep(f) \subseteq \{1,\ldots,n\}$ is minimal, such that $f(x) = f(y)$ for all $x, y \in V^n$ with $x_i = y_i$ for all $i \in dep(f)$.
 \end{definition}
 
 \begin{definition}[Negative Association]\label{def:neg_assoc}
@@ -58,12 +58,11 @@ A set of random variables $X_1,\dots,X_n: \Omega \rightarrow \mathbb R$ is negat
 \end{definition}
 
 The following proposition summarizes some important properties of negatively associated sets of random variables.
-\begin{proposition}[\cite{joagdev1983}]\label{pro:neg_dep_props}
-Summary of results for negatively associated random variables.
+\begin{proposition}[Summary of results for negatively associated random variables \cite{joagdev1983}]\label{pro:neg_dep_props}
 \begin{enumerate}
 \item \label{it:neg_dep_props:mult_mono} If $X=(X_1,\ldots,X_n)$ are negatively associated then $\expect [f(X) g(X)] \leq \expect [f(X)] \expect [g(X)]$ for non-increasing functions $f,g$ with $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.
 \item If $X=(X_1,\ldots,X_n)$ are negatively associated, $Y=(Y_1,\ldots,Y_m)$ are negatively associated, and the pair of vector-valued random variables $X$ and $Y$ are independent, then the union $X_1,\dots,X_n,Y_1,\dots,Y_m$ is a set of negatively associated random variables.
-\item If $X=(X_1,\ldots,X_n)$ are negatively associated and $f_1, \dots ,f_m : \mathbb R^n \rightarrow \mathbb R$ are all non-increasing or all non-decreasing functions, s.t., $\mathrm{dep}(f_i) \cap \mathrm{dep}(f_j) = \emptyset$ for $i \neq j$, then $f_1(X),\ldots,f_m(X)$ form a set of negatively dependent random variables of size $m$.
+\item If $X=(X_1,\ldots,X_n)$ are negatively associated and $f_1, \dots ,f_m : \mathbb R^n \rightarrow \mathbb R$ are all non-increasing or all non-decreasing functions, such that $\mathrm{dep}(f_i) \cap \mathrm{dep}(f_j) = \emptyset$ for $i \neq j$, then $f_1(X),\ldots,f_m(X)$ form a set of negatively dependent random variables of size $m$.
 \item If $X_1,\dots,X_n$ are independent then $X_1,\dots,X_n$ are negatively associated.
 \item A subset of a negatively associated set of random variables is again negatively associated.
 \end{enumerate}
@@ -72,7 +71,7 @@ Summary of results for negatively associated random variables.
 These properties illustrate the trade-off between negative association and independence.
 For example, Property 3 would be true for independent random variables, even without the condition of monotonicity.
 %Of course, on the other hand independence is a stronger property and fewer sets of random variables are independent.
-To analyze our new subsampler, the following is an important lemma about negative associated random variables.
+To analyze our new subsampler, the following is an important lemma about negatively associated random variables.
 
 \begin{lemma}\label{le:neg_assoc_prod}
 Let $X_1,\dots,X_n$ be negatively associated and $f_1,\dots,f_n$ be all non-decreasing (or all non-increasing), non-negative functions, then
@@ -81,16 +80,16 @@ Let $X_1,\dots,X_n$ be negatively associated and $f_1,\dots,f_n$ be all non-decr
 \]
 \end{lemma}
 \begin{proof}
-This follows from the definition of negative associativity (or Property~1 of \cref{pro:neg_dep_props}, if the $f_i$ are non-increasing) using induction.
+This follows from the definition of negative association (or Property~1 of \cref{pro:neg_dep_props}, if the $f_i$ are non-increasing) using induction.
 \end{proof}
 
 The case for non-decreasing functions of the above lemma is pointed out by Joag-Dev and Proschan~\cite[P.2]{joagdev1983}.
 The reason for our interest in this lemma stems from the fact that indicator variables of random $m$-subsets are negatively associated.
-This is a consequence of the fact that permutation distributions are negatively-associated~\cite[Th. 2.11]{joagdev1983}.
+This is a consequence of the fact that permutation distributions are negatively associated~\cite[Th. 2.11]{joagdev1983}.
 Thus, for the new subsampling step in Line 9 of~\cref{alg:cvm_new}, we can derive using \cref{le:neg_assoc_prod}:
 \begin{equation}\label{eq:subsample_with_n_subsets}
-  \int_{\mathrm{subsample}(\chi)} \prod_{s \in S} g(\indicat(s \in \tau))\,d\tau \leq
-  \prod_{s \in S} \int_{\mathrm{subsample}(\chi)} g(\indicat(s \in \tau))\,d\tau = \prod_{s \in S}  \expect_{\Ber(f)}[g] \textrm{.}
+  \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))} {\tau} \leq
+  \prod_{s \in S} \integral{\mathrm{subsample}(\chi)}{g(\indicat(s \in \tau))}{\tau} = \prod_{s \in S}  \expect_{\Ber(f)}[g] \textrm{.}
 \end{equation}
 for any non-negative $g$ and $S \subseteq \chi$.
 Note that the domain of $g$ has two values, so it is either non-increasing or non-decreasing.

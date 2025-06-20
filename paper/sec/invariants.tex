@@ -44,10 +44,11 @@ Let us verify that~\cref{eq:indicator_eq} is preserved as an invariant over all 
 To verify that $\mathrm{step}_1\, a$ preserves \cref{eq:indicator_eq}, we assume some probability space of states $\Omega$ fulfills \cref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$. By~\cref{eq:integral_bind},
 \[
   \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a} [ p^{-1} X_s ] =
-    \int_\Omega \int_{\Ber(p)} p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right) \, d \tau d \sigma \textrm{.}
+    \integral{\Omega}{\integral{\Ber(p)}{p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right)}{\tau}}{\sigma} \textrm{.}
+    % \int_\Omega \int_{\Ber(p)} p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right) \, d \tau d \sigma \textrm{.}
 \]
-Note that we write $p$ or $\chi$ even though, we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
-To see that the right-hand-side is equal to $1$, it is useful to consider the cases where $a=s$ and the converse separately.
+Note that we write $p$ or $\chi$ even though we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
+To see that the right-hand side is equal to $1$, it is useful to consider cases on whether $a=s$.
 When $a = s$, the right-hand-side is equal to $1$ by definition of the Bernoulli distribution (since $p \in (0;1]$).
 When $a \not= s$, it follows from the induction hypothesis on $\Omega$; in particular, the term in the inner integral is constant with respect to $\tau$.
 
@@ -56,9 +57,12 @@ Let us assume $\Omega$ is a probability space of states fulfilling \cref{eq:indi
 Then by~\cref{eq:integral_bind},
 \[
   \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} \left[\frac{X_s}{p}\right] =
-    \int_{\Omega} \left(\ift{|\chi|=n}{\left(\int_{\mathrm{subsample}(\chi)} \frac{\indicat(s \in \tau)}{p/2} \, d \tau\right)}{\frac{\indicat(s \in \chi)}{p}} \right) \, d \sigma \textrm{.}
+    \integral{\Omega}
+      {\left(\ift{|\chi|=n}{\left(\integral{\mathrm{subsample}(\chi)}{\frac{\indicat(s \in \tau)}{p/2}}{\tau}\right)}{\frac{\indicat(s \in \chi)}{p}} \right)}
+      {\sigma}
+    \textrm{.}
 \]
-Note that the true- and false-cases of the inner if-then-else both evaluate to the same value: $p^{-1} \indicat(s \in \chi)$.
+Note that the \emph{true} and \emph{false} cases of the inner \textbf{if-then-else} both evaluate to the same value: $p^{-1} \indicat(s \in \chi)$.
 If $s \notin \chi$ both sides of the equation are $0$, because the subsampling operation returns a subset of $\chi$.
 If $s \in \chi$ the probability that the element gets subsampled is $1/2$, so we arrive again at $\frac{1/2}{p/2} = p^{-1} \indicat(s \in \chi)$.
 Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \expect_\Omega [p^{-1} X_s] = 1$.
@@ -86,11 +90,10 @@ Indeed, we managed to establish the following generalized result:
 \begin{align}
   \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
 \end{align}
-for every non-negative concave function $h : \mathbb R_{\geq 0} \rightarrow \mathbb R_{\geq 0}$.
+for every non-negative concave function $h : \Rnonneg \rightarrow \Rnonneg$.
 We call this a \emph{functional probabilistic invariant} because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
 
-Of course, the exponential function in $M(t)$ is convex, so this is not yet the full story.
-However, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$, for some fixed constant $q > 0$.
+While the exponential function in $M(t)$ is convex, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$, for some fixed constant $q > 0$.
 This leads to a similar invariant inequality:
 \begin{align}
   \expect \left[ \prod_{s \in A} I(p \geq q) h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant_capped}

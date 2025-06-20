@@ -1,17 +1,19 @@
 \section{Introduction}
 \label{sec:intro}
 
-In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} published a marvelous streaming algorithm for the distinct elements problem which was very unexpected in the community~\cite{quanta}.
+In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} unexpectedly published a remarkable streaming algorithm for the distinct elements problem~\cite{quanta}.
 Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its interesting properties and christening it the \emph{CVM} algorithm (which we use for the rest of this paper).
 One striking property of the CVM algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
 Instead, the algorithm could theoretically be implemented in a setting where objects in the data stream only allow for equality comparisons.
-Another property is its simplicity---which is why the authors called it ``an algorithm for the text book''---the algorithm is displayed in its entirety in~\cref{alg:cvm}.
+Another property is its simplicity, which is why the authors called it ``an algorithm for the textbook''.
+The algorithm is displayed in its entirety in~\cref{alg:cvm}.
+% Here, $\cdot \getsr \cdot$ denotes random sampling, and $\Ber(p)$ denotes a Bernoulli distribution with parameter $p$.
 
 \begin{algorithm}[h!]
 	\caption{CVM algorithm for distinct elements estimation~\cite{chakraborty2022}.}\label{alg:cvm}
 	\begin{algorithmic}[1]
   \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
-  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ s.t. $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
   \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
   \For{$i \gets 1$ to $l$}
     \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
@@ -53,12 +55,12 @@ We believe the new proof remains accessible at the undergraduate level, albeit w
 
 To show the generality of our technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in Line~11 becomes obsolete.
-More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected result is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
+More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected value of the algorithm's output is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
-The modified subsampling step leads to additional dependence for the elements in $\chi$ which cannot be readily removed using transformations following the original proof.
+The modified subsampling step leads to additional dependence for the elements in $\chi$ which cannot be readily removed using transformations as was done in the original proof.
 Instead, we verify the new variant with our probabilistic invariant-based approach, using results from the theory of negatively associated random variables~\cite{joagdev1983} to establish the desired functional invariant.
-The concept of negative association is a generalization of independence; importantly, negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similar to independent random variables.
-It should be stressed that the theory of negatively association is orthogonal to our new technique, but its formalization is also a contribution of this work.
+The concept of negative association is a generalization of independence; importantly, negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similarly to independent random variables.
+It should be stressed that the theory of negative association is orthogonal to our new technique, but its formalization is also a contribution of this work.
 
 In summary, our main contributions are:
 \begin{itemize}
@@ -71,6 +73,9 @@ In summary, our main contributions are:
 We carried out the mechanizations using Isabelle/HOL~\cite{nipkow2002}, which comes with a large repository of foundational libraries~\cite{afp} for the verification of randomized algorithms.
 We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}, which provides a rough point of comparison:
 verification of the CVM algorithm using our new technique required only \locnew~lines, while the original proof required \locold~lines.
+\footnote{
+  We count the total number of lines of Isabelle code in the whole project, excluding empty, comment and presentation related lines.
+}
 
 The rest of this paper is organized as follows.
 \cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL.
