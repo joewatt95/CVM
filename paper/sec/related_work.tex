@@ -8,7 +8,7 @@ This is slightly better than the CVM algorithm which requires $\bigo(\varepsilon
 
 Later, Bar-Yossef et al.~\cite{baryossef2002}, Kane et al.~\cite{kane2010} and B\l{}asiok in 2020~\cite{blasiok2020} presented increasingly sophisticated solutions.
 The last one by B\l{}asiok is optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
-Karayel~\cite{karayel2023} presented a version of the latter that preserves monotonicity and supports the merge-operation, which enables its use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
+We~\cite{karayel2023} presented a version of the latter that preserves monotonicity and supports the merge-operation, which enables its use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
 It should be noted that these recent algorithms are mostly of theoretical interest, as the constants, as well as the implementation complexity, are rather large.
 What makes the CVM algorithm unique is its simplicity and the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms.
 
@@ -32,5 +32,5 @@ There is research on automated evaluation of moments for restricted classes of l
 However, these methods do not extend to algorithms with branches or, more generally, algorithms which contain discrete operations.
 
 Finally, verification of randomized algorithms has been tackled by various authors using various proof assistants~\cite{bosshard2024,demedeiros2024, eberl2020,gopinathan20,hurd03, Probabilistic_Prime_Tests-AFP, tan2024}.
-The most closely related efforts are the mechanizations of frequency moments algorithms by Karayel~\cite{karayel2022, karayel2023}.
+The most closely related efforts are our mechanizations of frequency moments algorithms~\cite{karayel2022, karayel2023}.
 The functional invariant proof technique we introduce here should be applicable in any higher-order setting.
