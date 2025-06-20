@@ -13,7 +13,7 @@ i.e., the probability that the relative error of $R$ with respect to $|A|$ excee
 Moreover, let us assume the space needed to store each element in the stream is $b$ bits, so that the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.
 
 \begin{remark}
-The theoretically optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.
+The asymptotically optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.
 \lipicsEnd\end{remark}
 
 \subsection{Semantics of Randomized Algorithms}

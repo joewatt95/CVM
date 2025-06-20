@@ -48,14 +48,14 @@ The key difference is that our choice of ``loop invariant'' for the randomized s
 \[
   \expect [ h ] \leq h(c)
 \]
-where $c$ is a non-negative real constant, $h : \Rnonneg \rightarrow \Rnonneg$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
+where $h$ is allowed to range over a class of functions, and the expectation is taken over the distribution of the state of the algorithm after consuming each stream element.
 By first establishing such an invariant for \cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
 %For the rest of this paper, we explain this technique, its mechanization, and show how it leads to a proof of the CVM algorithm.
 We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to mechanized theorem proving.
 
 To show the generality of our technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
 This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in Line~11 becomes obsolete.
-More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected value is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
+More interestingly, the resulting variant is \emph{unbiased}, i.e., the expected value returned by the algorithm is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
 The modified subsampling step leads to additional dependence for the elements in $\chi$ which cannot be readily removed using transformations as was done in the original proof.
 Instead, we verify the new variant with our probabilistic invariant-based approach, using results from the theory of negatively associated random variables~\cite{joagdev1983} to establish the desired functional invariant.
