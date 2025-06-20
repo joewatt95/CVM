@@ -31,11 +31,11 @@ as presented in the paper
 # Setup instructions
 
 To build and run the various formalisations, one must first install Isabelle
-(specifically the 2024 release version, Isabelle2024), along with the AFP,
+(specifically the 2025 release version, Isabelle2025), along with the AFP,
 a collection of libraries and formalisations in Isabelle.
 The AFP contains other formalisations which we depend on in our work.
 
-## Installing Isabelle2024
+## Installing Isabelle2025
 
 Instructions on installing Isabelle on various platforms can be found on the official
 Isabelle website [here](https://isabelle.in.tum.de/installation.html).
@@ -51,10 +51,10 @@ This can be done via the following commands:
 
 ```shell
 # Clone the AFP repository
-$ hg clone https://foss.heptapod.net/isa-afp/afp-2024
+$ hg clone https://foss.heptapod.net/isa-afp/afp-2025
 
 # Register the AFP repository with Isabelle
-$ isabelle components -u afp-2024/thys
+$ isabelle components -u afp-2025/thys
 ```
 
 ## Registering and building the formalisations with Isabelle
