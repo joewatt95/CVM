@@ -26,8 +26,9 @@ An interesting consequence of our invariant-based approach is that it allowed us
   \end{algorithmic}
 \end{algorithm}%
 
-
-When we look at the subsampling step of~\cref{alg:cvm}, our invariant~\cref{i:func_invariant} imposes the following condition on the subsampling operation:
+When we look at the subsampling step of~\cref{alg:cvm}, our invariant~\cref{i:func_invariant} imposes the following condition on the subsampling operation.
+It should be noted that the condition becomes apparent while establishing \cref{i:func_invariant} using similar but more general steps as described in Equations~\ref{eq:step_1_exp} and \ref{eq:step_2_exp}.%
+\footnote{A step-by-step proof of the derivation is also available in the appendix of the formalization~\cite[Appendix~A]{CVM_Distinct_Elements-AFP}.}
 \begin{equation}\label[ineq]{i:subsample_condition}
   \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))}{\tau} \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
 \end{equation}
