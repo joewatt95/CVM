@@ -1,7 +1,7 @@
 \section{Introduction}
 \label{sec:intro}
 
-In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} unexpectedly published a remarkable streaming algorithm for the distinct elements problem~\cite{quanta}.
+In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} published a remarkable streaming algorithm for the distinct elements problem~\cite{quanta}.
 Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its interesting properties and christening it the \emph{CVM} algorithm (which we use for the rest of this paper).
 One striking property of the CVM algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
 Instead, the algorithm could theoretically be implemented in a setting where objects in the data stream only allow for equality comparisons.
@@ -17,7 +17,7 @@ The algorithm is displayed in its entirety in~\cref{alg:cvm}; h.
   \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
   \For{$i \gets 1$ to $l$}
     \State $b \getsr \Ber(p)$ \Comment randomly sample a bit $b$ from the Bernoulli distribution
-    \If{$b$} \Comment insert $a_i$ ($b$ is true with prob. $p$)
+    \If{$b$} \Comment insert $a_i$ if $b$ is true (with prob. $p$)
       \State $\chi \gets \chi \cup \{a_i\}$
     \Else \Comment remove $a_i$ otherwise
       \State $\chi \gets \chi - \{a_i\}$
