@@ -32,7 +32,7 @@ It should be noted that the condition becomes apparent while establishing \cref{
 \begin{equation}\label[ineq]{i:subsample_condition}
   \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))}{\tau} \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
 \end{equation}
-for all non-negative functions $g$ and any $S \subseteq \chi$.
+for all non-negative functions $g$ and any $S \subseteq \chi$, where $f$ is the probability of retaining each element in the subsampling step of the algorithm.
 Any subsampling step that satisfies this functional inequality can be used while still preserving~\cref{i:func_invariant} for the algorithm.
 
 Motivated by this observation, our new variant is shown in \cref{alg:cvm_new}.
