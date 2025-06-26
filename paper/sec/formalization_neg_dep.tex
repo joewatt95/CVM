@@ -79,7 +79,7 @@ Another key result (shown below) used for the verification of our CVM variant is
 \ \ \isakeyword{shows}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}neg{\isacharunderscore}{\kern0pt}assoc\ p\ {\isacharparenleft}{\kern0pt}{\isasymin}{\isacharparenright}{\kern0pt}\ S{\isacartoucheclose}
 \end{isabelle_cm}
 This is a consequence of a more general result, which we have also shown, that permutation distributions are negatively associated.
-We relied on the proof by Dubashi using the FKG inequality~\cite[Th. 10]{dubhashi1996}; there is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which seemed to be incorrect.
+We relied on the proof by Dubashi et al.\ using the FKG inequality~\cite[Th. 10]{dubhashi1996}; there is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which is incomplete\footnote{The step which we could not directly formalize is the assertion (Sentence~14) in the proof of Theorem~2.11 (\cite{joagdev1983}) that the conditional expectation of the random variable $f(X)$ is smaller iff the smallest element of the permutation is contained in $\mathrm{dep}(f)$. That statement is non-trivial and requires a proof using a theorem such as the FKG-inequality. We think Dubashi et al.\ developed their proof to complete it.}.
 %However Dubashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}
 %TODO: I suggest to put n_subsets_distribution_neg_assoc instead here instead, since the Hoeffding inequality is never used in our CVM proof.
 %The following is the well-known Hoeffding inequality~\cite{hoeffding1963} for negatively associated random variables:
