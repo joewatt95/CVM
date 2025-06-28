@@ -66,9 +66,9 @@ These will appear in the `document_out` subdirectory.
 The main theorem is `prob_cvm_incorrect_le_delta` in the [CVM_Transforms/CVM_Correctness_Instance.thy](CVM_Transforms/CVM_Correctness_Instance.thy) file.
 
 # Authors
-Seng Joe Watt <Watt_Seng_Joe@i2r.a-star.edu.sg>
-Derek Khu <derek_khu@i2r.a-star.edu.sg>
-Emin Karayel <me@eminkarayel.de>
-Kuldeep S. Meel <meel@cs.toronto.edu>
-Yong Kiam Tan <yongkiam.tan@ntu.edu.sg>
+* Seng Joe Watt <Watt_Seng_Joe@i2r.a-star.edu.sg>
+* Derek Khu <derek_khu@i2r.a-star.edu.sg>
+* Emin Karayel <me@eminkarayel.de>
+* Kuldeep S. Meel <meel@cs.toronto.edu>
+* Yong Kiam Tan <yongkiam.tan@ntu.edu.sg>
 
