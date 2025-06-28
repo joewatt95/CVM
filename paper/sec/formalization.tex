@@ -1,11 +1,10 @@
 \section{Formalization of the CVM algorithm}\label{sec:formalization}
-Let us now turn to details of our formalization of the CVM algorithm in Isabelle/HOL using our invariant-based approach.
+Let us now turn to details of our formalization of the CVM algorithm in Isabelle/HOL using our invariant-based approach~\cite{CVM_Distinct_Elements}.
 We verified both the total, unbiased variant (\cref{alg:cvm_new}) and the original variant (\cref{alg:cvm}) from the introduction.
 
 %TODO: make sure these names are correct!
 \begin{note}
-In our supplementary material, the invariant-based verification approach is in the directory \verb|CVM_Invariant|.
-The theory \verb|CVM_Abstract_Algorithm| verifies a generalized version of the CVM algorithm, with an abstract subsampling operation that is required to fulfill \cref{i:subsample_condition}.
+In our supplementary material~\cite{CVM_Distinct_Elements-AFP}, the theory \verb|CVM_Abstract_Algorithm| verifies a generalized version of the CVM algorithm, with an abstract subsampling operation that is required to fulfill \cref{i:subsample_condition}.
 The specialization happens in the following theories, where \verb|CVM_Original_Algorithm| verifies the original algorithm, and \verb|CVM_New_Unbiased_Algorithm| verifies the new total and unbiased variant.
 Note that only \verb|CVM_New_Unbiased_Algorithm| depends on the new library for negatively associated random variables, which we describe in more detail in \cref{sec:formalization_neg_dep}.
 The total number of lines required for the verification of the original algorithm is \locnew~lines.

@@ -3,11 +3,12 @@
 It is important to note that there are several practical solutions for the distinct elements problem.
 The first solution was presented by Flajolet~\cite{flajolet1985} in 1985; however, like many other authors~\cite{flajolet2007,heule2013,pettie2021}, his solution makes the assumption that a fixed hash function can be regarded as a fully random function.
 Alon et al.~\cite[Section 2.3]{alon1999} presented an easy remedy, which does not require such unmotivated model assumptions.
-Their algorithm just relies on keeping track of the maximum of the hash values of the stream elements, where the hash function must be chosen uniformly from a pairwise independent family; the space complexity of this algorithm is $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) b)$, where we assume that $b$ is the number of bits required to represent the stream elements.
-This is slightly better than the CVM algorithm which requires $\bigo(\varepsilon^{-2} \ln (\delta^{-1}l) b)$ since there is no logarithmic dependency on $l$.
+Their algorithm just relies on keeping track of the maximum of the hash values of the stream elements, where the hash function must be chosen uniformly from a pairwise independent family.
 
-Later, Bar-Yossef et al.~\cite{baryossef2002}, Kane et al.~\cite{kane2010} and B\l{}asiok in 2020~\cite{blasiok2020} presented increasingly sophisticated solutions.
-The last one by B\l{}asiok is optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
+Later, Bar-Yossef et al.~\cite{baryossef2002}, Kane et al.~\cite{kane2010} and B\l{}asiok in 2020~\cite{blasiok2020} improved on the solution by Alon et al.
+For example, Bar-Yossef et al.\ present a solution (Algorithm~3 in their work) with a space-complexity of $\bigo(\ln (\delta^{-1}) (\varepsilon^{-2}(\ln(\varepsilon^{-1})+\ln b) + b)))$, which can be implemented in practice.
+This is slightly better than the CVM algorithm which requires $\bigo(\varepsilon^{-2} \ln (\delta^{-1}l) b)$. In particular, there is no dependency on the length of the stream $l$.
+The more recent and more sophisticated solution by B\l{}asiok is space-optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
 We~\cite{karayel2023} presented a version of the latter that preserves monotonicity and supports the merge-operation, which enables its use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
 It should be noted that these recent algorithms are mostly of theoretical interest, as the constants, as well as the implementation complexity, are rather large.
 What makes the CVM algorithm unique is its simplicity and the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms.

@@ -2,7 +2,7 @@
 As mentioned in~\cref{sec:negdep}, formalizing the total and unbiased variant of the CVM algorithm requires results from the theory of negative association.
 
 \begin{note}
-In our supplementary material, the formalization of negative association is in the directory \verb|Neg_Assoc|.
+The formalization of the theory of negative association is included in a separate AFP entry~\cite{Negative_Association-AFP}.
 This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distributions|).
 Although not needed for CVM, we have also mechanized the standard Chernoff bounds (\verb|Neg_Assoc_Chernoff_Bounds|), including the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
 Another example application included in the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
