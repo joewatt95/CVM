@@ -63,7 +63,7 @@ each formalisation.
 These will appear in the `document_out` subdirectory.
 
 ## Main result
-The main theorem is `prob_cvm_incorrect_le_delta` in the [CVM_Transforms/CVM_Correctness_Instance.thy](CVM_Transforms/CVM_Correctness_Instance.thy) file.
+The main theorem is `prob_cvm_incorrect_le_delta` in the [CVM_Correctness_Instance.thy](CVM_Correctness_Instance.thy) file.
 
 # Authors
 * Seng Joe Watt <Watt_Seng_Joe@i2r.a-star.edu.sg>
