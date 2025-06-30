@@ -36,6 +36,18 @@
   bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
+@InProceedings{audebaud2006,
+  author = {Audebaud, Philippe and Paulin-Mohring, Christine},
+  editor = {Uustalu, Tarmo},
+  title = {Proofs of Randomized Algorithms in Coq},
+  booktitle = {Mathematics of Program Construction},
+  year = {2006},
+  publisher = {Springer Berlin Heidelberg},
+  _address = {Berlin, Heidelberg},
+  pages = {49--68},
+  isbn = {978-3-540-35632-5}
+}
+
 @inproceedings{baryossef2002,
   author       = {Ziv Bar{-}Yossef and
                   T. S. Jayram and
@@ -214,6 +226,20 @@
   bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
+@InProceedings{denhartog1999,
+  author = {den Hartog, J. I.},
+  editor = {Thiagarajan, P. S. and Yap, Roland},
+  title = {Verifying Probabilistic Programs Using a Hoare like Logic},
+  booktitle = {Advances in Computing Science --- ASIAN'99},
+  year = {1999},
+  publisher = {Springer Berlin Heidelberg},
+  _address = {Berlin, Heidelberg},
+  pages = {113--125},
+  isbn = {978-3-540-46674-1},
+  doi = {10.1007/3-540-46674-6_11},
+}
+
+
 @article{dubhashi1996,
   title={Negative Dependence Through the {FKG} Inequality},
   author={Devdatt P. Dubhashi and Volker Priebe and Desh Ranjan},
@@ -350,6 +376,25 @@
   timestamp    = {Tue, 20 Feb 2018 15:19:44 +0100},
   biburl       = {https://dblp.org/rec/conf/vldb/HaasNSS95.bib},
   bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{haselwarter2025,
+  author = {Haselwarter, Philipp G. and Li, Kwing Hei and Aguirre, Alejandro and Gregersen, Simon Oddershede and Tassarotti, Joseph and Birkedal, Lars},
+  title = {Approximate Relational Reasoning for Higher-Order Probabilistic Programs},
+  year = {2025},
+  issue_date = {January 2025},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  volume = {9},
+  number = {POPL},
+  url = {https://doi.org/10.1145/3704877},
+  doi = {10.1145/3704877},
+  abstract = {Properties such as provable security and correctness for randomized programs are naturally expressed relationally as approximate equivalences. As a result, a number of relational program logics have been developed to reason about such approximate equivalences of probabilistic programs. However, existing approximate relational logics are mostly restricted to first-order programs without general state.                In this paper we develop Approxis, a higher-order approximate relational separation logic for reasoning about approximate equivalence of programs written in an expressive ML-like language with discrete probabilistic sampling, higher-order functions, and higher-order state. The Approxis logic recasts the concept of error credits in the relational setting to reason about relational approximation, which allows for expressive notions of modularity and composition, a range of new approximate relational rules, and an internalization of a standard limiting argument for showing exact probabilistic equivalences by approximation. We also use Approxis to develop a logical relation model that quantifies over error credits, which can be used to prove exact contextual equivalence. We demonstrate the flexibility of our approach on a range of examples, including the PRP/PRF switching lemma, IND$-CPA security of an encryption scheme, and a collection of rejection samplers. All of the results have been mechanized in the Coq proof assistant and the Iris separation logic framework.},
+  journal = {Proc. ACM Program. Lang.},
+  month = jan,
+  articleno = {41},
+  numpages = {31},
+  keywords = {Logical Relations, Probabilistic Couplings, Separation Logic}
 }
 
 @inproceedings{heule2013,
@@ -658,6 +703,24 @@
   bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
+@inproceedings{tassarotti2021,
+  author = {Tassarotti, Joseph and Vajjha, Koundinya and Banerjee, Anindya and Tristan, Jean-Baptiste},
+  title = {A formal proof of PAC learnability for decision stumps},
+  year = {2021},
+  _publisher = {Association for Computing Machinery},
+  isbn = {9781450382991},
+  address = {New York, NY, USA},
+  _url = {https://doi.org/10.1145/3437992.3439917},
+  doi = {10.1145/3437992.3439917},
+  abstract = {We present a formal proof in Lean of probably approximately correct (PAC) learnability of the concept class of decision stumps. This classic result in machine learning theory derives a bound on error probabilities for a simple type of classifier. Though such a proof appears simple on paper, analytic and measure-theoretic subtleties arise when carrying it out fully formally. Our proof is structured so as to separate reasoning about deterministic properties of a learning function from proofs of measurability and analysis of probabilities.},
+  booktitle = {Proceedings of the 10th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+  pages = {5–-17},
+  numpages = {13},
+  keywords = {probably approximately correct, interactive theorem proving, decision stumps},
+  location = {Virtual, Denmark},
+  series = {CPP 2021}
+}
+
 % Github Reference using Software-Heritage ID
 @misc{CVM_Transforms-Github,
   title = {Verification of the {CVM} algorithm with the Transformation-based proof},
@@ -667,7 +730,6 @@
 }
 
 % AFP Entries
-
 @article{CVM_Distinct_Elements-AFP,
   author  = {Emin Karayel and Derek Khu and Kuldeep S. Meel and Yong Kiam Tan and Seng Joe Watt},
   title   = {Verification of the CVM algorithm with a New Recursive Analysis Technique},
