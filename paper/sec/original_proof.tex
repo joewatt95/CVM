@@ -121,7 +121,7 @@ For example, when the algorithm increases the subsampling counter $k$, it will h
 This means we have a situation where the previous loop iteration communicates to the next loop iteration which coin flips it depends on using the state; and the next loop iteration will indeed only read coin flips that were not read by the previous iteration.
 %For the column index of the coin flips, this is based on the stream index, but for the row index of the coin flips, it is based on the state variable $k$.
 
-To handle these situations we generalized \cref{o:sample_distrib} to allow for the case where the index $J$ splitting the set of coin flips $f$ and $g$ depend on, may itself depend on the result of $f$.
+To handle these situations we generalized \cref{o:sample_distrib} to allow for the case where the set of indices $J$ splitting the set of coin flips $f$ and $g$ depend on, may itself depend on the result of $f$.
 %It is possible to express the above in a point-free manner using the reader monad.
 %This is a deterministic monad, which provides a read operation to a global value, such as our set of coin flips.
 %(In Haskell, the reader monad is commonly used to provide a fixed environment to algorithms, such as global configuration options, paths or command lines parameters~\cite{jones1995}.)
