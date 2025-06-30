@@ -6,7 +6,7 @@ The formalization of the theory of negative association is included in a separat
 This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distributions|).
 Although not needed for CVM, we have also mechanized the standard Chernoff bounds (\verb|Neg_Assoc_Chernoff_Bounds|), including the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
 Another example application included in the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
-In total the library contains 2974~lines of Isabelle code.
+In total, the library contains 2974~lines of Isabelle code.
 \lipicsEnd\end{note}
 
 Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
@@ -79,7 +79,7 @@ Another key result (shown below) used for the verification of our CVM variant is
 \ \ \isakeyword{shows}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}neg{\isacharunderscore}{\kern0pt}assoc\ p\ {\isacharparenleft}{\kern0pt}{\isasymin}{\isacharparenright}{\kern0pt}\ S{\isacartoucheclose}
 \end{isabelle_cm}
 This is a consequence of a more general result, which we have also shown, that permutation distributions are negatively associated.
-We relied on the proof by Dubhashi et al.\ using the FKG inequality~\cite[Th. 10]{dubhashi1996}; there is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which is incomplete\footnote{The step which we could not directly formalize is the assertion (Sentence~14) in the proof of Theorem~2.11 (\cite{joagdev1983}) that the conditional expectation of the random variable $f(X)$ is smaller iff the smallest element of the permutation is contained in $\mathrm{dep}(f)$. That statement is non-trivial and requires a proof using a theorem such as the FKG-inequality. We think Dubhashi et al.\ developed their proof to complete it.}.
+We relied on the proof by Dubhashi et al.\ using the FKG inequality~\cite[Th. 10]{dubhashi1996}; there is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which is incomplete.\footnote{The step which we could not directly formalize is the assertion (Sentence~14) in the proof of Theorem~2.11 (\cite{joagdev1983}) that the conditional expectation of the random variable $f(X)$ is smaller iff the smallest element of the permutation is contained in $\mathrm{dep}(f)$. That statement is non-trivial and requires a proof using a theorem such as the FKG-inequality. We think Dubhashi et al.\ developed their proof to complete it.}
 %However Dubhashi presented a correct proof later using the FKG inequality~\cite[Th. 10]{dubhashi1996}.}
 %TODO: I suggest to put n_subsets_distribution_neg_assoc instead here instead, since the Hoeffding inequality is never used in our CVM proof.
 %The following is the well-known Hoeffding inequality~\cite{hoeffding1963} for negatively associated random variables:
