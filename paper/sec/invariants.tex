@@ -27,7 +27,7 @@ This means, after Line 7, we have:
 Interestingly, this equation is preserved for the rest of the algorithm.
 For example, let us consider a subsampling step: each $s$ is independently discarded with probability $\frac{1}{2}$ so $\prob(X_s=1)$ is halved, but so is $p$ after subsampling, which preserves the equation.
 
-Let us see how we can verify \cref{eq:indicator_eq} more formally.
+Let us see how we can verify Equation~\ref{eq:indicator_eq} more formally.
 For that, we model the state of the randomized algorithm as a pair $(\chi,p)$ and we write $\chi$ and $p$ for the random variables projecting their respective components from the distribution of the state of the algorithm.
 %For that, let us describe the states of the algorithm using pairs composed of a subset of $A$ representing the buffer $\chi$ and a real number representing $p$.
 %Note that, this means $p$ and $\chi$ are random variables, with respect to distributions of the state of the algorithm.
@@ -40,8 +40,8 @@ where we parameterize $\mathrm{step}_1$ with the stream element that it processe
 The term $\mathrm{init}$ represents the initial state, i.e., $\mathrm{init} = \mathrm{\bf return}\,(\{\},1)$.
 It is easy to show by induction over the sequence of steps, we have $0 < p \leq 1$ and $\chi \subseteq A$ for all possible states of the algorithm.
 
-Let us verify that~\cref{eq:indicator_eq} is preserved as an invariant over all steps.
-To verify that $\mathrm{step}_1\, a$ preserves \cref{eq:indicator_eq}, we assume some probability space of states $\Omega$ fulfills \cref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$. By~\cref{eq:integral_bind},
+Let us verify that Equation~\ref{eq:indicator_eq} is preserved as an invariant over all steps.
+To verify that $\mathrm{step}_1\, a$ preserves Equation~\ref{eq:indicator_eq}, we assume some probability space of states $\Omega$ fulfills Equation~\ref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$. By Equation~\ref{eq:integral_bind},
 \begin{equation}\label{eq:step_1_exp}
   \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a} [ p^{-1} X_s ] =
     \integral{\Omega}{\integral{\Ber(p)}{p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right)}{\tau}}{\sigma} \textrm{.}
@@ -53,8 +53,8 @@ When $a = s$, the right-hand-side is equal to $1$ by definition of the Bernoulli
 When $a \not= s$, it follows from the induction hypothesis on $\Omega$; in particular, the term in the inner integral is constant with respect to $\tau$.
 
 The same invariant-based argument is possible for $\mathrm{step}_2$.
-Let us assume $\Omega$ is a probability space of states fulfilling \cref{eq:indicator_eq}.
-Then by~\cref{eq:integral_bind}, $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1}X_s]$ equals
+Let us assume $\Omega$ is a probability space of states fulfilling Equation~\ref{eq:indicator_eq}.
+Then by Equation~\ref{eq:integral_bind}, $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1}X_s]$ equals
 \begin{equation}\label{eq:step_2_exp}
 %  \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} \left[\frac{X_s}{p}\right]
     \integral{\Omega}
@@ -66,10 +66,10 @@ Note that the \emph{true} and \emph{false} cases of the inner \textbf{if-then-el
 If $s \notin \chi$ both sides of the equation are $0$, because the subsampling operation returns a subset of $\chi$.
 If $s \in \chi$ the probability that the element gets subsampled is $1/2$, so we arrive again at $\frac{1/2}{p/2} = p^{-1} \indicat(s \in \chi)$.
 Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \expect_\Omega [p^{-1} X_s] = 1$.
-This completes the invariance proof for~\cref{eq:indicator_eq}.
+This completes the invariance proof for Equation~\ref{eq:indicator_eq}.
 
 \subsection{Deriving a Functional Probabilistic Invariant}
-With \cref{eq:indicator_eq} established, it is straightforward to show that the expected value of the output estimate $p^{-1} |\chi|$ for the modified algorithm (without Line 11) is equal to the desired cardinality $|A|$.
+With Equation~\ref{eq:indicator_eq} established, it is straightforward to show that the expected value of the output estimate $p^{-1} |\chi|$ for the modified algorithm (without Line 11) is equal to the desired cardinality $|A|$.
 However, recall that we are interested in verifying the estimate's PAC guarantee.
 A typical approach to establishing such a guarantee is to use Chernoff bounds which provide exponential tail bounds (i.e., concentration bounds) for the deviation of sums of independent random variables from their mean.
 However, these are not directly useful in the CVM algorithm because the key random variables, e.g., $p^{-1} X_s$ for $s \in A$, are dependent.
@@ -85,7 +85,7 @@ In our case, we are interested in estimating the moment generating function of t
   \expect [\exp( t p^{-1} |\chi| )] = \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right]
 \]
 for $h(x) = \exp(tx)$.
-At this point, it is tempting to see whether the proof for \cref{eq:indicator_eq} can be generalized to establish bounds for the above.
+At this point, it is tempting to see whether the proof for Equation~\ref{eq:indicator_eq} can be generalized to establish bounds for the above.
 Indeed, we managed to establish the following generalized result:
 \begin{align}
   \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
@@ -120,7 +120,7 @@ To use these bounds, we also have to separately estimate $\prob(p < q)$.
 For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2023}, with $q = \frac{n}{4 |A|}$.
 %The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
 The formalization in the supplementary material~\cite{CVM_Distinct_Elements-AFP} contains a detailed informal step-by-step proof using our approach in its appendix.
-Besides the use of \cref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
+Besides the use of Equation~\ref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
 
 The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
 As far as we know this method of establishing tail bounds for randomized algorithms is new.

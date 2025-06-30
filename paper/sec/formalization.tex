@@ -3,7 +3,7 @@ Let us now turn to details of our formalization of the CVM algorithm in Isabelle
 We verified both the total, unbiased variant (\cref{alg:cvm_new}) and the original variant (\cref{alg:cvm}) from the introduction.
 
 \begin{note}
-In our supplementary material~\cite{CVM_Distinct_Elements-AFP}, the theory \verb|CVM_Abstract_Algorithm| verifies a generalized version of the CVM algorithm, with an abstract subsampling operation that is required to fulfill \cref{i:subsample_condition}.
+In our supplementary material~\cite{CVM_Distinct_Elements-AFP}, the theory \verb|CVM_Abstract_Algorithm| verifies a generalized version of the CVM algorithm, with an abstract subsampling operation that is required to fulfill Inequality~\ref{i:subsample_condition}.
 The specialization happens in the following theories, where \verb|CVM_Original_Algorithm| verifies the original algorithm, and \verb|CVM_New_Unbiased_Algorithm| verifies the new total and unbiased variant.
 Note that only \verb|CVM_New_Unbiased_Algorithm| depends on the new library for negatively associated random variables, which we describe in more detail in \cref{sec:formalization_neg_dep}.
 The total number of lines required for the verification of the original algorithm is \locnew~lines.
