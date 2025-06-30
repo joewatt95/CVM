@@ -11,8 +11,8 @@ In total, the library contains 2974~lines of Isabelle code.
 
 Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
 However, their definition leaves the class of test functions $f$ and $g$ (in \cref{def:neg_assoc}) imprecise.
-In the formalization, we use different conditions for introduction vs. elimination rules.
-In paritcular, for introduction rules, the test functions are bounded and measurable.
+In the formalization, we use different conditions for introduction and elimination rules.
+In particular, for introduction rules, the test functions are bounded and measurable.
 However, we provide stronger elimination rules, showing that if $X_1,\dots,X_n$ are negatively associated, then the inequality on expectations is true even if $f, g$ are only square-integrable; or, alternatively, integrable and non-negative. This is derived using the monotone convergence theorem.
 
 Another deviation from the original work is that we do not require that the random variables are real-valued.

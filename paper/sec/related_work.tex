@@ -11,7 +11,7 @@ This is slightly better than the CVM algorithm which requires $\bigo(\varepsilon
 The more recent and more sophisticated solution by B\l{}asiok is space-optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
 We~\cite{karayel2023} presented a version of the latter that preserves monotonicity and supports the merge-operation, which enables its use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
 It should be noted that these recent algorithms are mostly of theoretical interest, as the constants, as well as the implementation complexity, are rather large.
-A comprehensive review of distinct elements algorithms has be compiled by Pettie and Wang~\cite[Table~1]{pettie2021}.
+A comprehensive review of distinct elements algorithms has been compiled by Pettie and Wang~\cite[Table~1]{pettie2021}.
 What makes the CVM algorithm unique is its simplicity and the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms.
 
 The aforementioned hash-based algorithms are biased; Flajolet et al.~\cite{flajolet1985} points this out and also provides bounds on the distance between the expected result and the cardinality of the stream.
@@ -33,9 +33,7 @@ Instead, we investigate invariants of classes of functions of the distributions,
 There is research on automated evaluation of moments for restricted classes of loops which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}.
 However, these methods do not extend to algorithms with branches or, more generally, algorithms which contain discrete operations.
 
-Finally, verification of randomized algorithms expressed in functional programming languages has been tackled by various authors using various proof assistants~\cite{audebaud2006,bosshard2024,demedeiros2024, eberl2020,gopinathan20,hurd03, Probabilistic_Prime_Tests-AFP, tan2024, tassarotti2021}.
-Moreover, for classical imperatively expressed randomized algorithms, there are approaches based on probabilistic hoare logic~\cite{denhartog1999}.
-Interesting is the work by Haselwarter et al.~\cite{haselwarter2025} in this context, which discusses some of the issues we encountered in the transformation-based proof (Section~\ref{sec:transformation_based_proof}), such (approximate) equivalence between related algorithms.
-However, because this work emphasizes the representation of randomized algorithms using the Giry monad, we did not deeply explore probabilistic logic based methods.
-
-The most closely related efforts are our mechanizations of frequency moments algorithms~\cite{karayel2022, karayel2023}.
+Finally, verification of randomized algorithms expressed in functional programming languages has been tackled by various authors using various proof assistants~\cite{audebaud2009,bosshard2024,demedeiros2024, eberl2020,gopinathan20,hurd03, Probabilistic_Prime_Tests-AFP, tan2024, tassarotti2021}; the most closely related efforts are our mechanizations of frequency moments algorithms~\cite{karayel2022, karayel2023}.
+Moreover, for classical imperative randomized algorithms, there are approaches based on probabilistic Hoare logic~\cite{denhartog2002}.
+An interesting related work by Haselwarter et al.~\cite{haselwarter2025} discusses some of the issues we encountered in the transformation-based proof (Section~\ref{sec:transformation_based_proof}), such as (approximate) equivalence between related randomized algorithms.
+However, because our work reasons directly over the semantics of randomized algorithms expressed in the Giry monad, we did not deeply explore probabilistic logic-based methods.
