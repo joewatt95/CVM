@@ -38,7 +38,7 @@ The pen-and-paper analysis of CVM~\cite{chakraborty2022,chakraborty2023} relies 
 The reason for these transformations is that standard methods for analyzing randomized algorithms, such as Chernoff--Hoeffding bounds, usually make statements about independent random variables.
 However, for \cref{alg:cvm}, the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are independent; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
 The original error serves as a side motivation for this work.}
-For example, in Line~3 the Bernoulli distribution is sampled for the value $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
+For example, in Line~3 the Bernoulli distribution is sampled with the parameter $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
 The aforementioned sequence of transformations by Chakraborty et al.~results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
 To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known textbook methods~\cite{alon2000,mitzenmacher2017,motwani1995}.
 
