@@ -29,8 +29,6 @@ For example, let us consider a subsampling step: each $s$ is independently disca
 
 Let us see how we can verify Equation~\ref{eq:indicator_eq} more formally.
 For that, we model the state of the randomized algorithm as a pair $(\chi,p)$ and we write $\chi$ and $p$ for the random variables projecting their respective components from the distribution of the state of the algorithm.
-%For that, let us describe the states of the algorithm using pairs composed of a subset of $A$ representing the buffer $\chi$ and a real number representing $p$.
-%Note that, this means $p$ and $\chi$ are random variables, with respect to distributions of the state of the algorithm.
 We will refer to parts of each loop iteration in \cref{alg:cvm} as $\mathrm{step}_1$ (resp.~$\mathrm{step}_2$) for Lines 3--7 (resp.~Lines 8--10).
 The final distribution of the algorithm is the distribution resulting from the sequential composition of alternating steps over the stream:
 \[
@@ -45,7 +43,6 @@ To verify that $\mathrm{step}_1\, a$ preserves Equation~\ref{eq:indicator_eq}, w
 \begin{equation}\label{eq:step_1_exp}
   \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a} [ p^{-1} X_s ] =
     \integral{\Omega}{\integral{\Ber(p)}{p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right)}{\tau}}{\sigma} \textrm{.}
-    % \int_\Omega \int_{\Ber(p)} p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right) \, d \tau d \sigma \textrm{.}
 \end{equation}
 Note that we write $p$ or $\chi$ even though we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
 To see that the right-hand side is equal to $1$, it is useful to consider cases on whether $a=s$.
@@ -56,7 +53,6 @@ The same invariant-based argument is possible for $\mathrm{step}_2$.
 Let us assume $\Omega$ is a probability space of states fulfilling Equation~\ref{eq:indicator_eq}.
 Then by Equation~\ref{eq:integral_bind}, $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1}X_s]$ equals
 \begin{equation}\label{eq:step_2_exp}
-%  \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} \left[\frac{X_s}{p}\right]
     \integral{\Omega}
       {\left(\ift{|\chi|=n}{\left(\integral{\mathrm{subsample}(\chi)}{\frac{\indicat(s \in \tau)}{p/2}}{\tau}\right)}{\frac{\indicat(s \in \chi)}{p}} \right)}
       {\sigma}
@@ -76,8 +72,6 @@ However, these are not directly useful in the CVM algorithm because the key rand
 
 An alternative is the Cram\'{e}r--Chernoff method, which is a general method to obtain tail bounds for any random variable.
 It can be stated simply as $\prob(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t) := \expect [\exp(t X)]$ is the moment generating function of the random variable $X$.
-%\footnote{The moment generating function is sometimes only defined for some values of $t$ (when the corresponding integral exists), and this is typically an interval including $0$; the inequality is only applicable wherever $M(t)$ is defined.}
-%Since the probability space representing the state of the CVM algorithm is finite, $M(t)$ will always be defined in our case.
 It is also possible to obtain lower tail bounds $\prob(X \leq a)$ using the Cram\'{e}r--Chernoff method, which just requires estimates for $M(t)$ for $t < 0$, instead of $t > 0$.
 
 In our case, we are interested in estimating the moment generating function of the random variable $p^{-1} |\chi|$ for the CVM algorithm:
@@ -91,17 +85,13 @@ Indeed, we managed to establish the following generalized result:
   \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
 \end{align}
 for every non-negative concave function $h : \Rnonneg \rightarrow \Rnonneg$.
-We call this a \emph{functional probabilistic invariant} because one can establish it for all valid choices of $h$ with a single induction over steps of the randomized algorithm.
-
-While the exponential function in $M(t)$ is convex, we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$, for some fixed constant $q > 0$.
+However, the exponential function in $M(t)$ is convex, but we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$, for some fixed constant $q > 0$.
 This leads to a similar invariant inequality:
 \begin{align}
   \expect \left[ \prod_{s \in A} I(p \geq q) h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant_capped}
 \end{align}
 with the new condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
 This then allows us to approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows:
-%TODO: should we use exp(...) everywhere instead of mixing with e^ ? EK: That was the previous verison, main issue is the chain looks very lopsided, with almost all of the terms being on the right edge. (It looked too ugly.)--- OK
-% The convention is now, if exp is applied to a random variable we use the long notation and otherwise the power notation, which might actually be (a bit) helpful.
 \begin{eqnarray*}
   \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq & % Is not equal when |A|=0.
   \prob( \indicat(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
@@ -118,9 +108,9 @@ For the last step, we have to find the $t$ that produces the required bound.%
 \footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.}
 To use these bounds, we also have to separately estimate $\prob(p < q)$.
 For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2023}, with $q = \frac{n}{4 |A|}$.
-%The formalization accompanying this work~\todo{[cite]} contains a detailed informal step-by-step proof using our approach in its appendix.
 The formalization in the supplementary material~\cite{CVM_Distinct_Elements-AFP} contains a detailed informal step-by-step proof using our approach in its appendix.
 Besides the use of Equation~\ref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
 
-The main takeaway here is that it is possible to derive useful and general probabilistic invariants by considering expectations of classes of functions of the state, proved using recursion or induction over the algorithm itself.
-As far as we know this method of establishing tail bounds for randomized algorithms is new.
+We call inequalities like Inequality~\ref{i:func_invariant} and \ref{i:func_invariant_capped}: \emph{functional probabilistic invariants}.
+The inequalities can be established using induction over the steps of the randomized algorithm.
+Even, though, the actual distribution of the states themselves are not known, nor do we think it is possible to find useful closed form descriptions for them, the invariant establishes valuable information about the distribution of the state. In this case, enough information, to establish exponential tail bounds for the algorithm.
