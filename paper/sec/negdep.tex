@@ -32,12 +32,12 @@ It should be noted that the condition becomes apparent while establishing Inequa
 \begin{equation}\label[ineq]{i:subsample_condition}
   \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))}{\tau} \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
 \end{equation}
-for all non-negative functions $g$ and any $S \subseteq \chi$, where $f$ is the probability of retaining each element in the subsampling step of the algorithm.
-Any subsampling step that satisfies this functional inequality can be used while still preserving Inequality~\ref{i:func_invariant} for the algorithm.
+for all non-negative functions $g$ and any $S \subseteq \chi$, where $f$ is the probability of retaining each element in the subsampling step of the algorithm. (This parameter $f$ was fixed to $\frac{1}{2}$ in the original presentation of the algorithm for simplicity.)
+Any subsampling step that satisfies Inequality~\ref{i:subsample_condition} can be used while still preserving Inequalities~\ref{i:func_invariant} and \ref{i:func_invariant_capped} for the algorithm.
 
 Motivated by this observation, our new variant is shown in \cref{alg:cvm_new}.
 For the subsampling step, instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, we pick a uniform random $nf$-subset of $\chi$, where $\frac{1}{2} \leq f < 1$ and $nf$ is an integer.
-For example, it is possible to choose $f = \frac{n-1}{n}$, i.e., discarding a random element from $\chi$ in the subsampling step.
+For example, it is possible to choose $f = \frac{n-1}{n}$, i.e., discarding just one random element from $\chi$ in the subsampling step.
 Since this new subsampling step always reduces the size of $\chi$, the variant is \emph{total} (never returns $\bot$).
 The invariant-based approach allows us to show that the algorithm is probably-approximately correct and also \emph{unbiased}, i.e., the expectation of the result is exactly $|A|$.
 These depend crucially on establishing Inequality~\ref{i:subsample_condition} for the new subsampler, for which we need a new concept.

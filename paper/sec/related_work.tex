@@ -31,7 +31,7 @@ De Medeiros et al.~\cite[Section 3.2]{demedeiros2024} also establish methods to 
 Our approach differs from these techniques by avoiding computation of the distribution, which, we think, is infeasible for the CVM algorithm.
 Instead, we investigate invariants of classes of functions of the distributions, which are relevant for the analysis.
 There is research on automated evaluation of moments for restricted classes of loops which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}.
-However, these methods do not extend to algorithms with branches or, more generally, algorithms which contain discrete operations.
+However, these methods do not extend to algorithms with non-continuous operations, or control flow that depends on non-deterministic state variables.
 
 Finally, verification of randomized algorithms expressed in functional programming languages has been tackled by various authors using various proof assistants~\cite{audebaud2009,bosshard2024,demedeiros2024, eberl2020,gopinathan20,haslbeck2016,hurd03,Probabilistic_Prime_Tests-AFP,tan2024,tassarotti2021}; the most closely related efforts are our mechanizations of frequency moments algorithms~\cite{karayel2022, karayel2023}.
 Moreover, for classical imperative randomized algorithms, there are approaches based on probabilistic Hoare logic~\cite{denhartog2002}.
