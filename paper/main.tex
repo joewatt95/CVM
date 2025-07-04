@@ -1,19 +1,5 @@
 \RequirePackage[hyphens]{url}
 \documentclass[a4paper,UKenglish,cleveref, autoref, thm-restate]{lipics-v2021}
-%This is a template for producing LIPIcs articles.
-%See lipics-v2021-authors-guidelines.pdf for further information.
-%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
-%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
-%for section-numbered lemmas etc., use "numberwithinsect"
-%for enabling cleveref support, use "cleveref"
-%for enabling autoref support, use "autoref"
-%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
-%for enabling thm-restate support, use "thm-restate"
-%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
-%for producing a PDF according the PDF/A standard, add "pdfa"
-
-%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
-%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
 
 \usepackage{booktabs}
 \usepackage{mdframed}
@@ -37,7 +23,6 @@
 \DeclareMathOperator{\expect}{\mathrm{E}}
 \DeclareMathOperator{\indicat}{\mathrm{I}}
 \DeclareMathOperator{\bigo}{\mathcal O}
-%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
 
 \definecolor{shadecolor}{gray}{0.95}
 \newenvironment{isabelle_cm}{\begin{mdframed}[backgroundcolor=shadecolor,nobreak=true,linewidth=0]\begin{isabelle}}{\end{isabelle}\end{mdframed}}%
@@ -62,21 +47,17 @@
 
 \bibliographystyle{plainurl}% the mandatory bibstyle
 
-%\title{Verification of the CVM algorithm with a New Recursive Analysis Technique} %TODO Please add
-\title{Verification of the CVM algorithm with a Functional Probabilistic Invariant} %TODO maybe?
+\title{Verification of the CVM algorithm with a Functional Probabilistic Invariant}
 
-%\titlerunning{Dummy short title} %TODO optional, please use if title is longer than one line
-
-% TODO: put in everyone's names here
 \author{Emin Karayel}{Technical University of Munich, School of Computation, Information and Technology, Germany}{me@eminkarayel.de}{https://orcid.org/0000-0003-3290-5034}{}
 \author{Seng Joe Watt}{Institute for Infocomm Research (I$^2$R), A*STAR, Singapore}{Watt_Seng_Joe@i2r.a-star.edu.sg}{https://orcid.org/0000-0002-6883-4736}{Singapore NRF Fellowship Programme NRF-NRFF16-2024-0002}
 \author{Derek Khu}{Institute for Infocomm Research (I$^2$R), A*STAR, Singapore}{derek_khu@i2r.a-star.edu.sg}{https://orcid.org/0009-0000-0293-0664}{}
 \author{Kuldeep S. Meel}{Georgia Institute of Technology, United States \and  University of Toronto, Canada}{meel@cs.toronto.edu}{https://orcid.org/0000-0001-9423-5270}{Natural Sciences and Engineering Research Council of Canada (NSERC), funding reference [RGPIN-2024-05956]}
 \author{Yong Kiam Tan}{Institute for Infocomm Research (I$^2$R), A*STAR, Singapore \and Nanyang Technological University, Singapore}{yongkiam.tan@ntu.edu.sg}{https://orcid.org/0000-0001-7033-2463}{Singapore NRF Fellowship Programme NRF-NRFF16-2024-0002}
 
-\authorrunning{E. Karayel, S. J. Watt, D. Khu, K. S. Meel, Y. K. Tan} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+\authorrunning{E. Karayel, S. J. Watt, D. Khu, K. S. Meel, Y. K. Tan}
 
-\Copyright{Emin Karayel, Seng Joe Watt, Derek Khu, Kuldeep S. Meel, Yong Kiam Tan} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+\Copyright{Emin Karayel, Seng Joe Watt, Derek Khu, Kuldeep S. Meel, Yong Kiam Tan}
 
 \ccsdesc[500]{Theory of computation~Logic and verification}
 \ccsdesc[500]{Theory of computation~Higher order logic}
@@ -85,67 +66,768 @@
 
 \keywords{Verification, Isabelle/HOL, Randomized Algorithms, Distinct Elements}
 
-\category{} %optional, e.g. invited paper
+\category{}
+\relatedversion{}
 
-\relatedversion{} %optional, e.g. full version hosted on arXiv, HAL, or other respository/website
-%\relatedversiondetails[linktext={opt. text shown instead of the URL}, cite=DBLP:books/mk/GrayR93]{Classification (e.g. Full Version, Extended Version, Previous Version}{URL to related version} %linktext and cite are optional
+\supplement{Isabelle/HOL Formalization}
 
-\supplement{Isabelle/HOL Formalization}%optional, e.g. related research data, source code, ... hosted on a repository like zenodo, figshare, GitHub, ...
 \supplementdetails[cite=CVM_Distinct_Elements-AFP]{Software}{https://isa-afp.org/entries/CVM_Distinct_Elements.html}
 \supplementdetails[cite=CVM_Transforms-Github, swhid=swh:1:dir:c677f1e3ced670373c05ac835f1cd342a2777e20]{Software}{https://github.com/joewatt95/CVM/tree/main/isabelle/CVM_Transforms}
 \supplementdetails[cite=Negative_Association-AFP]{Software}{https://isa-afp.org/entries/Negative_Association.html}
 
-%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
-
-%\acknowledgements{I want to thank \dots}%optional
-
-%\nolinenumbers %uncomment to disable line numbering
-
 %Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\EventEditors{John Q. Open and Joan R. Access}
+\EventEditors{Yannick Forster and Chantal Keller}
 \EventNoEds{2}
-\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
-\EventShortTitle{CVIT 2016}
-\EventAcronym{CVIT}
-\EventYear{2016}
-\EventDate{December 24--27, 2016}
-\EventLocation{Little Whinging, United Kingdom}
+\EventLongTitle{16th International Conference on Interactive Theorem Proving (ITP 2025)}
+\EventShortTitle{ITP 2025}
+\EventAcronym{ITP}
+\EventYear{2025}
+\EventDate{September 29--October 2, 2025}
+\EventLocation{Reykjavik, Iceland}
 \EventLogo{}
-\SeriesVolume{42}
-\ArticleNo{23}
+\SeriesVolume{352}
+\ArticleNo{34}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
 \maketitle
 
-%NOTE: we have to inline all of these into one file for the final version if accepted.
+\begin{abstract}
+Estimating the number of distinct elements in a data stream is a classic problem with numerous applications in computer science.
+We formalize a recent, remarkably simple, randomized algorithm for this problem due to Chakraborty, Vinodchandran, and Meel (called the CVM algorithm).
+Their algorithm deviated considerably from the state of the art, due to its avoidance of intricate derandomization techniques, while still maintaining a close-to-optimal logarithmic space complexity.
 
-\input{sec/abstract}
+Central to our formalization is a new proof technique based on functional probabilistic invariants, which allows us to derive concentration bounds using the Cram\'{e}r--Chernoff method without relying on independence.
+This simplifies the formal analysis considerably compared to the original proof by Chakraborty et al.
+Moreover, our technique opens up the possible algorithm design space; we demonstrate this by introducing and verifying a new variant of the CVM algorithm that is both total and unbiased---neither of which is a property of the original algorithm.
+In this paper, we introduce the proof technique, describe its use in mechanizing both versions of the CVM algorithm in Isabelle/HOL, and present a supporting formalized library on negatively associated random variables used to verify the latter variant.
+\end{abstract}
 
-\input{sec/intro}
+\section{Introduction}
+\label{sec:intro}
 
-\input{sec/semra}
+In 2022, Chakraborty, Vinodchandran, and Meel~\cite{chakraborty2022} published a remarkable streaming algorithm for the distinct elements problem~\cite{quanta}.
+Indeed, Knuth later wrote a note on the algorithm~\cite{knuthnote}, pointing out its interesting properties and christening it the \emph{CVM} algorithm (which we use for the rest of this paper).
+One striking property of the CVM algorithm is that, in contrast to every other known algorithm for the problem, it does not rely on hashing the stream elements.
+Instead, the algorithm could theoretically be implemented in a setting where objects in the data stream only allow for equality comparisons.
+Another property is its simplicity, which is why the authors called it ``an algorithm for the textbook''.
+The algorithm is displayed in its entirety in~\cref{alg:cvm}.
 
-\input{sec/invariants}
+\begin{algorithm}[h!]
+	\caption{CVM algorithm for distinct elements estimation~\cite{chakraborty2022}.}\label{alg:cvm}
+	\begin{algorithmic}[1]
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment randomly sample a bit $b$ from the Bernoulli distribution
+    \If{$b$} \Comment insert $a_i$ if $b$ is true (with prob. $p$)
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else \Comment remove $a_i$ otherwise
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} \Comment if buffer $\chi$ is full
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment discard elements of $\chi$ independently with prob. $\frac{1}{2}$
+      \State $p \gets \frac{p}{2}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \Return $\bot$ \Comment fail if $\chi$ remains full
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+  \end{algorithmic}
+\end{algorithm}
 
-\input{sec/negdep}
+The pen-and-paper analysis of CVM~\cite{chakraborty2022,chakraborty2023} relies on a sequence of transformations of the algorithm.
+The reason for these transformations is that standard methods for analyzing randomized algorithms, such as Chernoff--Hoeffding bounds, usually make statements about independent random variables.
+However, for \cref{alg:cvm}, the state variables are far from being independent.\footnote{There is an incorrect claim in the initial published proof of CVM~\cite[Claim 6]{chakraborty2022} that the indicator functions for elements in $\chi$ are independent; a later version by the same authors~\cite{chakraborty2023} provides a correct proof.
+The original error serves as a side motivation for this work.}
+For example, in Line~3 the Bernoulli distribution is sampled with the parameter $p$, which itself depends on previous random operations; similarly, the subsampling step in Line~9 is only applied if the buffer $\chi$ is full, which also depends on previous random operations.
+The aforementioned sequence of transformations by Chakraborty et al.~results in another randomized algorithm which can be analyzed using standard methods, and from which the desired results for the original algorithm can be deduced.
+To our knowledge, it seems impossible to analyze \cref{alg:cvm} more directly using known textbook methods~\cite{alon2000,mitzenmacher2017,motwani1995}.
 
-\input{sec/formalization}
+In this paper, we present a new technique for analyzing randomized algorithms which yields a direct and substantially more general proof of the CVM algorithm.
+Our approach is very similar to how deterministic algorithms are verified using loop invariants.
+The key difference is that our choice of ``loop invariant'' for the randomized streaming algorithm is a functional probabilistic inequality, namely, we consider invariants of the form:
+\[
+  \expect [ h ] \leq h(c)
+\]
+where the expectation is taken over the distribution of the state of the algorithm; $h$ is allowed to range over a class of functions (mapping states to real values); and $c$ is a fixed state (possibly chosen differently at each loop iteration).
+By first establishing such an invariant for \cref{alg:cvm}, we can then use it (via different choices of $h$) to establish error bounds for the algorithm.
+We coined the term ``functional probabilistic invariant'', borrowing loosely from the theory of the calculus of variations, where scalar-valued maps---called functionals---from the problem space are used to solve optimization problems.
+In our case we are using scalar-valued maps---i.e., functionals---from the distribution of the state of the algorithm, which lead us to the name for our new technique.
+We believe the new proof remains accessible at the undergraduate level, albeit with some exposure to mechanized theorem proving.
 
-\input{sec/formalization_neg_dep}
+To show the generality of our technique, we introduce a new variant of the CVM algorithm, where the subsampling step in Line~9 of \cref{alg:cvm} selects a random $m$-subset of $\chi$ instead of independently discarding each element with some probability.
+This variant has the benefit that it is \emph{total} (never returns $\bot$) because the second check in Line~11 becomes obsolete.
+More interestingly, the variant is \emph{unbiased}, i.e., the expected value of the algorithm's output is exactly the cardinality of the elements in the stream; this is a new property that neither the original CVM algorithm nor classic algorithms for the distinct elements problem possess.
 
-\input{sec/original_proof}
+The modified subsampling step leads to additional dependence for the elements in $\chi$ which cannot be readily removed using transformations as was done in the original proof.
+Instead, we verify the new variant with our probabilistic invariant-based approach, using results from the theory of negatively associated random variables~\cite{joagdev1983} to establish the desired functional invariant.
+The concept of negative association is a generalization of independence; importantly, negatively associated variables observe closure properties and fulfill Chernoff--Hoeffding bounds similarly to independent random variables.
+It should be stressed that the theory of negative association is orthogonal to our new technique, but its formalization is also a contribution of this work.
 
-\input{sec/related_work}
+In summary, our main contributions are:
+\begin{itemize}
+\item Introduction of a new technique using functional probabilistic invariants to verify tail-bounds for randomized algorithms inductively/recursively.
+\item Verification of the original CVM algorithm using our new technique.
+\item Presentation and verification of a new variant of CVM that is total and unbiased.
+\item Formalization of a theory of negatively associated random variables used to analyze the new CVM variant.
+\end{itemize}
 
-\input{sec/conclusion}
+We carried out the mechanizations using Isabelle/HOL~\cite{nipkow2002}, which comes with a large repository of foundational libraries~\cite{afp} for the verification of randomized algorithms.
+We have also mechanized the transformation-based CVM proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}, which provides a rough point of comparison:
+verification of the CVM algorithm using our new technique required only \locnew~lines, while the original proof required \locold~lines.\footnote{
+We count the total number of lines of Isabelle code in the whole project, excluding empty, comment, and presentation-related lines.
+}
 
-%%
-%% Bibliography
-%%
+The rest of this paper is organized as follows.
+\cref{sec:background} provides background information on randomized algorithms, in particular on their semantics in Isabelle/HOL.
+\cref{sec:invariants} introduces our new technique and explains how probabilistic loop invariants can be used to establish tail bounds for the original CVM algorithm.
+\cref{sec:negdep} introduces the concept of negative association and our new total and unbiased variant of the CVM algorithm.
+\cref{sec:formalization} presents the formalization of both variants of the algorithm, and \cref{sec:formalization_neg_dep} describes our new formalized library on negatively associated random variables.
+\cref{sec:transformation_based_proof} discusses some challenges faced in our alternative verification of CVM using the transformation-based proof by Chakraborty et al.
+The final sections present related work and a summary of our results.
 
-%% Please use bibtex,
+The supplementary material contains:
+\begin{itemize}
+\item formalization~\cite{CVM_Distinct_Elements-AFP} of the CVM algorithm, both the original version (\cref{alg:cvm}) and our new version (\cref{alg:cvm_new}) using functional probabilistic invariants;
+\item formalization~\cite{Negative_Association-AFP} of a library for negative association; and
+\item formalization~\cite{CVM_Transforms-Github} of the CVM algorithm following the proof by Chakraborty et al.~\cite{chakraborty2022,chakraborty2023}.
+\end{itemize}
+
+\section{Background}
+\label{sec:background}
+
+\subsection{Randomized Algorithms and Distinct Elements}
+
+The CVM algorithm is a \emph{streaming} algorithm for the distinct elements problem.
+As shown in~\cref{alg:cvm}, given a data stream $a_1,\dots, a_l$, the goal of such algorithms is to return an accurate cardinality estimate for the set $A = \{a_1,\dots,a_l\}$.
+
+Importantly, CVM is a \emph{probably approximately correct} (PAC) algorithm where its output estimate $R$ satisfies
+$\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+for parameters $\varepsilon$ and $\delta$,
+i.e., the probability that the relative error of $R$ with respect to $|A|$ exceeds $\varepsilon$ is at most $\delta$.
+Moreover, let us assume that the space needed to store each element in the stream is $b$ bits, then the CVM algorithm requires only $\bigo(\varepsilon^{-2} b \ln(\delta^{-1} l))$ bits of mutable state, which is far less than storing each stream element deterministically.
+
+\begin{remark}
+The asymptotically optimal randomized algorithm for distinct elements requires $\bigo( \varepsilon^{-2} \ln \delta + b)$ bits, but it requires more advanced algorithmic techniques. It would not be possible to present using such elementary steps as in \cref{alg:cvm} as it involves computations in finite fields and random walks in expander graphs~\cite{blasiok2020, karayel2023}.
+\lipicsEnd\end{remark}
+
+\subsection{Semantics of Randomized Algorithms}
+We briefly review how reasoning about randomized algorithms works in Isabelle/HOL using the Giry monad~\cite{giry1982}.
+Multiple authors provide more thorough discussions of the concept in the context of Isabelle and other proof assistants~\cite{audebaud2009,eberl2020, lochbihler2016}.
+
+The key idea is to model a randomized algorithm as a probability space representing the distribution of its results.
+As an example, let us consider \cref{alg:example}.
+\begin{algorithm}[h!]
+\caption{Example for sequential composition.}\label{alg:example}
+\begin{algorithmic}[1]
+\State $p \getsr \Ber(\frac{1}{2})$
+\State $q \getsr \Ber(\frac{1}{3}+\frac{p}{2})$
+\State \Return $q$
+\end{algorithmic}
+\end{algorithm}%
+
+In the first step,~\cref{alg:example} flips a fair coin, such that $p$ is $1$ with probability $\frac{1}{2}$ and $0$ otherwise; the notation $\Ber(p)$ represents the Bernoulli distribution.
+In the second step, the algorithm flips a coin $q$ which depends on $p$.
+This has the consequence that, to semantically model $q$, we have to consider functions returning probability spaces, like: $p \mapsto \Ber(\frac{1}{3}+\frac{p}{2})$, which is being \emph{bound} to the distribution of $p$.
+The resulting distribution for $q$ is a \emph{compound distribution} resulting from a combination of $\Ber(\frac{1}{3})$ (when $p = 0$) and $\Ber(\frac{5}{6})$ (when $p = 1$).
+
+This example captures the main aspects of modeling randomized algorithms in the Giry monad.
+Indeed, randomized algorithms can be modeled using the following ingredients:
+
+\begin{description}
+\item[Primitive Random Operations.] For example, a simple fair coin flip is represented using the Bernoulli distribution, $\Ber(\frac{1}{2})$.
+\item[Return Combinator.]
+Given an element $x$, we can construct the singleton probability space, assigning probability $1$ to $x$ and $0$ to everything else.
+In monad notation, this is written as: $\mathrm{\bf return}\, x$.
+
+\item[Bind Combinator.]
+The bind combinator represents sequential composition of two randomized algorithms $m$ and $f$, where the latter randomized algorithm consumes the output of the former; in monad notation, this is: $m \isa{\isasymbind} f$.
+Mathematically, this is the most involved operation, because $f$ is a function returning probability spaces, which takes inputs from the probability space $m$.
+
+Let us consider an event $A$ in the probability space $m \isa{\isasymbind} f$.
+Its probability can be evaluated by integrating over its probabilities in $f$ with respect to $m$:
+\[
+  \prob_{m \isa{\isasymbind} f} (A) = \int_m \prob_{f(x)} (A) \, d x \textrm{.}
+\]
+
+Another key property is the calculation of expectations;
+if $h$ is a random variable over $m \isa{\isasymbind} f$, we can compute its expectation as:
+\begin{equation}
+  \label{eq:integral_bind}
+  \expect_{m \isa{\isasymbind} f} [h] = \int_m \expect_{f(x)} [h] \, d x \textrm{.}
+\end{equation}
+
+Equation~\ref{eq:integral_bind} is crucially used to establish the invariants we introduce next in~\cref{sec:invariants}.
+\end{description}
+
+\section{Functional Probabilistic Invariants}\label{sec:invariants}
+In this section, we will derive our new technique using \cref{alg:cvm} as an example.
+Let us start by briefly reviewing the algorithm---its state is a buffer $\chi$ (initially empty) and a fraction $p > 0$ (initially set to $1$).
+The buffer tracks a subset of the elements of the stream encountered so far, with maximal size $n$ chosen according to the desired accuracy parameters $\varepsilon$, $\delta$, and the stream size $l$.
+The algorithm iterates over the stream elements, adding each one to the buffer with probability $p$ or conversely---if the current stream element is already in the buffer---removing it with probability $(1-p)$ (Lines 3--7).
+If the number of elements in the buffer reaches the maximal size $n$, the subsampling operation is executed, which discards each element in $\chi$ independently with probability $\frac{1}{2}$; then, $p$ is adjusted to reflect the fact that the buffer now contains each element with probability $p_\text{new} = \frac{p_\text{old}}{2}$ (Lines 8--10).
+If the subsampling operation fails, i.e., if no elements get discarded, then the algorithm fails returning $\bot$ (Line 11).
+After processing the stream, the algorithm returns $\frac{|\chi|}{p}$ as a probably-approximately correct estimate for the number of distinct elements in the stream.
+
+\begin{remark}
+For our discussion below, it is convenient to analyze \cref{alg:cvm} without Line 11, i.e., we will skip the second check of $|\chi|=n$ determining whether the subsampling step succeeded.
+This modified version simplifies our analysis as we do not have to worry about the possibility of the algorithm failing (returning $\bot$).
+This transformation is also used in the original CVM proof~\cite{chakraborty2023}, where the total variational distance between these two variants of the algorithms is shown to be at most $\frac{\delta}{2}$.
+Thus, probability bounds derived for the modified version can be transferred to the original algorithm, with a correction term of $\frac{\delta}{2}$.
+\lipicsEnd\end{remark}
+
+\subsection{Deriving a Simple Probabilistic Invariant}
+Consider the random variables $X_s := \indicat(s \in \chi)$ indicating the presence of a stream element $s \in A = \{a_1,\ldots,a_l\}$ in the buffer, where we write $\indicat$ for the indicator of a predicate, so $\indicat(\mathrm{true}) = 1$ and $\indicat(\mathrm{false}) = 0$.
+Before the algorithm first encounters the stream element $s$, $X_s$ will be $0$ unconditionally, because the buffer $\chi$ is always a subset of the stream elements processed so far, i.e., $\chi \subseteq \{a_1,\dots,a_m\}$ after loop iteration $m$.
+
+In the loop iteration where element $s$ occurs for the first time, it will be inserted with probability $p$ in Lines 3--7.
+This means, after Line 7, we have:
+\begin{equation}
+  \label{eq:indicator_eq}
+  \expect [p^{-1} X_s] = 1 \textrm{.}
+\end{equation}
+Interestingly, this equation is preserved for the rest of the algorithm.
+For example, let us consider a subsampling step: each $s$ is independently discarded with probability $\frac{1}{2}$ so $\prob(X_s=1)$ is halved, but so is $p$ after subsampling, which preserves the equation.
+
+Let us see how we can verify Equation~\ref{eq:indicator_eq} more formally.
+For that, we model the state of the randomized algorithm as a pair $(\chi,p)$ and we write $\chi$ and $p$ for the random variables projecting their respective components from the distribution of the state of the algorithm.
+We will refer to parts of each loop iteration in \cref{alg:cvm} as $\mathrm{step}_1$ (resp.~$\mathrm{step}_2$) for Lines 3--7 (resp.~Lines 8--10).
+The final distribution of the algorithm is the distribution resulting from the sequential composition of alternating steps over the stream:
+\[
+  \mathrm{init} \, \isa{\isasymbind}\; \mathrm{step}_1\, a_1 \; \isa{\isasymbind}\; \mathrm{step}_2 \; \isa{\isasymbind}\; \mathrm{step}_1 \, a_2 \; \isa{\isasymbind}\; \cdots \isa{\isasymbind}\; \mathrm{step}_1\, a_l \; \isa{\isasymbind}\; \mathrm{step}_2
+\]
+where we parameterize $\mathrm{step}_1$ with the stream element that it processes.
+The term $\mathrm{init}$ represents the initial state, i.e., $\mathrm{init} = \mathrm{\bf return}\,(\{\},1)$.
+It is easy to show by induction over the sequence of steps, we have $0 < p \leq 1$ and $\chi \subseteq A$ for all possible states of the algorithm.
+
+Let us verify that Equation~\ref{eq:indicator_eq} is preserved as an invariant over all steps.
+To verify that $\mathrm{step}_1\, a$ preserves Equation~\ref{eq:indicator_eq}, we assume some probability space of states $\Omega$ fulfills Equation~\ref{eq:indicator_eq} and we would like to show that it is still true for $\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a$. By Equation~\ref{eq:integral_bind},
+\begin{equation}\label{eq:step_1_exp}
+  \expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step}_1\, a} [ p^{-1} X_s ] =
+    \integral{\Omega}{\integral{\Ber(p)}{p^{-1} \indicat\left(s \in (\ift{\tau}{\chi \cup \{a\}}{\chi-\{a\}} )\right)}{\tau}}{\sigma} \textrm{.}
+\end{equation}
+Note that we write $p$ or $\chi$ even though we should actually write $p(\sigma)$ or $\chi(\sigma)$, i.e., we remember that these implicitly depend on $\sigma$.
+To see that the right-hand side is equal to $1$, it is useful to consider cases on whether $a=s$.
+When $a = s$, the right-hand-side is equal to $1$ by definition of the Bernoulli distribution (since $p \in (0;1]$).
+When $a \not= s$, it follows from the induction hypothesis on $\Omega$; in particular, the term in the inner integral is constant with respect to $\tau$.
+
+The same invariant-based argument is possible for $\mathrm{step}_2$.
+Let us assume $\Omega$ is a probability space of states fulfilling Equation~\ref{eq:indicator_eq}.
+Then by Equation~\ref{eq:integral_bind}, $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1}X_s]$ equals
+\begin{equation}\label{eq:step_2_exp}
+    \integral{\Omega}
+      {\left(\ift{|\chi|=n}{\left(\integral{\mathrm{subsample}(\chi)}{\frac{\indicat(s \in \tau)}{p/2}}{\tau}\right)}{\frac{\indicat(s \in \chi)}{p}} \right)}
+      {\sigma}
+    \textrm{.}
+\end{equation}
+Note that the \emph{true} and \emph{false} cases of the inner \textbf{if-then-else} both evaluate to the same value: $p^{-1} \indicat(s \in \chi)$.
+If $s \notin \chi$ both sides of the equation are $0$, because the subsampling operation returns a subset of $\chi$.
+If $s \in \chi$ the probability that the element gets subsampled is $1/2$, so we arrive again at $\frac{1/2}{p/2} = p^{-1} \indicat(s \in \chi)$.
+Hence: $\expect_{\Omega \; \isa{\isasymbind}\; \mathrm{step_2}} [p^{-1} X_s] = \expect_\Omega [p^{-1} X_s] = 1$.
+This completes the invariance proof for Equation~\ref{eq:indicator_eq}.
+
+\subsection{Deriving a Functional Probabilistic Invariant}
+With Equation~\ref{eq:indicator_eq} established, it is straightforward to show that the expected value of the output estimate $p^{-1} |\chi|$ for the modified algorithm (without Line 11) is equal to the desired cardinality $|A|$.
+However, recall that we are interested in verifying the estimate's PAC guarantee.
+A typical approach to establishing such a guarantee is to use Chernoff bounds which provide exponential tail bounds (i.e., concentration bounds) for the deviation of sums of independent random variables from their mean.
+However, these are not directly useful in the CVM algorithm because the key random variables, e.g., $p^{-1} X_s$ for $s \in A$, are dependent.
+
+An alternative is the Cram\'{e}r--Chernoff method, which is a general method to obtain tail bounds for any random variable.
+It can be stated simply as $\prob(X \geq a) \leq M(t) e^{-ta}$ for all $t > 0$, where $M(t) := \expect [\exp(t X)]$ is the moment generating function of the random variable $X$.
+It is also possible to obtain lower tail bounds $\prob(X \leq a)$ using the Cram\'{e}r--Chernoff method, which just requires estimates for $M(t)$ for $t < 0$, instead of $t > 0$.
+
+In our case, we are interested in estimating the moment generating function of the random variable $p^{-1} |\chi|$ for the CVM algorithm:
+\[
+  \expect [\exp( t p^{-1} |\chi| )] = \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right]
+\]
+for $h(x) = \exp(tx)$.
+At this point, it is tempting to see whether the proof for Equation~\ref{eq:indicator_eq} can be generalized to establish bounds for the above.
+Indeed, we managed to establish the following generalized result:
+\begin{align}
+  \expect \left[ \prod_{s \in A} h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant}
+\end{align}
+for every non-negative concave function $h : \Rnonneg \rightarrow \Rnonneg$.
+However, the exponential function in $M(t)$ is convex, but we can instead try to derive tail bounds for the random variable $\indicat(p \geq q) p^{-1} |\chi|$, for some fixed constant $q > 0$.
+This leads to a similar invariant inequality:
+\begin{align}
+  \expect \left[ \prod_{s \in A} I(p \geq q) h(p^{-1} X_s) \right] \leq h(1)^{|A|} \label[ineq]{i:func_invariant_capped}
+\end{align}
+with the new condition that $h$ needs to be non-negative and concave only on $[0;q^{-1}]$.
+This then allows us to approximate the exponential function from above with an affine function $h$ on the range $[0;q^{-1}]$, which yields tail bounds for $p^{-1} |\chi|$ under the condition $p \geq q$. As an example, the upper tail bound can be derived as follows:
+\begin{eqnarray*}
+  \prob( p^{-1} |\chi| \geq (1+\varepsilon) |A| \wedge p \geq q) & \leq & % Is not equal when |A|=0.
+  \prob( \indicat(p \geq q) p^{-1} |\chi| \geq (1+\varepsilon) |A|) \\
+  & \underset{\textrm{Markov}}{\leq} & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) \exp( t p^{-1} X_s) \right] \\
+  & \leq & e^{-t(1+\varepsilon) |A|} \expect \left[ \prod_{s \in A} \indicat(p \geq q) h(p^{-1} X_s) \right] \\
+  & \underset{\textrm{Ineq.~\ref{i:func_invariant_capped}}}{\leq} & e^{-t(1+\varepsilon) |A|} h(1)^{|A|} \\
+  & \underset{\textrm{Calculus}}{\leq} & e^{-n\varepsilon^2 / 12}
+\end{eqnarray*}
+where we choose $h(x) = 1+qx (e^{t/q}-1)$.
+Note that $h$ is affine and it can be easily checked%
+\footnote{Because the exponential function is convex and $h$ is affine, we only have to check the end points: $0, q^{-1}$.}
+that it is an upper approximation of $\exp(tx)$ for $x \in [0;q^{-1}]$.
+For the last step, we have to find the $t$ that produces the required bound.%
+\footnote{We use $t = q \ln(1+\varepsilon)$ which is not the real optimum, but better for algebraic evaluation.}
+To use these bounds, we also have to separately estimate $\prob(p < q)$.
+For that, we use a similar strategy, as in the original proof by Chakraborty et al.~\cite{chakraborty2023}, with $q = \frac{n}{4 |A|}$.
+The formalization in the supplementary material~\cite{CVM_Distinct_Elements-AFP} contains a detailed informal step-by-step proof using our approach in its appendix.
+Besides the use of Equation~\ref{eq:integral_bind} and the Cram\'er--Chernoff method, the steps are elementary.
+
+We call inequalities like Inequality~\ref{i:func_invariant} and \ref{i:func_invariant_capped}: \emph{functional probabilistic invariants}.
+The inequalities can be established using induction over the steps of the randomized algorithm.
+Even, though, the actual distribution of the states themselves are not known, nor do we think it is possible to find useful closed form descriptions for them, the invariant establishes valuable information about the distribution of the state. In this case, enough information, to establish exponential tail bounds for the algorithm.
+
+\section{An Unbiased CVM Variant and Negative Dependence\label{sec:negdep}}
+An interesting consequence of our invariant-based approach is that it allowed us to devise and verify a refined version of the CVM algorithm that is both total and unbiased.
+
+\subsection{Unbiased CVM Variant}
+\begin{algorithm}[t!]
+	\caption{New total and unbiased CVM algorithm variant.}\label{alg:cvm_new}
+	\begin{algorithmic}[1]
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{3l}{\delta})} }$, $\frac{1}{2} \leq f < 1$, such that $nf$ integer
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment insert $a_i$ with probability $p$ (and remove it otherwise)
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} \Comment if buffer $\chi$ is full
+      \State $\chi \getsr \mathrm{subsample}(\chi)$ \Comment select a random $nf$-subset of $\chi$
+      \State $p \gets pf$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+  \end{algorithmic}
+\end{algorithm}%
+
+When we look at the subsampling step of~\cref{alg:cvm}, our invariant (Inequality~\ref{i:func_invariant}) imposes the following condition on the subsampling operation.
+It should be noted that the condition becomes apparent while establishing Inequality~\ref{i:func_invariant} using similar but more general steps as described in Equations~\ref{eq:step_1_exp} and \ref{eq:step_2_exp}.%
+\footnote{A step-by-step proof of the derivation is also available in the appendix of the formalization~\cite[Appendix~A]{CVM_Distinct_Elements-AFP}.}
+\begin{equation}\label[ineq]{i:subsample_condition}
+  \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))}{\tau} \leq \prod_{s \in S} \expect_{\Ber(f)} [g]
+\end{equation}
+for all non-negative functions $g$ and any $S \subseteq \chi$, where $f$ is the probability of retaining each element in the subsampling step of the algorithm. (This parameter $f$ was fixed to $\frac{1}{2}$ in the original presentation of the algorithm for simplicity.)
+Any subsampling step that satisfies Inequality~\ref{i:subsample_condition} can be used while still preserving Inequalities~\ref{i:func_invariant} and \ref{i:func_invariant_capped} for the algorithm.
+
+Motivated by this observation, our new variant is shown in \cref{alg:cvm_new}.
+For the subsampling step, instead of keeping each element of $\chi$ with probability $\frac{1}{2}$, we pick a uniform random $nf$-subset of $\chi$, where $\frac{1}{2} \leq f < 1$ and $nf$ is an integer.
+For example, it is possible to choose $f = \frac{n-1}{n}$, i.e., discarding just one random element from $\chi$ in the subsampling step.
+Since this new subsampling step always reduces the size of $\chi$, the variant is \emph{total} (never returns $\bot$).
+The invariant-based approach allows us to show that the algorithm is probably-approximately correct and also \emph{unbiased}, i.e., the expectation of the result is exactly $|A|$.
+These depend crucially on establishing Inequality~\ref{i:subsample_condition} for the new subsampler, for which we need a new concept.
+
+\subsection{Background on Negative Dependence}
+Some sets of random variables possess a property called \emph{negative association}, a generalization of independence.
+The concept was introduced by Joag-Dev and Proschan~\cite{joagdev1983}, who showed that it has many useful closure properties compared to other previously introduced notions of negative dependence, such as negative correlation or negative orthant dependence. %TODO: perhaps citations for these two?
+Importantly, standard Chernoff--Hoeffding type bounds still apply to negatively associated random variables~\cite[Prop. 7]{dubhashi1998}.
+Negative association is defined as follows:
+\begin{definition}
+For a function defined on $n$-tuples $f: V^n \rightarrow W$, we will denote by $\mathrm{dep}(f)$ the set of coordinates the function depends on, i.e., $dep(f) \subseteq \{1,\ldots,n\}$ is minimal, such that $f(x) = f(y)$ for all $x, y \in V^n$ with $x_i = y_i$ for all $i \in dep(f)$.
+\end{definition}
+
+\begin{definition}[Negative Association]\label{def:neg_assoc}
+A set of random variables $X_1,\dots,X_n: \Omega \rightarrow \mathbb R$ is negatively associated if, for all non-decreasing functions $f,g: \mathbb R^n \rightarrow \mathbb R$, which depend on disjoint sets of the variables, i.e., $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$, the following inequality holds:
+\[
+\expect [f(X_1,\ldots,X_n) g(X_1,\ldots,X_n)] \leq \expect [f(X_1,\ldots,X_n)] \expect [g(X_1,\ldots,X_n)] \textrm{.}
+\]
+\end{definition}
+
+The following proposition summarizes some important properties of negatively associated sets of random variables.
+\begin{proposition}[Summary of results for negatively associated random variables \cite{joagdev1983}]\label{pro:neg_dep_props}~
+\begin{enumerate}
+\item \label{it:neg_dep_props:mult_mono} If $X=(X_1,\ldots,X_n)$ are negatively associated then $\expect [f(X) g(X)] \leq \expect [f(X)] \expect [g(X)]$ for non-increasing functions $f,g$ with $\mathrm{dep}(f) \cap \mathrm{dep}(g) = \emptyset$.
+\item If $X=(X_1,\ldots,X_n)$ are negatively associated, $Y=(Y_1,\ldots,Y_m)$ are negatively associated, and the pair of vector-valued random variables $X$ and $Y$ are independent, then the union $X_1,\dots,X_n,Y_1,\dots,Y_m$ is a set of negatively associated random variables.
+\item If $X=(X_1,\ldots,X_n)$ are negatively associated and $f_1, \dots ,f_m : \mathbb R^n \rightarrow \mathbb R$ are all non-increasing or all non-decreasing functions, such that $\mathrm{dep}(f_i) \cap \mathrm{dep}(f_j) = \emptyset$ for $i \neq j$, then $f_1(X),\ldots,f_m(X)$ form a set of negatively dependent random variables of size $m$.
+\item If $X_1,\dots,X_n$ are independent then $X_1,\dots,X_n$ are negatively associated.
+\item A subset of a negatively associated set of random variables is again negatively associated.
+\end{enumerate}
+\end{proposition}
+
+These properties illustrate the trade-off between negative association and independence.
+For example, Property 3 would be true for independent random variables, even without the condition of monotonicity.
+To analyze our new subsampler, the following is an important lemma about negatively associated random variables.
+
+\begin{lemma}\label{le:neg_assoc_prod}
+Let $X_1,\dots,X_n$ be negatively associated and $f_1,\dots,f_n$ be all non-decreasing (or all non-increasing), non-negative functions, then
+\[
+  \expect \left[\prod_{i=1}^{n} f_i(X_i)\right] \leq \prod_{i=1}^{n} f_i(\expect [X_i]) \textrm{.}
+\]
+\end{lemma}
+\begin{proof}
+This follows from the definition of negative association (or Property~1 of \cref{pro:neg_dep_props}, if the $f_i$ are non-increasing) using induction.
+\end{proof}
+
+The case for non-decreasing functions of the above lemma is pointed out by Joag-Dev and Proschan~\cite[P.2]{joagdev1983}.
+The reason for our interest in this lemma stems from the fact that indicator variables of random $m$-subsets are negatively associated.
+This is a consequence of the fact that permutation distributions are negatively associated~\cite[Th. 2.11]{joagdev1983}.
+Thus, for the new subsampling step in Line 9 of~\cref{alg:cvm_new}, we can derive using \cref{le:neg_assoc_prod}:
+\begin{equation}\label{eq:subsample_with_n_subsets}
+  \integral{\mathrm{subsample}(\chi)}{\prod_{s \in S} g(\indicat(s \in \tau))} {\tau} \leq
+  \prod_{s \in S} \integral{\mathrm{subsample}(\chi)}{g(\indicat(s \in \tau))}{\tau} = \prod_{s \in S}  \expect_{\Ber(f)}[g] \textrm{.}
+\end{equation}
+for any non-negative $g$ and $S \subseteq \chi$.
+Note that the domain of $g$ has two values, so it is either non-increasing or non-decreasing.
+Also, if $S$ is a singleton, the inequality becomes an equality.
+With this ingredient, we can conclude that our results about the original algorithm derived in the previous section also hold for our new variant (\cref{alg:cvm_new}).
+
+\section{Formalization of the CVM algorithm}\label{sec:formalization}
+Let us now turn to details of our formalization of the CVM algorithm in Isabelle/HOL using our invariant-based approach~\cite{CVM_Distinct_Elements-AFP}.
+We verified both the total, unbiased variant (\cref{alg:cvm_new}) and the original variant (\cref{alg:cvm}) from the introduction.
+
+\begin{note}
+In our supplementary material~\cite{CVM_Distinct_Elements-AFP}, the theory \verb|CVM_Abstract_Algorithm| verifies a generalized version of the CVM algorithm, with an abstract subsampling operation that is required to fulfill Inequality~\ref{i:subsample_condition}.
+The specialization happens in the following theories, where \verb|CVM_Original_Algorithm| verifies the original algorithm, and \verb|CVM_New_Unbiased_Algorithm| verifies the new total and unbiased variant.
+Note that only \verb|CVM_New_Unbiased_Algorithm| depends on the new library for negatively associated random variables, which we describe in more detail in \cref{sec:formalization_neg_dep}.
+The total number of lines required for the verification of the original algorithm is \locnew~lines.
+In addition, we actually verified a slight generalization of~\cref{alg:cvm} where the subsampling probability can be any $f \in [\frac{1}{2};e^{-1/12}]$; the original CVM algorithm~\cite{chakraborty2022} is the special case $f=\frac{1}{2}$.
+\lipicsEnd\end{note}
+
+\begin{figure}[t]
+\begin{isabelle_cm}
+\isacommand{context}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ real\ \isakeyword{and}\ n\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ nat\isanewline
+\ \ \isakeyword{assumes}\ f{\isacharunderscore}{\kern0pt}range{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}f\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{1}}{\isacharslash}{\kern0pt}{\isadigit{2}}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}\ \isakeyword{and}\ n{\isacharunderscore}{\kern0pt}gt{\isacharunderscore}{\kern0pt}{\isadigit{0}}{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}n\ {\isachargreater}{\kern0pt}\ {\isadigit{0}}{\isacartoucheclose}\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isacartoucheopen}initial{\isacharunderscore}{\kern0pt}state\ {\isacharequal}{\kern0pt}\ State\ {\isacharbraceleft}{\kern0pt}{\isacharbraceright}{\kern0pt}\ {\isadigit{1}}{\isacartoucheclose}\ %
+\hfill\isamarkupcmt{Setup initial state $\chi=\emptyset$ and $p=1$.\;%
+}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ subsample\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Subsampling operation: Sample random $n f$ subset.\;%
+}\isanewline
+\ \ {\isacartoucheopen}subsample\ {\isasymchi}\ {\isacharequal}{\kern0pt}\ pmf{\isacharunderscore}{\kern0pt}of{\isacharunderscore}{\kern0pt}set\ {\isacharbraceleft}{\kern0pt}S{\isachardot}{\kern0pt}\ S\ {\isasymsubseteq}\ {\isasymchi}\ {\isasymand}\ card\ S\ {\isacharequal}{\kern0pt}\ n\ {\isacharasterisk}{\kern0pt}\ f{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ step\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Loop body.\;%
+}\isanewline
+\ \ {\isacartoucheopen}step\ a\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\ {\isacharequal}{\kern0pt}\ do\ {\isacharbraceleft}{\kern0pt}\isanewline
+\ \ \ \ b\ {\isasymleftarrow}\ bernoulli{\isacharunderscore}{\kern0pt}pmf\ p{\isacharsemicolon}{\kern0pt}\isanewline
+\ \ \ \ let\ {\isasymchi}\ {\isacharequal}{\kern0pt}\ {\isacharparenleft}{\kern0pt}if\ b\ then\ {\isasymchi}\ {\isasymunion}\ {\isacharbraceleft}{\kern0pt}a{\isacharbraceright}{\kern0pt}\ else\ {\isasymchi}\ {\isacharminus}{\kern0pt}\ {\isacharbraceleft}{\kern0pt}a{\isacharbraceright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacharsemicolon}{\kern0pt}\isanewline
+\isanewline
+\ \ \ \ if\ card\ {\isasymchi}\ {\isacharequal}{\kern0pt}\ n\ then\ do\ {\isacharbraceleft}{\kern0pt}\isanewline
+\ \ \ \ \ \ {\isasymchi}\ {\isasymleftarrow}\ subsample\ {\isasymchi}{\isacharsemicolon}{\kern0pt}\isanewline
+\ \ \ \ \ \ return{\isacharunderscore}{\kern0pt}pmf\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ {\isacharparenleft}{\kern0pt}p\ {\isacharasterisk}{\kern0pt}\ f{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}\isanewline
+\ \ \ \ {\isacharbraceright}{\kern0pt}\ else\ do\ {\isacharbraceleft}{\kern0pt}\isanewline
+\ \ \ \ \ \ return{\isacharunderscore}{\kern0pt}pmf\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\isanewline
+\ \ \ \ {\isacharbraceright}{\kern0pt}\isanewline
+\ \ \ {\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ run{\isacharunderscore}{\kern0pt}steps\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Iterate loop over stream \isa{xs}.\;%
+}\isanewline
+\ \ {\isacartoucheopen}run{\isacharunderscore}{\kern0pt}steps\ xs\ {\isacharequal}{\kern0pt}\ foldM{\isacharunderscore}{\kern0pt}pmf\ step\ xs\ initial{\isacharunderscore}{\kern0pt}state{\isacartoucheclose}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ estimate\ \isakeyword{where}\
+{\isacartoucheopen}estimate\ {\isacharparenleft}{\kern0pt}State\ {\isasymchi}\ p{\isacharparenright}{\kern0pt}\ {\isacharequal}{\kern0pt}\ card\ {\isasymchi}\ {\isacharslash}{\kern0pt}\ p{\isacartoucheclose}\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ run{\isacharunderscore}{\kern0pt}algo\ \isakeyword{where}\ %
+\hfill\isamarkupcmt{Run algorithm and estimate.\;%
+}\isanewline
+\ \ {\isacartoucheopen}run{\isacharunderscore}{\kern0pt}algo\ xs\ {\isacharequal}{\kern0pt}\ map{\isacharunderscore}{\kern0pt}pmf\ estimate\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}steps\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+{\normalfont [\dots]}\isanewline
+\isacommand{end}
+\end{isabelle_cm}
+\caption{Formalized version of \cref{alg:cvm_new}.}\label{alg:cvm_formalized}
+\end{figure}
+
+A snippet of the formalization of \cref{alg:cvm_new} is presented in \cref{alg:cvm_formalized} (the formalization of \cref{alg:cvm} is very similar).
+We use the same variables as in the informal presentation: $n$ for the maximal size of the buffer, $f$ for the fraction of elements to keep in the buffer when subsampling.
+The condition \isa{{\isacartoucheopen}n\ {\isacharasterisk}{\kern0pt}\ f\ {\isasymin}\ {\isasymnat}{\isacartoucheclose}} expresses the requirement that the $nf$ must be integer.
+Instead of representing the state using pairs, as we did in the informal discussion, we use a datatype with the single constructor \isa{State}, which has two arguments $\chi$ and $p$, the buffer and the probability that the stream elements are in the buffer, respectively.
+Isabelle/HOL provides notation closely related to informal pseudocode, so it is usually feasible to read a formal statement without expert knowledge.
+Nevertheless, \cref{tab:isabelle_syntax} contains a brief glossary of the syntax used in the formalization.
+\begin{table}
+\caption{Isabelle/HOL syntax used in \cref{alg:cvm_formalized}.}\label{tab:isabelle_syntax}
+\noindent\begin{tabular}{l p{9cm}}
+\toprule
+Term & Description \\
+\midrule
+\isa{card\ S} & Cardinality of a finite set $S$. \\
+\isa{real} & Type of real numbers and conversion from natural numbers into real numbers. \\
+\isa{nat} & Type of natural numbers (non-negative integers). \\
+\isa{bernoulli{\isacharunderscore}pmf\ p} & The probability space over the Boolean values, where the probability of \isa{True} is $p$. (Bernoulli distribution.) \\
+\isa{pmf{\isacharunderscore}of{\isacharunderscore}set\ S} & For a finite set $S$, the uniform probability space on $S$. (Every element of $S$ is equiprobable.) \\
+\isa{map{\isacharunderscore}pmf\ f\ A} & The probability space representing the distribution of the random variable $f$ over the probability space $A$. \\
+\isa{return{\isacharunderscore}pmf\ x} & The probability space of the singleton $\{x\}$. \\
+\isa{foldM{\isacharunderscore}pmf\ f\ xs\ a} & Iterate randomized algorithm $f$ over the sequence $xs$ using the initial state $a$. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The theorem that establishes the correctness of the algorithm, i.e., that the relative error will exceed $\varepsilon$ with probability at most $\delta$ is expressed in the following snippet:
+\begin{isabelle_cm}
+\isacommand{theorem}\isamarkupfalse%
+\ correctness{\isacharcolon}{\kern0pt}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymepsilon}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}{\isadigit{0}}{\isacharless}{\kern0pt}{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}{\isacharless}{\kern0pt}{\isadigit{1}}{\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}real{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}real\ n\ {\isasymge}\ {\isadigit{1}}{\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isasymepsilon}\isactrlsup {\isadigit{2}}\ {\isacharasterisk}{\kern0pt}\ ln\ {\isacharparenleft}{\kern0pt}{\isadigit{3}}\ {\isacharasterisk}{\kern0pt}\ real\ {\isacharparenleft}{\kern0pt}length\ xs{\isacharparenright}{\kern0pt}\ {\isacharslash}{\kern0pt}\ {\isasymdelta}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{defines}\ {\isacartoucheopen}A\ {\isasymequiv}\ real\ {\isacharparenleft}{\kern0pt}card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}R\ in\ run{\isacharunderscore}{\kern0pt}algo\ xs{\isachardot}{\kern0pt}\ {\isasymbar}R\ {\isacharminus}{\kern0pt}\ A{\isasymbar}\ {\isachargreater}{\kern0pt}\ {\isasymepsilon}\ {\isacharasterisk}{\kern0pt}\ A{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isasymdelta}{\isacartoucheclose}
+\end{isabelle_cm}
+The first line gives conditions on parameters $\varepsilon$ and $\delta$, which must be strictly between $0$ and $1$.
+The next line requires the buffer size $n$ to be larger than or equal to $12 \varepsilon^{-2} \ln ( 3 \delta^{-1} l)$.
+Then, we introduce the abbreviation \isa{A} for the cardinality of the set of elements in the sequence \isa{xs}.
+The notation \isaprob{x}{M}{P x} denotes the probability of a predicate $P$ in the probability space $M$, so the conclusion gives the PAC guarantee for the output estimate \isa{R} from \isa{run{\isacharunderscore}{\kern0pt}algo}.
+
+Similarly, we have also formalized unbiasedness of \cref{alg:cvm_new}:
+\begin{isabelle_cm}
+\isacommand{theorem}\isamarkupfalse%
+\ unbiasedness{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}expectation\ {\isacharparenleft}{\kern0pt}run{\isacharunderscore}{\kern0pt}algo\ xs{\isacharparenright}{\kern0pt}\ id\ {\isacharequal}{\kern0pt}\ card\ {\isacharparenleft}{\kern0pt}set\ xs{\isacharparenright}{\kern0pt}{\isacartoucheclose}
+\end{isabelle_cm}
+where the expression \isa{measure{\isacharunderscore}pmf{\isachardot}expectation\ M\ f} denotes the expectation of the random variable \isa{f} on the probability space \isa{M}.
+
+Our proofs are available both in mechanized form in Isabelle/HOL and as a pen-and-paper proof included in the associated proof document.
+In practice, we developed the latter proof first and then mechanized it in Isabelle/HOL without much surprise.
+Most of the lemmas can be identified one-to-one between both proofs; Isabelle's existing libraries, automation capabilities, and structured proof format were used extensively in our proofs.
+
+\section{Formalization of a Library for Negative Association}\label{sec:formalization_neg_dep}
+As mentioned in~\cref{sec:negdep}, formalizing the total and unbiased variant of the CVM algorithm requires results from the theory of negative association.
+
+\begin{note}
+The formalization of the theory of negative association is included in a separate AFP entry~\cite{Negative_Association-AFP}.
+This library contains key results used to establish the invariants for CVM (e.g., \verb|Neg_Assoc_Permutation_Distributions|).
+Although not needed for CVM, we have also mechanized the standard Chernoff bounds (\verb|Neg_Assoc_Chernoff_Bounds|), including the additive bounds by Hoeffding~\cite[Th. 1, 2]{hoeffding1963} and the multiplicative bounds by Motwani and Raghavan~\cite[Th. 4.1, 4.2]{motwani1995}.
+Another example application included in the library is proving the false positive rate of Bloom filters (\verb|Neg_Assoc_Bloom_Filters|).
+In total, the library contains 2974~lines of Isabelle code.
+\lipicsEnd\end{note}
+
+Our formalization follows the definitions by Joag-Dev and Proschan~\cite{joagdev1983} closely.
+However, their definition leaves the class of test functions $f$ and $g$ (in \cref{def:neg_assoc}) imprecise.
+In the formalization, we use different conditions for introduction and elimination rules.
+In particular, for introduction rules, the test functions are bounded and measurable.
+However, we provide stronger elimination rules, showing that if $X_1,\dots,X_n$ are negatively associated, then the inequality on expectations is true even if $f, g$ are only square-integrable; or, alternatively, integrable and non-negative. This is derived using the monotone convergence theorem.
+
+Another deviation from the original work is that we do not require that the random variables are real-valued.
+In the formalization, any linearly ordered topological space with the Borel $\sigma$-algebra is allowed as the range space.
+In this case, the test functions must be monotone with respect to the respective order on the range space.
+
+A key issue we faced during formalization was that there are many theorems that condition on a set of functions being either simultaneously monotone or simultaneously anti-monotone.
+To reduce duplication, we introduce a notation that allows us to abstract over the direction of relations: \isa{\isasymle\isasymge\isactrlbsub\isasymeta\isactrlesub}; it evaluates to the forward version of the relation $\leq$ if \isa{\isasymeta\ \isacharequal\ Fwd} and the converse: $\geq$ if \isa{\isasymeta\ \isacharequal\ Rev}.
+For example the FKG inequality~\cite[Ch. 6]{alon2000},\cite{fortuin1971}
+\[
+  \expect [f g] \geq \expect [f] \expect [g]
+\]
+is true, if $f$ and $g$ are both monotone, or both antimonotone, on a probability space whose domain is a finite distributive lattice with a log-supermodular probability mass function.
+The reverse inequality is also true, if $f$ is monotone and $g$ is antimonotone, or vice versa.
+Using our parameterized relation symbol, we can state all variants in a concise manner:
+\begin{isabelle_cm}
+\isacommand{theorem}\isamarkupfalse%
+\ fkg{\isacharunderscore}{\kern0pt}inequality{\isacharunderscore}{\kern0pt}pmf{\isacharcolon}{\kern0pt}\isanewline
+\ \ \isakeyword{fixes}\ M\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isacharprime}{\kern0pt}a\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ finite{\isacharunderscore}{\kern0pt}distrib{\isacharunderscore}{\kern0pt}lattice{\isacharparenright}{\kern0pt}\ pmf{\isacartoucheclose}\isanewline
+\ \ \isakeyword{fixes}\ f\ g\ {\isacharcolon}{\kern0pt}{\isacharcolon}{\kern0pt}\ {\isacartoucheopen}{\isacharprime}{\kern0pt}a\ {\isasymRightarrow}\ real{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymAnd}x\ y{\isachardot}{\kern0pt}\ pmf\ M\ x\ {\isacharasterisk}{\kern0pt}\ pmf\ M\ y\ {\isasymle}\ pmf\ M\ {\isacharparenleft}{\kern0pt}x\ {\isasymsqunion}\ y{\isacharparenright}{\kern0pt}\ {\isacharasterisk}{\kern0pt}\ pmf\ M\ {\isacharparenleft}{\kern0pt}x\ {\isasymsqinter}\ y{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}monotone\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isacharparenright}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\isactrlesub {\isacharparenright}{\kern0pt}\ f{\isacartoucheclose}\ {\isacartoucheopen}monotone\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isacharparenright}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymle}{\isasymge}\isactrlbsub {\isasymsigma}\isactrlesub {\isacharparenright}{\kern0pt}\ g{\isacartoucheclose}\isanewline
+\ \ \isakeyword{shows}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isacharasterisk}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}\ {\isasymle}{\isasymge}\isactrlbsub {\isasymtau}\ {\isacharasterisk}{\kern0pt}\ {\isasymsigma}\isactrlesub \ {\isacharparenleft}{\kern0pt}{\isasymintegral}x{\isachardot}{\kern0pt}\ f\ x\ {\isacharasterisk}{\kern0pt}\ g\ x\ {\isasympartial}M{\isacharparenright}{\kern0pt}{\isacartoucheclose}
+\end{isabelle_cm}
+Here, \isa{\isasymsigma} and \isa{\isasymtau} are relation directions, and \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} multiplies relation directions, i.e., \isa{\isasymsigma\ \isacharasterisk\ \isasymtau} is the forward direction if \isa{\isasymsigma} and \isa{\isasymtau} have the same direction, and it is the reverse direction otherwise.
+The first assumption denotes the log-supermodularity of the probability mass function, while the second assumptions are the parametric monotonicity conditions.
+The FKG inequality is a key result which enables verification of negative association for random variables.
+This includes the indicator variables for the new subsampling operation we introduced in \cref{sec:negdep}.
+
+Let us summarize a few key formalized results for negatively associated random variables in our library.
+The following is the well-known Hoeffding inequality~\cite{hoeffding1963} generalized for negatively associated random variables.
+\begin{isabelle_cm}
+\isacommand{lemma}\isamarkupfalse%
+\ hoeffding{\isacharunderscore}{\kern0pt}bound{\isacharunderscore}{\kern0pt}two{\isacharunderscore}{\kern0pt}sided{\isacharcolon}{\kern0pt}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}neg{\isacharunderscore}{\kern0pt}assoc\ X\ I{\isacartoucheclose}\ {\isacartoucheopen}finite\ I{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymAnd}i{\isachardot}{\kern0pt}\ i{\isasymin}I\ {\isasymLongrightarrow}\ a\ i\ {\isasymle}\ b\ i{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymAnd}i{\isachardot}{\kern0pt}\ i{\isasymin}I\ {\isasymLongrightarrow}\ AE\ {\isasymomega}\ in\ M{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}\ {\isasymin}\ {\isacharbraceleft}{\kern0pt}a\ i{\isachardot}{\kern0pt}{\isachardot}{\kern0pt}b\ i{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\ {\isacartoucheopen}I\ {\isasymnoteq}\ {\isacharbraceleft}{\kern0pt}{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{defines}\ {\isacartoucheopen}n\ {\isasymequiv}\ real\ {\isacharparenleft}{\kern0pt}card\ I{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{defines}\ {\isacartoucheopen}{\isasymmu}\ {\isasymequiv}\ {\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ expectation\ {\isacharparenleft}{\kern0pt}X\ i{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}{\isasymdelta}\ {\isasymge}\ {\isadigit{0}}{\isacartoucheclose}\ {\isacartoucheopen}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}\ {\isachargreater}{\kern0pt}\ {\isadigit{0}}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{shows}\ {\isacartoucheopen}{\isasymP}{\isacharparenleft}{\kern0pt}{\isasymomega}\ in\ M{\isachardot}{\kern0pt}\ {\isasymbar}{\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ X\ i\ {\isasymomega}{\isacharparenright}{\kern0pt}{\isacharminus}{\kern0pt}{\isasymmu}{\isasymbar}\ {\isasymge}\ {\isasymdelta}{\isacharasterisk}{\kern0pt}n{\isacharparenright}{\kern0pt}\ {\isasymle}\ {\isadigit{2}}{\isacharasterisk}{\kern0pt}exp\ {\isacharparenleft}{\kern0pt}{\isacharminus}{\kern0pt}{\isadigit{2}}{\isacharasterisk}{\kern0pt}{\isacharparenleft}{\kern0pt}n{\isacharasterisk}{\kern0pt}{\isasymdelta}{\isacharparenright}{\kern0pt}\isactrlsup {\isadigit{2}}\ {\isacharslash}{\kern0pt}\ {\isacharparenleft}{\kern0pt}{\isasymSum}i{\isasymin}I{\isachardot}{\kern0pt}\ {\isacharparenleft}{\kern0pt}b\ i{\isacharminus}{\kern0pt}a\ i{\isacharparenright}\isactrlsup {\isadigit{2}}{\isacharparenright}{\kern0pt}{\isacharparenright}{\kern0pt}{\isacartoucheclose}
+\end{isabelle_cm}
+
+Another key result (shown below) used for the verification of our CVM variant is the negative-associativity of the indicator functions of random $k$-subsets of a finite set $S$ (with cardinality greater than or equal to $k$).
+\begin{isabelle_cm}
+\isacommand{lemma}\isamarkupfalse%
+\ n{\isacharunderscore}{\kern0pt}subsets{\isacharunderscore}{\kern0pt}distribution{\isacharunderscore}{\kern0pt}neg{\isacharunderscore}{\kern0pt}assoc{\isacharcolon}{\kern0pt}\isanewline
+\ \ \isakeyword{assumes}\ {\isacartoucheopen}finite\ S{\isacartoucheclose}\ {\isacartoucheopen}k\ {\isasymle}\ card\ S{\isacartoucheclose}\isanewline
+\ \ \isakeyword{defines}\ {\isacartoucheopen}p\ {\isasymequiv}\ pmf{\isacharunderscore}{\kern0pt}of{\isacharunderscore}{\kern0pt}set\ {\isacharbraceleft}{\kern0pt}T{\isachardot}{\kern0pt}\ T\ {\isasymsubseteq}\ S\ {\isasymand}\ card\ T\ {\isacharequal}{\kern0pt}\ k{\isacharbraceright}{\kern0pt}{\isacartoucheclose}\isanewline
+\ \ \isakeyword{shows}\ {\isacartoucheopen}measure{\isacharunderscore}{\kern0pt}pmf{\isachardot}{\kern0pt}neg{\isacharunderscore}{\kern0pt}assoc\ p\ {\isacharparenleft}{\kern0pt}{\isasymin}{\isacharparenright}{\kern0pt}\ S{\isacartoucheclose}
+\end{isabelle_cm}
+This is a consequence of a more general result, which we have also shown, that permutation distributions are negatively associated.
+We relied on the proof by Dubhashi et al.\ using the FKG inequality~\cite[Th. 10]{dubhashi1996}; there is a prior proof by Joag-Dev and Proschan~\cite[Th. 2.11]{joagdev1983}, which is incomplete.\footnote{The step which we could not directly formalize is the assertion (Sentence~14) in the proof of Theorem~2.11 (\cite{joagdev1983}) that the conditional expectation of the random variable $f(X)$ is smaller iff the smallest element of the permutation is contained in $\mathrm{dep}(f)$. That statement is non-trivial and requires a proof using a theorem such as the FKG-inequality. We think Dubhashi et al.\ developed their proof to complete it.}
+
+\section{Transformation-Based Proof}\label{sec:transformation_based_proof}
+Here, we describe the transformation-based proof by Chakraborty et al.~\cite{chakraborty2023}, focusing on the challenging parts in its formalization.
+An overview of the proof is shown in~\cref{fig:proof_overview}, which highlights, in part, why the transformation-based approach required more work to formalize, and why we developed our new approach using probabilistic invariants.
+\begin{note}
+The transformation-based formalization of the CVM algorthm is included in the supplementary material~\cite{CVM_Transforms-Github}.
+To formalize probabilistic transformations (relating two distributions), we built on an existing relational program logic in Isabelle/HOL~\cite{lochbihler2016}.
+The formalization took \locold~lines which is considerably longer than the proof using our invariant-based technique (\locnew~lines).
+\lipicsEnd\end{note}
+
+As mentioned in~\cref{sec:intro}, the main difficulty in directly analyzing \cref{alg:cvm} is the lack of independence in its state variables.
+The technique Chakraborty et al.\ use to circumvent this issue is by progressively modifying the algorithm (\circled{A}--\circled{D} in~\cref{fig:proof_overview}), in a manner that obviously bounds (or preserves) its distribution, and such that the final algorithm \circled{D} can be described using a simple random process with independent coin flips.
+
+For interested readers, \circled{A} corresponds to~\cite[Algorithm 1]{chakraborty2023}, \circled{B} is~\cite[Algorithm 2]{chakraborty2023}, and \circled{D} is~\cite[Algorithm 3]{chakraborty2023}.
+Whereas Chakraborty et al.\ move directly from \circled{B} to \circled{D} with an informal argument, \circled{C} is a transformation we added in the formalization to bridge this gap.
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[node distance=2.7cm, auto]
+
+    \node (A) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center] {\circled{A} CVM \\ (Alg.~\ref{alg:cvm})};
+    \node (B) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=A] {\circled{B} CVM w/o\\ Line 11};
+    \node (C) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=B] {\circled{C} Eager Ver.\\(Alg.~\ref{alg:cvm_simul})};
+    \node (D) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=C] {\circled{D} Random \\ Process};
+    \node (E) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=D] {Chernoff \\ Bounds};
+
+    \node (C') [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=B, node distance = 2.0cm] {Functional\\Invariant};
+
+    \node (pac) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=E, node distance = 2.0cm] {CVM PAC\\ Guarantee};
+
+    \draw[thick] ($(A.north west) + (-0.3,0.2)$) rectangle ($(E.south east) + (0.3,-0.6)$);
+    \node[anchor=south] at ($(D.south) + (0.0,-0.6)$) {Transformation-based Proof};
+
+    \draw[dashed,thick] ($(A.north west) + (-0.5,0.4)$) rectangle ($(C'.south east) + (0.2,-0.2)$);
+    \node[anchor=south,align=center] at ($(C'.west) + (-1.5,-0.45)$) {Probabilistic\\Invariant Proof};
+
+    \draw[->] (A) -- (B);
+    \draw[->] (B) -- (C);
+    \draw[->] (B) -- (C');
+    \draw[->] (C) -- (D);
+    \draw[->] (D) -- (E);
+    \draw[->] (E) -- (pac);
+    \draw[->] (C') -- (pac);
+
+\end{tikzpicture}
+\end{center}
+\caption{An overview of the two formalized proof approaches for the CVM algorithm.}\label{fig:proof_overview}
+\end{figure}
+
+\subsection{A Bridging Transformation}
+\begin{algorithm}[t]
+	\caption{Modified CVM algorithm with independent coin flips. The function last{\textunderscore}index returns the index of the last occurrence of an element in the sequence, before the current iteration.}\label{alg:cvm_simul}
+	\begin{algorithmic}[1]
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \State $b[i,j] \getsr \Ber(1/2)$ for $i,j \in \{1,\cdots,l\}$ \Comment perform $l^2$ unbiased independent coin flips
+  \For{$i \gets 1$ to $l$}
+    \If{$b[i,1]=b[i,2]=\cdots=b[i,k]=1$} \Comment insert $a_i$ if first $k$ flips are $1$s.
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} \Comment if buffer $\chi$ is full
+      \State $\chi \gets \{a \in \chi \;|\; b[\textrm{last{\textunderscore}index}(a),k+1] = 1\}$ \Comment keep elems.~whose $k+1$-th flip is $1$
+      \State $k \gets k+1$
+    \EndIf
+  \EndFor
+  \State \Return $2^k |\chi|$ \Comment estimate cardinality of $A$
+  \end{algorithmic}
+\end{algorithm}
+
+Let us consider algorithm \circled{B} in a state where $k$ subsampling steps have been performed, i.e., $p = 2^{-k}$.
+The algorithm would perform a coin flip lazily with probability $p$ when it encounters the next stream element.
+The transformation \circled{C} is shown in \cref{alg:cvm_simul}, and we prove that it computes precisely the same distribution as \circled{B}.
+In \circled{C}, we eagerly perform a fixed number of coin flips for each sequence element at the beginning.
+Now, each element is put into the state $\chi$, whenever the first $k$ coin flips associated with the sequence element are all $1$s.
+This happens exactly with probability $2^{-k}$, which means the behaviour of the algorithm is unchanged from \circled{B}.
+Similarly, in the subsampling operation, only those elements whose $k+1$-th associated coin flip is $1$ are kept; the operation $p \mapsto \frac{p}{2}$ is replaced with $k \mapsto k+1$.
+This again preserves the behaviour of \circled{B} that each element is discarded independently with probability $1/2$.
+
+It is easy to show for \circled{C} that the coin flips are independent, and that the set of elements in $\chi$ in any state are exactly those stream elements for which the first $k$ entries of their associated coin flips are $1$.
+The final random process $\circled{D}$ directly computes the final set of elements in $\chi$ after the stream, taking $K$ as a fixed parameter; one relates \circled{C} to \circled{D} by:
+\[ \prob_{\circled{C}}(k = K \land \chi = X)  \leq \prob_{\circled{D}_K}(\chi = X)\]
+for fixed values of $K$ and $X$.
+To see how tail bounds can be derived from this inequality, let us first consider the failure event where the algorithm \circled{C}'s estimate exceeds the desired estimation interval and it ends with some fixed value $k = K$.
+Using \circled{D}, this can be bounded using a Chernoff bound for the probability that the number of stream elements whose associated coin flips start with $K$ $1$s is outside $2^{-K} |A| (1 \pm \varepsilon)$.
+Now, we can take a union bound over all the possible values $K$ to establish a global bound for the failure event in \circled{C}.
+This is explained in more detail by Chakraborty et al.~\cite{chakraborty2023}.
+
+\subsection{Eager to Lazy Coin Flips}
+A remaining question is how to formalize the transformation from \circled{B} to \circled{C}.
+Our insight is that it is best to solve the problem backwards, i.e., we start with the modified algorithm \circled{C}, which performs all the coin flips in advance \emph{eagerly} and convert it back to \circled{B} which implicitly performs the coin flips \emph{lazily} at the point they are needed.
+
+The main idea is to automatically push down the coin flips through the expression tree of \cref{alg:cvm_simul}.
+To explain how this works, let us first define the \emph{sampling} function, i.e., let $f$ be a function that takes as argument a vector of coin flips indexed by $I$, then we can express the distribution of $f$ with respect to independent unbiased coin flips as:
+\begin{isabelle_cm}
+  sample\ f\ \isacharequal\ map{\isacharunderscore}pmf\ f\ {\isacharparenleft}prod{\isacharunderscore}pmf\ I\ {\isacharparenleft}\isasymlambda\isacharunderscore\isachardot\ bernoulli{\isacharunderscore}pmf \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright\isacharparenright\isacharparenright
+\end{isabelle_cm}
+The interesting fact is that we can distribute the sampling operation over composition:
+\begin{observation}\label{o:sample_distrib} Let $f,g$ be functions consuming a set of coin flips (indexed by $I$), where $g$ also consumes the output of $f$, such that,
+$f$ depends only on the coin flips indexed by $J \subseteq I$ and $g$ depends on the complement $I - J$, then:
+\begin{isabelle_cm}
+  sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ g\ \isasymomega\ \isasymcirc\ f\ \isasymomega{\isacharparenright}\ \isacharequal\ sample\ f\ \isasymbind\ \isacharparenleft{\isasymlambda}x\isachardot\ sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ g\ \isasymomega\ x\isacharparenright\isacharparenright
+\end{isabelle_cm}
+\end{observation}
+By recursively applying the observation, we end up with elementary lookup operations, e.g., \isa{sample\ \isacharparenleft\isasymlambda\isasymomega\isachardot\ \isasymomega\ i\isacharparenright}, for which it is easy to see that it is just a coin flip, i.e., equal to \isa{bernoulli{\isacharunderscore}pmf\ \isacharparenleft\isadigit{1}/\isadigit{2}\isacharparenright}.
+This lets us readily transform \circled{C} to \circled{B} and prove their distributions equivalent.
+
+A detail that we have simplified here is that the split of the index sets, e.g., which coin flips $f$ depends on and which coin flips $g$ depends on, may be dynamic.
+For example, when the algorithm increases the subsampling counter $k$, it will have read the corresponding row of coin flips.
+This means we have a situation where the previous loop iteration communicates to the next loop iteration which coin flips it depends on using the state; and the next loop iteration will indeed only read coin flips that were not read by the previous iteration.
+
+To handle these situations we generalized \cref{o:sample_distrib} to allow for the case where the set of indices $J$ splitting the set of coin flips $f$ and $g$ depend on, may itself depend on the result of $f$.
+
+\section{Related Work}\label{sec:related_work}
+\subsection{Algorithms for the Distinct Elements Problem}
+It is important to note that there are several practical solutions for the distinct elements problem.
+The first solution was presented by Flajolet~\cite{flajolet1985} in 1985; however, like many other authors~\cite{flajolet2007,heule2013}, his solution makes the assumption that a fixed hash function can be regarded as a fully random function.
+Alon et al.~\cite[Section 2.3]{alon1999} presented an easy remedy, which does not require such unmotivated model assumptions.
+Their algorithm just relies on keeping track of the maximum of the hash values of the stream elements, where the hash function must be chosen uniformly from a pairwise independent family.
+
+Later, Bar-Yossef et al.~\cite{baryossef2002}, Kane et al.~\cite{kane2010} and B\l{}asiok in 2020~\cite{blasiok2020} improved on the solution by Alon et al.
+For example, Bar-Yossef et al.\ present a solution (Algorithm~3 in their work) with a space-complexity of $\bigo(\ln (\delta^{-1}) (\varepsilon^{-2}(\ln(\varepsilon^{-1})+\ln b) + b)))$, which can be implemented in practice.
+This is slightly better than the CVM algorithm which requires $\bigo(\varepsilon^{-2} \ln (\delta^{-1}l) b)$. In particular, there is no dependency on the length of the stream $l$.
+The more recent and more sophisticated solution by B\l{}asiok is space-optimal, with a space complexity of $\bigo(\varepsilon^{-2} \ln (\delta^{-1}) + b)$.
+We~\cite{karayel2023} presented a version of the latter that preserves monotonicity and supports the merge-operation, which enables its use in distributed settings, such as Map-Reduce pipelines~\cite{dean2010}.
+It should be noted that these recent algorithms are mostly of theoretical interest, as the constants, as well as the implementation complexity, are rather large.
+A comprehensive review of distinct elements algorithms has been compiled by Pettie and Wang~\cite[Table~1]{pettie2021}.
+What makes the CVM algorithm unique is its simplicity and the fact that it does not rely on hashing, which may enable more general use-cases than the traditional algorithms.
+
+The aforementioned hash-based algorithms are biased; Flajolet et al.~\cite{flajolet1985} points this out and also provides bounds on the distance between the expected result and the cardinality of the stream.
+Most authors do not discuss the matter of bias but it is not hard to show.
+One issue, for example, is that the usual method to amplify the accuracy of these algorithms is using the median, which does not preserve expectations.
+In the context of query processing, unbiasedness has been discussed~\cite[Section 2.1]{haas1995}, but we could not find any similar discussion for the distinct elements problem in the streaming model.
+
+\subsection{Probabilistic Invariants and Formalization}
+As far as we know, probabilistic invariants have not been used to establish exponentially decreasing tail-bounds.
+However, it is fairly common to use recursive analysis techniques to establish results about expectations or variance of random variables, such as their run-time~\cite[Section 1.4]{motwani1995}.
+This is easy due to the linearity of expectations and---for independent random variables---linearity of variances.
+A simple example is the Morris counter~\cite{morris1978} or the expected run-time of the quick-sort algorithm~\cite[Section 2.5]{mitzenmacher2017}.
+
+There is also research on the (automated) analysis of loop invariants, for probabilistic loops, using their characteristic functions~\cite{batz2023, mciver2005}.
+This approach works by establishing the limiting distribution of the state of the loop.
+De Medeiros et al.~\cite[Section 3.2]{demedeiros2024} also establish methods to derive limiting distributions of probabilistic loops.
+Our approach differs from these techniques by avoiding computation of the distribution, which, we think, is infeasible for the CVM algorithm.
+Instead, we investigate invariants of classes of functions of the distributions, which are relevant for the analysis.
+There is research on automated evaluation of moments for restricted classes of loops which contain only polynomial assignments and no branches~\cite{bartocci2019,kofnov2022}.
+However, these methods do not extend to algorithms with non-continuous operations, or control flow that depends on non-deterministic state variables.
+
+Finally, verification of randomized algorithms expressed in functional programming languages has been tackled by various authors using various proof assistants~\cite{audebaud2009,bosshard2024,demedeiros2024, eberl2020,gopinathan20,haslbeck2016,hurd03,Probabilistic_Prime_Tests-AFP,tan2024,tassarotti2021}; the most closely related efforts are our mechanizations of frequency moments algorithms~\cite{karayel2022, karayel2023}.
+Moreover, for classical imperative randomized algorithms, there are approaches based on probabilistic Hoare logic~\cite{denhartog2002}.
+An interesting related work by Haselwarter et al.~\cite{haselwarter2025} discusses some of the issues we encountered in the transformation-based proof (Section~\ref{sec:transformation_based_proof}), such as (approximate) equivalence between related randomized algorithms.
+However, because our work reasons directly over the semantics of randomized algorithms expressed in the Giry monad, we did not deeply explore probabilistic logic-based methods.
+
+\section{Conclusion}\label{sec:conclusion}
+We presented the first formalization of the CVM algorithm using Isabelle/HOL.
+Central to our formalization is a novel invariant-based proof technique to establish exponentially decreasing tail-bounds for randomized algorithms, which is inspired by our alternative analysis of the CVM algorithm via the Cram\'{e}r--Chernoff method.
+Our technique can be summarized by the following two steps:
+\begin{enumerate}
+\item Find functionals over the state distribution of the algorithm, for which it is possible to establish bounds on their expectation inductively/recursively.
+\item Use those bounds to establish tail bounds on the result of the algorithm.
+\end{enumerate}
+Comparing our approach against the original proof by Chakraborty et al.~\cite{chakraborty2023} shows that our technique yields a considerably shorter formalization (with \locnew~vs.~\locold~lines).
+Interestingly, our technique also readily generalized to a new CVM variant with stronger properties (totality and unbiasedness)---we formalized this latter version using the same invariant, together with a new library of results for negative association.
+In future work, it would be interesting to formalize other variations of subsampling for CVM.
+
+Note that we have yet to apply our proof technique to examples beyond CVM. (It is easy to construct artificial examples.)
+Identifying realistic applications for our new method is an interesting avenue for future work---this could lead to further refinements of the method, and a better understanding of how to identify suitable functionals for the proofs.
 
 \bibliography{main}
 
