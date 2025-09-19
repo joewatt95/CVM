@@ -1,0 +1,72 @@
+%\newcommand{streamcolor}{#5D8AA8}
+\definecolor{streamcolor1}{rgb}{1.0, 0.94, 0.0}
+%\definecolor{streamcolor1}{rgb}{0.36, 0.54, 0.66}
+\definecolor{streamcolor2}{rgb}{0.9, 0.17, 0.31}
+\definecolor{streamcolor3}{rgb}{0.0, 0.5, 0.0}
+\definecolor{streamcolor4}{rgb}{0.0, 0.5, 1.0}
+\definecolor{streamcolor5}{rgb}{0.74, 0.2, 0.64}
+\definecolor{tailcoinbordercolor}{rgb}{0.13, 0.67, 0.8}
+\definecolor{tailcoinfillcolor}{rgb}{0.54, 0.81, 0.94}
+\definecolor{headcoinbordercolor}{rgb}{1.0, 0.44, 0.37}
+\definecolor{headcoinfillcolor}{rgb}{0.98, 0.91, 0.71}
+
+\newcommand{\illustratestate}[7]{
+  \begin{tikzpicture}[
+    streamcell/.style={circle, draw=black, fill=black!15, thick, text centered,inner sep=3pt,minimum width=0.6cm},
+    arrow/.style={thick,-{Latex[length=.32cm, width=.32cm,fill=white]}},
+    coin/.style={circle, draw=orange, fill=yellow, thick},
+  ]
+  \node[streamcell,fill=streamcolor3] at (0cm,0 cm) {};
+  \node[streamcell,fill=streamcolor1] at (1cm,0 cm) {};
+  \node[streamcell,fill=streamcolor3] at (2cm,0 cm) {};
+  \node[streamcell,fill=streamcolor2] at (3cm,0 cm) {};
+  \node[streamcell,fill=streamcolor4] at (4cm,0 cm) {};
+  \node[streamcell,fill=streamcolor5] at (5cm,0 cm) {};
+  \node[streamcell,fill=streamcolor1] at (6cm,0 cm) {};
+  \node[streamcell,fill=streamcolor2] at (7cm,0 cm) {};
+  \node[streamcell,fill=streamcolor3] at (8cm,0 cm) {};
+  \node at (9cm,0cm) {$\cdots$};
+  \draw[arrow] (1cm * #1, -1.5cm) to (1cm * #1, -0.5cm);
+  \node (robot) at (0,-3.5cm)
+    {\includegraphics[width=.25\textwidth]{contrib/vecteezy_cute-robot-holding-clipboard-cartoon-icon-illustration_53779545_655/vecteezy_cute-robot-holding-clipboard-cartoon-icon-illustration_53779545}};
+
+  \node[anchor=west] at (1.4cm, -3.1cm) {$\chi = \{$};
+  \ifthenelse{\equal{#3}{empty}}{}{\node[streamcell,fill=#3] at (3cm, -3.1cm) {};}
+  \ifthenelse{\equal{#4}{empty}}{}{\node[streamcell,fill=#4] at (3.8cm, -3.1cm) {};}
+  \ifthenelse{\equal{#5}{empty}}{}{\node[streamcell,fill=#5] at (4.6cm, -3.1cm) {};}
+  \ifthenelse{\equal{#6}{empty}}{}{\node[streamcell,fill=#6] at (5.4cm, -3.1cm) {};}
+  \node at (6cm, -3.1cm) {$\}$};
+
+  \ifthenelse{\equal{#7}{head}}{
+    \node[coin,fill=headcoinfillcolor,draw=headcoinbordercolor] at (-1cm,-3.5cm) {H}; 
+  }{}
+  \ifthenelse{\equal{#7}{tail}}{
+    \node[coin,fill=tailcoinfillcolor,draw=tailcoinbordercolor] at (-1cm,-3.5cm) {T}; 
+  }{}
+
+  \node[anchor=west] at (1.4cm, -3.8cm) {$p = #2, n = 4$};
+
+  \end{tikzpicture}
+}
+
+\begin{frame}
+\frametitle{Illustration of the Algorithm}
+
+\only<1>{\illustratestate{0}{1}{empty}{empty}{empty}{empty}{none}}
+\only<2>{\illustratestate{0}{1}{empty}{empty}{empty}{empty}{head}}
+\only<3>{\illustratestate{0}{1}{streamcolor3}{empty}{empty}{empty}{head}}
+\only<4>{\illustratestate{1}{1}{streamcolor3}{empty}{empty}{empty}{head}}
+\only<5>{\illustratestate{2}{1}{streamcolor3}{streamcolor1}{empty}{empty}{head}}
+\only<6>{\illustratestate{3}{1}{streamcolor3}{streamcolor1}{empty}{empty}{head}}
+\only<7>{\illustratestate{4}{1}{streamcolor3}{streamcolor1}{streamcolor2}{empty}{head}}
+\only<8>{\illustratestate{4}{1}{streamcolor3}{streamcolor1}{streamcolor2}{streamcolor4}{head}}
+\only<9>{\illustratestate{4}{1}{empty}{streamcolor1}{streamcolor2}{empty}{none}}
+\only<10>{\illustratestate{4}{\frac{1}{2}}{empty}{streamcolor1}{streamcolor2}{empty}{none}}
+\only<11>{\illustratestate{5}{\frac{1}{2}}{empty}{streamcolor1}{streamcolor2}{empty}{none}}
+\only<12>{\illustratestate{5}{\frac{1}{2}}{empty}{streamcolor1}{streamcolor2}{empty}{head}}
+\only<13>{\illustratestate{5}{\frac{1}{2}}{streamcolor5}{streamcolor1}{streamcolor2}{empty}{head}}
+\only<14>{\illustratestate{6}{\frac{1}{2}}{streamcolor5}{streamcolor1}{streamcolor2}{empty}{none}}
+\only<15>{\illustratestate{6}{\frac{1}{2}}{streamcolor5}{streamcolor1}{streamcolor2}{empty}{tail}}
+\only<16>{\illustratestate{6}{\frac{1}{2}}{streamcolor5}{empty}{streamcolor2}{empty}{taiil}}
+\only<17>{\illustratestate{7}{\frac{1}{2}}{streamcolor5}{empty}{streamcolor2}{empty}{taiil}}
+\end{frame}

@@ -1,0 +1,500 @@
+\documentclass{beamer}
+\usetheme{Rochester}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{calc}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw, minimum size=3.5mm,inner sep=0.5pt] (char) {#1};}}
+
+\usepackage{ifthen}
+\usepackage[noend]{algpseudocode}
+\usepackage{soul}
+\usepackage{isabelle}
+\usepackage{isabellesym}
+\isabellestyle{it}
+
+\DeclareMathOperator{\mbind}{\text{\isa{\isasymbind}}}
+\DeclareMathOperator{\expect}{\mathrm{E}}
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcommand{\ift}[3]{\mathbf{if} \; #1 \; \mathbf{then} \; #2 \; \mathbf{else} \; #3}
+\newcommand{\integral}[3]{\int_{#1} \! #2 \, \mathrm{d} #3}
+
+\newcommand{\getsr}{\xleftarrow{\$}}
+
+\title{Verification of the CVM algorithm with a Functional Probabilistic Invariant}
+\author{E. Karayel\inst{1}, J. Watt\inst{2}, D. Khu\inst{2}, K. Meel\inst{3}, Y. K. Tan\inst{2}}
+\institute[VFU]{
+  \inst{1}%
+    Technical University of Munich
+  \and
+  \inst{2}%
+    Institute for Infocomm Research (I$^2$R), A*STAR, Singapore
+  \and
+  \inst{3}%
+    University of Toronto
+}
+
+\usepackage{mathtools}
+\DeclareMathOperator{\prob}{\mathcal P}
+\DeclareMathOperator{\bigo}{\mathcal O}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclareMathOperator{\Ber}{\mathrm{Ber}}
+\DeclareMathOperator{\indicat}{\mathrm{I}}
+
+\begin{document}
+\AtBeginSection[]
+{
+    \begin{frame}
+        \frametitle{Table of Contents}
+        \tableofcontents[currentsection]
+    \end{frame}
+}
+
+\frame{\titlepage}
+\section{Introduction to the CVM algorithm}
+\begin{frame}
+\frametitle{What is the CVM algorithm?}
+\begin{itemize}
+\item Name after initals of S. Chakraborty, N. V. Vinodchandran, K. S. Meel
+\item Streaming Algorithm (one-pass)
+\[
+  a_1, \ldots, a_l
+\]
+\item Algorithm has only limited mutable state
+\[
+  \bigo( \varepsilon^{-2} \ln(\delta^{-1} l ) b ) 
+\]
+\item Approximation of the count of distinct elements
+\item Randomized
+\item Small error with high probability
+\[
+  \prob\left(|X - |A|| \geq \varepsilon\right) \leq \delta 
+\]
+for choosable $\varepsilon > 0$, $\delta > 0$.
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Illustration of Streaming Algorithms}
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[
+  streamcell/.style={rectangle, draw=black, fill=black!15, thick, text centered,inner sep=3pt,minimum width=0.6cm},
+]
+\node[streamcell] (cell1) at (-3,2) {$a_1$};
+\node[streamcell] (cell1) at (-2.4,2) {$a_1$};
+\node[streamcell] (cell1) at (-1.8,2) {$a_2$};
+\node at (0,2) {$\cdots$};
+\node[streamcell] (cell1) at (2,2) {$a_{l}$};
+\node (robot) at (0,0)
+    {\includegraphics[width=.25\textwidth]{contrib/vecteezy_cute-robot-holding-clipboard-cartoon-icon-illustration_53779545_655/vecteezy_cute-robot-holding-clipboard-cartoon-icon-illustration_53779545}};
+\end{tikzpicture}
+\end{center}
+\end{figure}
+\end{frame}
+%\section{Comparison with Previous Algorithms}
+\begin{frame}[label=cvm_algorithm]
+\frametitle{The CVM Algorithm}
+%\begin{algorithm}[h!]
+%	\caption{CVM algorithm for distinct elements estimation~\cite{chakraborty2022}.}\label{alg:cvm}
+\begin{algorithmic}
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ % such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$ \Comment random bit $b$ from the Bernoulli distribution
+    \If{$b$} \Comment insert $a_i$ if $b$ is true (with prob. $p$)
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else \Comment remove $a_i$ otherwise
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} \Comment subsample if buffer $\chi$ is full
+      \State $\chi \getsr \mathrm{subsample}(\chi)$
+      \State $p \gets \frac{p}{2}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \Return $\bot$ \Comment fail if $\chi$ remains full
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$ \Comment estimate cardinality of $A$
+\end{algorithmic}
+%\end{algorithm}
+\end{frame}
+
+\input{algorithm_animation}
+
+\againframe{cvm_algorithm}
+
+\begin{frame}
+\frametitle{Comparison with Previous Algorithms}
+
+\begin{table}
+\begin{tabular}{l | l | l | l}
+\hline
+Year & Author(s) & Space & Remarks \\
+\hline
+2001 & Bar-Yossef et al.~\cite{baryossef2002} & $\tilde{O}( \ln(\delta^{-1}) (\varepsilon^{-2}  + b ))$ & M. H. \\
+2007 & HLL~\cite{flajolet2007} & $O(\ln(\delta^{-1} \varepsilon^{-2} \ln b)$ & O. M. \\
+2010 & Kane et al.~\cite{kane2010} & $O( \ln(\delta^-1) (\varepsilon^{-2} + b) )$ & H. \\
+2020 & B\l{}asiok~\cite{blasiok2020} & $O( \varepsilon^{-2} \ln (\delta^{-1}) + b )$ & H. E. \\
+2022 & Karayel~\cite{karayel2022} & $O( \varepsilon^{-2} \ln (\delta^{-1}) + b )$ & H. E. M. \\
+2023 & Chakraborty et al.~\cite{chakraborty2023} & $O( \varepsilon^{-2} \ln( \delta^{-1} l) b )$ & - \\
+\end{tabular}
+\end{table}
+Abbreviations: 
+\begin{itemize}
+\item M: Supports merging of sketches
+\item H: Relies on hash functions.
+\item E: Relies on expander graphs.
+\item O: Random oracle model.
+\end{itemize}
+\end{frame}
+
+\section{Summary of Results}
+\begin{frame}
+\frametitle{Summary of Results}
+\begin{itemize}
+\item <2-> Verification of Correctness \only<6->{using the original and new method}
+\item <3-> Discovery of a new more succint proof (1003 lines vs. 2634 lines.)\only<4->{, which is based on a \emph{new} proof technique for randomized algorithms.}
+\item <5-> We call it: \emph{Functional Probabilistic Invariants}
+\item <7-> Discovery of an unbiased total variant of the algorithm. (Application of our new technique.)
+\end{itemize}
+\end{frame}
+
+\section{Verification using Functional Probabilistic Invariants}
+\begin{frame}[label=algsplit]
+\frametitle{Another slide with the algorithm}
+\begin{algorithmic}
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ % such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \getsr \mathrm{subsample}(\chi)$
+      \State $p \gets \frac{p}{2}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \Return $\bot$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$
+\end{algorithmic}
+
+\tikz[overlay, shift=(current page.north west)]{
+\begin{scope}[x={(current page.north east)},y={(current page.south west)}]
+
+\only<2->{
+        \fill[blue!50, opacity=0.5] (0.07,0.4) rectangle (0.7,0.67);
+        \node [anchor=west] at (0.45,0.535) {Step 1};
+}
+\only<3->{
+        \fill[red!50, opacity=0.5] (0.07,0.675) rectangle (0.7,0.845);
+        \node [anchor=west] at (0.45,0.76) {Step 2};
+}
+\only<4>{
+        \fill[yellow!50,opacity=0.5] (0.07,0.846) rectangle (0.7,0.895);
+        \node [anchor=west] at (0.45,0.87) {Step 3};
+}
+\only<5->{
+        \fill[white] (0.07,0.846) rectangle (0.7,0.895);
+}
+\only<6->{
+  \fill[green!50, opacity=0.5] (0.03, 0.895) rectangle (0.7, 0.97);
+   \node [anchor=west] at (0.45,0.932) {Estimate};
+}
+\end{scope}
+}
+\end{frame}
+
+\begin{frame}
+\frametitle{Giry Monad}
+We can represent randomized algorithms using the Giry monad:
+\begin{itemize}
+\item Primitive random operations, e.g., $\Ber(p)$
+\item Return operation $\mathrm{return} \, x$
+\item Sequential compositon $m \mbind f$
+\end{itemize}
+\pause
+\begin{block}{Fact}
+For an event $E$: 
+\begin{eqnarray*}
+\prob_{m \mbind f}( E )  & = & \int_{m} P_{f(x)} (E) \, dx \onslide<3->{= \sum_x P_{f{x}} (E) P_m({x})} \\
+\onslide<4->{\expect_{m \mbind f}[ g ]  & = & \int_{m} \expect_{f(x)} [g] \, dx}
+\end{eqnarray*}
+\end{block}
+%\end{frame}
+%\begin{frame}
+%\frametitle{Giry Monad II}
+\end{frame}
+\againframe<5>{algsplit}
+\begin{frame}
+\frametitle{Our algorithm in monadic notation}
+\begin{eqnarray*}
+  \mathrm{init} & \mbind & \mathrm{step}_1 a_1 \mbind \mathrm{step}_2 \mbind \mathrm{step}_1 a_2 \mbind \mathrm{step}_2 \cdots \\
+  & \mbind & \mathrm{step_1} a_l \mbind \mathrm{step}_2 \mbind \mathrm{estimate} \\
+  \mathrm{init} & = & \mathrm{return} \, (1, \emptyset)
+\end{eqnarray*}
+\pause
+Key invariant:
+\[
+\expect \left[ \frac{\indicat(x \in \chi)}{p} \right]= 1
+\]
+for all $x$ that are present in the stream.
+%\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{Verifying the invariant: Induction step for Step 2}
+\begin{block}{Assumption}
+$\expect_m \left[ \frac{\indicat(x \in \chi)}{p} \right] = 1$
+\end{block}
+\begin{block}{Goal}
+$ L := \expect_{m \mbind \mathrm{step}_2} \left[ \frac{\indicat(x \in \chi)}{p} \right]= 1$
+\end{block}
+\[
+L =
+\only<1>{\expect_{m \mbind \mathrm{step}_2} \left[ \frac{\indicat(x \in \chi)}{p} \right]}
+\only<2>{\integral{m}
+      {\left(\ift{|\chi|=n}{\integral{\mathrm{subs.}(\chi)}{\frac{\indicat(s \in \tau)}{p/2}}{\tau}}{\frac{\indicat(s \in \chi)}{p}} \right)}
+      {\sigma}}
+\only<3>{\integral{m}
+      {\left(\ift{|\chi|=n}{\frac{p}{2}\integral{\mathrm{subs.}(\chi)}{\indicat(s \in \tau)}{\tau}}{\frac{\indicat(s \in \chi)}{p}} \right)}
+      {\sigma}}
+\only<4>{\integral{m}
+      {\left(\ift{|\chi|=n}{\frac{p}{2}\frac{\indicat(s \in \chi)}{2}}{\frac{\indicat(s \in \chi)}{p}} \right)}
+      {\sigma}}
+\only<5>{\integral{m}
+      {\left(\ift{|\chi|=n}{\frac{\indicat(s \in \chi)}{p}}{\frac{\indicat(s \in \chi)}{p}} \right)}
+      {\sigma}}
+\only<6>{\integral{m}
+      {\left(\frac{\indicat(s \in \chi)}{p} \right)}
+      {\sigma}}
+\only<7>{1}
+\]
+\end{frame}
+
+\begin{frame}<1>[label=observations]
+\frametitle{Observations}
+\begin{itemize}
+\item Expected result is the count of distinct elements.
+\only<2->{\item Can extend the above recursive analysis to more complex expressions: }
+\only<3>{
+\[
+  \expect \left[ h \left( \frac{\indicat(s \in \chi)}{p} \right)\right] \leq h(1)
+\]
+for every non-negative concave function $h$ and stream elements $s$.}
+\only<4->{
+\[
+  \expect \left[ \prod_{s \in S}  h \left( \frac{\indicat(s \in \chi)}{p} \right)\right] \leq h(1)^{|S|}
+\]
+for every non-negative concave function $h$ and subset of stream elements $S$.}
+\only<5->{\item $\Rightarrow$ Approximation Guarantee
+\[
+  \prob\left(|X - |A|| \geq \varepsilon\right) \leq \delta 
+\]
+}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Concentration}
+\begin{tikzpicture}[scale=0.5]
+\begin{axis}[
+    xmin=0, xmax = 6.5,
+    ymin=0, ymax=0.7,
+    axis lines = left,
+    xlabel = {},
+    xtick={2.75,3.75,4.75},
+    xticklabels={$\mu-\varepsilon$,$\mu$,$\mu+\varepsilon$},
+    ytick=\empty,
+    ylabel = {pdf},
+    height = \textwidth,
+    width = \textwidth,
+]
+\addplot [
+    domain=0:6, 
+    samples=1000, 
+]{max(0,35/2*(x/6)^4*(1-x/6)^2)};
+\addplot [
+    domain=4.75:6, 
+    samples=1000, 
+    fill=gray,
+]{max(0,35/2*(x/6)^4*(1-x/6)^2)} \closedcycle;
+\addplot [
+    domain=0:2.75, 
+    samples=1000, 
+    fill=gray,
+]{max(0,35/2*(x/6)^4*(1-x/6)^2)} \closedcycle;
+\draw[color=red, dashed] (axis cs:3.75, 0) -- (axis cs:3.75, 0.7);
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}[scale=0.5]
+\begin{axis}[
+    xmin=0, xmax = 6.5,
+    ymin=0, ymax=0.7,
+    axis lines = left,
+    xlabel = {},
+    xtick={2.75,3.75,4.75},
+    xticklabels={$\mu-\varepsilon$,$\mu$,$\mu+\varepsilon$},
+    ytick=\empty,
+    ylabel = {pdf},
+    height = \textwidth,
+    width = \textwidth,
+]
+\addplot [
+    domain=0:6, 
+    samples=1000, 
+]{0.65*exp(-(2*(x-3.75))^2)};
+\addplot [
+    domain=4.75:6, 
+    samples=1000, 
+    fill=gray,
+]{0.65*exp(-(2*(x-3.75))^2)} \closedcycle;
+\addplot [
+    domain=0:2.75, 
+    samples=1000, 
+    fill=gray,
+]{0.65*exp(-(2*(x-3.75))^2)} \closedcycle;
+\draw[color=red, dashed] (axis cs:3.75, 0) -- (axis cs:3.75, 0.7);
+\end{axis}
+\end{tikzpicture}
+\end{frame}
+
+\againframe<2->{observations}
+
+\begin{frame}
+\frametitle{Observations II}
+\begin{itemize}
+\item The new proof is much shorter than the original proof (1003 lines vs. 2634 lines.)
+\only<2->{\item \emph{As far as we can tell,} this technique is new.}
+\only<3->{\item The new proof opens up the design-space of the algorithm.}
+\only<4>{\item For example we can select the subsampling ratio dynamically.}
+\only<6->{\item More interestingly: It is possible to use a different subsampling operation.}
+\only<7->{\item Select a random $nf$-subset (where $\frac{1}{2} \leq f < 1$, $nf \in \mathbb Z$).}
+\only<8->{\item $\Rightarrow$ Unbiased algorithm}
+\end{itemize}
+\end{frame}
+\againframe<4>{algsplit}
+
+\section{Sketch of the Original Proof}
+\begin{frame}
+\frametitle{Original Proof}
+\begin{tikzpicture}[node distance=2.7cm, auto,scale=0.8,every node/.style={scale=0.8}]
+
+    \node (A) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center] {CVM};
+    \node (B) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=A] {CVM w/o\\ Step 3};
+    \node (C) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=B] {Eager Alg.};
+    \node (D) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=C] {Random \\ Process};
+    \node (E) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=D] {Chernoff \\ Bounds};
+
+    \node (C') [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=B, node distance = 2.0cm] {Functional\\Invariant};
+
+    \node (pac) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=E, node distance = 2.0cm] {CVM PAC\\ Guarantee};
+
+    \draw[thick] ($(A.north west) + (-0.3,0.2)$) rectangle ($(E.south east) + (0.3,-0.6)$);
+    \node[anchor=south] at ($(D.south) + (0.0,-0.6)$) {Transformation-based Proof};
+
+    \draw[dashed,thick] ($(A.north west) + (-0.5,0.4)$) rectangle ($(C'.south east) + (0.2,-0.2)$);
+    \node[anchor=south,align=center] at ($(C'.west) + (-1.5,-0.45)$) {Probabilistic\\Invariant Proof};
+
+    \draw[->] (A) -- (B);
+    \draw[->] (B) -- (C);
+    \draw[->] (B) -- (C');
+    \draw[->] (C) -- (D);
+    \draw[->] (D) -- (E);
+    \draw[->] (E) -- (pac);
+    \draw[->] (C') -- (pac);
+
+\end{tikzpicture}
+
+\end{frame}
+
+\againframe{cvm_algorithm}
+
+\begin{frame}
+\frametitle{CVM Algorithm II}
+\begin{algorithmic}
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ % such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(2^{-k})$ \Comment random bit $b$ from the Bernoulli distribution
+    \If{$b$} \Comment insert $a_i$ if $b$ is true (with prob. $p$)
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else \Comment remove $a_i$ otherwise
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} \Comment subsample if buffer $\chi$ is full
+      \State $\chi \getsr \mathrm{subsample}(\chi)$
+      \State $k \gets k + 1$
+    \EndIf
+  \EndFor
+  \State \Return $2^k |\chi|$ \Comment estimate cardinality of $A$
+\end{algorithmic}
+\end{frame}
+
+\begin{frame}
+\frametitle{Eager Algorithm}
+\begin{algorithmic}
+  \Require Stream elements $a_1,\dots,a_l$, $0 < \varepsilon$, $0 < \delta < 1$.
+  \Ensure A cardinality estimate $R$ for set $A = \{ a_1,\dots,a_l \}$ %such that $\prob \left( |R - |A| | > \varepsilon |A| \right) \leq \delta$
+  \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \State $b[i,j] \getsr \Ber(1/2)$ for $i,j \in \{1,\cdots,l\}$ % \Comment perform $l^2$ unbiased independent coin flips
+  \For{$i \gets 1$ to $l$}
+    \If{$b[i,1]=b[i,2]=\cdots=b[i,k]=1$} % \Comment insert $a_i$ if first $k$ flips are $1$s.
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} \Comment if buffer $\chi$ is full
+      \State $\chi \gets \{a \in \chi \;|\; b[\textrm{last{\textunderscore}index}(a),k+1] = 1\}$ % \Comment keep elems.~whose $k+1$-th flip is $1$
+      \State $k \gets k+1$
+    \EndIf
+  \EndFor
+  \State \Return $2^k |\chi|$ \Comment estimate cardinality of $A$
+  \end{algorithmic}
+\end{frame}
+
+\begin{frame}
+\frametitle{Random Process}
+Previous algorithm preserves the invariant:
+\[
+  s \in \chi \leftrightarrow \textrm{b[ last{\textunderscore}index}(s), 0] = \cdots = \textrm{b[ last{\textunderscore}index}(s), k-1] = 1
+\]
+Establish Chernoff bounds using independence of the coin flips of $b$ for all possible outcomes of $k$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Negative Association}
+\begin{itemize}
+\item Generalization of the concept of Independence
+\pause
+\item Obey rules similar to independent random variables
+\pause
+\item Ober Chernoff-Bounds similar to independent random variables
+\pause
+\item Formalized in a separate AFP entry: Negative{\textunderscore}Association
+\pause
+\item Example: The sequence of bits in an idealized Bloom Filter form an negative dependent set
+\end{itemize}
+
+\section*{References}
+\begin{frame}[allowframebreaks]
+        \frametitle{References}
+        \bibliographystyle{plain}
+        \bibliography{main.bib}
+\end{frame}
+
+\end{document}
