@@ -1,0 +1,139 @@
+\section{Sketch of the Original Proof}
+\begin{frame}
+\frametitle{Original Proof}
+\begin{tikzpicture}[node distance=2.7cm, auto,scale=0.8,every node/.style={scale=0.8}]
+
+    \node (A) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center] {CVM};
+    \node (B) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=A] {CVM w/o\\ Step 3};
+    \node (C) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=B] {Eager Alg.};
+    \node (D) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=C] {Random \\ Process};
+    \node (E) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, right of=D] {Chernoff \\ Bounds};
+
+    \node (C') [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=B, node distance = 2.0cm] {Functional\\Invariant};
+
+    \node (pac) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, below of=E, node distance = 2.0cm] {CVM PAC\\ Guarantee};
+
+    \draw[thick] ($(A.north west) + (-0.3,0.2)$) rectangle ($(E.south east) + (0.3,-0.6)$);
+    \node[anchor=south] at ($(D.south) + (0.0,-0.6)$) {Transformation-based Proof};
+
+    \draw[dashed,thick] ($(A.north west) + (-0.5,0.4)$) rectangle ($(C'.south east) + (0.2,-0.2)$);
+    \node[anchor=south,align=center] at ($(C'.west) + (-1.5,-0.45)$) {Probabilistic\\Invariant Proof};
+
+    \draw[->] (A) -- (B);
+    \draw[->] (B) -- (C);
+    \draw[->] (B) -- (C');
+    \draw[->] (C) -- (D);
+    \draw[->] (D) -- (E);
+    \draw[->] (E) -- (pac);
+    \draw[->] (C') -- (pac);
+
+\end{tikzpicture}
+
+\end{frame}
+
+\newcommand{\overlaytransform}[1]{
+\begin{tikzpicture}[node distance=2.7cm, auto,scale=0.8,every node/.style={scale=0.8}]
+
+\ifthenelse{#1=1}{\colorlet{stagecolor}{gray}}{\colorlet{stagecolor}{white}}
+\node (A) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, fill=stagecolor] {CVM};
+\ifthenelse{#1=2}{\colorlet{stagecolor}{gray}}{\colorlet{stagecolor}{white}}
+\node (B) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, fill=stagecolor, right of=A] {CVM w/o\\ Step 3};
+\ifthenelse{#1=3}{\colorlet{stagecolor}{gray}}{\colorlet{stagecolor}{white}}
+\node (C) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, fill=stagecolor, right of=B] {Eager Alg.};
+\ifthenelse{#1=4}{\colorlet{stagecolor}{gray}}{\colorlet{stagecolor}{white}}
+\node (D) [draw, rectangle, minimum width=2.1cm, minimum height=1.2cm, align=center, fill=stagecolor, right of=C] {Random \\ Process};
+\draw[->] (A) -- (B);
+\draw[->] (B) -- (C);
+\draw[->] (C) -- (D);
+\draw[thick] ($(A.north west) + (-0.3,0.2)$) rectangle ($(D.south east) + (0.3,-0.3)$);
+\end{tikzpicture}
+}
+
+\begin{frame}
+\frametitle{CVM}
+\overlaytransform{1}
+\begin{algorithmic}
+  \State $\chi \gets \{\}, p \gets 1, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6 l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(p)$
+    \If{$b$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \State $\chi \getsr \mathrm{subsample}(\chi)$
+      \State $p \gets \frac{p}{2}$
+    \EndIf
+    \If{$|\chi| = n$}
+      \Return $\bot$
+    \EndIf
+  \EndFor
+  \State \Return $\frac{|\chi|}{p}$
+\end{algorithmic}
+\end{frame}
+
+\begin{frame}
+\frametitle{CVM Algorithm II}
+\overlaytransform{2}
+\begin{algorithmic}
+  \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \For{$i \gets 1$ to $l$}
+    \State $b \getsr \Ber(2^{-k})$ 
+    \If{$b$} 
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else 
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} 
+      \State $\chi \getsr \mathrm{subsample}(\chi)$
+      \State $k \gets k + 1$
+    \EndIf
+  \EndFor
+  \State \Return $2^k |\chi|$ 
+\end{algorithmic}
+\end{frame}
+
+\begin{frame}
+\frametitle{Eager Algorithm}
+\overlaytransform{3}
+\begin{algorithmic}
+  \State $\chi \gets \{\}, k \gets 0, n = \ceil*{\frac{12}{\varepsilon^2} \ln{(\frac{6l}{\delta})} }$
+  \only<2->{\color{red}}
+  \State $b[i,j] \getsr \Ber(1/2)$ for $i,j \in \{1,\cdots,l\}$ % \Comment perform $l^2$ unbiased independent coin flips
+  \only<2->{\color{black}}
+  \For{$i \gets 1$ to $l$}
+    \If{$b[i,1]=b[i,2]=\cdots=b[i,k]=1$}
+      \State $\chi \gets \chi \cup \{a_i\}$
+    \Else
+      \State $\chi \gets \chi - \{a_i\}$
+    \EndIf
+    \If{$|\chi| = n$} % \Comment if buffer $\chi$ is full
+      \State $\chi \gets \{a \in \chi \;|\; b[\textrm{last{\textunderscore}index}(a),k+1] = 1\}$ % \Comment keep elems.~whose $k+1$-th flip is $1$
+      \State $k \gets k+1$
+    \EndIf
+  \EndFor
+  \State \Return $2^k |\chi|$ 
+  \end{algorithmic}
+\end{frame}
+
+\begin{frame}
+\frametitle{Random Process}
+\overlaytransform{4}
+
+\begin{block}{Observation}
+The eager algorithm preserves the invariant:
+\[
+  s \in \chi \leftrightarrow \text{For all $j < k$:} b[ \textrm{last{\textunderscore}index}(s), j] = 1
+\]
+\end{block}
+\pause
+Non-deterministic algorithm:
+\begin{algorithmic}
+  \State $b[i,j] \getsr \Ber(1/2)$ for $i,j \in \{1,\cdots,l\}$ % \Comment perform $l^2$ unbiased independent coin flips
+  \State $k \gets \{0,\dots,k_\mathrm{max}\}$ \Comment Non-deterministc step.
+  \State $\chi \gets \{ s \in A \mid b[ \textrm{last{\textunderscore}index}(s), j] = 1 \textrm { for all } j < k \}$
+  \State \Return $2^k |\chi|$ 
+\end{algorithmic}
+\end{frame}
+
