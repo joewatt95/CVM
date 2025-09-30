@@ -10,5 +10,6 @@ paper "Verification of the CVM algorithm with a Functional Probabilistic Invaria
 
 - [isabelle](isabelle) contains the Isabelle sources for our formalisations.
 - [paper](paper) contains $\LaTeX$ sources for our paper.
+- [presentation](presentation) contains $\LaTeX$ sources for the presentation at the ITP conference.
 - [tools](tools) contains miscellaneous tools.
 - [archive](archive) contains obsolete experiments and formalisations.
