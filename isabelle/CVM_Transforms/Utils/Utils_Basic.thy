@@ -46,7 +46,8 @@ lemma finset_card_filter_eq_iff_Ball :
   assumes \<open>finite A\<close>
   shows \<open>card (Set.filter P A) = card A \<longleftrightarrow> Ball A P\<close>
   using assms
-  by (metis card_seteq dual_order.refl member_filter subsetI subset_antisym)
+  apply simp
+  by (metis (no_types, lifting) card_subset_eq mem_Collect_eq subsetI subset_antisym)
 
 lemma take_length_eq_self :
   \<open>take (length xs) (xs @ ys) = xs\<close>

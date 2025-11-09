@@ -105,7 +105,7 @@ proof -
     \<open>{x \<in> space M. sum_mean_deviation X x \<ge> t} \<in> events\<close>
     using ind[simplified indep_vars_def] by (measurable, fastforce)+
 
-  ultimately show ?thesis by (smt (verit) finite_measure_subadditive)
+  ultimately show ?thesis by (smt (verit, ccfv_threshold) measure_Un_le)
 qed
 
 end

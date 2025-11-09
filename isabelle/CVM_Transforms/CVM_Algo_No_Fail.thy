@@ -56,7 +56,7 @@ lemma
 proof -
   show ?thesis_0 by (simp add: initial_state_def)
   show \<open>PROP ?thesis_1\<close>
-    unfolding step_1_def' by (simp add: AE_measure_pmf_iff remove_def)
+    unfolding step_1_def' by (simp add: AE_measure_pmf_iff)
   moreover show \<open>\<turnstile>pmf \<lbrakk>finite_chi\<rbrakk> step_2 \<lbrakk>finite_chi\<rbrakk>\<close>
     unfolding step_2_def' by (simp add: AE_measure_pmf_iff)
   ultimately show \<open>PROP ?thesis_3\<close>
@@ -131,8 +131,9 @@ proof -
         of_bool (card ?chi = threshold) *
         measure_pmf.expectation (prod_pmf ?chi \<lblot>bernoulli_pmf f\<rblot>)
           (\<lambda> keep_in_chi. \<Prod> x \<in> ?chi. of_bool (keep_in_chi x))\<close>
-        by (auto
-          intro!: integral_cong_AE
+        by (fastforce
+          intro: integral_cong_AE prod.neutral arg_cong[where f = card]
+          dest: card_subset_eq[rotated 2]
           simp add: AE_measure_pmf_iff finset_card_filter_eq_iff_Ball)
 
       also from assms that have \<open>\<dots> \<le> ?R'\<close>

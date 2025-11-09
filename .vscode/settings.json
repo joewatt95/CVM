@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.ml": "sml",
+    "*.sml": "sml",
+    "*.cs": "sml"
+  }
+}
