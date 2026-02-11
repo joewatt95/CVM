@@ -284,7 +284,7 @@ next
     then have \<open>PROP ?not_thesis' _ xs\<close>
       unfolding step_1_eager_def'
       apply simp
-      by (smt (verit, best) less_SucI nth_append)
+      by (smt (verit, best) Set.remove_eq less_Suc_eq nth_append) 
 
     with snoc.IH
     have \<open>state_k (run_reader (run_steps_eager xs initial_state) \<phi>) \<le> l\<close>
@@ -316,7 +316,7 @@ next
       have \<open>?Q (<)\<close>
         unfolding run_steps_eager_snoc step_1_eager_def'
         apply simp
-        by (smt (verit, ccfv_threshold) append.right_neutral lessI nth_append_length take_length_eq_self)
+        by (smt (verit, ccfv_threshold) Set.remove_eq append.right_neutral append_eq_conv_conj less_Suc_eq nth_append_length)
 
       ultimately show False by simp
     qed
